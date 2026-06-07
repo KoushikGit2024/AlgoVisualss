@@ -3,7 +3,7 @@ import { Link, useLocation, useMatch } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Variants } from "framer-motion";
 import { Search, X, ChevronRight, AlertCircle, Code, Database, Activity, Box, Cpu, FileText, MonitorPlay, BadgeInfo } from "lucide-react";
-import { ALGORITHMSNAV } from "../algorithms/categories/AlgoData";
+import { ALGORITHMSNAV } from "../algorithms/data/categories/AlgoData";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type NavItem = {
@@ -165,7 +165,7 @@ function RecursiveNavNode({
       <Link
         to={item.url || "#"}
         onClick={handleClick}
-        className={`group relative w-full flex items-center py-2 rounded-xl cursor-pointer transition-all duration-200 ease-out outline-none my-[2px]
+        className={`group relative w-full flex items-center py-2 rounded-[4px] cursor-pointer transition-all duration-200 ease-out outline-none my-[2px]
           ${collapsed ? "justify-center px-0" : "pr-3"}
           ${isActiveLink 
             ? "text-(--accent) font-semibold" 
@@ -179,14 +179,14 @@ function RecursiveNavNode({
         {isActiveLink && !isFolder && (
           <motion.div
             layoutId="sidebar-premium-pill"
-            className="absolute inset-0 bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] rounded-xl border-l-2 border-(--accent)"
+            className="absolute inset-0 bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] rounded-0 border-l-2 border-(--accent)"
             initial={false}
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
           />
         )}
 
         <div className={`relative z-10 flex items-center w-full gap-2 ${collapsed ? "justify-center" : "justify-between"}`}>
-          <div className={`flex items-center gap-2 truncate ${collapsed ? "justify-center w-full" : "w-9/10"}`}>
+          <div className={`flex items-center gap-2 truncate ${collapsed ? "justify-center w-full" : "w-9/10"} ${!isFolder && "justify-between"}`}>
             {/* SVG Swap magic driven by CSS classes */}
             {item.icon && (typeof item.icon !== "string") && (
               <div className="w-5 h-5 flex items-center justify-center shrink-0 text-(--muted) group-hover:hidden transition-opacity">
@@ -265,13 +265,17 @@ function RecursiveNavNode({
 export default function Sidebar() {
   const pathname = useLocation().pathname;
   
-  // Extract parameters for doc or visualizer routes
+  // Extract parameters for doc, visualizer, or algorithms routes
   const docParams = useMatch("/documentation/:topic/:subTopic?/*");
   const visParams = useMatch("/visualizer/:platform/:qid?/*");
+  const algoParams = useMatch("/algorithms/:topic/:subTopic?/*");
   
-  const { topic } = docParams?.params || { topic: null };
+  const { topic: docTopic } = docParams?.params || { topic: null };
   const { platform } = visParams?.params || { platform: null };
+  const { topic: algoTopic } = algoParams?.params || { topic: null };
   
+  const topic = docTopic || algoTopic;
+
   const [collapsed, setCollapsed] = useState(false);
   const [query, setQuery] = useState("");
   
@@ -280,12 +284,13 @@ export default function Sidebar() {
   const [error, setError] = useState(false);
 
   const isDoc = pathname.startsWith("/documentation/");
-  const isAlgo = pathname.startsWith("/algorithms");
-  const isVis = pathname.startsWith("/visualizer");
+  const isAlgo = pathname.startsWith("/algorithms/");
+  const isVis = pathname.startsWith("/visualizer/");
   
   const isSidebarPage = isDoc || isAlgo || isVis;
   
-  const currentTopic = isAlgo ? "algorithms" : isVis ? (platform || "visualizer") : topic;
+  // Keep headers dynamic based on the active topic parameters
+  const currentTopic = isAlgo ? (algoTopic || "algorithms") : isVis ? (platform || "visualizer") : topic;
 
   useEffect(() => {
     let isMounted = true;
@@ -307,9 +312,14 @@ export default function Sidebar() {
       return;
     }
 
-    // 2. Algorithms Data
+    // 2. Algorithms Data (Filtered by Topic)
     if (isAlgo) {
-      const algoNavItems: NavItem[] = ALGORITHMSNAV.map(algo => ({
+      // Fetch only the object where the lowercase name equals the topic parameter
+      const targetAlgos = algoTopic
+        ? ALGORITHMSNAV.filter((algo) => algo.name.toLowerCase() === algoTopic.toLowerCase())
+        : ALGORITHMSNAV;
+
+      const algoNavItems: NavItem[] = targetAlgos.map(algo => ({
         id: algo.name.toLowerCase().replace(/\s+/g, '-'),
         label: algo.name,
         url: algo.href,
@@ -368,7 +378,7 @@ export default function Sidebar() {
     }
     
     return () => { isMounted = false; };
-  }, [topic, isSidebarPage, isAlgo, isVis, pathname]);
+  }, [topic, algoTopic, isSidebarPage, isAlgo, isVis, pathname]);
 
   const filteredData = useMemo(() => {
     if (!data) return [];
@@ -381,8 +391,8 @@ export default function Sidebar() {
     <motion.aside
       initial={false}
       animate={{ width: collapsed ? 72 : 288 }}
-      transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-      className="h-[calc(100vh-64px)] flex flex-col bg-(--surface) border-r border-(--border) z-20 shrink-0 sticky top-[64px]"
+      transition={{ type: "tween", bounce: 0, duration: 0.4 }}
+      className="h-[calc(100vh-64px)] flex flex-col bg-[var(--surface)] border-r border-[var(--border)] z-20 shrink-0 sticky top-[64px]"
     >
       {/* Premium Main Topic Banner Header Section */}
       <AnimatePresence mode="wait">
@@ -393,16 +403,16 @@ export default function Sidebar() {
             exit={{ opacity: 0, y: -10 }}
             className="px-5 pt-5 pb-2 flex items-center gap-3.5"
           >
-            <div className="w-10 h-10 rounded-xl bg-(--surface-2) border border-(--border) flex items-center justify-center shadow-inner">
+            <div className="w-10 h-10 rounded-sm bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center shadow-inner">
               {getTopicHeroIcon(currentTopic)}
             </div>
             <div className="flex flex-col min-w-0">
-              <h2 className="text-[15px] font-bold text-(--text) tracking-tight capitalize truncate">
+              <h2 className="text-[15px] font-bold text-[var(--text)] tracking-tight capitalize truncate">
                 {currentTopic} Index
               </h2>
-              <span className="text-[10px] font-mono tracking-widest text-(--muted) uppercase">
+              {/* <span className="text-[10px] font-mono tracking-widest text-[var(--muted)] uppercase">
                 {isVis ? "Platform Integration" : "Core Engine Documentation"}
-              </span>
+              </span> */}
             </div>
           </motion.div>
         )}
@@ -410,26 +420,26 @@ export default function Sidebar() {
 
       {/* Input controls layout */}
       <div 
-        className="flex items-center gap-3 p-4 transition-all duration-300 ease-in-out"
+        className="flex items-center gap-0.5 p-4 transition-all duration-300 ease-in-out"
         style={{ justifyContent: collapsed ? "center" : "space-between" }}
       >
         {!collapsed && (
-          <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-(--bg) border border-(--border) rounded-xl transition-all duration-200 focus-within:border-(--accent) focus-within:ring-[3px] focus-within:ring-[color-mix(in_srgb,var(--accent)_15%,transparent)] shadow-sm">
-            <Search size={15} className="text-(--muted)" />
+          <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-[4px] transition-all duration-200 focus-within:border-[var(--accent)] focus-within:ring-[3px] focus-within:ring-[color-mix(in_srgb,var(--accent)_15%,transparent)] shadow-sm">
+            <Search size={15} className="text-[var(--muted)]" />
             <input
               value={query}
               aria-label="search-question"
               onChange={(e) => setQuery(e.target.value)}
               placeholder={isVis ? "Search by title or ID..." : "Quick search index…"}
-              className="flex-1 bg-transparent border-none outline-none text-[13.5px] text-(--text) font-medium min-w-0 placeholder:text-(--muted) placeholder:font-normal"
+              className="flex-1 bg-transparent border-none outline-none text-[13.5px] text-[var(--text)] font-medium min-w-0 placeholder:text-[var(--muted)] placeholder:font-normal"
             />
             {isVis && (
               <div title="For LeetCode , CodeForces and CodeChef IDs starts as LC, CF and CC respectively">
-                <BadgeInfo size={16} className="text-(--muted)" />
+                <BadgeInfo size={16} className="text-[var(--muted)]" />
               </div>
             )}
             {query && (
-              <button onClick={() => setQuery("")} className="text-(--muted) hover:text-(--text) transition-colors">
+              <button onClick={() => setQuery("")} className="text-[var(--muted)] hover:text-[var(--text)] transition-colors">
                 <X size={14} strokeWidth={3} />
               </button>
             )}
@@ -438,11 +448,11 @@ export default function Sidebar() {
 
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="flex items-center justify-center w-[34px] h-[34px] rounded-xl text-(--muted) bg-(--bg) border border-(--border) transition-all duration-200 hover:border-(--accent) hover:bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] hover:text-(--accent) shadow-sm shrink-0"
+          className="flex items-center justify-center w-9 aspect-square rounded-[4px] text-[var(--muted)] bg-[var(--bg)] border border-[var(--border)] transition-all duration-200 hover:border-[var(--accent)] hover:bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] hover:text-[var(--accent)] shadow-sm shrink-0"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <motion.div animate={{ rotate: collapsed ? 180 : 0 }} transition={{ duration: 0.3 }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </motion.div>
@@ -455,15 +465,15 @@ export default function Sidebar() {
           <SidebarSkeleton />
         ) : isVis && !query && !collapsed ? (
           /* Visualizer Empty Search State */
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center h-48 text-(--muted) text-center p-6 text-[13px]">
-            <Search size={28} className="mb-3 opacity-40 text-(--accent)" />
-            <p className="font-semibold text-sm mb-0.5 text-(--text) tracking-tight">Search Questions</p>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center h-48 text-[var(--muted)] text-center p-6 text-[13px]">
+            <Search size={28} className="mb-3 opacity-40 text-[var(--accent)]" />
+            <p className="font-semibold text-sm mb-0.5 text-[var(--text)] tracking-tight">Search Questions</p>
             <p className="opacity-80">Type a problem ID or name (e.g., "Two Sum") to see if it's available.</p>
           </motion.div>
         ) : error || !data || data.length === 0 || (filteredData.length === 0) ? (
           <NotFound />
         ) : (
-          <div className="flex flex-col">
+          <div className="flex flex-col" style={{ gap: collapsed ? 10 : 0 }}>
             {filteredData.map((item) => (
               <RecursiveNavNode
                 key={item.id}

@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+* {
+  box-sizing: border-box;
+}
+
 .page {
   --background: #fafafa;
   --foreground: #fff;
@@ -78,3 +82,5 @@ a.secondary {
     --button-secondary-border: #1a1a1a;
   }
 }
+
+

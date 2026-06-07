@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { useRef,useState,useEffect } from "react";
 import { Link } from "react-router-dom";
 import getFlowData from "../lib/treeSitter";
+import  Editor  from "@monaco-editor/react";
+import CodeWindow from "./documentation/components/parsers/CodeWindow";
 
 // const CppVisualizer = dynamic(() => import('@/actions/CppVisualizer'), { 
 //   ssr: false,
@@ -540,8 +542,14 @@ function Footer() {
 // ─── Main Export ──────────────────────────────────────────────────────────────
 export default function HomePage() {
     async function testParser() {
+      
 
-      const code = `
+      const flowData = await getFlowData(editorCode);
+
+      // console.log(flowData);
+    }
+    
+    const [editorCode,setEditorCode]=useState<string>(`
 #include <iostream>
 #include <vector>
 #include <map>
@@ -658,21 +666,21 @@ int main() {
     cout << "hi";
     return 0;
 }
-      `;
-
-      // const flowData = await getFlowData(code);
-
-      // console.log(flowData);
-    }
-
+      `)
     testParser();
+  console.log(document.documentElement.getAttribute("data-theme"))
   return (
-    <div className="relative w-full" style={{ background: "var(--bg)" }}>
+    <div className="relative w-full px-8  flex flex-col" style={{ background: "var(--bg)" }}>
       {/* <Hero />
       <Features />
       <CTABanner />
       <Footer /> */}
-      hi
+      {/* hi   */}
+      <CodeWindow
+        code={editorCode}
+        editorLanguage="cpp"
+        output="Hello World"
+      />
       {/* <CppVisualizer/> */}
       {/* <CodeEditor/> */}
     </div>

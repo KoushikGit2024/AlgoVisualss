@@ -7,4 +7,5 @@ export interface SidebarItem {
   url?: string;        // The routing path (optional, as parent nodes might just open/close)
   icon?: string;       // Optional icon identifier (e.g., 'home', 'book')
   children?: SidebarItem[]; // Nested sub-topics
+  slNo?: string;
 }

@@ -23,10 +23,10 @@ export const ALGORITHMSNAV = [
     ),
     items:[
       { name: "Two Pointers", href: "/algorithms/arrays/two-pointers", type: "Easy" },
-      { name: "Prefix Sum", href: "/algorithms/arrays/prefix-sum", type: "Easy" },
+      { name: "Kadane's Algorithm", href: "/algorithms/arrays/kadanes", type: "Medium" },      
       { name: "Sliding Window", href: "/algorithms/arrays/sliding-window", type: "Medium" },
-      { name: "Kadane's Algorithm", href: "/algorithms/arrays/kadanes", type: "Medium" },
       { name: "Boyer-Moore Majority", href: "/algorithms/arrays/boyer-moore", type: "Medium" },
+      { name: "Prefix Sum", href: "/algorithms/arrays/prefix-sum", type: "Easy" },
       { name: "Dutch National Flag", href: "/algorithms/arrays/dutch-national-flag", type: "Medium" }
     ],
     desc: "Two pointers, sliding window, prefix sums",
@@ -57,16 +57,16 @@ export const ALGORITHMSNAV = [
     ),
     items:[
       { name: "Bubble Sort", href: "/algorithms/sorting/bubble", type: "Easy" },
-      { name: "Selection Sort", href: "/algorithms/sorting/selection", type: "Easy" },
-      { name: "Insertion Sort", href: "/algorithms/sorting/insertion", type: "Easy" },
       { name: "Merge Sort", href: "/algorithms/sorting/merge", type: "Medium" },
+      { name: "Timsort", href: "/algorithms/sorting/timsort", type: "Hard" },
       { name: "Quick Sort", href: "/algorithms/sorting/quick", type: "Medium" },
       { name: "Heap Sort", href: "/algorithms/sorting/heap", type: "Medium" },
       { name: "Counting Sort", href: "/algorithms/sorting/counting", type: "Medium" },
-      { name: "Bucket Sort", href: "/algorithms/sorting/bucket", type: "Medium" },
+      { name: "Selection Sort", href: "/algorithms/sorting/selection", type: "Easy" },
       { name: "Radix Sort", href: "/algorithms/sorting/radix", type: "Medium" },
+      { name: "Insertion Sort", href: "/algorithms/sorting/insertion", type: "Easy" },
+      { name: "Bucket Sort", href: "/algorithms/sorting/bucket", type: "Medium" },
       { name: "Shell Sort", href: "/algorithms/sorting/shell", type: "Medium" },
-      { name: "Timsort", href: "/algorithms/sorting/timsort", type: "Hard" },
       { name: "Introsort", href: "/algorithms/sorting/introsort", type: "Hard" }
     ],
     desc: "Bubble, merge, quick, heap, counting sort",
@@ -102,13 +102,13 @@ export const ALGORITHMSNAV = [
     ),
     items:[
       { name: "Breadth-First Search (BFS)", href: "/algorithms/graphs/bfs", type: "Easy" },
-      { name: "Depth-First Search (DFS)", href: "/algorithms/graphs/dfs", type: "Easy" },
       { name: "Topological Sort", href: "/algorithms/graphs/topological-sort", type: "Medium" },
       { name: "Dijkstra's Algorithm", href: "/algorithms/graphs/dijkstra", type: "Medium" },
-      { name: "Kruskal's Algorithm", href: "/algorithms/graphs/kruskal", type: "Medium" },
-      { name: "Prim's Algorithm", href: "/algorithms/graphs/prim", type: "Medium" },
       { name: "Bellman-Ford Algorithm", href: "/algorithms/graphs/bellman-ford", type: "Hard" },
       { name: "Floyd-Warshall Algorithm", href: "/algorithms/graphs/floyd-warshall", type: "Hard" },
+      { name: "Kruskal's Algorithm", href: "/algorithms/graphs/kruskal", type: "Medium" },
+      { name: "Prim's Algorithm", href: "/algorithms/graphs/prim", type: "Medium" },
+      { name: "Depth-First Search (DFS)", href: "/algorithms/graphs/dfs", type: "Easy" },
       { name: "Tarjan's SCC", href: "/algorithms/graphs/tarjans", type: "Hard" }
     ],
     desc: "BFS, DFS, Dijkstra, Bellman-Ford, Floyd",
@@ -153,10 +153,10 @@ export const ALGORITHMSNAV = [
       </svg>
     ),
     items:[
+      { name: "AVL Trees", href: "/algorithms/trees/avl", type: "Hard" },
       { name: "Tree Traversals", href: "/algorithms/trees/traversals", type: "Easy" },
       { name: "Binary Search Tree", href: "/algorithms/trees/bst", type: "Medium" },
       { name: "Lowest Common Ancestor", href: "/algorithms/trees/lca", type: "Medium" },
-      { name: "AVL Trees", href: "/algorithms/trees/avl", type: "Hard" },
       { name: "Red-Black Trees", href: "/algorithms/trees/red-black", type: "Hard" }
     ],
     desc: "BST, AVL, segment tree, traversals",
@@ -193,13 +193,13 @@ export const ALGORITHMSNAV = [
       </svg>
     ),
     items:[
-      { name: "Fibonacci Sequence", href: "/algorithms/dynamic_programming/fibonacci", type: "Easy" },
       { name: "0/1 Knapsack", href: "/algorithms/dynamic_programming/knapsack", type: "Medium" },
+      { name: "Matrix Chain Multiplication", href: "/algorithms/dynamic_programming/matrix-chain", type: "Hard" },
       { name: "Longest Common Subsequence", href: "/algorithms/dynamic_programming/lcs", type: "Medium" },
       { name: "Longest Increasing Subsequence", href: "/algorithms/dynamic_programming/lis", type: "Medium" },
       { name: "Coin Change", href: "/algorithms/dynamic_programming/coin-change", type: "Medium" },
-      { name: "Matrix Chain Multiplication", href: "/algorithms/dynamic_programming/matrix-chain", type: "Hard" },
-      { name: "Travelling Salesperson", href: "/algorithms/dynamic_programming/tsp", type: "Hard" }
+      { name: "Travelling Salesperson", href: "/algorithms/dynamic_programming/tsp", type: "Hard" },
+      { name: "Fibonacci Sequence", href: "/algorithms/dynamic_programming/fibonacci", type: "Easy" }
     ],
     desc: "Memoization, tabulation, optimal substructure",
     complexity: "O(n²)",
@@ -231,11 +231,11 @@ export const ALGORITHMSNAV = [
       </svg>
     ),
     items:[
+      { name: "LRU Cache Design", href: "/algorithms/linked_lists/lru-cache", type: "Hard" },
       { name: "Reverse Linked List", href: "/algorithms/linked_lists/reverse", type: "Easy" },
+      { name: "Doubly Linked Lists", href: "/algorithms/linked_lists/doubly", type: "Medium" },
       { name: "Floyd's Cycle Detection", href: "/algorithms/linked_lists/cycle-detection", type: "Easy" },
       { name: "Merge Sorted Lists", href: "/algorithms/linked_lists/merge", type: "Easy" },
-      { name: "Doubly Linked Lists", href: "/algorithms/linked_lists/doubly", type: "Medium" },
-      { name: "LRU Cache Design", href: "/algorithms/linked_lists/lru-cache", type: "Hard" }
     ],
     desc: "Reversal, cycle detection, merge, Floyd's",
     complexity: "O(n)",
@@ -295,9 +295,9 @@ export const ALGORITHMSNAV = [
     ),
     items:[
       { name: "Queue Implementation", href: "/algorithms/queues/implementation", type: "Easy" },
+      { name: "Sliding Window Maximum", href: "/algorithms/queues/sliding-window-max", type: "Hard" },
       { name: "Circular Queue", href: "/algorithms/queues/circular", type: "Medium" },
-      { name: "Double-ended Queue (Deque)", href: "/algorithms/queues/deque", type: "Medium" },
-      { name: "Sliding Window Maximum", href: "/algorithms/queues/sliding-window-max", type: "Hard" }
+      { name: "Double-ended Queue (Deque)", href: "/algorithms/queues/deque", type: "Medium" }
     ],
     desc: "Deque, sliding window max, BFS patterns",
     complexity: "O(n)",
@@ -326,10 +326,10 @@ export const ALGORITHMSNAV = [
       </svg>
     ),
     items:[
-      { name: "Two Sum", href: "/algorithms/hash_maps/two-sum", type: "Easy" },
-      { name: "Group Anagrams", href: "/algorithms/hash_maps/group-anagrams", type: "Medium" },
       { name: "Longest Consecutive Sequence", href: "/algorithms/hash_maps/longest-consecutive", type: "Medium" },
       { name: "Design Hashmap", href: "/algorithms/hash_maps/design", type: "Medium" },
+      { name: "Two Sum", href: "/algorithms/hash_maps/two-sum", type: "Easy" },
+      { name: "Group Anagrams", href: "/algorithms/hash_maps/group-anagrams", type: "Medium" },
       { name: "LFU Cache Design", href: "/algorithms/hash_maps/lfu-cache", type: "Hard" }
     ],
     desc: "Frequency count, anagram, LRU cache",
@@ -368,8 +368,8 @@ export const ALGORITHMSNAV = [
     ),
     items:[
       { name: "Kth Largest Element", href: "/algorithms/heap/kth-largest", type: "Medium" },
-      { name: "Top K Frequent Elements", href: "/algorithms/heap/top-k-frequent", type: "Medium" },
       { name: "Merge K Sorted Lists", href: "/algorithms/heap/merge-k", type: "Hard" },
+      { name: "Top K Frequent Elements", href: "/algorithms/heap/top-k-frequent", type: "Medium" },
       { name: "Find Median from Data Stream", href: "/algorithms/heap/median-stream", type: "Hard" }
     ],
     desc: "Min-heap, max-heap, k-way merge, top-k",
@@ -395,10 +395,10 @@ export const ALGORITHMSNAV = [
     ),
     items:[
       { name: "Subsets", href: "/algorithms/recursion/subsets", type: "Medium" },
-      { name: "Permutations", href: "/algorithms/recursion/permutations", type: "Medium" },
-      { name: "Combination Sum", href: "/algorithms/recursion/combination-sum", type: "Medium" },
       { name: "N-Queens", href: "/algorithms/recursion/n-queens", type: "Hard" },
-      { name: "Sudoku Solver", href: "/algorithms/recursion/sudoku", type: "Hard" }
+      { name: "Sudoku Solver", href: "/algorithms/recursion/sudoku", type: "Hard" },
+      { name: "Permutations", href: "/algorithms/recursion/permutations", type: "Medium" },
+      { name: "Combination Sum", href: "/algorithms/recursion/combination-sum", type: "Medium" }
     ],
     desc: "Backtracking, permutations, divide & conquer",
     complexity: "O(2ⁿ)",
@@ -419,10 +419,10 @@ export const ALGORITHMSNAV = [
       </svg>
     ),
     items:[
-      { name: "Valid Palindrome", href: "/algorithms/strings/palindrome", type: "Easy" },
       { name: "Longest Substring Without Repeats", href: "/algorithms/strings/longest-substring", type: "Medium" },
       { name: "Rabin-Karp Algorithm", href: "/algorithms/strings/rabin-karp", type: "Medium" },
       { name: "KMP Algorithm", href: "/algorithms/strings/kmp", type: "Hard" },
+      { name: "Valid Palindrome", href: "/algorithms/strings/palindrome", type: "Easy" },
       { name: "Z-Algorithm", href: "/algorithms/strings/z-algorithm", type: "Hard" }
     ],
     desc: "KMP, Rabin-Karp, Z-algorithm, trie patterns",
@@ -456,9 +456,9 @@ export const ALGORITHMSNAV = [
       </svg>
     ),
     items:[
+      { name: "Word Search II", href: "/algorithms/tries/word-search-ii", type: "Hard" },
       { name: "Implement Trie", href: "/algorithms/tries/implementation", type: "Medium" },
       { name: "Add and Search Words", href: "/algorithms/tries/add-search", type: "Medium" },
-      { name: "Word Search II", href: "/algorithms/tries/word-search-ii", type: "Hard" }
     ],
     desc: "Prefix trees, autocomplete, word search",
     complexity: "O(m)",
@@ -479,11 +479,11 @@ export const ALGORITHMSNAV = [
       </svg>
     ),
     items:[
-      { name: "Activity Selection", href: "/algorithms/greedy/activity-selection", type: "Easy" },
-      { name: "Fractional Knapsack", href: "/algorithms/greedy/fractional-knapsack", type: "Medium" },
       { name: "Jump Game", href: "/algorithms/greedy/jump-game", type: "Medium" },
       { name: "Huffman Coding", href: "/algorithms/greedy/huffman", type: "Medium" },
-      { name: "Minimum Spanning Tree", href: "/algorithms/greedy/mst", type: "Hard" }
+      { name: "Minimum Spanning Tree", href: "/algorithms/greedy/mst", type: "Hard" },
+      { name: "Activity Selection", href: "/algorithms/greedy/activity-selection", type: "Easy" },
+      { name: "Fractional Knapsack", href: "/algorithms/greedy/fractional-knapsack", type: "Medium" },
     ],
     desc: "Interval scheduling, Huffman, activity selection",
     complexity: "O(n log n)",
@@ -505,9 +505,9 @@ export const ALGORITHMSNAV = [
     items:[
       { name: "Single Number", href: "/algorithms/bit_manipulation/single-number", type: "Easy" },
       { name: "Counting Bits", href: "/algorithms/bit_manipulation/counting-bits", type: "Easy" },
+      { name: "Bitwise AND of Numbers Range", href: "/algorithms/bit_manipulation/bitwise-and", type: "Medium" },
       { name: "Reverse Bits", href: "/algorithms/bit_manipulation/reverse-bits", type: "Easy" },
       { name: "Missing Number", href: "/algorithms/bit_manipulation/missing-number", type: "Easy" },
-      { name: "Bitwise AND of Numbers Range", href: "/algorithms/bit_manipulation/bitwise-and", type: "Medium" }
     ],
     desc: "XOR tricks, bitmasking, power of two",
     complexity: "O(1)",
