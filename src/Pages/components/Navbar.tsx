@@ -2,11 +2,10 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Variants } from "framer-motion";
 import { useEffect, useState, useId } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X,  Search, Command } from "lucide-react";
 
 const navItems = [
   { name: "Algorithms",    href: "/algorithms" },
-  { name: "Documentation", href: "/documentation" },
   { name: "Visualizer",    href: "/visualizer" },
 ];
 
@@ -181,9 +180,25 @@ function MobileDrawer({ open, onClose, pathname }: { open: boolean; onClose: () 
               })}
             </motion.nav>
 
-            {/* Footer */}
-            <div className="p-2 border-t border-[var(--border)] text-center text-[11px] text-[var(--muted)] font-[var(--font-geist-mono),monospace] absolute bottom-0 w-full">
-              <p>AlgoVisuals <span className="opacity-50">v2.1.0</span></p>
+            {/* Footer with Added Links for Mobile */}
+            <div className="mt-auto flex flex-col items-center gap-4 p-6 border-t border-[var(--border)]">
+
+              <a 
+                href="https://github.com/KoushikGit2024/AlgoVisualss" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[var(--muted)] hover:text-[var(--text)] transition-transform hover:scale-110 duration-200"
+                aria-label="GitHub Repository"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.02c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A4.8 4.8 0 0 0 8 18v4"></path>
+                </svg>
+              </a>
+                
+
+              <div className="text-center text-[11px] text-[var(--muted)] font-[var(--font-geist-mono),monospace]">
+                <p>AlgoVisuals <span className="opacity-50">v2.1.0</span></p>
+              </div>
             </div>
           </motion.div>
         </>
@@ -231,29 +246,28 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 w-full h-[64px] border-b border-(--border) bg-[color-mix(in_srgb,var(--bg)_75%,transparent)] backdrop-blur-xl transition-[background,border-color] duration-300 ease-in-out">
+      <nav className="sticky top-0 z-50 w-full h-[64px] border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_75%,transparent)] backdrop-blur-xl transition-[background,border-color] duration-300 ease-in-out">
         <div className="flex items-center justify-between h-full px-6 mx-auto max-w-[1480px]">
           
           <Logo gradId={gradId} lineGradId={lineGradId} glowId={glowId} mounted={mounted} theme={theme} />
           
-          {/* FIXED: Changed to items-center and used gap for natural spacing instead of forced widths */}
-          <div className="flex items-center gap-8 md:gap-12">
+          <div className="flex items-center gap-6 md:gap-8">
             
-            <div className="hidden w-full md:flex md:items-center md:gap-12">
+            {/* Centered Main Nav Links */}
+            <div className="hidden w-full md:flex md:items-center md:gap-8">
               {navItems.map((item) => {
                 const isActive = pathname.startsWith(item.href);
                 return (
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`relative flex items-center justify-center text-sm font-medium transition-colors duration-200 rounded-lg z-10 hover:text-(--text) ${
-                      isActive ? "text-(--accent)" : "text-(--muted)"
+                    className={`relative flex items-center justify-center text-sm font-medium transition-colors duration-200 rounded-lg z-10 hover:text-[var(--text)] ${
+                      isActive ? "text-[var(--accent)]" : "text-[var(--muted)]"
                     }`}
                   >
                     {isActive && (
                       <motion.span
                         layoutId="nav-pill"
-                        /* FIXED: Kept -inset-2 but removed conflicting px-4 py-2 on the absolute element */
                         className="absolute -inset-2 rounded-[6px] -z-10 bg-[color-mix(in_srgb,var(--accent)_12%,transparent)]"
                         transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                       />
@@ -264,19 +278,50 @@ export default function Navbar() {
               })}
             </div>
 
-            <div className="flex items-center gap-3">
+            {/* Right Side Tools & Functionalities */}
+            <div className="flex items-center gap-3 border-l border-transparent md:border-[var(--border)] md:pl-6 transition-colors">
+              
+              {/* Aesthetic Global Search Mockup (Desktop Only) */}
+              <button 
+                className="hidden lg:flex items-center gap-3 px-3 py-1.5 h-[38px] rounded-[10px] bg-[color-mix(in_srgb,var(--surface)_50%,transparent)] border border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)] hover:border-[var(--muted)] transition-all duration-200"
+                onClick={() => console.log("Trigger Command Palette")}
+              >
+                <div className="flex items-center gap-2 text-sm">
+                  <Search size={15} />
+                  <span className="font-normal tracking-tight">Search...</span>
+                </div>
+                <kbd className="hidden xl:flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-[var(--surface-2)] border border-[var(--border)] text-[10px] font-[var(--font-geist-mono),monospace] font-semibold text-[var(--muted)]">
+                  <Command size={10} /> K
+                </kbd>
+              </button>
+
+              {/* GitHub Repository Link */}
+              <a 
+                href="https://github.com/KoushikGit2024/AlgoVisualss" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hidden md:flex items-center justify-center w-[38px] h-[38px] rounded-[10px] border border-[var(--border)] bg-transparent text-[var(--muted)] cursor-pointer transition-all duration-200 ease-in-out hover:text-[var(--text)] hover:border-[var(--text)] hover:bg-[color-mix(in_srgb,var(--surface-2)_50%,transparent)] hover:-translate-y-px hover:shadow-[0_4px_12px_color-mix(in_srgb,var(--text)_5%,transparent)] active:translate-y-px"
+                aria-label="GitHub Repository"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.02c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A4.8 4.8 0 0 0 8 18v4"></path>
+                </svg>
+              </a>
+
+              {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
-                className="flex items-center justify-center w-[38px] h-[38px] rounded-[10px] border border-(--border) bg-transparent text-(--muted) cursor-pointer transition-all duration-200 ease-in-out hover:text-(--accent) hover:border-(--accent) hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] hover:-translate-y-px hover:shadow-[0_4px_12px_color-mix(in_srgb,var(--accent)_10%,transparent)] active:translate-y-px"
+                className="flex items-center justify-center w-[38px] h-[38px] rounded-[10px] border border-[var(--border)] bg-transparent text-[var(--muted)] cursor-pointer transition-all duration-200 ease-in-out hover:text-[var(--accent)] hover:border-[var(--accent)] hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] hover:-translate-y-px hover:shadow-[0_4px_12px_color-mix(in_srgb,var(--accent)_10%,transparent)] active:translate-y-px"
                 aria-label="Toggle theme"
                 suppressHydrationWarning
               >
                 {mounted ? <ThemeIcon theme={theme} /> : <div className="w-4 h-4" />}
               </button>
 
+              {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setDrawerOpen(true)}
-                className="flex items-center justify-center w-[38px] h-[38px] bg-transparent border cursor-pointer md:hidden rounded-[10px] border-(--border) text-(--muted) transition-all duration-200 ease-in-out hover:text-(--accent) hover:border-(--accent) hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] hover:-translate-y-px hover:shadow-[0_4px_12px_color-mix(in_srgb,var(--accent)_10%,transparent)] active:translate-y-px"
+                className="flex items-center justify-center w-[38px] h-[38px] bg-transparent border cursor-pointer md:hidden rounded-[10px] border-[var(--border)] text-[var(--muted)] transition-all duration-200 ease-in-out hover:text-[var(--accent)] hover:border-[var(--accent)] hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] hover:-translate-y-px hover:shadow-[0_4px_12px_color-mix(in_srgb,var(--accent)_10%,transparent)] active:translate-y-px"
                 aria-label="Open menu"
               >
                 <Menu size={18} />

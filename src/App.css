@@ -97,6 +97,8 @@
 /* ─── Base Reset ────────────────────────────────────────────────────────────── */
 html, body {
   max-width: 100vw;
+  margin: 0;
+  padding: 0;
   overflow-x: hidden;
   height: 100%;
 }
@@ -238,4 +240,19 @@ a {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md), 0 0 24px var(--glow-soft);
   border-color: var(--accent);
+}
+
+/* Chrome, Edge, Safari */
+.styled-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.styled-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+/* Firefox */
+.styled-scrollbar {
+  scrollbar-width: auto;
 }

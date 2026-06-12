@@ -3,45 +3,122 @@ import AlgoDirector from './Pages/algorithms/AlgoDirector'
 import Algorithms from './Pages/algorithms/Algorithms'
 import Navbar from './Pages/components/Navbar'
 import Sidebar from './Pages/components/Sidebar'
-import DocDirector from './Pages/documentation/DocDirector'
 import HomePage from './Pages/Home'
-import Documentation from './Pages/documentation/Documentation'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Link } from 'react-router-dom'
 import VisualPlatforms from './Pages/visualizer/VisualPlatforms'
 import Visualizer from './Pages/visualizer/Visualizer'
 
+const Footer = () => {
+  return (
+    <footer className="w-full mt-auto border-t border-[var(--border)] bg-[var(--surface)] text-[14px]">
+      <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        
+        {/* Left Side: Copyright or Brand */}
+        <div className="text-[var(--muted)]">
+          &copy; {new Date().getFullYear()} AlgoVisuals. All rights reserved.
+        </div>
+
+        {/* Right Side: Links & Socials */}
+        <div className="flex items-center gap-6">
+          
+          {/* Page Links */}
+          <Link to="/algorithms" className="text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
+            Algorithms
+          </Link>
+          <Link to="/visualizer" className="text-[var(--muted)] hover:text-[var(--accent)] transition-colors">
+            Visualizer
+          </Link>
+          
+          {/* Subtle Vertical Divider */}
+          <div className="w-px h-4 bg-[var(--border)] hidden sm:block"></div>
+
+          {/* Social Icon Links */}
+          <div className="flex items-center gap-4">
+            <a 
+              href="https://github.com/KoushikGit2024/AlgoVisualss" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[var(--muted)] hover:text-[var(--text)] transition-transform hover:scale-110 duration-200"
+              aria-label="GitHub Repository"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.02c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A4.8 4.8 0 0 0 8 18v4"></path>
+              </svg>
+            </a>
+            
+            <a 
+              href="https://linkedin.com/in/your-profile" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[var(--muted)] hover:text-[#0A66C2] transition-transform hover:scale-110 duration-200"
+              aria-label="LinkedIn Profile"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                <rect x="2" y="9" width="4" height="12"></rect>
+                <circle cx="4" cy="4" r="2"></circle>
+              </svg>
+            </a>
+
+            <a
+              href="https://instagram.com/your-handle"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--muted)] hover:text-[#E4405F] transition-transform hover:scale-110 duration-200"
+              aria-label="Instagram Profile"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M7.75 2C4.574 2 2 4.574 2 7.75v8.5C2 19.426 4.574 22 7.75 22h8.5C19.426 22 22 19.426 22 16.25v-8.5C22 4.574 19.426 2 16.25 2zm0 2h8.5A3.75 3.75 0 0 1 20 7.75v8.5A3.75 3.75 0 0 1 16.25 20h-8.5A3.75 3.75 0 0 1 4 16.25v-8.5A3.75 3.75 0 0 1 7.75 4zm8.75 1a1.25 1.25 0 1 0 0 2.5A1.25 1.25 0 0 0 16.5 5zM12 7a5 5 0 1 0 0 10a5 5 0 0 0 0-10zm0 2a3 3 0 1 1 0 6a3 3 0 0 1 0-6z" />
+              </svg>
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </footer>
+  );
+};
+
 const App = () => {
   return (
-    <div 
-      className="min-h-screen flex flex-col bg-(--bg) text-(--text) antialiased relative selection:bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] selection:text-(--accent)"
-    >
-      {/* ── Top Navigation ── */}
-      <Navbar/>
+    <div className="h-screen w-full flex flex-col overflow-hidden bg-[var(--bg)] text-[var(--text)] antialiased relative selection:bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] selection:text-[var(--accent)]">
+      
+      {/* Navbar Container */}
+      <div className="h-[64px] shrink-0 w-full z-50 relative">
+        <Navbar/>
+      </div>
 
-      {/* ── App Layout Wrapper ── */}
-      <div className="flex flex-1 w-full relative">
-        
-        {/* Sidebar handles its own sticky state internally now */}
+      <div className="flex flex-1 w-full overflow-hidden relative">
         <Sidebar />
-
-        {/* ── Main Content Area ── */}
-        {/* min-w-0 is critical: it prevents wide child elements (like code blocks or tables) from breaking the flex layout and pushing the sidebar off-screen */}
-        <main className="flex-1 min-w-0 flex flex-col relative">
+        
+        <main className="flex-1 min-w-0 overflow-y-auto relative styled-scrollbar scroll-smooth flex flex-col">          
           
-          {/* Subtle gradient shadow under the glassmorphism navbar to blend the scrolling content smoothly */}
-          <div className="absolute top-0 left-0 right-0 h-6 bg-linear-to-b from-(--bg) to-transparent pointer-events-none z-10" />
-
-          {/* Router Views */}
-          <Routes>
-            <Route path='/' element={<HomePage/>} />
-            <Route path='/algorithms' element={<AlgoDirector/>} />
-            <Route path='/algorithms/:topic/:subTopic?' element={<Algorithms/>} />
-            <Route path='/documentation' element={<DocDirector/>} />
-            <Route path='/documentation/:topic/:subTopic?' element={<Documentation/>} />
-            <Route path='/visualizer' element={<VisualPlatforms/>} />
-            <Route path='/visualizer/:platform/:qid?' element={<Visualizer/>} />
-          </Routes>
+          {/* Top Gradient */}
+          <div className="sticky top-0 left-0 right-0 h-6 bg-gradient-to-b from-[var(--bg)] to-transparent pointer-events-none z-10 shrink-0" />
           
+          {/* We wrap Routes in a flex-1 container. This pushes the footer to the bottom even if the page content is short. */}
+          <div className="flex-1 flex flex-col">
+            <Routes>
+              <Route path='/' element={<HomePage/>} />
+              <Route path='/algorithms' element={<AlgoDirector/>} />
+              <Route path='/algorithms/:topic/:subTopic?' element={<Algorithms/>} />
+              <Route path='/visualizer' element={<VisualPlatforms/>} />
+              <Route path='/visualizer/:platform/:qid?' element={<Visualizer/>} />
+            </Routes>
+          </div>
+
+          {/* Footer Component */}
+          <Footer />
+
+          {/* Bottom Gradient (Optional/Commented out) */}
+          {/* <div className="sticky bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-[var(--bg)] to-transparent pointer-events-none z-10 shrink-0" /> */}
+        
         </main>
       </div>
     </div>

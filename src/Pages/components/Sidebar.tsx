@@ -17,7 +17,6 @@ export type NavItem = {
 };
 
 // ─── Mock Data for Visualizer ─────────────────────────────────────────────────
-// This simulates the available questions that can be searched for the visualizer.
 const VISUALIZER_NAV: NavItem[] = [
   {
     id: "leetcode",
@@ -68,7 +67,7 @@ function getTopicHeroIcon(topicName: string | null) {
   if (norm.includes("postgres")) return <Database className="w-6 h-6 text-[#60A5FA]" />;
   if (norm.includes("redis")) return <Database className="w-6 h-6 text-[#EF4444]" />;
   if (norm.includes("tensorflow")) return <Cpu className="w-6 h-6 text-[#F97316]" />;
-  return <FileText className="w-6 h-6 text-(--accent)" />;
+  return <FileText className="w-6 h-6 text-[var(--accent)]" />;
 }
 
 function Highlighted({ text, query }: { text: string; query: string }) {
@@ -78,7 +77,7 @@ function Highlighted({ text, query }: { text: string; query: string }) {
   return (
     <>
       {text.slice(0, idx)}
-      <mark className="px-1 py-px rounded-[4px] bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] text-(--accent) font-semibold shadow-[0_0_8px_color-mix(in_srgb,var(--accent)_40%,transparent)]">
+      <mark className="px-1 py-px rounded-[4px] bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] text-[var(--accent)] font-semibold shadow-[0_0_8px_color-mix(in_srgb,var(--accent)_40%,transparent)]">
         {text.slice(idx, idx + query.length)}
       </mark>
       {text.slice(idx + query.length)}
@@ -119,9 +118,9 @@ function SidebarSkeleton() {
     <motion.div variants={stagger} initial="hidden" animate="visible" className="px-4 py-4 flex flex-col gap-5">
       {[...Array(5)].map((_, i) => (
         <div key={i} className="flex flex-col gap-2">
-          <motion.div variants={item} className="h-5 rounded-md bg-(--surface-2) animate-pulse w-2/3" />
-          <motion.div variants={item} className="h-4 rounded-md bg-(--surface-2) animate-pulse w-5/6 ml-4 opacity-60" />
-          <motion.div variants={item} className="h-4 rounded-md bg-(--surface-2) animate-pulse w-3/4 ml-4 opacity-60" />
+          <motion.div variants={item} className="h-5 rounded-md bg-[var(--surface-2)] animate-pulse w-2/3" />
+          <motion.div variants={item} className="h-4 rounded-md bg-[var(--surface-2)] animate-pulse w-5/6 ml-4 opacity-60" />
+          <motion.div variants={item} className="h-4 rounded-md bg-[var(--surface-2)] animate-pulse w-3/4 ml-4 opacity-60" />
         </div>
       ))}
     </motion.div>
@@ -130,9 +129,9 @@ function SidebarSkeleton() {
 
 function NotFound() {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center h-48 text-(--muted) text-center p-6 text-[13px]">
-      <AlertCircle size={28} className="mb-3 opacity-40 text-(--accent)" />
-      <p className="font-semibold text-sm mb-0.5 text-(--text) tracking-tight">No Results Found</p>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center h-48 text-[var(--muted)] text-center p-6 text-[13px]">
+      <AlertCircle size={28} className="mb-3 opacity-40 text-[var(--accent)]" />
+      <p className="font-semibold text-sm mb-0.5 text-[var(--text)] tracking-tight">No Results Found</p>
       <p className="opacity-80">Try tweaking your search index query.</p>
     </motion.div>
   );
@@ -168,10 +167,10 @@ function RecursiveNavNode({
         className={`group relative w-full flex items-center py-2 rounded-[4px] cursor-pointer transition-all duration-200 ease-out outline-none my-[2px]
           ${collapsed ? "justify-center px-0" : "pr-3"}
           ${isActiveLink 
-            ? "text-(--accent) font-semibold" 
+            ? "text-[var(--accent)] font-semibold" 
             : isTopLevel
-              ? "text-(--text) font-medium tracking-tight hover:bg-(--surface-2)"
-              : "text-(--muted) font-normal hover:text-(--text) hover:bg-[color-mix(in_srgb,var(--surface-2)_40%,transparent)]"
+              ? "text-[var(--text)] font-medium tracking-tight hover:bg-[var(--surface-2)]"
+              : "text-[var(--muted)] font-normal hover:text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--surface-2)_40%,transparent)]"
           }`}
         style={{ paddingLeft: collapsed ? "0px" : `${16 + level * 12}px` }}
       >
@@ -179,7 +178,7 @@ function RecursiveNavNode({
         {isActiveLink && !isFolder && (
           <motion.div
             layoutId="sidebar-premium-pill"
-            className="absolute inset-0 bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] rounded-0 border-l-2 border-(--accent)"
+            className="absolute inset-0 bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] rounded-0 border-l-2 border-[var(--accent)]"
             initial={false}
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
           />
@@ -189,7 +188,7 @@ function RecursiveNavNode({
           <div className={`flex items-center gap-2 truncate ${collapsed ? "justify-center w-full" : "w-9/10"} ${!isFolder && "justify-between"}`}>
             {/* SVG Swap magic driven by CSS classes */}
             {item.icon && (typeof item.icon !== "string") && (
-              <div className="w-5 h-5 flex items-center justify-center shrink-0 text-(--muted) group-hover:hidden transition-opacity">
+              <div className="w-5 h-5 flex items-center justify-center shrink-0 text-[var(--muted)] group-hover:hidden transition-opacity">
                 {item.icon}
               </div>
             )}
@@ -202,7 +201,7 @@ function RecursiveNavNode({
             {/* Supress text and badges when collapsed */}
             {!collapsed && (
               <>
-                <span className={`truncate ${isTopLevel ? "text-[14px] font-semibold" : "text-[13px]"}`}>
+                <span title={item.label} className={`truncate ${isTopLevel ? "text-[14px] font-semibold" : "text-[13px]"}`}>
                   <Highlighted text={item.label} query={query} />
                 </span>
                 
@@ -212,7 +211,7 @@ function RecursiveNavNode({
                     ${item.badge === 'Easy' ? 'text-[#34D399] bg-[#34D399]/10' :
                       item.badge === 'Medium' ? 'text-[#FBBF24] bg-[#FBBF24]/10' :
                       item.badge === 'Hard' ? 'text-[#EF4444] bg-[#EF4444]/10' :
-                      'text-(--muted) bg-(--surface-2)'}
+                      'text-[var(--muted)] bg-[var(--surface-2)]'}
                   `}>
                     {item.badge}
                   </span>
@@ -225,7 +224,7 @@ function RecursiveNavNode({
           {isFolder && !collapsed && (
             <ChevronRight 
               size={14} 
-              className={`shrink-0 transition-transform duration-300 ease-out text-(--muted) group-hover:text-(--text) ${isExpanded ? "rotate-90" : ""}`} 
+              className={`shrink-0 transition-transform duration-300 ease-out text-[var(--muted)] group-hover:text-[var(--text)] ${isExpanded ? "rotate-90" : ""}`} 
             />
           )}
         </div>
@@ -265,33 +264,73 @@ function RecursiveNavNode({
 export default function Sidebar() {
   const pathname = useLocation().pathname;
   
-  // Extract parameters for doc, visualizer, or algorithms routes
-  const docParams = useMatch("/documentation/:topic/:subTopic?/*");
+  // Extract parameters for visualizer or algorithms routes
   const visParams = useMatch("/visualizer/:platform/:qid?/*");
   const algoParams = useMatch("/algorithms/:topic/:subTopic?/*");
   
-  const { topic: docTopic } = docParams?.params || { topic: null };
   const { platform } = visParams?.params || { platform: null };
   const { topic: algoTopic } = algoParams?.params || { topic: null };
-  
-  const topic = docTopic || algoTopic;
 
+  // Resizing and Collapsing State
   const [collapsed, setCollapsed] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(288);
+  const [isResizing, setIsResizing] = useState(false);
+
   const [query, setQuery] = useState("");
-  
   const [data, setData] = useState<NavItem[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const isDoc = pathname.startsWith("/documentation/");
   const isAlgo = pathname.startsWith("/algorithms/");
   const isVis = pathname.startsWith("/visualizer/");
   
-  const isSidebarPage = isDoc || isAlgo || isVis;
+  const isSidebarPage = isAlgo || isVis;
   
-  // Keep headers dynamic based on the active topic parameters
-  const currentTopic = isAlgo ? (algoTopic || "algorithms") : isVis ? (platform || "visualizer") : topic;
+  const currentTopic = isAlgo ? (algoTopic || "algorithms") : (platform || "visualizer");
 
+  // ─── Drag to Resize Logic ──────────────────────────────────────────
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      
+      let newWidth = e.clientX;
+
+      // Snapping to collapse threshold
+      if (newWidth < 150) {
+        setCollapsed(true);
+        newWidth = 72; // Snap to compact width
+      } else {
+        setCollapsed(false);
+        // Add max-width limitation so they don't break the layout
+        if (newWidth > 600) newWidth = 600; 
+      }
+      
+      setSidebarWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      document.body.style.cursor = 'default';
+    };
+
+    if (isResizing) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizing]);
+
+  const startResizing = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  };
+
+  // ─── Data Fetching ───────────────────────────────────────────────
   useEffect(() => {
     let isMounted = true;
     
@@ -303,7 +342,6 @@ export default function Sidebar() {
     setLoading(true);
     setError(false);
 
-    // 1. Visualizer Data 
     if (isVis) {
       if (isMounted) {
         setData(VISUALIZER_NAV);
@@ -312,11 +350,9 @@ export default function Sidebar() {
       return;
     }
 
-    // 2. Algorithms Data (Filtered by Topic)
     if (isAlgo) {
-      // Fetch only the object where the lowercase name equals the topic parameter
       const targetAlgos = algoTopic
-        ? ALGORITHMSNAV.filter((algo) => algo.name.toLowerCase() === algoTopic.toLowerCase())
+        ? ALGORITHMSNAV.filter((algo) => algo.name.toLowerCase() === (algoTopic.toLowerCase()).replace('_',' '))
         : ALGORITHMSNAV;
 
       const algoNavItems: NavItem[] = targetAlgos.map(algo => ({
@@ -340,45 +376,10 @@ export default function Sidebar() {
       return;
     }
 
-    // 3. Dynamic Documentation Topics
-    if (isDoc && topic) {
-      const modules = import.meta.glob("../documentation/data/categories/*Topics.{ts,tsx}");
-      const normalizedTopic = topic.toLowerCase();
-
-      const matchingKey = Object.keys(modules).find((key) => {
-        const lowerKey = key.toLowerCase(); 
-        return lowerKey.includes(`/${normalizedTopic}topics.ts`) || lowerKey.includes(`/${normalizedTopic}topics.tsx`);
-      });
-
-      const importModule = matchingKey ? modules[matchingKey] : undefined;
-
-      if (importModule) {
-        (importModule as () => Promise<any>)()
-          .then((module) => {
-            if (isMounted) {
-              setData(module.default || module.data);
-              setLoading(false);
-            }
-          })
-          .catch((err) => {
-            console.error("Failed to load sidebar data:", err);
-            if (isMounted) {
-              setError(true);
-              setLoading(false);
-            }
-          });
-      } else {
-        if (isMounted) {
-          setError(true);
-          setLoading(false);
-        }
-      }
-    } else {
-       if (isMounted) setLoading(false);
-    }
+    if (isMounted) setLoading(false);
     
     return () => { isMounted = false; };
-  }, [topic, algoTopic, isSidebarPage, isAlgo, isVis, pathname]);
+  }, [algoTopic, isSidebarPage, isAlgo, isVis, pathname, platform]);
 
   const filteredData = useMemo(() => {
     if (!data) return [];
@@ -390,9 +391,11 @@ export default function Sidebar() {
   return (
     <motion.aside
       initial={false}
-      animate={{ width: collapsed ? 72 : 288 }}
-      transition={{ type: "tween", bounce: 0, duration: 0.4 }}
-      className="h-[calc(100vh-64px)] flex flex-col bg-[var(--surface)] border-r border-[var(--border)] z-20 shrink-0 sticky top-[64px]"
+      // Animate seamlessly switches between snapped collapse or dynamic width
+      animate={{ width: collapsed ? 72 : sidebarWidth }}
+      // Prevent Framer easing delay while actively resizing by setting duration: 0
+      transition={isResizing ? { duration: 0 } : { type: "tween", bounce: 0, duration: 0.4 }}
+      className={`h-[calc(100vh-64px)] flex flex-col bg-[var(--surface)] border-r border-[var(--border)] z-20 shrink-0 sticky top-[64px] relative ${isResizing ? 'select-none' : ''}`}
     >
       {/* Premium Main Topic Banner Header Section */}
       <AnimatePresence mode="wait">
@@ -410,9 +413,6 @@ export default function Sidebar() {
               <h2 className="text-[15px] font-bold text-[var(--text)] tracking-tight capitalize truncate">
                 {currentTopic} Index
               </h2>
-              {/* <span className="text-[10px] font-mono tracking-widest text-[var(--muted)] uppercase">
-                {isVis ? "Platform Integration" : "Core Engine Documentation"}
-              </span> */}
             </div>
           </motion.div>
         )}
@@ -424,22 +424,29 @@ export default function Sidebar() {
         style={{ justifyContent: collapsed ? "center" : "space-between" }}
       >
         {!collapsed && (
-          <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-[4px] transition-all duration-200 focus-within:border-[var(--accent)] focus-within:ring-[3px] focus-within:ring-[color-mix(in_srgb,var(--accent)_15%,transparent)] shadow-sm">
-            <Search size={15} className="text-[var(--muted)]" />
+          // 1. Added `overflow-hidden` to the wrapper so it absolutely cannot push past the sidebar width
+          <div className="flex-1 min-w-0 overflow-hidden flex items-center gap-2 px-3 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-[4px] transition-all duration-200 focus-within:border-[var(--accent)] focus-within:ring-[3px] focus-within:ring-[color-mix(in_srgb,var(--accent)_15%,transparent)] shadow-sm">
+            
+            <Search size={15} className="text-[var(--muted)] shrink-0" />
+            
             <input
               value={query}
               aria-label="search-question"
               onChange={(e) => setQuery(e.target.value)}
               placeholder={isVis ? "Search by title or ID..." : "Quick search index…"}
-              className="flex-1 bg-transparent border-none outline-none text-[13.5px] text-[var(--text)] font-medium min-w-0 placeholder:text-[var(--muted)] placeholder:font-normal"
+              // 2. Added `w-full` and `min-w-0`. This breaks the browser's default 150px minimum width limit, 
+              // allowing the input to be squeezed infinitely small while dragging.
+              className="flex-1 w-full min-w-0 bg-transparent border-none outline-none text-[13.5px] text-[var(--text)] font-medium truncate placeholder:text-[var(--muted)] placeholder:font-normal"
             />
+            
             {isVis && (
-              <div title="For LeetCode , CodeForces and CodeChef IDs starts as LC, CF and CC respectively">
+              <div title="For LeetCode , CodeForces and CodeChef IDs starts as LC, CF and CC respectively" className="shrink-0 flex items-center">
                 <BadgeInfo size={16} className="text-[var(--muted)]" />
               </div>
             )}
+            
             {query && (
-              <button onClick={() => setQuery("")} className="text-[var(--muted)] hover:text-[var(--text)] transition-colors">
+              <button onClick={() => setQuery("")} className="text-[var(--muted)] hover:text-[var(--text)] transition-colors shrink-0 flex items-center">
                 <X size={14} strokeWidth={3} />
               </button>
             )}
@@ -447,7 +454,15 @@ export default function Sidebar() {
         )}
 
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={() => {
+            if (collapsed) {
+              setCollapsed(false);
+              // Ensure it opens with a usable width if previously dragged shut
+              if (sidebarWidth < 150) setSidebarWidth(288);
+            } else {
+              setCollapsed(true);
+            }
+          }}
           className="flex items-center justify-center w-9 aspect-square rounded-[4px] text-[var(--muted)] bg-[var(--bg)] border border-[var(--border)] transition-all duration-200 hover:border-[var(--accent)] hover:bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] hover:text-[var(--accent)] shadow-sm shrink-0"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
@@ -481,12 +496,23 @@ export default function Sidebar() {
                 pathname={pathname}
                 query={query}
                 collapsed={collapsed}
-                onExpandSidebar={() => setCollapsed(false)}
+                onExpandSidebar={() => {
+                  setCollapsed(false);
+                  if (sidebarWidth < 150) setSidebarWidth(288);
+                }}
               />
             ))}
           </div>
         )}
       </div>
+
+      {/* ─── Drag Handle ─── */}
+      <div
+        onMouseDown={startResizing}
+        className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-[var(--accent)] active:bg-[var(--accent)] z-50 transition-colors"
+        title="Drag to resize"
+      />
+
     </motion.aside>
   );
 }
