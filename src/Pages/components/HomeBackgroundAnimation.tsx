@@ -1,7 +1,14 @@
 import { useEffect, useRef } from "react";
+type Pulse = [
+  number, number,
+  number, number,
+  number, number,
+  number
+];
+
 
 export default function NetworkBackground() {
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -18,7 +25,7 @@ export default function NetworkBackground() {
     ro.observe(canvas);
 
     // ── Organic Node Generation (Poisson-like scatter) ──
-    const R = [];
+    const R: [number,number][] = [];
     const TARGET_NODES = 85; 
     const MIN_DIST = 8; // Prevents nodes from clumping too closely
 
@@ -47,7 +54,7 @@ export default function NetworkBackground() {
 
     // ── Build graph edges ──
     const CONN = 18.5; // Slightly larger radius to ensure the random scatter connects
-    const edges = [];
+    const edges: number[][] = [];
     for (let i = 0; i < N; i++) {
       for (let j = i + 1; j < N; j++) {
         const dx = R[i][0] - R[j][0];
@@ -58,17 +65,17 @@ export default function NetworkBackground() {
       }
     }
 
-    const adj = Array.from({ length: N }, () => []);
+    const adj: number[][] = Array.from({ length: N }, () => []);
     edges.forEach(([a, b]) => { adj[a].push(b); adj[b].push(a); });
 
-    const eIdx = {};
+    const eIdx: Record<string,number> = {};
     edges.forEach(([a, b], i) => {
       eIdx[`${Math.min(a, b)}-${Math.max(a, b)}`] = i;
     });
-    const ek = (a, b) => `${Math.min(a, b)}-${Math.max(a, b)}`;
+    const ek = (a:number, b:number) => `${Math.min(a, b)}-${Math.max(a, b)}`;
 
     // ── Nearest node ──
-    const nearest = (cx, cy) => {
+    const nearest = (cx:number, cy:number):number => {
       let best = 0, bd = Infinity;
       R.forEach(([x, y], i) => {
         const d = (x - cx) ** 2 + (y - cy) ** 2;
@@ -83,8 +90,8 @@ export default function NetworkBackground() {
     ];
 
     // ── A* pathfinding ──
-    const astar = (src, dst) => {
-      const h  = i => Math.hypot(R[i][0] - R[dst][0], R[i][1] - R[dst][1]);
+    const astar = (src:number, dst:number):number[] => {
+      const h  = (i: number): number => Math.hypot(R[i][0] - R[dst][0], R[i][1] - R[dst][1]);
       const g  = Array(N).fill(Infinity);
       const pv = Array(N).fill(-1);
       const open = new Set([src]);
@@ -100,7 +107,7 @@ export default function NetworkBackground() {
           if (ng < g[nb]) { g[nb] = ng; pv[nb] = curr; open.add(nb); }
         });
       }
-      const path = [];
+      const path: number[] = [];
       for (let c = dst; c !== -1; c = pv[c]) path.unshift(c);
       return path[0] === src ? path : [];
     };
@@ -117,10 +124,10 @@ export default function NetworkBackground() {
     nodeGlowActual[centerNode] = 1;
 
     // ── Pulse pool ──
-    const pulses = [];
+    const pulses: Pulse[] = [];
 
     // ── Phase machine ──
-    let phase      = 'bfs';
+    let phase: 'bfs' | 'path-anim' | 'hold' | 'fade' = 'bfs';
     let activeNode = centerNode;
 
     let bfsQ     = [centerNode];
@@ -128,7 +135,7 @@ export default function NetworkBackground() {
     let lastBfsT = 0;
     const BFS_MS = 200;
 
-    let pathNodes = [], pathEIs = [], pathStep = 0, lastPathT = 0;
+    let pathNodes: number[] = [], pathEIs: number[] = [], pathStep = 0, lastPathT = 0;
     const PATH_MS = 240;
 
     let holdStart = 0;
@@ -136,14 +143,15 @@ export default function NetworkBackground() {
     let fadeStart = 0;
     const FADE_MS = 1400;
 
-    let raf = null;
+    let raf : number | null = null;
 
-    const loop = t => {
+    const loop = (t: number) => {
       const ctx = canvas.getContext('2d');
+      if (!ctx) return;
       const W = canvas.width, H = canvas.height;
       const d = window.devicePixelRatio || 1;
-      const sx = x => (x / 100) * W;
-      const sy = y => (y / 100) * H;
+      const sx = (x: number) => (x / 100) * W;
+      const sy = (y: number) => (y / 100) * H;
 
       const cs    = getComputedStyle(document.documentElement);
       const cBfs  = cs.getPropertyValue('--accent').trim()   || '#6366F1';
@@ -154,7 +162,7 @@ export default function NetworkBackground() {
       if (phase === 'bfs' && t - lastBfsT > BFS_MS) {
         lastBfsT = t;
         if (bfsQ.length > 0) {
-          const curr = bfsQ.shift();
+          const curr = bfsQ.shift()!;
           activeNode = curr;
           adj[curr].forEach((nb, idx) => {
             if (!bfsSeen.has(nb)) {

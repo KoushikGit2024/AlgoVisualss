@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState, useMemo } from "react";
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Play, Pause, FastForward, Activity, Code2, Network, Braces, ChevronRight, CornerDownRight } from "lucide-react";
-import NetworkBackground1 from "./components/NetworkBackground";
-import NetworkBackground from "./components/HomeBackgroundAnimation";
+// import { useEffect, useRef, useState, useMemo } from "react";
+// import { Link } from "react-router-dom";
+// import { motion } from "framer-motion";
+// import { Play, Pause, FastForward, Activity, Code2, Network, Braces, ChevronRight, CornerDownRight } from "lucide-react";
+// import NetworkBackground1 from "./components/NetworkBackground";
+// import NetworkBackground from "./components/HomeBackgroundAnimation";
 import CodeWindow from "../codeVisualizer/CodeWindow";
 
 // ─── Main Landing Page Component (Unchanged) ──────────────────────────────────
