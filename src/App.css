@@ -46,6 +46,7 @@
   --accent-2: #8B5CF6;    /* Violet */
   --accent-3: #EC4899;    /* Pink */
   --success:  #10B981;
+  --failure:  #D94949;
 
   /* Glow & shadows */
   --glow:       rgba(99, 102, 241, 0.18);
@@ -80,6 +81,7 @@
   --accent-2: #A78BFA;    /* Soft violet */
   --accent-3: #F472B6;    /* Soft pink */
   --success:  #34D399;
+  --failure:  #D94949;
 
   /* Glow & shadows */
   --glow:       rgba(129, 140, 248, 0.22);
