@@ -13,6 +13,7 @@ async function getFlowData(sourceCode: string) {
 
   // 2. Parse source into Tree-sitter AST
   const tree = parser.parse(sourceCode);
+  if (!tree) return [];
   console.log(tree)
   // 3. Convert AST to your decoupled IR
   const builder = new IRBuilder();

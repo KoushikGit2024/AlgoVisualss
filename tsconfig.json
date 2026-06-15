@@ -14,7 +14,9 @@
       "@/*": [
         "./src/*"
       ]
-    }
+    },
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
   "exclude": [
     "src/dumpyard",
