@@ -367,7 +367,7 @@ export default function NetworkBackground() {
     };
 
     raf = requestAnimationFrame(loop);
-    return () => { cancelAnimationFrame(raf); ro.disconnect(); };
+    return () => { cancelAnimationFrame(raf!); ro.disconnect(); };
   }, []);
 
   return (

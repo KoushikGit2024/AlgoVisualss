@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 export default function NetworkBackground() {
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -45,7 +45,7 @@ export default function NetworkBackground() {
       "{", "}", "[", "]", "++", "--", "||", "&&", "!==", "0", "1", "0xFA"
     ];
 
-    let raf;
+    let raf: number;
     let d = window.devicePixelRatio || 1;
 
     // Grid calculations
@@ -54,12 +54,12 @@ export default function NetworkBackground() {
     let columns = Math.floor(canvas.width / (COLUMN_SPACING * d));
 
     // State arrays for each independent column
-    let drops = [];
-    let speeds = [];
-    let ticks = [];
-    let lastWords = [];
+    let drops: number[] = [];
+    let speeds: number[] = [];
+    let ticks: number[] = [];
+    let lastWords: string[] = [];
 
-    const initColumn = (x) => {
+    const initColumn = (x: number) => {
       drops[x] = Math.floor(Math.random() * -40); // Start 0 to 40 rows off-screen
       speeds[x] = Math.floor(Math.random() * 3) + 1; // Speed: 1 to 3 ticks per step
       ticks[x] = 0;
