@@ -17,7 +17,7 @@ export default function NetworkBackground() {
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d')!;
     
     // Expanded C++ / SDE specific word pool
     // Multilingual & Algorithmic word pool
@@ -74,7 +74,7 @@ export default function NetworkBackground() {
     const FPS = 30; // Slightly higher base FPS to support multi-speed columns
     const INTERVAL = 1000 / FPS;
 
-    const loop = (time) => {
+    const loop = (time: number) => {
       raf = requestAnimationFrame(loop);
       const deltaTime = time - lastTime;
 
