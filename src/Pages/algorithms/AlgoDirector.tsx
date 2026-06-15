@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { ALGORITHMSNAV } from "./data/categories/AlgoData";
 import "./AlgoDirector.css";
 /* ─── Complexity filter config ──────────────────────────────────────────────── */
+type Algorithm = (typeof ALGORITHMSNAV)[number];
 const FILTERS = [
   { label: "All",         test: () => true },
-  { label: "O(1)",        test: (a) => a.complexity.startsWith("O(1)") },
-  { label: "O(log n)",    test: (a) => a.complexity === "O(log n)" || a.complexity === "O(m)" },
-  { label: "O(n)",        test: (a) => ["O(n)", "O(n + m)", "O(V + E)"].includes(a.complexity) },
-  { label: "O(n log n)",  test: (a) => a.complexity === "O(n log n)" },
-  { label: "Complex",     test: (a) => a.complexity === "O(n²)" || a.complexity === "O(2ⁿ)" },
+  { label: "O(1)",        test: (a:Algorithm) => a.complexity.startsWith("O(1)") },
+  { label: "O(log n)",    test: (a:Algorithm) => a.complexity === "O(log n)" || a.complexity === "O(m)" },
+  { label: "O(n)",        test: (a:Algorithm) => ["O(n)", "O(n + m)", "O(V + E)"].includes(a.complexity) },
+  { label: "O(n log n)",  test: (a:Algorithm) => a.complexity === "O(n log n)" },
+  { label: "Complex",     test: (a:Algorithm) => a.complexity === "O(n²)" || a.complexity === "O(2ⁿ)" },
 ];
 
 /* ─── Component ─────────────────────────────────────────────────────────────── */
@@ -141,7 +142,13 @@ export default function AlgoDirector() {
 }
 
 /* ─── Card sub-component ─────────────────────────────────────────────────────── */
-function AlgoCard({ algo, index, mounted }) {
+type AlgoCardProps = {
+  algo: Algorithm;
+  index: number;
+  mounted: boolean;
+};
+
+function AlgoCard({ algo, index, mounted }:AlgoCardProps) {
   return (
     <a
       href={algo.href}

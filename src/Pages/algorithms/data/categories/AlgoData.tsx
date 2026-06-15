@@ -32,6 +32,7 @@ export const ALGORITHMSNAV = [
     desc: "Two pointers, sliding window, prefix sums",
     complexity: "O(n)",
     count: 6,
+    featured: false,
   },
   {
     name: "Sorting",

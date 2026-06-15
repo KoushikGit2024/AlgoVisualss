@@ -131,9 +131,9 @@ const VariableCard = ({ type, name, value, takefullWidth = false }: { type: stri
 
 // ─── 3. Main Visualizer Component ────────────────────────────────────────────
 const VisualGround = ({
-  code,
+  // code,
   lang,
-  setHighlightLine
+  // setHighlightLine
 }: {
   code: string;
   lang: string;
