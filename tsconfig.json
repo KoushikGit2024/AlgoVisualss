@@ -16,7 +16,8 @@
       ]
     },
     "noUnusedLocals": false,
-    "noUnusedParameters": false
+    "noUnusedParameters": false,
+    "noUnusedVariables": false
   },
   "exclude": [
     "src/dumpyard",
