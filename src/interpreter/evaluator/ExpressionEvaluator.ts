@@ -80,12 +80,19 @@ export class ExpressionEvaluator {
         // Standard variable lookup — propagate errors clearly instead of creating phantom variables
         const symbol = this.scopeManager.getVariable(expr.name);
         
+        let val = symbol.value;
+        // Unwrap pass-by-reference wrapper object
+        if (val && typeof val === "object" && "__ref" in val) {
+          const callerScope = val.__callerScope as any;
+          val = callerScope.getVariable(val.__ref).value;
+        }
+
         this.eventEmitter.emit(expr.line, EventType.READ, {
           variable: expr.name,
-          value: symbol.value
+          value: val
         });
         
-        return symbol.value;
+        return val;
       }
 
       case "UnaryExpression":

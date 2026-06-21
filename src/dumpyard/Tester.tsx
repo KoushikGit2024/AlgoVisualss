@@ -143,7 +143,7 @@
 // };
 
 // export default DynamicTester;
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Graph, { type GraphNode, type GraphEdge } from '../codeVisualizer/dataStructures/Graph';
 
 // ─── Base Topology ──────────────────────────────────────────────────────────

@@ -5,7 +5,8 @@ import type {
   IRDoWhileStatement,
   IRForStatement, 
   IRNode,
-  IRForRangeStatement
+  IRForRangeStatement,
+  IRSwitchStatement
 } from "../ir/IRNode";
 import { BreakSignal, ContinueSignal } from "../utils/helpers";
 import { ScopeManager } from "../runtime/ScopeManager";
@@ -86,6 +87,9 @@ export class IRWalker {
       case "ForRangeStatement":
         this.walkForRangeStatement(stmt);
         break;
+      case "SwitchStatement":
+        this.walkSwitchStatement(stmt);
+        break;
       case "Block":
         this.walkBlock(stmt);
         break;
@@ -108,6 +112,44 @@ export class IRWalker {
       this.walkBlock(stmt.consequent);
     } else if (stmt.alternate) {
       this.walkBlock(stmt.alternate);
+    }
+  }
+
+  private walkSwitchStatement(stmt: IRSwitchStatement): void {
+    const conditionValue = this.evaluator.evaluate(stmt.condition);
+    this.eventEmitter.emit(stmt.line, EventType.CONDITION, { result: conditionValue });
+    
+    // We don't push a new scope for the switch block itself per C++ standard
+    // (Variables declared in switch cases share the same outer scope unless wrapped in `{}`)
+    
+    let fallthrough = false;
+
+    try {
+      for (const caseClause of stmt.cases) {
+        if (!fallthrough && !caseClause.isDefault) {
+          const caseValue = caseClause.value ? this.evaluator.evaluate(caseClause.value) : undefined;
+          if (caseValue === conditionValue) {
+            fallthrough = true;
+          }
+        }
+        
+        if (caseClause.isDefault) {
+          fallthrough = true; // default catches everything if nothing matched before, or if fallthrough is active
+        }
+
+        if (fallthrough) {
+          for (const caseStmt of caseClause.statements) {
+            this.walkStatement(caseStmt);
+          }
+        }
+      }
+    } catch (e: any) {
+      // Catch 'break' to exit the switch block, but re-throw 'continue' or 'return'
+      if (e instanceof BreakSignal || e.name === "BreakSignal") {
+         // Break successfully caught; exit switch
+      } else {
+         throw e;
+      }
     }
   }
 
@@ -186,7 +228,13 @@ export class IRWalker {
     let safetyCounter = 0;
     try {
       if (node.init) {
-        this.walkStatement(node.init);
+        if (Array.isArray(node.init)) {
+          for (const initStmt of node.init) {
+            this.walkStatement(initStmt);
+          }
+        } else {
+          this.walkStatement(node.init);
+        }
       }
 
       while (true) {

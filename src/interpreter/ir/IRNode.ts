@@ -28,6 +28,7 @@ export type AssignmentOperator = "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "&=" |
 export type IRNode =
   | IRProgram
   | IRFunctionDeclaration
+  | IRStructDeclaration
   | IRBlock
   | IRVariableDeclaration
   | IRAssignment
@@ -37,6 +38,7 @@ export type IRNode =
   | IRDoWhileStatement  // Previously missing from union — do-while loops were silently skipped
   | IRForStatement
   | IRForRangeStatement
+  | IRSwitchStatement
   | IRReturnStatement
   | IRBreakStatement
   | IRContinueStatement
@@ -79,13 +81,20 @@ export interface IRBaseNode {
 export interface IRProgram extends IRBaseNode {
   kind: "Program";
   functions: IRFunctionDeclaration[];
+  structs: IRStructDeclaration[];
+}
+
+export interface IRStructDeclaration extends IRBaseNode {
+  kind: "StructDeclaration";
+  name: string;
+  fields: { name: string; type: string; defaultValue?: IRExpression }[];
 }
 
 export interface IRFunctionDeclaration extends IRBaseNode {
   kind: "FunctionDeclaration";
   returnType: string;
   name: string;
-  parameters: { name: string; type: string }[];
+  parameters: { name: string; type: string; isReference?: boolean; defaultValue?: IRExpression }[];
   body: IRBlock;
 }
 
@@ -151,7 +160,7 @@ export interface IRDoWhileStatement extends IRBaseNode {
 
 export interface IRForStatement extends IRBaseNode {
   kind: "ForStatement";
-  init?: IRVariableDeclaration | IRAssignment;
+  init?: IRVariableDeclaration | IRVariableDeclaration[] | IRAssignment;
   condition?: IRExpression;
   update?: IRAssignment | IRExpression;
   body: IRBlock;
@@ -163,6 +172,19 @@ export interface IRForRangeStatement extends IRBaseNode {
   iteratorName: string;
   collection: IRExpression;
   body: IRBlock;
+}
+
+export interface IRCaseClause extends IRBaseNode {
+  kind: "CaseClause";
+  isDefault: boolean;
+  value?: IRExpression; // undefined if isDefault is true
+  statements: IRNode[];
+}
+
+export interface IRSwitchStatement extends IRBaseNode {
+  kind: "SwitchStatement";
+  condition: IRExpression;
+  cases: IRCaseClause[];
 }
 
 export interface IRReturnStatement extends IRBaseNode {

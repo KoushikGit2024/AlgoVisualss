@@ -22,6 +22,9 @@ import type {
   UpdateOperator,
   IREmptyStatement,
   IRForRangeStatement,
+  IRStructDeclaration,
+  IRSwitchStatement,
+  IRCaseClause,
 } from "./IRNode";
 
 /**
@@ -33,7 +36,9 @@ export interface SyntaxNode {
   startPosition: { row: number; column: number };
   child(index: number): SyntaxNode | null;
   childCount: number;
+  children: SyntaxNode[];
   namedChildren: SyntaxNode[];
+  isNamed: boolean;
 }
 
 /**
@@ -54,16 +59,77 @@ export class IRBuilder {
     }
 
     const functions: IRFunctionDeclaration[] = [];
+    const structs: IRStructDeclaration[] = [];
+    
     for (const child of rootNode.namedChildren) {
       if (child.type === "function_definition") {
         functions.push(this.buildFunctionDeclaration(child));
+      } else if (child.type === "struct_specifier" || child.type === "class_specifier") {
+        structs.push(this.buildStructDeclaration(child));
+      } else if (child.type === "declaration") {
+        // Sometimes structs are inside declarations `struct Point { int x; };`
+        const structSpec = child.namedChildren.find(c => c.type === "struct_specifier" || c.type === "class_specifier");
+        if (structSpec) {
+          structs.push(this.buildStructDeclaration(structSpec));
+        }
       }
     }
 
     return {
       kind: "Program",
-      line: rootNode.startPosition.row + 1,
+      line: 1,
       functions,
+      structs,
+    };
+  }
+
+  // ─── Struct Parsing ────────────────────────────────────────────────────────
+
+  private buildStructDeclaration(node: SyntaxNode): IRStructDeclaration {
+    const nameNode = node.namedChildren.find(c => c.type === "type_identifier");
+    const name = nameNode ? nameNode.text : "anonymous_struct";
+    
+    const bodyNode = node.namedChildren.find(c => c.type === "field_declaration_list");
+    const fields: { name: string; type: string; defaultValue?: IRExpression }[] = [];
+
+    if (bodyNode) {
+      for (const field of bodyNode.namedChildren) {
+        if (field.type === "field_declaration") {
+          let type = field.child(0)?.text || "unknown";
+          let decl = field.namedChildren.find(c => c.type === "field_identifier" || c.type === "array_declarator");
+          
+          let fieldName = "unknown";
+          if (decl) {
+            if (decl.type === "array_declarator") {
+              type += "[]";
+              decl = decl.child(0);
+            }
+            fieldName = decl?.text || "unknown";
+          }
+          
+          let defaultValue: IRExpression | undefined = undefined;
+          
+          // Look for default initialization e.g. int x = 0;
+          const eqIndex = field.children.findIndex(c => c.text === "=");
+          if (eqIndex !== -1 && eqIndex + 1 < field.childCount) {
+             const defaultNode = field.child(eqIndex + 1);
+             if (defaultNode && defaultNode.isNamed) {
+                defaultValue = this.buildExpression(defaultNode);
+             }
+          }
+          
+          if (fieldName !== "unknown") {
+            fields.push({ name: fieldName, type, defaultValue });
+          }
+        }
+      }
+    }
+
+    return {
+      kind: "StructDeclaration",
+      line: node.startPosition.row + 1,
+      name,
+      fields
     };
   }
 
@@ -89,19 +155,43 @@ export class IRBuilder {
     const functionNameNode = declaratorNode?.child(0);
     const functionName = functionNameNode?.text || "unknown";
     const parametersNode = declaratorNode?.child(1);
-
-    const parameters: { name: string; type: string }[] = [];
+    const parameters: { name: string; type: string; isReference?: boolean; defaultValue?: IRExpression }[] = [];
     
     if (parametersNode && parametersNode.type === "parameter_list") {
       for (const param of parametersNode.namedChildren) {
-        if (param.type === "parameter_declaration") {
+        if (param.type === "parameter_declaration" || param.type === "optional_parameter_declaration") {
           let paramType = param.child(0)?.text || "unknown";
-          let paramDeclNode = param.child(1);
+          let paramDeclNode = param.namedChildren.find(c => 
+            c.type !== "primitive_type" && c.type !== "type_identifier" && c.type !== "number_literal" && c.type !== "string_literal" && c.type !== "identifier" && c.type !== "true" && c.type !== "false" && c.type !== "null"
+            // Actually, a safer way to find the declarator is to check the named children.
+          );
+          
+          // Let's use the explicit children by index since Tree-sitter C++ grammar is stable:
+          // For parameter_declaration: child(0) = type, child(1) = declarator
+          // For optional_parameter_declaration: child(0) = type, child(1) = declarator, child(2) = '=', child(3) = default_value
+          // (namedChildren skips the '=')
+          paramDeclNode = param.namedChildren.length > 1 ? param.namedChildren[1] : undefined;
+          
           let paramName = "unknown";
+          let isReference = false;
+          let defaultValue: IRExpression | undefined = undefined;
+
+          if (param.type === "optional_parameter_declaration") {
+             // If namedChildren has 3 items, index 2 is the default value expression.
+             // Sometimes declarator is omitted (e.g., `void f(int = 5)`), then namedChildren[1] is the default value.
+             // To be robust, we'll try to parse the last named child as the default expression if it's an optional param.
+             const lastChild = param.namedChildren[param.namedChildren.length - 1];
+             if (lastChild && lastChild !== paramDeclNode) {
+               try { defaultValue = this.buildExpression(lastChild); } catch (e) { /* ignore */ }
+             }
+          }
 
           // Unpack pointer/array brackets attached to the variable name
           while (paramDeclNode && (paramDeclNode.type === "array_declarator" || paramDeclNode.type === "pointer_declarator" || paramDeclNode.type === "reference_declarator")) {
-            if (paramDeclNode.type === "array_declarator") {
+            if (paramDeclNode.type === "reference_declarator") {
+              isReference = true;
+              paramDeclNode = paramDeclNode.child(1);
+            } else if (paramDeclNode.type === "array_declarator") {
               paramType += "[]";
               paramDeclNode = paramDeclNode.child(0); 
             } else {
@@ -116,6 +206,8 @@ export class IRBuilder {
           parameters.push({
             type: paramType,
             name: paramName,
+            isReference,
+            defaultValue
           });
         }
       }
@@ -137,7 +229,12 @@ export class IRBuilder {
   private buildBlock(node: SyntaxNode): IRBlock {
     const statements: IRNode[] = [];
     for (const child of node.namedChildren) {
-      statements.push(this.buildStatement(child));
+      const stmt = this.buildStatement(child);
+      if (Array.isArray(stmt)) {
+        statements.push(...stmt);
+      } else {
+        statements.push(stmt);
+      }
     }
     return {
       kind: "Block",
@@ -146,9 +243,64 @@ export class IRBuilder {
     };
   }
 
-  // ─── Statements ──────────────────────────────────────────────────────────────
+  // ─── SWITCH STATEMENT ──────────────────────────────────────────────────────
+  
+  private buildSwitchStatement(node: SyntaxNode): IRSwitchStatement {
+    const conditionNode = node.child(1)?.child(1); // switch ( condition )
+    const bodyNode = node.namedChildren.find((c) => c.type === "compound_statement");
 
-  private buildStatement(node: SyntaxNode): IRNode {
+    if (!conditionNode || !bodyNode) {
+      throw new Error(`Compilation Error at line ${node.startPosition.row + 1}: Malformed switch statement.`);
+    }
+
+    const cases: IRCaseClause[] = [];
+    
+    for (const child of bodyNode.namedChildren) {
+      if (child.type === "case_statement") {
+        // Tree-sitter struct: case_statement -> case value : statements
+        const isDefault = child.child(0)?.text === "default";
+        
+        let valueNode: SyntaxNode | undefined;
+        let statementStartIndex = 0;
+
+        if (isDefault) {
+           statementStartIndex = 2; // default : ...
+        } else {
+           valueNode = child.namedChildren[0]; // The value
+           statementStartIndex = child.children.findIndex(c => c.text === ":") + 1;
+        }
+
+        const caseStatements: IRNode[] = [];
+        for (let i = statementStartIndex; i < child.childCount; i++) {
+           const c = child.child(i);
+           if (c && c.isNamed) {
+             const stmt = this.buildStatement(c);
+             if (Array.isArray(stmt)) caseStatements.push(...stmt);
+             else caseStatements.push(stmt);
+           }
+        }
+
+        cases.push({
+          kind: "CaseClause",
+          line: child.startPosition.row + 1,
+          isDefault,
+          value: valueNode ? this.buildExpression(valueNode) : undefined,
+          statements: caseStatements
+        });
+      }
+    }
+
+    return {
+      kind: "SwitchStatement",
+      line: node.startPosition.row + 1,
+      condition: this.buildExpression(conditionNode),
+      cases
+    };
+  }
+
+  // ─── FOR STATEMENTS ──────────────────────────────────────────────────────────────
+
+  private buildStatement(node: SyntaxNode): IRNode | IRNode[] {
     switch (node.type) {
       case "declaration":
         return this.buildVariableDeclaration(node);
@@ -162,6 +314,8 @@ export class IRBuilder {
         return this.buildDoWhileStatement(node);
       case "for_statement":
         return this.buildForStatement(node);
+      case "switch_statement":
+        return this.buildSwitchStatement(node);
       case "return_statement":
         return this.buildReturnStatement(node);
       case "break_statement":
@@ -191,17 +345,33 @@ export class IRBuilder {
     }
   }
 
-  private buildVariableDeclaration(node: SyntaxNode): IRVariableDeclaration {
+  private buildVariableDeclaration(node: SyntaxNode): IRVariableDeclaration[] {
     const typeNode = node.child(0);
-    const declaratorNode = node.child(1);
-
-    if (!typeNode || !declaratorNode) {
+    
+    if (!typeNode) {
        throw new Error(`Compilation Error at line ${node.startPosition.row + 1}: Malformed variable declaration.`);
     }
 
-    let name = "unknown";
-    let initializer: IRExpression | undefined = undefined;
-    let constructorArgs: IRExpression[] | undefined = undefined;
+    const declarations: IRVariableDeclaration[] = [];
+
+    // The first is usually the type, the rest are declarators (init_declarator, etc.)
+    const declarators = node.namedChildren.filter(c => 
+       c.type !== "primitive_type" && 
+       c.type !== "type_identifier" && 
+       c.type !== "sized_type_specifier" &&
+       c.type !== "template_type" &&
+       c.type !== "type_qualifier" &&
+       c.type !== "storage_class_specifier" &&
+       c.type !== "struct_specifier"
+    );
+
+    // If for some reason we couldn't filter them well, default to all named children after the first
+    const targetDeclarators = declarators.length > 0 ? declarators : node.namedChildren.slice(1);
+
+    for (const declaratorNode of targetDeclarators) {
+      let name = "unknown";
+      let initializer: IRExpression | undefined = undefined;
+      let constructorArgs: IRExpression[] | undefined = undefined;
 
     // ── CASE A: Explicit assignment initializer (e.g., int x = 5; or int x = expr;)
     if (declaratorNode.type === "init_declarator") {
@@ -256,19 +426,22 @@ export class IRBuilder {
         if (rawArgs.length > 0) constructorArgs = rawArgs;
       }
     }
-    // ── CASE D: Pure declaration (e.g., vector<int> list; or int* ptr;)
-    else {
-      name = this.getDeclaratorName(declaratorNode);
+      // ── CASE D: Pure declaration (e.g., vector<int> list; or int* ptr;)
+      else {
+        name = this.getDeclaratorName(declaratorNode);
+      }
+
+      declarations.push({
+        kind: "VariableDeclaration",
+        line: node.startPosition.row + 1,
+        variableType: typeNode.text,
+        name,
+        initializer,
+        constructorArgs,
+      });
     }
 
-    return {
-      kind: "VariableDeclaration",
-      line: node.startPosition.row + 1,
-      variableType: typeNode.text,
-      name,
-      initializer,
-      constructorArgs,
-    };
+    return declarations;
   }
 
   /**
@@ -377,10 +550,11 @@ export class IRBuilder {
     if (n.type === "compound_statement") {
       return this.buildBlock(n);
     }
+    const stmt = this.buildStatement(n);
     return {
       kind: "Block",
       line: n.startPosition.row + 1,
-      statements: [this.buildStatement(n)]
+      statements: Array.isArray(stmt) ? stmt : [stmt]
     };
   }
 
@@ -455,7 +629,7 @@ export class IRBuilder {
 
     if (!bodyNode) throw new Error(`Syntax Error at line ${node.startPosition.row + 1}: Malformed for loop.`);
 
-    let init: IRVariableDeclaration | IRAssignment | undefined;
+    let init: IRVariableDeclaration | IRVariableDeclaration[] | IRAssignment | undefined;
     if (initNode.type === "declaration") {
       init = this.buildVariableDeclaration(initNode);
     } else if (initNode.type === "assignment_expression") {

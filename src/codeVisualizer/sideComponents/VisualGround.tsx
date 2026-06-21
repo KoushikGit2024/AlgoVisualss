@@ -3,7 +3,8 @@ import { DndContext, closestCenter } from "@dnd-kit/core";
 import type { DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy, arrayMove, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import getFlowData from '../../lib/treeSitter';
+// The ?worker flag is Vite's magic syntax to bundle this as a background thread!
+import EngineWorker from '../../lib/engine.worker?worker';
 import { InfoIcon, Play, Pause, SkipBack, SkipForward, RotateCcw, RefreshCw, Activity, Terminal } from 'lucide-react';
 
 import Graph from '../dataStructures/Graph'; 
@@ -84,18 +85,62 @@ const VisualGround = ({
   const rightPanelRef = useRef<HTMLDivElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
 
-  const handleSimulate = async () => {
+  // ADD THIS:
+  const workerRef = useRef<Worker | null>(null);
+
+  // ADD THIS: Cleanup the worker if the user navigates away from the page
+  useEffect(() => {
+    return () => {
+      if (workerRef.current) workerRef.current.terminate();
+    };
+  }, []);
+  
+  const handleSimulate = () => {
     if (lang !== 'C++') return;
-    setIsCompiling(true); setError(null); setIsPlaying(false); setSnapshots([]);
-    try {
-      const data = await getFlowData(code); 
-      setSnapshots(data); setCurrentStep(0);
-    } catch (err: any) {
-      console.error("FATAL ENGINE CRASH:", err);
-      setError(err.message || "Compilation Failed. Check syntax or engine limits.");
-    } finally {
-      setIsCompiling(false);
+
+    // 1. If the user spams the simulate button, kill the previous worker
+    if (workerRef.current) {
+      workerRef.current.terminate();
     }
+
+    setIsCompiling(true); 
+    setError(null); 
+    setIsPlaying(false); 
+    setSnapshots([]);
+
+    // 2. Spin up the background thread
+    const worker = new EngineWorker();
+    workerRef.current = worker;
+
+    // 3. Listen for the result coming back from the worker
+    worker.onmessage = (e) => {
+      const { success, snapshots, error } = e.data;
+      
+      if (success) {
+        setSnapshots(snapshots); 
+        setCurrentStep(0);
+      } else {
+        console.error("FATAL ENGINE CRASH:", error);
+        setError(error || "Compilation Failed. Check syntax or engine limits.");
+      }
+      
+      // Clean up
+      setIsCompiling(false);
+      worker.terminate();
+      workerRef.current = null;
+    };
+
+    // Fallback error handler for extreme worker crashes (e.g., out of memory)
+    worker.onerror = (err) => {
+      console.error("Worker Thread Error:", err);
+      setError("A fatal worker error occurred (Out of Memory / Timeout).");
+      setIsCompiling(false);
+      worker.terminate();
+      workerRef.current = null;
+    };
+
+    // 4. Send the code to the worker to start the process!
+    worker.postMessage({ sourceCode: code });
   };
 
   const handleResetError = () => {
@@ -107,7 +152,7 @@ const VisualGround = ({
     if (isPlaying && currentStep < snapshots.length - 1) {
       interval = setInterval(() => {
         setCurrentStep((prev) => prev + 1);
-      }, 1000 / speed);
+      }, 10 / speed);
     } else if (currentStep >= snapshots.length - 1) {
       setIsPlaying(false);
     }

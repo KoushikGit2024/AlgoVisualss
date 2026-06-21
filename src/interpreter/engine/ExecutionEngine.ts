@@ -1,4 +1,4 @@
-import type { IRProgram, IRFunctionDeclaration, IRFunctionCall, IRMethodCall, IRNewExpression, IRLambdaExpression } from "../ir/IRNode";
+import type { IRProgram, IRFunctionDeclaration, IRFunctionCall, IRMethodCall, IRNewExpression, IRLambdaExpression, IRStructDeclaration, IRExpression } from "../ir/IRNode";
 import { CallStack } from "../runtime/CallStack";
 import { EventEmitter } from "../events/EventEmitter";
 import { ExpressionEvaluator } from "../evaluator/ExpressionEvaluator";
@@ -19,12 +19,14 @@ export class ExecutionEngine {
   private callStack: CallStack;
   private eventEmitter: EventEmitter;
   private functions: Map<string, IRFunctionDeclaration>;
+  public classBlueprints: Map<string, IRStructDeclaration>;
   private snapshots: RuntimeSnapshot[];
 
   constructor() {
     this.callStack = new CallStack();
     this.eventEmitter = new EventEmitter();
     this.functions = new Map<string, IRFunctionDeclaration>();
+    this.classBlueprints = new Map<string, IRStructDeclaration>();
     this.snapshots = [];
 
     // State Capture Hook: Generates a distinct memory snapshot upon any milestone event
@@ -41,6 +43,12 @@ export class ExecutionEngine {
     this.functions.clear();
     for (const func of program.functions) {
       this.functions.set(func.name, func);
+    }
+    this.classBlueprints.clear();
+    if (program.structs) {
+      for (const structDecl of program.structs) {
+        this.classBlueprints.set(structDecl.name, structDecl);
+      }
     }
   }
 
@@ -333,7 +341,7 @@ export class ExecutionEngine {
       if (arg1 && arg1.kind === "MethodCall") {
         const targetObj = currentEvaluator.evaluate((arg1 as any).object);
         const arr = (Array.isArray(targetObj) ? targetObj : (targetObj as any)?.data) as any[];
-        const val = currentEvaluator.evaluate(callNode.arguments[2]);
+        const val = currentEvaluator.evaluate(callNode.arguments[2])!;
         if (arr && Array.isArray(arr)) {
           let lo = 0, hi = arr.length;
           while (lo < hi) {
@@ -445,10 +453,11 @@ export class ExecutionEngine {
       if (typeof localFuncRef === "string") targetCallee = localFuncRef; 
     } catch (e) { /* Fallback to global registry */ }
 
-    return this.invokeFunction(targetCallee, args);
+    return this.invokeFunction(targetCallee, args, callNode.arguments, currentEvaluator);
   }
 
   /**
+   * 
    * Resolves object-oriented method calls (e.g., container.push_back(), str.substr()).
    */
   public invokeMethodCall(methodNode: IRMethodCall, currentEvaluator: ExpressionEvaluator): CppValue {
@@ -649,7 +658,7 @@ export class ExecutionEngine {
   /**
    * Pushes a new execution frame onto the call stack and executes the targeted function block.
    */
-  private invokeFunction(name: string, args: CppValue[]): CppValue {
+  private invokeFunction(name: string, args: CppValue[], rawArgs?: IRExpression[], callerEvaluator?: ExpressionEvaluator): CppValue {
     const func = this.functions.get(name);
     
     // ─── CONSTRUCTOR AUTO-RECOVERY ──────────────────────────────────────────
@@ -667,13 +676,25 @@ export class ExecutionEngine {
     const frame = this.callStack.push(name);
     this.eventEmitter.emit(func.line, EventType.FUNCTION_CALL, { function: name, args });
 
-    // Pad args with undefined for missing optional-style parameters rather than hard-crashing.
-    // C++ default parameters aren't directly supported, but this prevents runtime failures
-    // when a function is called with fewer arguments due to partial parsing.
+    // Process arguments: handle pass-by-reference and default parameters
     func.parameters.forEach((param, index) => {
       let paramType = param.type as CppType;
       if (paramType.includes("[]") || paramType.includes("*")) paramType = "array" as any; 
-      const argValue = index < args.length ? args[index] : undefined;
+      
+      let argValue = index < args.length ? args[index] : undefined;
+
+      // Feature 1: Pass-by-Reference
+      // If parameter is a reference, and we received a raw identifier, pass a special __ref object
+      if (param.isReference && rawArgs && index < rawArgs.length && rawArgs[index].kind === "Identifier") {
+        const callerScope = this.callStack.peek().scopeManager;
+        argValue = { __ref: (rawArgs[index] as any).name, __callerScope: callerScope };
+      } 
+      // Feature 5: Default Function Parameters
+      // Evaluate default value if argument is missing
+      else if (argValue === undefined && param.defaultValue && callerEvaluator) {
+        argValue = callerEvaluator.evaluate(param.defaultValue);
+      }
+
       frame.scopeManager.defineVariable(param.name, paramType, argValue);
     });
 
@@ -714,7 +735,20 @@ export class ExecutionEngine {
           return typeof size === "number" ? new Array(size).fill(0) : [];
         }
         
-        // Build the new object, assigning args to canonical property names.
+        // Check if it matches a custom blueprint
+        if (this.classBlueprints && this.classBlueprints.has(newExpr.typeName)) {
+           const blueprint = this.classBlueprints.get(newExpr.typeName)!;
+           const instance: Record<string, any> = {};
+           for (const field of blueprint.fields) {
+             instance[field.name] = field.defaultValue ? evaluator.evaluate(field.defaultValue) : 0;
+           }
+           for (let i = 0; i < evaluatedArgs.length && i < blueprint.fields.length; i++) {
+             instance[blueprint.fields[i].name] = evaluatedArgs[i];
+           }
+           return instance;
+        }
+        
+        // Fallback: Build the new object, assigning args to canonical property names.
         // Common node types: TreeNode(val), ListNode(val, next), GraphNode(val).
         // We only add properties that are actually provided — no phantom defaults.
         const newObj: Record<string, any> = {};

@@ -116,7 +116,7 @@ const App = () => {
 
           {/* Footer Component */}
           {
-            // atRoot &&<Footer />
+            atRoot &&<Footer />
           }
 
           {/* Bottom Gradient (Optional/Commented out) */}

@@ -6,7 +6,9 @@ import type {
   IRReturnStatement,
   IRIdentifier,
   IRSubscriptExpression,
-  IRMemberExpression
+  IRMemberExpression,
+  IRStructDeclaration,
+  IRExpression
 } from "../ir/IRNode";
 import { ScopeManager } from "../runtime/ScopeManager";
 import { EventEmitter } from "../events/EventEmitter";
@@ -24,7 +26,8 @@ export class StatementExecutor {
   constructor(
     private scopeManager: ScopeManager,
     private evaluator: ExpressionEvaluator,
-    private eventEmitter: EventEmitter
+    private eventEmitter: EventEmitter,
+    private classBlueprints?: Map<string, IRStructDeclaration>
   ) {}
 
   /**
@@ -90,10 +93,33 @@ export class StatementExecutor {
       }
     }
 
+    // ── PRIORITY 3: Initializer list handling (nested arrays)
+    // If value is an array (from an InitializerList), recursively wrap nested arrays in MockContainers
+    // if the underlying type is a vector/list/etc.
+    if (value && Array.isArray(value)) {
+      const isContainer = typeLower.includes("vector") || typeLower.includes("list") || 
+                          typeLower.includes("array") || typeLower.includes("deque") || 
+                          typeLower.includes("stack") || typeLower.includes("queue");
+      if (isContainer) {
+        // Deep wrap function
+        const wrapContainer = (arr: any[]): Record<string, any> => {
+           for (let i = 0; i < arr.length; i++) {
+             if (Array.isArray(arr[i])) arr[i] = wrapContainer(arr[i]);
+           }
+           return this.createMockContainer(arr);
+        };
+        value = wrapContainer(value);
+      }
+    }
+
     // ── PRIORITY 3: Default initialization by type (no initializer, no constructor args)
     if (value === undefined) {
+      // ─── CUSTOM STRUCT/CLASS BLUEPRINT INITIALIZATION ───────────────────────
+      if (this.classBlueprints && this.classBlueprints.has(node.variableType)) {
+        value = this.instantiateStruct(node.variableType, node.constructorArgs || []);
+      }
       // ─── STL CONTAINER POLYMORPHISM ──────────────────────────────────────────
-      if (typeLower.includes("vector") || typeLower.includes("list") || 
+      else if (typeLower.includes("vector") || typeLower.includes("list") || 
           typeLower.includes("array") || typeLower.includes("deque") || 
           typeLower.includes("stack") || typeLower.includes("queue") ||
           typeLower.includes("priority_queue")) {
@@ -122,6 +148,30 @@ export class StatementExecutor {
       type: node.variableType,
       value,
     });
+  }
+
+  /**
+   * Instantiates a custom struct/class from a blueprint, applying constructor args and default values.
+   */
+  private instantiateStruct(typeName: string, constructorArgs: IRExpression[]): Record<string, any> {
+    const blueprint = this.classBlueprints!.get(typeName)!;
+    const instance: Record<string, any> = {};
+
+    // First apply default values
+    for (const field of blueprint.fields) {
+      if (field.defaultValue) {
+        instance[field.name] = this.evaluator.evaluate(field.defaultValue);
+      } else {
+        instance[field.name] = 0; // standard fallback
+      }
+    }
+
+    // Then overwrite with explicit constructor arguments
+    for (let i = 0; i < constructorArgs.length && i < blueprint.fields.length; i++) {
+       instance[blueprint.fields[i].name] = this.evaluator.evaluate(constructorArgs[i]);
+    }
+
+    return instance;
   }
 
   /**
@@ -192,18 +242,30 @@ export class StatementExecutor {
       const targetNode = stmt.target as IRIdentifier;
       const varName = targetNode.name;
       
+      let targetVarName = varName;
+      let targetScopeManager = this.scopeManager;
+
+      try {
+        const symbol = this.scopeManager.getVariable(varName);
+        if (symbol.value && typeof symbol.value === "object" && "__ref" in symbol.value) {
+          targetVarName = symbol.value.__ref;
+          targetScopeManager = symbol.value.__callerScope as any;
+        }
+      } catch (e) { /* ignore */ }
+      
       let resolvedValue: CppValue;
       try {
-        resolvedValue = this.applyAssignmentOperator(stmt.operator, varName, newValue);
-        this.scopeManager.assignVariable(varName, resolvedValue);
+        let existing = targetScopeManager.getVariable(targetVarName).value;
+        resolvedValue = stmt.operator === "=" ? newValue : this.computeCompoundValue(stmt.operator, existing, newValue);
+        targetScopeManager.assignVariable(targetVarName, resolvedValue);
       } catch (e) {
         // Auto-recovery: If the AST missed the declaration, define it gracefully
         resolvedValue = newValue;
-        this.scopeManager.defineVariable(varName, "auto", resolvedValue);
+        targetScopeManager.defineVariable(targetVarName, "auto", resolvedValue);
       }
       
       this.eventEmitter.emit(stmt.line, EventType.ASSIGNMENT, {
-        variable: varName,
+        variable: varName, // visually report the local name
         value: resolvedValue
       });
     } 
@@ -283,15 +345,7 @@ export class StatementExecutor {
     }
   }
 
-  /**
-   * Reads the current value of a named variable, applies the compound operator against
-   * `newValue`, and returns the final result. For plain `=`, simply returns `newValue`.
-   */
-  private applyAssignmentOperator(operator: IRAssignment["operator"], varName: string, newValue: CppValue): CppValue {
-    if (operator === "=") return newValue;
-    const existing = this.scopeManager.getVariable(varName).value as number;
-    return this.computeCompoundValue(operator, existing, newValue);
-  }
+
 
   /**
    * Applies a compound assignment operator to produce the final value.

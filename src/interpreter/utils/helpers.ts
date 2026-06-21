@@ -18,6 +18,11 @@ export function deepCloneCppValue(value: any): any {
   if (typeof value === "number" || typeof value === "boolean" || typeof value === "string") return value;
   if (typeof value === "function") return "[Function]";
 
+  // Prevent internal execution engine scope objects from leaking into snapshots
+  if (typeof value === "object" && "__ref" in value) {
+    return `&${value.__ref}`;
+  }
+
   // std::map / std::unordered_map polyfill — serialize to plain object for display
   if (value instanceof Map) {
     const obj: Record<string, any> = {};
@@ -88,7 +93,7 @@ export function createSnapshot(
     line: event.line,
     event: {
       type: event.type,
-      payload: event.payload,
+      payload: deepCloneCppValue(event.payload),
     },
     state: {
       variables,

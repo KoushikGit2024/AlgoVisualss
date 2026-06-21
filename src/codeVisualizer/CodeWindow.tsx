@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import CodeEditor from './sideComponents/CodeEditor';
 import VisualGround from './sideComponents/VisualGround';
-import { ALGODATA } from '../Pages/algorithms/data/categories/AlgoData';
+// import { ALGODATA } from '../Pages/algorithms/data/categories/AlgoData';
 
 const CodeWindow = ({
 codeArray = [
