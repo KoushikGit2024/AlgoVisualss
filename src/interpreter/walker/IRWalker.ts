@@ -1,4 +1,3 @@
-// src/interpreter/walker/IRWalker.ts
 import type { 
   IRBlock, 
   IRIfStatement, 
@@ -15,10 +14,9 @@ import { StatementExecutor } from "../executor/StatementExecutor";
 import { EventType } from "../types";
 
 /**
- * The IRWalker is the heart of our execution engine. 
- * It walks down the Intermediate Representation (IR) tree step-by-step, 
- * routing statements to the executor and handling all the messy control flow 
- * (loops, ifs, breaks, continues).
+ * The `IRWalker` orchestrates the traversal and execution of the Intermediate Representation (IR) tree.
+ * It routes nodes to the appropriate executors and manages complex control flow structures,
+ * including lexical scope bounds, loop execution, and interrupt signals (breaks/continues).
  */
 export class IRWalker {
   constructor(
@@ -28,21 +26,25 @@ export class IRWalker {
     private eventEmitter: EventEmitter
   ) {}
 
+  /**
+   * Executes a block of statements within a strictly isolated memory frame.
+   * Ensures variables declared within the block are garbage collected upon exit,
+   * even if execution is interrupted by a `return` or `break` signal.
+   */
   public walkBlock(block: IRBlock): void {
-    // Every time we enter a new { block }, we push a new layer of memory.
-    // This ensures variables declared inside the block die when the block ends.
     this.scopeManager.enterScope();
     try {
       for (const statement of block.statements) {
         this.walkStatement(statement);
       }
     } finally {
-      // The 'finally' block guarantees we pop the memory scope, 
-      // even if a 'return' or 'break' signal violently interrupts the flow.
       this.scopeManager.exitScope();
     }
   }
 
+  /**
+   * Routes an IR statement node to its designated execution logic.
+   */
   public walkStatement(stmt: IRNode): void {
     switch (stmt.kind) {
       case "VariableDeclaration":
@@ -61,7 +63,7 @@ export class IRWalker {
         this.executor.executeReturn(stmt);
         break;
       case "BreakStatement":
-        // We simulate C++ jumps by throwing a custom JS error and catching it higher up.
+        // Simulate C++ jump instructions by throwing a catchable interrupt signal
         throw new BreakSignal();
       case "ContinueStatement":
         throw new ContinueSignal();
@@ -81,10 +83,10 @@ export class IRWalker {
         this.walkBlock(stmt);
         break;
       case "EmptyStatement":
-        // Just a comment or a trailing semicolon. Do nothing!
+        // No-op for semicolons or comments
         break;
       default:
-        // Ignore unhandled nodes at this level (e.g., pure expressions)
+        // Pure expressions are ignored at the statement level
         break;
     }
   }
@@ -110,97 +112,106 @@ export class IRWalker {
       const conditionValue = this.evaluator.evaluate(stmt.condition);
       this.eventEmitter.emit(stmt.line, EventType.CONDITION, { result: conditionValue });
       
-      if (!conditionValue) break; // Condition failed, exit loop naturally.
+      if (!conditionValue) break; 
 
       this.eventEmitter.emit(stmt.line, EventType.LOOP_ITERATION, {});
       
       try {
         this.walkBlock(stmt.body);
-      } catch (e) {
-        // Catch our custom jump signals!
-        if (e instanceof BreakSignal) break;
-        if (e instanceof ContinueSignal) continue;
-        throw e; // If it's a ReturnSignal (or a real crash), keep bubbling it up.
+      } catch (e: any) {
+        // Intercept custom jump signals
+        if (e instanceof BreakSignal || e.name === "BreakSignal") break;
+        if (e instanceof ContinueSignal || e.name === "ContinueSignal") continue;
+        throw e; // Bubble up true runtime exceptions and ReturnSignals
       }
     }
 
     this.eventEmitter.emit(stmt.line, EventType.LOOP_EXIT, {});
   }
 
-  private walkForStatement(stmt: IRForStatement): void {
-    // The for-loop gets its own outer scope so the initializer (e.g., int i = 0)
-    // belongs to the loop, not the parent function.
+  public walkForStatement(node: IRForStatement): void {
+    // Isolate loop initializers (e.g., `int i = 0`) to prevent scope pollution
     this.scopeManager.enterScope();
-    try {
-      if (stmt.init) {
-        this.walkStatement(stmt.init);
-      }
 
-      this.eventEmitter.emit(stmt.line, EventType.LOOP_ENTER, {});
+    try {
+      if (node.init) {
+        this.walkStatement(node.init);
+      }
 
       while (true) {
-        if (stmt.condition) {
-          const conditionValue = this.evaluator.evaluate(stmt.condition);
-          this.eventEmitter.emit(stmt.line, EventType.CONDITION, { result: conditionValue });
-          if (!conditionValue) break;
+        if (node.condition) {
+          const conditionResult = this.evaluator.evaluate(node.condition);
+          if (!conditionResult) break;
         }
 
-        this.eventEmitter.emit(stmt.line, EventType.LOOP_ITERATION, {});
-        
         try {
-          this.walkBlock(stmt.body);
-        } catch (e) {
-          if (e instanceof BreakSignal) break;
-          if (e instanceof ContinueSignal) {
-             // Continue skips the rest of the block, but MUST proceed to the update step!
+          this.walkBlock(node.body);
+        } catch (e: any) {
+          if (e instanceof BreakSignal || e.name === "BreakSignal" || e.message === "BreakSignal") {
+            break;
+          } else if (e instanceof ContinueSignal || e.name === "ContinueSignal" || e.message === "ContinueSignal") {
+            // Signal caught; proceed naturally to the update phase
           } else {
-             throw e; 
+            throw e; 
           }
         }
 
-        // Run the update statement (e.g., i++)
-        if (stmt.update) {
-          if (stmt.update.kind === "Assignment") {
-            this.executor.executeAssignment(stmt.update);
+        if (node.update) {
+          if (node.update.kind === "Assignment") {
+            this.walkStatement(node.update);
           } else {
-            this.evaluator.evaluate(stmt.update);
+            this.evaluator.evaluate(node.update);
           }
         }
       }
-      this.eventEmitter.emit(stmt.line, EventType.LOOP_EXIT, {});
     } finally {
-      this.scopeManager.exitScope(); // Clean up the 'int i = 0' variable
+      this.scopeManager.exitScope();
     }
   }
 
-  private walkForRangeStatement(stmt: IRForRangeStatement): void {
-    const collection = this.evaluator.evaluate(stmt.collection) as any[];
+  public walkForRangeStatement(node: IRForRangeStatement): void {
+    // Resolve the collection reference
+    const container = this.evaluator.evaluate(node.collection);
     
-    this.eventEmitter.emit(stmt.line, EventType.LOOP_ENTER, {});
+    // Normalize duck-typed containers to standard JavaScript arrays
+    let targetArray = Array.isArray(container) 
+      ? container 
+      : (container && typeof container === 'object' && 'data' in container ? (container as any).data : null);
 
-    for (const item of collection) {
-      // Create a micro-scope for each iteration to hold the current 'item'
+    // Gracefully handle uninitialized or empty adjacency lists
+    if (!targetArray || !Array.isArray(targetArray)) {
+      targetArray = [];
+    }
+
+    const varName = node.iteratorName;
+    const varType = node.iteratorType || "auto";
+
+    let safetyCounter = 0;
+
+    for (let i = 0; i < targetArray.length; i++) {
+      if (safetyCounter++ > 5000) {
+        throw new Error(`Runtime Exception at line ${node.line}: Infinite iteration detected in range-based loop.`);
+      }
+
+      // Create a micro-scope for this specific iteration to shadow previous iterator values
       this.scopeManager.enterScope();
+      this.scopeManager.defineVariable(varName, varType, targetArray[i]);
+
       try {
-        // Inject the iterator variable (e.g., 'val' in 'for (int val : arr)') into the active scope
-        this.scopeManager.defineVariable(stmt.iteratorName, stmt.iteratorType as any, item);
-        
-        this.eventEmitter.emit(stmt.line, EventType.LOOP_ITERATION, { variable: stmt.iteratorName, value: item });
-        this.walkBlock(stmt.body);
-      } catch (e) {
-        if (e instanceof BreakSignal) {
-          this.scopeManager.exitScope(); // MUST pop memory before breaking
+        this.walkBlock(node.body);
+      } catch (e: any) {
+        if (e instanceof BreakSignal || e.name === "BreakSignal") {
+          this.scopeManager.exitScope();
           break;
         }
-        if (e instanceof ContinueSignal) {
-           this.scopeManager.exitScope(); // MUST pop memory before skipping to the next lap
-           continue;
+        if (e instanceof ContinueSignal || e.name === "ContinueSignal") {
+          this.scopeManager.exitScope();
+          continue;
         }
         throw e;
       }
-      this.scopeManager.exitScope(); // Standard cleanup for a successful lap
+
+      this.scopeManager.exitScope();
     }
-    
-    this.eventEmitter.emit(stmt.line, EventType.LOOP_EXIT, {});
   }
 }

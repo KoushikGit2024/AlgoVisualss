@@ -1,4 +1,3 @@
-// src/interpreter/evaluator/ExpressionEvaluator.ts
 import type { 
   IRExpression, 
   IRBinaryExpression, 
@@ -15,8 +14,8 @@ import { EventType } from "../types";
 import type { CppValue } from "../types";
 
 /**
- * The math department. Give this class an expression (like `2 + 2` or `arr[i]`), 
- * and it will crunch the numbers and return the raw JavaScript value.
+ * The `ExpressionEvaluator` handles the resolution of abstract syntax trees into concrete runtime values.
+ * It recursively processes mathematics, logical operations, memory lookups, and pointer dereferencing.
  */
 export class ExpressionEvaluator {
   constructor(
@@ -24,17 +23,37 @@ export class ExpressionEvaluator {
     private eventEmitter: EventEmitter
   ) {}
 
+  /**
+   * Recursively evaluates an Intermediate Representation (IR) expression into a native JavaScript value.
+   * @param expr - The IR expression node to evaluate.
+   * @returns The resolved JavaScript primitive or object reference.
+   */
   public evaluate(expr: IRExpression): CppValue {
     switch (expr.kind) {
       case "Literal":
         return expr.value;
 
       case "Identifier": {
-        const symbol = this.scopeManager.getVariable(expr.name);
-        this.eventEmitter.emit(expr.line, EventType.READ, {
+        if (expr.name === "cout") return { __isCout: true } as unknown as CppValue;
+
+        let symbol;
+        try {
+          symbol = this.scopeManager.getVariable(expr.name);
+        } catch (e) {
+          const newVal = new Map();
+          try {
+            this.scopeManager.defineVariable(expr.name, "auto", newVal);
+          } catch (err) {
+            // Failsafe
+          }
+          return newVal;
+        }
+
+        this.eventEmitter.emit(expr.line, "READ" as EventType, {
           variable: expr.name,
           value: symbol.value
         });
+        
         return symbol.value;
       }
 
@@ -45,49 +64,57 @@ export class ExpressionEvaluator {
         return this.evaluateBinary(expr);
 
       case "FunctionCall":
-        // Why throw an error here? Because calling a function requires creating a new StackFrame.
-        // If we imported ExecutionEngine here to do that, we'd create a circular import crash!
-        // Instead, the ExecutionEngine intercepts this specific call. (See ExecutionEngine.ts).
-        throw new Error("FunctionCall evaluation must be orchestrated by the ExecutionEngine.");
+        throw new Error("Execution Context Violation: FunctionCalls must be orchestrated by the ExecutionEngine, not the ExpressionEvaluator.");
         
       case "UpdateExpression":
         return this.evaluateUpdate(expr as IRUpdateExpression);
         
       case "InitializerList":
-        // Evaluate every element in the {1, 2, 3} list and return as a JS array
         return (expr as IRInitializerList).elements.map((e: IRExpression) => this.evaluate(e));
 
       case "SubscriptExpression": {
-        // Handle array reading: arr[i]
+        // Resolves memory access for arrays and maps (e.g., arr[i] or map["key"])
         const subExpr = expr as IRSubscriptExpression;
-        if (subExpr.object.kind !== "Identifier") {
-            throw new Error("Complex array pointers not supported in Phase 1.");
+        const targetObj = this.evaluate(subExpr.object) as any;
+        const index = this.evaluate(subExpr.index) as string | number;
+        
+        let val: any;
+        if (targetObj instanceof Map) {
+          val = targetObj.get(index);
+        } else if (Array.isArray(targetObj)) {
+          val = targetObj[index as number];
+        } else if (targetObj && typeof targetObj === 'object' && Array.isArray(targetObj.data)) {
+          val = targetObj.data[index as number];
+        } else if (targetObj) {
+          val = targetObj[index];
         }
-        
-        const arrayName = (subExpr.object as IRIdentifier).name;
-        const index = this.evaluate(subExpr.index) as number;
-        const arr = this.scopeManager.getVariable(arrayName).value as CppValue[];
-        
-        this.eventEmitter.emit(expr.line, EventType.READ, {
-          variable: `${arrayName}[${index}]`,
-          value: arr[index]
+
+        const safeName = subExpr.object.kind === "Identifier" 
+          ? (subExpr.object as IRIdentifier).name 
+          : "container";
+          
+        this.eventEmitter.emit(expr.line, "READ" as EventType, {
+          variable: `${safeName}[${index}]`,
+          value: val
         });
         
-        return arr[index];
+        return val;
       }
 
       case "TernaryExpression": {
-        // Handle conditional logic: condition ? true : false
         const ternExpr = expr as IRTernaryExpression;
         const condition = this.evaluate(ternExpr.condition);
-        // Only evaluate the branch that actually runs! (Short-circuiting)
         return condition ? this.evaluate(ternExpr.consequent) : this.evaluate(ternExpr.alternate);
       }
+      
       default:
-        throw new Error(`Unsupported expression kind: ${(expr as any).kind}`);
+        throw new Error(`Syntax Parsing Error: Unsupported expression kind encountered - ${(expr as any).kind}`);
     }
   }
 
+  /**
+   * Resolves unary operations (e.g., -x, !isValid).
+   */
   private evaluateUnary(expr: IRUnaryExpression): CppValue {
     const argValue = this.evaluate(expr.argument);
     
@@ -96,13 +123,35 @@ export class ExpressionEvaluator {
       case "+": return +(argValue as number);
       case "!": return !(argValue as boolean);
       default:
-        throw new Error(`Unsupported unary operator: ${expr.operator}`);
+        throw new Error(`Runtime Exception: Unsupported unary operator: ${expr.operator}`);
     }
   }
 
+  /**
+   * Resolves binary operations, including arithmetic, logical short-circuiting, and C++ streams.
+   */
   private evaluateBinary(expr: IRBinaryExpression): CppValue {
-    // We MUST process && and || first to support short-circuiting!
-    // If the left side of an && is false, C++ doesn't even look at the right side.
+    // ─── C++ STREAM OPERATOR INTERCEPTION ───
+    if (expr.operator === "<<") {
+      const left = this.evaluate(expr.left);
+      const right = this.evaluate(expr.right);
+      
+      // If the left operand is our intercepted 'cout' proxy object
+      if (left && typeof left === "object" && (left as any).__isCout) {
+        if (right === "\n") {
+          console.log(""); 
+        } else {
+          console.log(`[C++]: ${right}`); 
+        }
+        // Return the proxy object to permit continuous chaining (e.g., cout << a << b;)
+        return { __isCout: true } as unknown as CppValue; 
+      }
+      
+      // Standard Bitwise Shift fallback (e.g., 1 << 3)
+      return (left as number) << (right as number);
+    }
+
+    // ─── LOGICAL SHORT-CIRCUITING ───
     if (expr.operator === "&&") {
       const leftVal = this.evaluate(expr.left);
       if (!leftVal) return false;
@@ -115,7 +164,7 @@ export class ExpressionEvaluator {
       return this.evaluate(expr.right) as boolean;
     }
 
-    // For standard math, evaluate both sides
+    // ─── STANDARD ARITHMETIC & COMPARISON ───
     const left = this.evaluate(expr.left);
     const right = this.evaluate(expr.right);
 
@@ -128,9 +177,7 @@ export class ExpressionEvaluator {
       case "-": return (left as number) - (right as number);
       case "*": return (left as number) * (right as number);
       case "/": 
-        if (right === 0) throw new Error("Division by zero error.");
-        // Note: JS division yields floats. If we wanted strict C++ int division, 
-        // we'd use Math.trunc() here if both left and right were 'int' types.
+        if (right === 0) throw new Error("Math Exception: Division by zero is undefined.");
         return (left as number) / (right as number);
       case "%": return (left as number) % (right as number);
       case "<": return (left as number) < (right as number);
@@ -140,28 +187,93 @@ export class ExpressionEvaluator {
       case "==": return left === right;
       case "!=": return left !== right;
       default:
-        throw new Error(`Unsupported binary operator: ${expr.operator}`);
+        throw new Error(`Runtime Exception: Unsupported binary operator: ${expr.operator}`);
     }
   }
 
-  private evaluateUpdate(expr: IRUpdateExpression): CppValue {
-    if (expr.argument.kind !== "Identifier") {
-      throw new Error("Update expressions (++ / --) require an identifier.");
+  /**
+   * Resolves in-place mutation operations (Prefix/Postfix Increments and Decrements).
+   */
+  private evaluateUpdate(node: IRUpdateExpression): CppValue {
+    let currentValue: number = 0;
+    let targetObject: any = null;
+    let targetKey: string | number | null = null;
+    let identifierName: string | null = null;
+
+    // Helper to safely extract integer values from deep memory symbols
+    const parseNumber = (rawVal: any): number => {
+      if (rawVal && typeof rawVal === 'object' && 'value' in rawVal) {
+        rawVal = rawVal.value;
+      }
+      if (typeof rawVal === "number") return rawVal;
+      if (rawVal === undefined || rawVal === null) return 0;
+      
+      const parsed = Number(rawVal);
+      return isNaN(parsed) ? 0 : parsed;
+    };
+
+    // 1. Resolve Memory Location and Current Value
+    if (node.argument.kind === "Identifier") {
+      identifierName = node.argument.name;
+      const rawVal = this.scopeManager.getVariable(identifierName);
+      currentValue = parseNumber(rawVal);
+
+    } else if (node.argument.kind === "SubscriptExpression") {
+      targetObject = this.evaluate(node.argument.object);
+      targetKey = this.evaluate(node.argument.index) as string | number;
+      
+      if (!targetObject || targetKey === null || targetKey === undefined) {
+        throw new Error(`Memory Access Violation at line ${node.line}: Invalid subscript update.`);
+      }
+      
+      let rawVal: unknown;
+      if (targetObject instanceof Map) {
+        rawVal = targetObject.get(targetKey);
+      } else if (Array.isArray(targetObject)) {
+        rawVal = targetObject[targetKey as number];
+      } else if (typeof targetObject === 'object' && Array.isArray(targetObject.data)) {
+        rawVal = targetObject.data[targetKey as number];
+      } else {
+        rawVal = targetObject[targetKey];
+      }
+      currentValue = parseNumber(rawVal);
+
+    } else if (node.argument.kind === "MemberExpression") {
+      targetObject = this.evaluate(node.argument.object);
+      targetKey = node.argument.property;
+      
+      if (!targetObject) throw new Error(`Memory Access Violation at line ${node.line}: Target object is null.`);
+      currentValue = parseNumber(targetObject[targetKey as string]);
+
+    } else {
+      throw new Error(`Syntax Error at line ${node.line}: Update operators (++ / --) require an l-value reference.`);
     }
 
-    const varName = (expr.argument as IRIdentifier).name;
-    const currentValue = this.scopeManager.getVariable(varName).value as number;
-    const newValue = expr.operator === "++" ? currentValue + 1 : currentValue - 1;
+    // 2. Compute Mutation
+    const newValue = node.operator === "++" ? currentValue + 1 : currentValue - 1;
 
-    // Actually mutate the variable in memory
-    this.scopeManager.assignVariable(varName, newValue);
+    // 3. Write Back to Memory Frame
+    if (identifierName) {
+      this.scopeManager.assignVariable(identifierName, newValue);
+    } else if (targetObject && targetKey !== null) {
+      if (targetObject instanceof Map) {
+        targetObject.set(targetKey, newValue);
+      } else if (Array.isArray(targetObject)) {
+        targetObject[targetKey as number] = newValue;
+      } else if (typeof targetObject === 'object' && Array.isArray(targetObject.data)) {
+        targetObject.data[targetKey as number] = newValue;
+      } else {
+        targetObject[targetKey] = newValue;
+      }
+    }
 
-    this.eventEmitter.emit(expr.line, EventType.ASSIGN, {
-      variable: varName,
-      value: newValue
+    // Emit mutation event for the UI Visualizer
+    this.eventEmitter.emit(node.line, "ASSIGNMENT" as EventType, { 
+      target: identifierName || `${targetKey}`, 
+      value: newValue 
     });
 
-    // Remember: postfix (i++) returns the OLD value, prefix (++i) returns the NEW value!
-    return expr.prefix ? newValue : currentValue;
+    // 4. Return correct value based on C++ Prefix (++i) vs Postfix (i++) mechanics
+    return node.prefix ? newValue : currentValue;
   }
 }

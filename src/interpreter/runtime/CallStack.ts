@@ -1,11 +1,9 @@
-// src/interpreter/runtime/CallStack.ts
 import { ScopeManager } from "./ScopeManager";
 
 /**
- * A StackFrame represents a single function call (like `main()` or `bubbleSort()`).
- * The most important thing here is that every frame gets its completely own, 
- * brand-new ScopeManager. This isolates memory so `factorial(5)` doesn't accidentally 
- * overwrite the variables inside `factorial(4)`.
+ * Represents a single execution frame within the call stack.
+ * Encapsulates the execution context of a function invocation, ensuring 
+ * memory isolation via a dedicated `ScopeManager`.
  */
 export class StackFrame {
   public readonly functionName: string;
@@ -18,8 +16,10 @@ export class StackFrame {
 }
 
 /**
- * Keeps track of who called who. 
- * E.g., main -> bubbleSort -> swap
+ * Manages the execution context hierarchy (Call Stack).
+ * Tracks the active function calls, pushing frames upon invocation 
+ * and popping them upon return, which inherently triggers garbage collection 
+ * of the associated memory scopes.
  */
 export class CallStack {
   private frames: StackFrame[];
@@ -28,23 +28,32 @@ export class CallStack {
     this.frames = [];
   }
 
+  /**
+   * Pushes a new execution frame onto the stack for a function call.
+   */
   public push(functionName: string): StackFrame {
     const frame = new StackFrame(functionName);
     this.frames.push(frame);
     return frame;
   }
 
+  /**
+   * Pops the active execution frame off the stack.
+   * @throws {Error} If attempting to pop from an empty stack (Stack Underflow).
+   */
   public pop(): StackFrame {
     if (this.isEmpty()) {
-      throw new Error("Call stack underflow. Tried to return from a function that doesn't exist.");
+      throw new Error("Fatal: Call stack underflow. Attempted to return from a non-existent function context.");
     }
-    // When we pop a frame, the garbage collector eats its ScopeManager. Memory cleared!
     return this.frames.pop() as StackFrame;
   }
 
+  /**
+   * Returns the currently active execution frame without popping it.
+   */
   public peek(): StackFrame {
     if (this.isEmpty()) {
-      throw new Error("Call stack is empty.");
+      throw new Error("Fatal: Call stack is empty. No active execution frame.");
     }
     return this.frames[this.frames.length - 1];
   }
@@ -54,8 +63,8 @@ export class CallStack {
   }
 
   /**
-   * Gives the React UI a simple string array of the current stack.
-   * E.g., ["main", "factorial", "factorial", "factorial"]
+   * Serializes the current call stack sequence for the visualizer frontend.
+   * @returns An array of function names currently on the stack (e.g., ["main", "bubbleSort"]).
    */
   public getTrace(): string[] {
     return this.frames.map((frame) => frame.functionName);

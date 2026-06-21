@@ -1,23 +1,29 @@
-// src/interpreter/ir/IRNode.ts
-
 // ─── Operator Types ──────────────────────────────────────────────────────────
 
-// We keep these strictly typed so the Evaluator doesn't have to guess what operation to run.
+/**
+ * Supported binary operators for mathematical, logical, and bitwise operations.
+ * Strictly typed to ensure the ExpressionEvaluator routes logic safely.
+ */
 export type BinaryOperator = 
   | "+" | "-" | "*" | "/" | "%" 
   | "<" | ">" | "<=" | ">=" | "==" | "!=" 
   | "&&" | "||" 
-  | "&" | "|" | "^" | "<<" | ">>"; // Bitwise operators (crucial for algorithmic platforms)
+  | "&" | "|" | "^" | "<<" | ">>"; 
 
-export type UnaryOperator = "!" | "-" | "+" | "~" | "*" | "&"; // Includes pointer/reference ops
+/**
+ * Supported unary operators, including logical negation and pointer referencing.
+ */
+export type UnaryOperator = "!" | "-" | "+" | "~" | "*" | "&"; 
+
 export type UpdateOperator = "++" | "--";
+
 export type AssignmentOperator = "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=";
 
 // ─── Core Unions ─────────────────────────────────────────────────────────────
 
 /**
- * Every single node type our AST (Abstract Syntax Tree) supports.
- * The IRWalker uses this union to figure out which execute/walk function to call.
+ * Represents any valid Intermediate Representation node within the execution engine.
+ * The `IRWalker` utilizes this union to determine statement execution routing.
  */
 export type IRNode =
   | IRProgram
@@ -36,10 +42,10 @@ export type IRNode =
   | IRContinueStatement
   | IRCoutStatement
   | IREmptyStatement
-  | IRExpression; // Expressions can be nested inside statements
+  | IRExpression; 
 
 /**
- * Anything that actually evaluates to a value (a number, string, boolean, etc.)
+ * Represents nodes that evaluate to a concrete runtime value.
  */
 export type IRExpression =
   | IRLiteral
@@ -50,13 +56,18 @@ export type IRExpression =
   | IRUpdateExpression
   | IRSubscriptExpression
   | IRTernaryExpression
-  | IRInitializerList;
+  | IRInitializerList
+  | IRMemberExpression
+  | IRMethodCall
+  | IRNewExpression
+  | IRLambdaExpression;
 
 // ─── Base Node ───────────────────────────────────────────────────────────────
 
 /**
- * The bread and butter. Every node MUST tell us what kind it is and what line 
- * of C++ code it came from. The line number is how we sync the React UI animations!
+ * The foundational interface for all Intermediate Representation nodes.
+ * The `line` property is strictly enforced to synchronize the React UI visualizer 
+ * with the active execution state.
  */
 export interface IRBaseNode {
   kind: string;
@@ -89,13 +100,13 @@ export interface IRVariableDeclaration extends IRBaseNode {
   kind: "VariableDeclaration";
   variableType: string;
   name: string;
-  initializer?: IRExpression; // Optional: e.g., `int x;` vs `int x = 5;`
+  initializer?: IRExpression;
 }
 
 /**
- * Notice how `target` is an IRExpression, not just a string name?
- * This is a massive lifesaver! It allows us to assign to arrays (e.g., `arr[i] = x`) 
- * instead of just flat variables (e.g., `id = x`).
+ * Represents an assignment operation. 
+ * The `target` is an `IRExpression` to support complex L-values like array 
+ * subscripts (arr[i]) and object properties (ptr->val), rather than just raw identifiers.
  */
 export interface IRAssignment extends IRBaseNode {
   kind: "Assignment";
@@ -105,7 +116,8 @@ export interface IRAssignment extends IRBaseNode {
 }
 
 /**
- * For standalone expressions that act as statements (e.g., `myFunction();` by itself).
+ * Represents a standalone expression executed for its side effects 
+ * (e.g., a void function call: `bubbleSort(nums);`).
  */
 export interface IRExpressionStatement extends IRBaseNode {
   kind: "ExpressionStatement";
@@ -116,7 +128,7 @@ export interface IRIfStatement extends IRBaseNode {
   kind: "IfStatement";
   condition: IRExpression;
   consequent: IRBlock;
-  alternate?: IRBlock; // The 'else' block
+  alternate?: IRBlock;
 }
 
 export interface IRWhileStatement extends IRBaseNode {
@@ -133,23 +145,23 @@ export interface IRDoWhileStatement extends IRBaseNode {
 
 export interface IRForStatement extends IRBaseNode {
   kind: "ForStatement";
-  init?: IRVariableDeclaration | IRAssignment; // e.g., `int i = 0`
-  condition?: IRExpression;                    // e.g., `i < 10`
-  update?: IRAssignment | IRExpression;        // e.g., `i++`
+  init?: IRVariableDeclaration | IRAssignment;
+  condition?: IRExpression;
+  update?: IRAssignment | IRExpression;
   body: IRBlock;
 }
 
 export interface IRForRangeStatement extends IRBaseNode {
   kind: "ForRangeStatement";
   iteratorType: string;
-  iteratorName: string;         // E.g., 'val' in 'for (int val : arr)'
-  collection: IRExpression;     // E.g., 'arr'
+  iteratorName: string;
+  collection: IRExpression;
   body: IRBlock;
 }
 
 export interface IRReturnStatement extends IRBaseNode {
   kind: "ReturnStatement";
-  argument?: IRExpression; // Void functions return nothing
+  argument?: IRExpression;
 }
 
 export interface IRBreakStatement extends IRBaseNode {
@@ -161,28 +173,28 @@ export interface IRContinueStatement extends IRBaseNode {
 }
 
 /**
- * We separate CoutStatement entirely from binary expressions to save our sanity.
- * Tree-sitter parses `cout << "hi"` weirdly; trapping it in its own node prevents crashes.
+ * Isolates C++ standard output streams to prevent parsing ambiguities.
+ * Tree-sitter evaluates `cout << "hi"` natively as shift expressions, which are
+ * safely sequestered into this node during the IR building phase.
  */
 export interface IRCoutStatement extends IRBaseNode {
   kind: "CoutStatement";
-  arguments: IRExpression[]; // An array of things to print out left-to-right
+  arguments: IRExpression[];
 }
 
 /**
- * Catch-all for lone semicolons or comments that Tree-sitter might spit out.
+ * Represents a no-op, typically resulting from lone semicolons or parsed comments.
  */
 export interface IREmptyStatement extends IRBaseNode {
   kind: "EmptyStatement";
 }
-
 
 // ─── Expressions ─────────────────────────────────────────────────────────────
 
 export interface IRLiteral extends IRBaseNode {
   kind: "Literal";
   valueType: string;
-  value: number | boolean | string | null; // Null handles `nullptr` in modern C++
+  value: number | boolean | string | null;
 }
 
 export interface IRIdentifier extends IRBaseNode {
@@ -213,17 +225,15 @@ export interface IRUpdateExpression extends IRBaseNode {
   kind: "UpdateExpression";
   operator: UpdateOperator;
   argument: IRExpression;
-  prefix: boolean; // True for `++i`, false for `i++`
+  prefix: boolean; // Indicates pre-increment (++i) vs post-increment (i++)
 }
 
-/** Array access: `a[i]` */
 export interface IRSubscriptExpression extends IRBaseNode {
   kind: "SubscriptExpression";
-  object: IRExpression;  // E.g., the array `a`
-  index: IRExpression;   // E.g., the index `i`
+  object: IRExpression;
+  index: IRExpression;
 }
 
-/** Ternary operator: `condition ? consequent : alternate` */
 export interface IRTernaryExpression extends IRBaseNode {
   kind: "TernaryExpression";
   condition: IRExpression;
@@ -231,8 +241,34 @@ export interface IRTernaryExpression extends IRBaseNode {
   alternate: IRExpression;
 }
 
-/** Handles `{1, 2, 3}` array initializations */
 export interface IRInitializerList extends IRBaseNode {
   kind: "InitializerList";
   elements: IRExpression[];
+}
+
+export interface IRMemberExpression extends IRBaseNode {
+  kind: "MemberExpression";
+  object: IRExpression;
+  property: string;
+  arrow: boolean; // True for `->`, false for `.`
+}
+
+export interface IRMethodCall extends IRBaseNode {
+  kind: "MethodCall";
+  object: IRExpression;
+  method: string;
+  arguments: IRExpression[];
+  arrow: boolean;
+}
+
+export interface IRNewExpression extends IRBaseNode {
+  kind: "NewExpression";
+  typeName: string;
+  arguments: IRExpression[];
+}
+
+export interface IRLambdaExpression extends IRBaseNode {
+  kind: "LambdaExpression";
+  parameters: { name: string; type: string }[];
+  body: IRBlock; // Fixed from `any`
 }

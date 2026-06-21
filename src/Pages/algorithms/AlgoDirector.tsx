@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ALGORITHMSNAV } from "./data/categories/AlgoData";
+import { ALGORITHMSNAV } from "./data/categories/AlgoCategories";
 import "./AlgoDirector.css";
 /* ─── Complexity filter config ──────────────────────────────────────────────── */
 type Algorithm = (typeof ALGORITHMSNAV)[number];

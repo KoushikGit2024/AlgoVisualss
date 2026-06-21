@@ -1,8 +1,177 @@
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 
-const Queue = () => {
-  return (
-    <div>Queue</div>
-  )
+export interface QueueProps {
+  value: (number | string)[];
+  pointers?: { name: string; index: number }[];
+  
+  // Highlighting Operations
+  highLightIndices?: number[];
+  readIndices?: number[];   // E.g., reading front()
+  writeIndices?: number[];
+  compareIndices?: number[];
+  deleteIndices?: number[]; // E.g., pop() - Item exiting left
+  insertIndices?: number[]; // E.g., push() - Item entering right
+  foundIndices?: number[];
 }
 
-export default Queue
+const Queue = ({
+  value = [],
+  pointers = [],
+  highLightIndices = [],
+  readIndices = [],
+  writeIndices = [],
+  compareIndices = [],
+  deleteIndices = [],
+  insertIndices = [],
+  foundIndices = [],
+}: QueueProps) => {
+
+  // 1. Bulletproof validation
+  const safeValue = Array.isArray(value) ? value : [];
+
+  // ─── Directional FIFO Animations ───
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.05 } },
+  };
+
+  // Enqueue slides from right (+x), Dequeue slides to left (-x)
+  const cellVariants: Variants = {
+    hidden: { opacity: 0, x: 30, scale: 0.9 }, // Enter from Rear
+    show: { opacity: 1, x: 0, scale: 1, transition: { type: 'spring', stiffness: 350, damping: 25 } },
+    exit: { opacity: 0, x: -40, scale: 0.8, transition: { duration: 0.2, ease: "easeIn" } } // Exit from Front
+  };
+
+  if (safeValue.length === 0) {
+    return (
+      <div className="w-full flex items-center justify-center p-4">
+        <span className="text-muted text-[10px] font-mono border border-dashed border-border rounded p-2 flex items-center gap-2">
+          <span>Front &larr;</span>
+          <span className="opacity-50">Empty Queue</span>
+          <span>&larr; Rear</span>
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full flex flex-col items-center overflow-x-auto styled-scrollbar pb-8 pt-6 px-4">
+      
+      {/* ─── Queue Tube Container ─── */}
+      <div className="relative flex items-center min-w-max">
+        
+        {/* Structural Indicators (Front / Rear Labels) */}
+        <div className="absolute -left-12 flex items-center justify-center text-[9px] font-bold font-mono text-muted uppercase tracking-widest rotate-180" style={{ writingMode: 'vertical-rl' }}>
+          Front
+        </div>
+        <div className="absolute -right-12 flex items-center justify-center text-[9px] font-bold font-mono text-muted uppercase tracking-widest" style={{ writingMode: 'vertical-rl' }}>
+          Rear
+        </div>
+
+        {/* The Queue Track */}
+        <div className="absolute inset-y-[-8px] -inset-x-2 border-y-2 border-dashed border-border/50 bg-surface-2/10 rounded-sm pointer-events-none" />
+
+        <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex items-center gap-1.5 relative z-10 px-2">
+          <AnimatePresence mode="popLayout">
+            {safeValue.map((val, idx) => {
+              const isDelete = deleteIndices?.includes(idx);
+              const isWrite = writeIndices?.includes(idx);
+              const isInsert = insertIndices?.includes(idx);
+              const isFound = foundIndices?.includes(idx);
+              const isCompare = compareIndices?.includes(idx);
+              const isRead = readIndices?.includes(idx);
+              const isHighlight = highLightIndices?.includes(idx);
+
+              const cellPointers = pointers?.filter((p) => p.index === idx) || [];
+
+              // Dynamic Styling
+              let bgClass = "bg-surface";
+              let borderClass = "border-border";
+              let textClass = "text-text";
+              let shadowClass = "shadow-sm";
+              let activeScale = 1;
+              let activeZIndex = 1;
+
+              if (isFound) {
+                bgClass = "bg-purple-500/20"; borderClass = "border-purple-500"; textClass = "text-purple-400";
+                shadowClass = "shadow-[0_0_12px_#a855f7]"; activeScale = 1.1; activeZIndex = 30;
+              } else if (isDelete) {
+                bgClass = "bg-failure/10"; borderClass = "border-failure/80"; textClass = "text-failure";
+                shadowClass = "shadow-[0_0_6px_var(--failure)]"; activeScale = 0.95; activeZIndex = 10;
+              } else if (isInsert) {
+                bgClass = "bg-emerald-500/20"; borderClass = "border-emerald-500"; textClass = "text-emerald-500";
+                shadowClass = "shadow-[0_0_8px_#10b981]"; activeScale = 1.08; activeZIndex = 25;
+              } else if (isWrite) {
+                bgClass = "bg-success/15"; borderClass = "border-success"; textClass = "text-success";
+                shadowClass = "shadow-[0_0_6px_var(--success)]"; activeScale = 1.05; activeZIndex = 20;
+              } else if (isCompare) {
+                bgClass = "bg-orange-500/15"; borderClass = "border-orange-500"; textClass = "text-orange-500";
+                shadowClass = "shadow-[0_0_6px_#f97316]"; activeScale = 1.02; activeZIndex = 15;
+              } else if (isRead) {
+                bgClass = "bg-accent/15"; borderClass = "border-accent"; textClass = "text-accent";
+                shadowClass = "shadow-[0_0_6px_var(--glow)]"; activeScale = 1.02; activeZIndex = 10;
+              } else if (isHighlight) {
+                bgClass = "bg-accent-2/20"; borderClass = "border-accent-2"; textClass = "text-accent-2";
+                activeZIndex = 5;
+              }
+
+              const safeValToDisplay = typeof val === 'object' ? JSON.stringify(val) : String(val);
+
+              return (
+                <motion.div key={`queue-cell-${val}-${idx}`} layout variants={cellVariants} className="flex flex-col items-center relative flex-1 min-w-[3rem] max-w-[4.5rem]">
+                  
+                  {/* Top Pointers (Front/Rear/Indices) */}
+                  <div className="absolute bottom-full mb-1.5 flex flex-col items-center gap-0.5 w-full">
+                    <AnimatePresence>
+                      {cellPointers.map((ptr) => (
+                        <motion.div
+                          key={ptr.name} layoutId={`pointer-queue-${ptr.name}`}
+                          initial={{ opacity: 0, y: 5, scale: 0.8 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -5, scale: 0.8 }}
+                          transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
+                          className="flex flex-col items-center text-accent-3 z-30"
+                        >
+                          <span className="text-[9px] font-mono font-bold bg-surface-2 text-accent-3 px-1.5 py-[1px] rounded border border-accent-3/30 truncate max-w-full">
+                            {ptr.name}
+                          </span>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 opacity-80">
+                            <path d="M12 5v14M19 12l-7 7-7-7" />
+                          </svg>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Main Data Cell */}
+                  <motion.div
+                    layout
+                    initial={false}
+                    animate={{ scale: activeScale, zIndex: activeZIndex }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    className={`
+                      w-full aspect-square px-1 flex items-center justify-center font-mono text-[15px] font-bold 
+                      rounded-md border transition-colors duration-200 shrink-0
+                      ${bgClass} ${borderClass} ${textClass} ${shadowClass}
+                    `}
+                  >
+                    <AnimatePresence mode="wait">
+                      <motion.span
+                        key={`val-${safeValToDisplay}`}
+                        initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.15 }} className="truncate max-w-full"
+                      >
+                        {safeValToDisplay}
+                      </motion.span>
+                    </AnimatePresence>
+                  </motion.div>
+                  
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+export default Queue;

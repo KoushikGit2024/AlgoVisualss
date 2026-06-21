@@ -1,77 +1,105 @@
-// src/interpreter/runtime/ScopeManager.ts
 import { SymbolTable } from "./SymbolTable";
 import type { Symbol } from "./SymbolTable";
 import type { CppType, CppValue } from "../types";
 
 /**
- * The ScopeManager acts like a stack of pancakes, where each pancake is a SymbolTable.
- * When we enter a new { block }, we throw a new pancake on top.
- * When we look for a variable, we search from the top pancake downwards.
+ * Manages lexical environments and the call stack memory frames.
+ * Functions as a stack of `SymbolTable` instances, pushing new tables upon
+ * entering a block `{}` and popping them upon exit to prevent memory leaks.
+ * * Handles "Duck-Typed C++" mechanics by storing generic JS references 
+ * (arrays, maps, objects) agnostically as C++ pointers and containers.
  */
 export class ScopeManager {
   private scopes: SymbolTable[];
 
   constructor() {
-    // Every function starts with a base "root" scope.
+    // Every execution context initializes with a base global/root memory frame.
     this.scopes = [new SymbolTable()];
   }
 
+  /**
+   * Pushes a new memory frame onto the stack.
+   * Called whenever the engine evaluates a BlockStatement or initiates a loop.
+   */
   public enterScope(): void {
     this.scopes.push(new SymbolTable());
   }
 
+  /**
+   * Pops the active memory frame off the stack.
+   * Destroys all variables declared within that block, accurately mimicking C++ garbage collection.
+   * @throws {Error} If attempting to pop the root execution scope.
+   */
   public exitScope(): void {
     if (this.scopes.length <= 1) {
-      throw new Error("Cannot exit the root scope of this context.");
+      throw new Error("Fatal: Cannot exit the root scope of this context.");
     }
-    // Popping the scope destroys all variables declared inside it. No memory leaks!
     this.scopes.pop();
   }
 
+  /**
+   * Allocates a new variable in the current (top-most) memory frame.
+   * @param name - The identifier of the variable.
+   * @param type - The resolved C++ type (e.g., "int", "vector<int>").
+   * @param value - The underlying duck-typed JS value representing the C++ data.
+   */
   public defineVariable(name: string, type: CppType, value: CppValue): void {
-    // Always define new variables in the CURRENT (top-most) scope.
     const currentScope = this.scopes[this.scopes.length - 1];
     currentScope.define(name, type, value);
   }
 
+  /**
+   * Traverses the scope chain from inner-most to outer-most to reassign an existing variable.
+   * @param name - The identifier to update.
+   * @param value - The new value to assign.
+   * @throws {Error} If the variable is not found in any active scope.
+   */
   public assignVariable(name: string, value: CppValue): void {
-    // Start at the innermost scope and work our way out to the global/root scope.
     for (let i = this.scopes.length - 1; i >= 0; i--) {
       if (this.scopes[i].has(name)) {
         this.scopes[i].assign(name, value);
         return;
       }
     }
-    throw new Error(`Variable '${name}' is not defined in current scope chain.`);
+    throw new Error(`Memory Access Violation: Variable '${name}' is not defined in the current scope chain.`);
   }
 
+  /**
+   * Resolves a variable by traversing the scope chain.
+   * Perfectly mimics C++ variable shadowing by returning the first match found from the top down.
+   * @param name - The identifier to resolve.
+   * @returns The complete Symbol object containing the type and value.
+   * @throws {Error} If the variable does not exist.
+   */
   public getVariable(name: string): Symbol {
-    // Same deal: search from the inside out. 
-    // This perfectly mimics C++ "variable shadowing".
     for (let i = this.scopes.length - 1; i >= 0; i--) {
       if (this.scopes[i].has(name)) {
         return this.scopes[i].get(name);
       }
     }
-    throw new Error(`Variable '${name}' is not defined.`);
+    throw new Error(`Memory Access Violation: Variable '${name}' is not defined.`);
   }
 
+  /**
+   * Returns the current depth of the call stack / scope chain.
+   */
   public getDepth(): number {
     return this.scopes.length;
   }
 
   /**
-   * Flattens the entire scope stack into a single object for the React frontend.
+   * Flattens the entire scope stack into a single state snapshot for the React frontend.
+   * Inner scopes gracefully overwrite outer scopes to accurately reflect shadowed variables.
+   * @returns A serialized record of all active variables and their symbols in memory.
    */
-  public captureState(): Record<string, CppValue> {
-    let state: Record<string, CppValue> = {};
+  public captureState(): Record<string, Symbol> {
+    const state: Record<string, Symbol> = {};
     
-    // We iterate from root (outer) to active (inner) scope.
-    // Why? If the root has `x=1` and the inner scope has `x=2` (shadowing),
-    // the inner scope will overwrite the outer scope in the final state object!
+    // Iterate from root to active scope to properly apply variable shadowing overrides
     for (const scope of this.scopes) {
-      state = { ...state, ...scope.getAll() };
+      Object.assign(state, scope.getAll());
     }
+    
     return state;
   }
 }

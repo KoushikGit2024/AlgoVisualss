@@ -1,13 +1,19 @@
 // import { useEffect, useRef, useState, useMemo } from "react";
-// import { Link } from "react-router-dom";
-// import { motion } from "framer-motion";
-// import { Play, Pause, FastForward, Activity, Code2, Network, Braces, ChevronRight, CornerDownRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Play, Pause, FastForward, Activity, Code2, Network, Braces, ChevronRight, CornerDownRight } from "lucide-react";
 // import NetworkBackground1 from "./components/NetworkBackground";
-// import NetworkBackground from "./components/HomeBackgroundAnimation";
-import CodeWindow from "../codeVisualizer/CodeWindow";
+import NetworkBackground from "./components/HomeBackgroundAnimation";
+import D1Array from "../codeVisualizer/dataStructures/D1Array";
+import D2Array from "../codeVisualizer/dataStructures/D2Array";
+import ComponentTester from "../dumpyard/Tester";
+// import getFlowData from "../lib/treeSitter";
+// import CodeWindow from "../codeVisualizer/CodeWindow";
 
 // ─── Main Landing Page Component (Unchanged) ──────────────────────────────────
 export default function HomePage() {
+
+
   return (
     // <div className="relative flex flex-col flex-1 items-center bg-[var(--bg)] overflow-hidden selection:bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] selection:text-[var(--text)]">
       
@@ -200,6 +206,9 @@ export default function HomePage() {
     //   </section>
 
     // </div>
-    <CodeWindow/>
+    // <CodeWindow/>
+    <>
+      <ComponentTester/>
+    </>
   );
 }

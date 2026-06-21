@@ -3,7 +3,7 @@ import { Link, useLocation, useMatch } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Variants } from "framer-motion";
 import { Search, X, ChevronRight, AlertCircle, Code, Database, Activity, Box, Cpu, FileText, MonitorPlay, BadgeInfo } from "lucide-react";
-import { ALGORITHMSNAV } from "../algorithms/data/categories/AlgoData";
+import { ALGORITHMSNAV } from "../algorithms/data/categories/AlgoCategories";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type NavItem = {

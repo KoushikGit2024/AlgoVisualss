@@ -1,6 +1,9 @@
-// src/interpreter/runtime/SymbolTable.ts
 import type { CppType, CppValue } from "../types";
 
+/**
+ * Represents a single variable in memory, tracking both its underlying value
+ * and its explicit C++ type for the frontend visualizer.
+ */
 export interface Symbol {
   name: string;
   type: CppType;
@@ -8,9 +11,8 @@ export interface Symbol {
 }
 
 /**
- * A SymbolTable represents a single, flat layer of memory.
- * Think of it as a dictionary for a specific block of code (like inside an if-statement).
- * It doesn't know about outside variables; it only cares about what's declared right here.
+ * Represents a single, flat lexical environment (memory block).
+ * Maintains a map of identifiers to their corresponding Symbols.
  */
 export class SymbolTable {
   private symbols: Map<string, Symbol>;
@@ -19,26 +21,35 @@ export class SymbolTable {
     this.symbols = new Map<string, Symbol>();
   }
 
+  /**
+   * Allocates a new variable in the current memory block.
+   * @throws {Error} If the variable is already declared in this exact scope.
+   */
   public define(name: string, type: CppType, value: CppValue): void {
-    // C++ doesn't let you say `int x = 1; int x = 2;` in the exact same block.
     if (this.symbols.has(name)) {
-      throw new Error(`Variable '${name}' is already defined in this scope.`);
+      throw new Error(`Compiler Error: Variable '${name}' is already defined in this scope.`);
     }
     this.symbols.set(name, { name, type, value });
   }
 
+  /**
+   * Mutates an existing variable in the current memory block.
+   */
   public assign(name: string, value: CppValue): void {
     const symbol = this.symbols.get(name);
     if (!symbol) {
-      throw new Error(`Variable '${name}' is not defined.`);
+      throw new Error(`Memory Access Violation: Variable '${name}' is not defined.`);
     }
     symbol.value = value;
   }
 
+  /**
+   * Retrieves the full Symbol object for a given identifier.
+   */
   public get(name: string): Symbol {
     const symbol = this.symbols.get(name);
     if (!symbol) {
-      throw new Error(`Variable '${name}' is not defined.`);
+      throw new Error(`Memory Access Violation: Variable '${name}' is not defined.`);
     }
     return symbol;
   }
@@ -48,13 +59,13 @@ export class SymbolTable {
   }
 
   /**
-   * Dumps everything in this specific memory layer.
-   * Super useful for building the final snapshot for the React UI.
+   * Serializes all symbols in this specific memory layer.
+   * UI FIX: Returns the full Symbol (with `.type`), not just the raw value.
    */
-  public getAll(): Record<string, CppValue> {
-    const record: Record<string, CppValue> = {};
+  public getAll(): Record<string, Symbol> {
+    const record: Record<string, Symbol> = {};
     for (const [name, symbol] of this.symbols.entries()) {
-      record[name] = symbol.value;
+      record[name] = symbol;
     }
     return record;
   }

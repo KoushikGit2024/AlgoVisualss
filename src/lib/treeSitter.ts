@@ -1,30 +1,38 @@
-// src/lib/treeSitter.ts
-
 import { Parser, Language } from "web-tree-sitter";
 import { IRBuilder } from "../interpreter/ir/IRBuilder";
 import { ExecutionEngine } from "../interpreter/engine/ExecutionEngine";
 
 async function getFlowData(sourceCode: string) {
-  // 1. Initialize Tree-sitter (assuming WASM is loaded)
-  await Parser.init();
+  // 1. Initialize Tree-sitter and FORCE it to look at the absolute public root
+  await Parser.init({
+    locateFile(scriptName: string) {
+      // This ensures the core tree-sitter.wasm is fetched from localhost:5173/tree-sitter.wasm
+      return '/' + scriptName; 
+    },
+  });
+  
   const parser = new Parser();
-  const Lang = await Language.load('tree-sitter-cpp.wasm');
+  
+  // 2. Add the leading slash! This absolutely guarantees Vite won't serve index.html
+  const Lang = await Language.load('/tree-sitter-cpp.wasm');
+  // console.log(Lang);
   parser.setLanguage(Lang);
 
-  // 2. Parse source into Tree-sitter AST
+  // 3. Parse source into Tree-sitter AST
   const tree = parser.parse(sourceCode);
   if (!tree) return [];
-  console.log(tree)
-  // 3. Convert AST to your decoupled IR
+  
+  // 4. Convert AST to your decoupled IR
   const builder = new IRBuilder();
-  const irProgram = builder.build(tree.rootNode as any); // Cast to your SyntaxNode interface
+  const irProgram = builder.build(tree.rootNode as any); 
 
-  // 4. Load and Execute
+  // 5. Load and Execute
   const engine = new ExecutionEngine();
   engine.loadProgram(irProgram);
   
-  // 5. Extract the Flow Data (Snapshots)
+  // 6. Extract the Flow Data (Snapshots)
   const snapshots = engine.run("main");
+  console.log(snapshots);
   
   return snapshots;
 }

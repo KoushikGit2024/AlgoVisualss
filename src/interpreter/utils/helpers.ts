@@ -1,12 +1,11 @@
-// src/interpreter/utils/helpers.ts
-import type { RuntimeSnapshot, ExecutionEvent, CppValue } from "../types";
+import type { RuntimeSnapshot, ExecutionEvent, CppType, CppValue } from "../types";
 import { CallStack } from "../runtime/CallStack";
 import { ScopeManager } from "../runtime/ScopeManager";
 
 /**
- * Grabs a complete freeze-frame of the execution engine at a specific microsecond.
- * We do a deep copy (JSON stringify) of the memory so the React UI can safely 
- * store history without accidentally mutating previous states!
+ * Serializes a complete freeze-frame of the execution engine at a specific step.
+ * Performs a deep copy via JSON serialization to ensure historical immutability,
+ * allowing the React UI to rewind/fast-forward without corrupting state.
  */
 export function createSnapshot(
   event: ExecutionEvent,
@@ -14,7 +13,10 @@ export function createSnapshot(
   activeScopeManager: ScopeManager
 ): RuntimeSnapshot {
   
-  const variables = JSON.parse(JSON.stringify(activeScopeManager.captureState())) as Record<string, CppValue>;
+  // Serialize the nested Symbol records into a safe UI format
+  const variables = JSON.parse(
+    JSON.stringify(activeScopeManager.captureState())
+  ) as Record<string, { name: string; type: CppType; value: CppValue }>;
   
   return {
     step: event.step,
@@ -33,13 +35,13 @@ export function createSnapshot(
 
 // ============================================================================
 // CONTROL FLOW JUMP SIGNALS
-// We use custom JS Error classes to simulate C++ jumps (return, break, continue).
-// When one of these is "thrown", it bubbles up through the execution engine 
-// and gets caught by the nearest loop or function boundary!
+// Utilizes custom JS Error classes to simulate C++ branching (return, break).
+// When thrown, these bubbles through the walker and are caught by structural boundaries.
 // ============================================================================
 
 /**
- * Thrown when a `return` statement is hit. Carries the return value back to the caller.
+ * Thrown upon execution of a `return` statement. 
+ * Carries the evaluated payload to be intercepted by the ExecutionEngine.
  */
 export class ReturnSignal extends Error {
   public readonly value: CppValue;
@@ -51,7 +53,8 @@ export class ReturnSignal extends Error {
 }
 
 /**
- * Thrown when a `break;` statement is hit.
+ * Thrown upon execution of a `break` statement.
+ * Intercepted by the nearest loop construct (For/While/ForRange) in the IRWalker.
  */
 export class BreakSignal extends Error {
   constructor() {
@@ -61,7 +64,8 @@ export class BreakSignal extends Error {
 }
 
 /**
- * Thrown when a `continue;` statement is hit.
+ * Thrown upon execution of a `continue` statement.
+ * Forces the nearest loop construct to instantly proceed to its update/condition phase.
  */
 export class ContinueSignal extends Error {
   constructor() {

@@ -4,7 +4,7 @@ import Algorithms from './Pages/algorithms/Algorithms'
 import Navbar from './Pages/components/Navbar'
 import Sidebar from './Pages/components/Sidebar'
 import HomePage from './Pages/Home'
-import { Routes, Route, Link } from 'react-router-dom'
+import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import VisualPlatforms from './Pages/visualizer/VisualPlatforms'
 import Visualizer from './Pages/visualizer/Visualizer'
 
@@ -86,6 +86,7 @@ const Footer = () => {
 };
 
 const App = () => {
+  const atRoot=useLocation().pathname=='/'?true:false
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden bg-[var(--bg)] text-[var(--text)] antialiased relative selection:bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] selection:text-[var(--accent)]">
       
@@ -114,7 +115,9 @@ const App = () => {
           </div>
 
           {/* Footer Component */}
-          <Footer />
+          {
+            // atRoot &&<Footer />
+          }
 
           {/* Bottom Gradient (Optional/Commented out) */}
           {/* <div className="sticky bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-[var(--bg)] to-transparent pointer-events-none z-10 shrink-0" /> */}
