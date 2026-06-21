@@ -68,7 +68,7 @@ export const ALGORITHMSNAV = [
       { name: "Insertion Sort", href: "/algorithms/sorting/insertion-sort", type: "Easy" },
       { name: "Bucket Sort", href: "/algorithms/sorting/bucket-sort", type: "Medium" },
       { name: "Shell Sort", href: "/algorithms/sorting/shell-sort", type: "Medium" },
-      { name: "Introsort", href: "/algorithms/sorting/intro-sort", type: "Hard" }
+      { name: "Intro Sort", href: "/algorithms/sorting/intro-sort", type: "Hard" }
     ],
     desc: "Bubble, merge, quick, heap, counting sort",
     complexity: "O(n log n)",

@@ -6,7 +6,7 @@ import type {
   IRReturnStatement,
   IRIdentifier,
   IRSubscriptExpression,
-  IRMemberExpression // Added for strict typing
+  IRMemberExpression
 } from "../ir/IRNode";
 import { ScopeManager } from "../runtime/ScopeManager";
 import { EventEmitter } from "../events/EventEmitter";
@@ -29,106 +29,182 @@ export class StatementExecutor {
 
   /**
    * Allocates a new variable in the current lexical scope.
-   * Dynamically constructs Javascript proxy objects for complex C++ STL containers
-   * (e.g., vectors, queues, stacks, maps).
+   * Handles three initialization strategies in priority order:
+   * 1. Explicit assignment initializer (e.g., `int x = 5`)
+   * 2. Constructor-call args (e.g., `vector<int> v(n, 0)`)
+   * 3. Default initialization by type
    */
   public executeVariableDeclaration(node: IRVariableDeclaration): void {
     let value: CppValue | undefined = undefined;
+    const typeLower = node.variableType.toLowerCase();
 
+    // ── PRIORITY 1: Explicit assignment initializer (e.g., int x = 5; or int x = {1,2,3};)
     if (node.initializer) {
-      value = this.evaluator.evaluate(node.initializer);
-    } else {
-      const typeLower = node.variableType.toLowerCase();
-      
+      try {
+        value = this.evaluator.evaluate(node.initializer);
+      } catch (e) {
+        console.warn(`[Executor] Failed to evaluate initializer for '${node.name}': ${(e as Error).message}`);
+      }
+    }
+
+    // ── PRIORITY 2: Constructor-call args (e.g., vector<int> v(n) or vector<int> v(n, 0))
+    if (value === undefined && node.constructorArgs && node.constructorArgs.length > 0) {
+      try {
+        const arg0 = this.evaluator.evaluate(node.constructorArgs[0]);
+        const arg1 = node.constructorArgs.length > 1
+          ? this.evaluator.evaluate(node.constructorArgs[1])
+          : undefined;
+        const size = typeof arg0 === "number" && arg0 >= 0 && arg0 < 1_000_000 ? arg0 : -1;
+
+        // string s(n, 'c') → repeat character n times
+        if (typeLower.includes("string") && size >= 0 && arg1 !== undefined) {
+          value = String(arg1).repeat(size);
+        }
+        // vector<T> v(n) or v(n, val) → pre-sized container
+        else if (
+          typeLower.includes("vector") || typeLower.includes("list") ||
+          typeLower.includes("array") || typeLower.includes("deque") ||
+          typeLower.includes("stack") || typeLower.includes("queue") ||
+          typeLower.includes("priority_queue")
+        ) {
+          if (size >= 0) {
+            // If fill value is undefined (only 1 arg), default inner elements to 0
+            // (for nested vectors like adj_list, elements start as 0 but are auto-upgraded
+            // to arrays by the invokeMethodCall auto-recovery on first push_back)
+            const fillVal = arg1 !== undefined ? arg1 : 0;
+            value = this.createMockContainer(new Array(size).fill(fillVal));
+          } else {
+            value = this.createMockContainer([]);
+          }
+        }
+        // pair<T,U> p(a, b) → [a, b] tuple
+        else if (typeLower.includes("pair")) {
+          value = [arg0, arg1 !== undefined ? arg1 : 0];
+        }
+        // Scalar types: int x(5) → 5
+        else {
+          value = arg0;
+        }
+      } catch (e) {
+        console.warn(`[Executor] Failed to evaluate constructor args for '${node.name}': ${(e as Error).message}`);
+      }
+    }
+
+    // ── PRIORITY 3: Default initialization by type (no initializer, no constructor args)
+    if (value === undefined) {
       // ─── STL CONTAINER POLYMORPHISM ──────────────────────────────────────────
-      // Instantiates a universal container object that mimics C++ STL methods,
-      // mapping them to a standard Javascript array under the hood.
       if (typeLower.includes("vector") || typeLower.includes("list") || 
           typeLower.includes("array") || typeLower.includes("deque") || 
-          typeLower.includes("stack") || typeLower.includes("queue")) {
-        
-        value = {
-          data: [] as any[],
-          
-          // Insertion
-          insert(val: any) { this.data.push(val); return val; },
-          push_back(val: any) { this.data.push(val); },
-          push(val: any) { this.data.push(val); },
-          push_front(val: any) { this.data.unshift(val); },
-          
-          // Deletion
-          remove(val: any) {
-            const idx = this.data.indexOf(val);
-            if (idx !== -1) { this.data.splice(idx, 1); return true; }
-            return false;
-          },
-          erase(val: any) {
-            if (typeof val === "number" && val >= 0 && val < this.data.length) {
-              this.data.splice(val, 1);
-            } else {
-              const idx = this.data.indexOf(val);
-              if (idx !== -1) this.data.splice(idx, 1);
-            }
-          },
-          pop_back() { return this.data.pop(); },
-          pop() { return this.data.pop(); },
-          pop_front() { return this.data.shift(); },
-          
-          // Query
-          search(val: any) { return this.data.indexOf(val); },
-          find(val: any) { return this.data.indexOf(val); },
-          contains(val: any) { return this.data.includes(val); },
-          
-          // Accessors
-          front() { return this.data.length > 0 ? this.data[0] : undefined; },
-          back() { return this.data.length > 0 ? this.data[this.data.length - 1] : undefined; },
-          top() { return this.data.length > 0 ? this.data[this.data.length - 1] : undefined; },
-          at(index: number) {
-            if (index >= 0 && index < this.data.length) return this.data[index];
-            throw new Error(`Memory Access Violation: Index ${index} is out of bounds.`);
-          },
-          
-          // Utilities
-          print() {
-            const outputString = `[${this.data.join(" -> ")}]`;
-            return outputString; 
-          },
-          size() { return this.data.length; },
-          length() { return this.data.length; },
-          empty() { return this.data.length === 0; },
-          clear() { this.data = []; }
-        };
-      } else if (typeLower.includes("set")) {
+          typeLower.includes("stack") || typeLower.includes("queue") ||
+          typeLower.includes("priority_queue")) {
+        value = this.createMockContainer([]);
+      } else if (typeLower.includes("unordered_set") || typeLower.includes("set")) {
         value = new Set();
-      } else if (typeLower.includes("map")) {
+      } else if (typeLower.includes("unordered_map") || typeLower.includes("map")) {
         value = new Map();
+      } else if (typeLower.includes("string")) {
+        value = "";
+      } else if (typeLower.includes("bool")) {
+        value = false;
+      } else if (
+        typeLower.includes("int") || typeLower.includes("long") ||
+        typeLower.includes("short") || typeLower.includes("double") ||
+        typeLower.includes("float") || typeLower.includes("char") ||
+        typeLower === "auto"
+      ) {
+        value = 0;
       }
     }
 
     this.scopeManager.defineVariable(node.name, node.variableType, value);
+    this.eventEmitter.emit(node.line, EventType.DECLARE, {
+      variable: node.name,
+      type: node.variableType,
+      value,
+    });
+  }
+
+  /**
+   * Factory for the universal mock STL container object.
+   * Produces a container with `.data` pre-populated with the given elements.
+   * Used for vectors, stacks, queues, deques, and lists.
+   */
+  private createMockContainer(initialData: any[]): Record<string, any> {
+    return {
+      data: initialData,
+
+      // Insertion
+      insert(val: any) { this.data.push(val); return val; },
+      push_back(val: any) { this.data.push(val); },
+      push(val: any) { this.data.push(val); },
+      push_front(val: any) { this.data.unshift(val); },
+
+      // Deletion
+      remove(val: any) {
+        const idx = this.data.indexOf(val);
+        if (idx !== -1) { this.data.splice(idx, 1); return true; }
+        return false;
+      },
+      erase(val: any) {
+        if (typeof val === "number" && val >= 0 && val < this.data.length) {
+          this.data.splice(val, 1);
+        } else {
+          const idx = this.data.indexOf(val);
+          if (idx !== -1) this.data.splice(idx, 1);
+        }
+      },
+      pop_back() { return this.data.pop(); },
+      pop() { return this.data.pop(); },
+      pop_front() { return this.data.shift(); },
+
+      // Query
+      search(val: any) { return this.data.indexOf(val); },
+      find(val: any) { return this.data.indexOf(val); },
+      contains(val: any) { return this.data.includes(val); },
+
+      // Accessors
+      front() { return this.data.length > 0 ? this.data[0] : undefined; },
+      back() { return this.data.length > 0 ? this.data[this.data.length - 1] : undefined; },
+      top() { return this.data.length > 0 ? this.data[this.data.length - 1] : undefined; },
+      at(index: number) {
+        if (index >= 0 && index < this.data.length) return this.data[index];
+        throw new Error(`Memory Access Violation: Index ${index} is out of bounds.`);
+      },
+
+      // Utilities
+      print() { return `[${this.data.join(" -> ")}]`; },
+      size() { return this.data.length; },
+      length() { return this.data.length; },
+      empty() { return this.data.length === 0; },
+      clear() { this.data = []; },
+    };
   }
 
   /**
    * Evaluates an assignment target and mutates the corresponding memory location.
+   * Supports compound operators (+=, -=, *=, /=, %=, &=, |=, ^=, <<=, >>=).
    */
   public executeAssignment(stmt: IRAssignment): void {
-    const value = this.evaluator.evaluate(stmt.value);
+    const newValue = this.evaluator.evaluate(stmt.value);
 
-    // CASE 1: Standard variable assignment (e.g., x = 5)
+    // CASE 1: Standard variable assignment (e.g., x = 5 or x += 5)
     if (stmt.target.kind === "Identifier") {
       const targetNode = stmt.target as IRIdentifier;
       const varName = targetNode.name;
       
-      // Auto-recovery: If the AST missed the declaration, define it gracefully
+      let resolvedValue: CppValue;
       try {
-        this.scopeManager.assignVariable(varName, value);
+        resolvedValue = this.applyAssignmentOperator(stmt.operator, varName, newValue);
+        this.scopeManager.assignVariable(varName, resolvedValue);
       } catch (e) {
-        this.scopeManager.defineVariable(varName, "auto", value);
+        // Auto-recovery: If the AST missed the declaration, define it gracefully
+        resolvedValue = newValue;
+        this.scopeManager.defineVariable(varName, "auto", resolvedValue);
       }
       
       this.eventEmitter.emit(stmt.line, EventType.ASSIGNMENT, {
         variable: varName,
-        value: value
+        value: resolvedValue
       });
     } 
     // CASE 2: Subscript mutation (e.g., arr[i] = 5 or visited[start] = true)
@@ -139,40 +215,47 @@ export class StatementExecutor {
       let targetObj: any = null;
       let arrayName = "container";
 
-      // Look up the underlying object (e.g., 'visited')
       if (targetNode.object.kind === "Identifier") {
         arrayName = (targetNode.object as IRIdentifier).name;
-        
         try {
           const symbol = this.scopeManager.getVariable(arrayName);
           targetObj = symbol.value;
         } catch (e) {
-          // UNIVERSAL ASSIGNMENT AUTO-RECOVERY
-          // If completely undefined, dynamically construct a Map
           targetObj = new Map(); 
           this.scopeManager.defineVariable(arrayName, "auto", targetObj);
         }
       } else {
-        // Fallback for nested 2D arrays (e.g., graph[0][1] = 5)
         targetObj = this.evaluator.evaluate(targetNode.object);
       }
 
       if (!targetObj) throw new Error(`Memory Access Violation at line ${stmt.line}: Cannot assign to subscript of undefined reference.`);
 
-      // Safely mutate based on underlying JS data structure
+      // For compound operators on subscripts, read the existing value first
+      let existingValue: any = undefined;
+      if (stmt.operator !== "=") {
+        if (targetObj instanceof Map) existingValue = targetObj.get(index);
+        else if (Array.isArray(targetObj)) existingValue = targetObj[index as number];
+        else if (typeof targetObj === 'object' && 'data' in targetObj && Array.isArray(targetObj.data)) existingValue = targetObj.data[index as number];
+        else existingValue = targetObj[index];
+      }
+
+      const finalValue = stmt.operator === "=" 
+        ? newValue 
+        : this.computeCompoundValue(stmt.operator, existingValue ?? 0, newValue);
+
       if (targetObj instanceof Map) {
-        targetObj.set(index, value);
+        targetObj.set(index, finalValue);
       } else if (Array.isArray(targetObj)) {
-        targetObj[index as number] = value;
+        targetObj[index as number] = finalValue;
       } else if (typeof targetObj === 'object' && 'data' in targetObj && Array.isArray(targetObj.data)) {
-        targetObj.data[index as number] = value;
+        targetObj.data[index as number] = finalValue;
       } else {
-        targetObj[index] = value;
+        targetObj[index] = finalValue;
       }
 
       this.eventEmitter.emit(stmt.line, EventType.ASSIGNMENT, {
         variable: `${arrayName}[${index}]`,
-        value: value
+        value: finalValue
       });
     } 
     // CASE 3: Struct/Object property mutation (e.g., root->left = new TreeNode(2))
@@ -183,15 +266,53 @@ export class StatementExecutor {
       
       if (!targetObj) throw new Error(`Memory Access Violation at line ${stmt.line}: Cannot assign property '${property}' to an undefined object pointer.`);
       
-      targetObj[property] = value;
+      const existingValue = stmt.operator !== "=" ? targetObj[property] : undefined;
+      const finalValue = stmt.operator === "=" 
+        ? newValue 
+        : this.computeCompoundValue(stmt.operator, existingValue ?? 0, newValue);
+      
+      targetObj[property] = finalValue;
 
       this.eventEmitter.emit(stmt.line, EventType.ASSIGNMENT, {
         variable: property,
-        value: value
+        value: finalValue
       });
     } 
     else {
       throw new Error(`Syntax Error: Unsupported assignment target kind '${stmt.target.kind}'`);
+    }
+  }
+
+  /**
+   * Reads the current value of a named variable, applies the compound operator against
+   * `newValue`, and returns the final result. For plain `=`, simply returns `newValue`.
+   */
+  private applyAssignmentOperator(operator: IRAssignment["operator"], varName: string, newValue: CppValue): CppValue {
+    if (operator === "=") return newValue;
+    const existing = this.scopeManager.getVariable(varName).value as number;
+    return this.computeCompoundValue(operator, existing, newValue);
+  }
+
+  /**
+   * Applies a compound assignment operator to produce the final value.
+   */
+  private computeCompoundValue(operator: IRAssignment["operator"], existing: any, incoming: CppValue): CppValue {
+    const lhs = Number(existing);
+    const rhs = Number(incoming);
+    switch (operator) {
+      case "+=":  return lhs + rhs;
+      case "-=":  return lhs - rhs;
+      case "*=":  return lhs * rhs;
+      case "/=":  
+        if (rhs === 0) throw new Error("Math Exception: Division by zero in compound assignment.");
+        return Math.trunc(lhs / rhs);
+      case "%=":  return lhs % rhs;
+      case "&=":  return lhs & rhs;
+      case "|=":  return lhs | rhs;
+      case "^=":  return lhs ^ rhs;
+      case "<<=": return lhs << rhs;
+      case ">>=": return lhs >> rhs;
+      default:    return incoming;
     }
   }
 
@@ -206,7 +327,10 @@ export class StatementExecutor {
    * Intercepts C++ stream outputs, evaluates the segments, and emits them to the visualizer.
    */
   public executeCout(stmt: IRCoutStatement): void {
-    const outputs = stmt.arguments.map(arg => this.evaluator.evaluate(arg));
+    const outputs = stmt.arguments.map(arg => {
+      const val = this.evaluator.evaluate(arg);
+      return val === "\n" ? "\n" : String(val ?? "");
+    });
     const outputString = outputs.join("");
     
     this.eventEmitter.emit(stmt.line, EventType.WRITE, {

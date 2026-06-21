@@ -9282,6 +9282,957 @@ function cutPropertyProof_sketch(graph, S):
   ]
 };
 
+/* ─── Schema v2 — Flexible Content Nodes (see arrays-section.js for full spec) ──
+ *  ContentBlock = ContentNode[]
+ *  ContentNode tags in use here: h1, h2, p, ul, ol, table, code, note, blockquote
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+const BIT_MANIPULATION_SECTION = {
+  name: "Bit Manipulation",
+  href: "/algorithms/bit_manipulation",
+  desc: "XOR tricks, bitmasking, power of two",
+  complexity: "O(1)",
+  count: 5,
+
+  about: [
+    { tag: "h1", text: "Bit Manipulation" },
+    { tag: "p", text: "Bit manipulation operates directly on the binary representation of numbers using bitwise operators — AND (&), OR (|), XOR (^), NOT (~), and shifts (<<, >>) — instead of arithmetic or comparison operators. These operations execute as single CPU instructions, making bit-level techniques some of the fastest and most memory-efficient tools available, often replacing what would otherwise require a hash set, an extra array, or a loop with conditional branching." },
+    { tag: "p", text: "The recurring theme across this entire section is XOR's uniquely useful self-cancelling property: a ^ a = 0 and a ^ 0 = a, for any value a. This single algebraic fact — that XOR-ing a value with itself eliminates it, while XOR-ing with zero leaves it untouched — is the foundation of Single Number, a core trick in Missing Number, and appears throughout competitive programming wherever a problem involves 'find the one thing that doesn't pair up' or 'toggle a state without tracking it explicitly'." },
+    { tag: "h2", text: "Core operations at a glance" },
+    { tag: "table",
+      headers: ["Operation", "Symbol", "Common Use"],
+      rows: [
+        ["AND", "&", "Masking — isolate specific bits, check if a bit is set"],
+        ["OR", "|", "Setting bits — turn a specific bit on without affecting others"],
+        ["XOR", "^", "Toggling bits, finding unpaired elements, swapping without a temp variable"],
+        ["NOT", "~", "Bit inversion, constructing masks (e.g. ~0 is all 1s)"],
+        ["Left shift", "<< k", "Multiply by 2^k; also used to construct bitmasks (1 << k isolates bit k)"],
+        ["Right shift", ">> k", "Divide by 2^k (integer division); used to inspect bits one at a time"]
+      ]
+    },
+    { tag: "h2", text: "Two essential one-line identities" },
+    { tag: "ul", items: [
+      "n & (n − 1) clears the LOWEST set bit of n — used to count set bits efficiently (Counting Bits) and to check if n is a power of two (a power of two has exactly one set bit, so n & (n−1) == 0 exactly when n is a power of two, for positive n)",
+      "n & (-n) isolates ONLY the lowest set bit of n — this single identity is the entire mechanism behind the Fenwick Tree / Binary Indexed Tree in the Range Structures section, where it determines exactly which range a given index is responsible for"
+    ]},
+    { tag: "note", variant: "tip", text: "Whenever a problem mentions finding a single unpaired/unique element among many paired/duplicated ones, and asks for O(1) space, XOR is almost always the intended technique — it's one of the strongest pattern-recognition signals in this entire reference." }
+  ],
+
+  items: [
+
+    /* ════════════════════════════════════════════════════════════════════
+       1. SINGLE NUMBER
+    ════════════════════════════════════════════════════════════════════ */
+    {
+      name: "Single Number",
+      href: "/algorithms/bit_manipulation/single-number",
+      type: "Easy",
+
+      about: [
+        { tag: "h1", text: "Single Number" },
+        { tag: "p", text: "Given an array where every element appears exactly TWICE except for one element that appears exactly ONCE, find that single unpaired element — and do it in O(n) time with O(1) extra space (ruling out the otherwise-obvious hash-set-based counting approach, which would need O(n) space). XOR-ing every element together solves this in a single pass, exploiting the fact that XOR is commutative, associative, and self-cancelling." },
+        { tag: "p", text: "The mechanism: XOR-ing all n elements together, in ANY order (since XOR is commutative and associative, order doesn't matter), causes every PAIRED value to cancel itself out completely (a ^ a = 0), leaving only the single unpaired value as the final result (since anything XOR-ed with 0 is unchanged). This is the textbook introductory example for the entire XOR-based bit manipulation family of techniques." },
+        { tag: "h2", text: "When to reach for it" },
+        { tag: "ul", items: [
+          "The literal 'find the single non-duplicated element' problem, with the specific O(1)-space constraint that rules out hash-set counting",
+          "As the conceptual foundation before tackling harder variants: 'Single Number II' (every element appears exactly THREE times except one, requiring bitwise counting per bit position rather than simple XOR) and 'Single Number III' (exactly TWO unique elements among pairs, requiring a partitioning trick based on a differing bit)",
+          "Any 'find what's unpaired/unmatched' problem where elements that should cancel out can be modeled as XOR-able values — error detection/checksums in data transmission rely on a closely related XOR-parity principle",
+          "A canonical demonstration that bitwise tricks can solve a problem that LOOKS like it needs a hash set, in genuinely less auxiliary space"
+        ]},
+        { tag: "note", variant: "tip", text: "This specific XOR trick only works because every duplicate appears EXACTLY twice — for 'every element appears three times except one' (Single Number II), simple XOR no longer works, since three XORs of the same value don't cancel to zero; a more involved per-bit counting technique is needed instead." }
+      ],
+
+      timeComplexityCalculation: {
+        notation: "O(n)",
+        best: [
+          { tag: "h2", text: "Best Case — O(n)" },
+          { tag: "p", text: "Every single element must be XOR-ed into the running result to guarantee correctness — there's no early-exit shortcut, since skipping even one element could change which value survives the cancellation process." },
+          { tag: "ul", items: [
+            "n elements, each requiring exactly one O(1) XOR operation against the running result: O(n)",
+            "Best case still requires the full pass, since correctness depends on every paired value being present to cancel out"
+          ]}
+        ],
+        average: [
+          { tag: "h2", text: "Average Case — O(n)" },
+          { tag: "p", text: "Every element triggers an identical O(1) XOR operation regardless of its specific value or position in the array — there's no value-dependent branching in this algorithm at all." },
+          { tag: "ul", items: ["n iterations × O(1) work each = O(n)", "No input distribution changes this fixed per-element cost"] }
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case — O(n)" },
+          { tag: "p", text: "No array configuration increases the cost beyond a single full pass — this is simultaneously the best, average, and worst case, since XOR-ing has no conditional behavior that could vary by input." },
+          { tag: "ul", items: [
+            "Worst case identical to best/average: O(n)",
+            "This matches the trivial lower bound: any correct algorithm must examine every element at least once, since any single element could be the unpaired one"
+          ]}
+        ]
+      },
+
+      spaceComplexityCalculation: {
+        notation: "O(1)",
+        best: [
+          { tag: "h2", text: "Best Case Space — O(1)" },
+          { tag: "p", text: "Only a single running variable (the accumulated XOR result) is needed throughout the entire algorithm, regardless of array size." },
+          { tag: "ul", items: ["result accumulator — O(1)"] }
+        ],
+        average: [
+          { tag: "h2", text: "Average Case Space — O(1)" },
+          { tag: "p", text: "Memory usage never depends on array length or content — it's always exactly one integer-sized accumulator, a dramatic improvement over a hash-set-based counting approach's O(n) space." },
+          { tag: "ul", items: ["No auxiliary array, set, or map — purely one running scalar"] }
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case Space — O(1)" },
+          { tag: "p", text: "No array size or content increases memory usage beyond the single accumulator variable — this space efficiency is the entire reason this bit-manipulation approach is preferred over a hash-set-based alternative." },
+          { tag: "ul", items: ["O(1) regardless of n — this is the key advantage that makes the XOR trick the canonical solution for this specific problem"] }
+        ]
+      },
+
+      pseudoCodeandStepexplanation: [
+        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+        { tag: "code", language: "text", text:
+`function singleNumber(nums):
+    result ← 0
+
+    for num in nums:
+        result ← result ^ num
+
+    return result` },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        { tag: "ol", items: [
+          "Initialise an accumulator to 0 — chosen specifically because 0 is XOR's identity element (x ^ 0 = x for any x), so it doesn't interfere with the first value XOR-ed into it.",
+          "XOR every element of the array into the accumulator, one at a time, in whatever order they appear.",
+          "Because XOR is commutative (a ^ b = b ^ a) and associative ((a ^ b) ^ c = a ^ (b ^ c)), the final result is identical regardless of the order the elements were processed in — equivalent to XOR-ing the entire multiset of values together in any grouping.",
+          "Every value that appears exactly twice contributes a pair that cancels to 0 (since a ^ a = 0), leaving only the single unpaired value's contribution in the final accumulated result."
+        ]},
+        { tag: "h2", text: "Why it's correct" },
+        { tag: "p", text: "By the commutative and associative properties of XOR, the final accumulated result is independent of processing order and can be conceptually regrouped as (pair1_a ^ pair1_b) ^ (pair2_a ^ pair2_b) ^ ... ^ singleValue. Each parenthesised pair, by definition, XORs an identical value with itself, which always evaluates to exactly 0 (a ^ a = 0 for any a). Since 0 is XOR's identity element, every one of these zero-valued pair-terms vanishes from the overall expression without affecting it, leaving the final result exactly equal to 0 ^ 0 ^ ... ^ singleValue = singleValue — the one element that had no pair to cancel it out." }
+      ]
+    },
+
+    /* ════════════════════════════════════════════════════════════════════
+       2. COUNTING BITS
+    ════════════════════════════════════════════════════════════════════ */
+    {
+      name: "Counting Bits",
+      href: "/algorithms/bit_manipulation/counting-bits",
+      type: "Easy",
+
+      about: [
+        { tag: "h1", text: "Counting Bits" },
+        { tag: "p", text: "Given a non-negative integer n, compute, for EVERY integer from 0 to n, the number of set bits (1s) in its binary representation. Computing this independently for each number (using the standard bit-counting loop, O(log v) per value v) would cost O(n log n) total — a dynamic-programming-style relationship between consecutive numbers' bit counts achieves O(n) total instead, using each previously computed answer to derive the next in O(1)." },
+        { tag: "p", text: "The key recurrence relies on the identity i & (i − 1): this operation clears the LOWEST set bit of i, producing a smaller number whose bit count is already known (since it's necessarily less than i, and the algorithm processes numbers in increasing order). The bit count of i is therefore exactly one more than the bit count of i & (i − 1) — one extra set bit (the one that got cleared) plus however many were already in the smaller, already-computed value." },
+        { tag: "h2", text: "When to reach for it" },
+        { tag: "ul", items: [
+          "Computing the 'popcount' (set-bit count) for every value in a range, where the O(n) batch relationship beats computing each one independently",
+          "As a teaching example for the i & (i-1) bit-clearing trick, which appears throughout bit manipulation (also used to check if a number is a power of two, and as the conceptual basis for Brian Kernighan's bit-counting algorithm)",
+          "Building lookup tables for fast popcount operations, a common low-level optimisation in performance-critical code (graphics, cryptography, bioinformatics bit-vector operations)",
+          "A clean illustration of recognising a DP-STYLE recurrence hiding inside what initially looks like a purely bitwise, non-DP problem"
+        ]},
+        { tag: "note", variant: "tip", text: "An alternative, equally valid O(n) recurrence uses i >> 1 (right shift) instead: bits[i] = bits[i >> 1] + (i & 1) — the bit count of i equals the bit count of i with its lowest bit removed by shifting, plus 1 if that lowest bit was itself a 1. Both recurrences achieve the identical O(n) bound via different but related bit-level insights." }
+      ],
+
+      timeComplexityCalculation: {
+        notation: "O(n)",
+        best: [
+          { tag: "h2", text: "Best Case — O(n)" },
+          { tag: "p", text: "Every value from 0 to n must have its bit count computed and stored — there's no shortcut even for the most favourable n, since every position in the output array must be filled." },
+          { tag: "ul", items: [
+            "n + 1 values (0 through n inclusive), each requiring O(1) work using the recurrence: O(n)",
+            "Even the smallest possible n still requires this same linear relationship to be applied"
+          ]}
+        ],
+        average: [
+          { tag: "h2", text: "Average Case — O(n)" },
+          { tag: "p", text: "Every value's bit count is computed via the SAME O(1) recurrence (one bitwise AND operation, one array lookup, one addition) regardless of the specific value's bit pattern." },
+          { tag: "ul", items: ["n + 1 values, each O(1) via the recurrence bits[i] = bits[i & (i−1)] + 1: O(n) total", "No value-dependent branching changes this fixed per-value cost"] }
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case — O(n)" },
+          { tag: "p", text: "No value of n or bit-pattern distribution increases the cost beyond the fixed linear recurrence application — this is simultaneously the best, average, and worst case." },
+          { tag: "ul", items: [
+            "Worst case identical to best/average: O(n)",
+            "This is a genuine improvement over the naive O(n log n) approach (computing each value's bit count independently via a loop), achieved entirely by reusing previously computed smaller values"
+          ]}
+        ]
+      },
+
+      spaceComplexityCalculation: {
+        notation: "O(n)",
+        best: [
+          { tag: "h2", text: "Best Case Space — O(n)" },
+          { tag: "p", text: "The output array must store exactly one bit-count entry per integer from 0 to n, requiring space proportional to n regardless of the actual bit-count values." },
+          { tag: "ul", items: ["Output array: n + 1 entries — O(n)"] }
+        ],
+        average: [
+          { tag: "h2", text: "Average Case Space — O(n)" },
+          { tag: "p", text: "Space usage is fixed by n alone, since the output array's size is determined entirely by the range requested, not by the specific bit patterns of the numbers within that range." },
+          { tag: "ul", items: ["Same O(n) bound regardless of bit-pattern distribution"] }
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case Space — O(n)" },
+          { tag: "p", text: "No value of n changes the structural requirement of needing exactly one output slot per integer in the range — this is both the floor and ceiling for the algorithm's memory footprint, since the problem itself demands an answer for every value." },
+          { tag: "ul", items: ["O(n) total, identical across all cases — this is an unavoidable cost of the problem itself (n+1 outputs are required), not a flaw of this specific algorithm"] }
+        ]
+      },
+
+      pseudoCodeandStepexplanation: [
+        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+        { tag: "code", language: "text", text:
+`function countBits(n):
+    bits ← array of size n + 1, all zero
+
+    for i from 1 to n:
+        bits[i] ← bits[i & (i − 1)] + 1
+
+    return bits` },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        { tag: "ol", items: [
+          "Initialise bits[0] = 0 implicitly (zero has no set bits) — the base case of the recurrence.",
+          "For each subsequent integer i, compute i & (i − 1) — this bitwise operation clears the LOWEST set bit of i, producing a strictly smaller non-negative integer.",
+          "Since i & (i − 1) is always strictly less than i, its bit count has ALREADY been computed and stored earlier in the same loop (processing in increasing order guarantees this).",
+          "The bit count of i is exactly one more than the bit count of i & (i − 1) — because clearing the lowest set bit removed exactly one '1' from the binary representation, so adding it back (the +1) correctly accounts for that removed bit.",
+          "Store this computed value in bits[i] and continue to the next integer."
+        ]},
+        { tag: "h2", text: "Why it's correct" },
+        { tag: "p", text: "The bitwise identity i & (i − 1) provably clears exactly the lowest set bit of i and leaves every other bit unchanged — this is a standard, easily-verified property of how binary subtraction borrows propagate through trailing zero bits. Since exactly one set bit (the lowest one) was removed to go from i to i & (i − 1), the number of set bits in i must be exactly one greater than the number of set bits in i & (i − 1) — this is the recurrence's core correctness argument. By strong induction on i (processing values in increasing order, so every smaller value's bit count is already correctly computed by the time it's needed), this recurrence correctly computes the bit count for every integer from 0 to n." }
+      ]
+    },
+
+    /* ════════════════════════════════════════════════════════════════════
+       3. BITWISE AND OF NUMBERS RANGE
+    ════════════════════════════════════════════════════════════════════ */
+    {
+      name: "Bitwise AND of Numbers Range",
+      href: "/algorithms/bit_manipulation/bitwise-and",
+      type: "Medium",
+
+      about: [
+        { tag: "h1", text: "Bitwise AND of Numbers Range" },
+        { tag: "p", text: "Given two integers, m and n, with m ≤ n, find the bitwise AND of ALL integers in the inclusive range [m, n]. Computing this naively by AND-ing every single number in the range would cost O(n − m) in the worst case (which can be enormous if the range spans billions of numbers) — but a bit-shifting insight reduces this to O(log n), independent of how WIDE the range actually is." },
+        { tag: "p", text: "The key insight: ANDing together a long run of consecutive integers will clear (turn to 0) any bit position where the numbers in the range DON'T all agree — and as soon as the range spans more than one value, every bit position at or below the position where m and n FIRST DIFFER is guaranteed to take BOTH a 0 and a 1 value somewhere within the range, forcing that bit (and everything below it) to 0 in the final AND result. The algorithm finds the COMMON PREFIX of m and n's binary representations (the bits that are identical from the most-significant bit downward) — that shared prefix, with all remaining lower bits zeroed out, is exactly the answer." },
+        { tag: "h2", text: "When to reach for it" },
+        { tag: "ul", items: [
+          "The literal 'bitwise AND of a range' problem, where the range could be arbitrarily wide, ruling out any approach that iterates through every value in the range",
+          "As an illustration of finding a 'common binary prefix' between two numbers — a technique that generalises to other range-based bitwise problems",
+          "Hardware/networking applications computing a common subnet mask or address prefix shared across a range of addresses — conceptually closely related to this exact common-prefix-finding technique",
+          "A demonstration that bit-shifting can replace what looks like it requires a loop over a potentially astronomically large numeric range, collapsing it to a loop over BIT POSITIONS instead (at most ~32 or ~64 iterations, regardless of how wide the numeric range is)"
+        ]},
+        { tag: "note", variant: "tip", text: "If m == n, the answer is trivially just m (or n) itself, since the 'range' contains only a single number — this is correctly handled as the natural base case of the shifting loop, which terminates immediately when m already equals n." }
+      ],
+
+      timeComplexityCalculation: {
+        notation: "O(log n)",
+        best: [
+          { tag: "h2", text: "Best Case — O(1)" },
+          { tag: "p", text: "If m equals n already (a degenerate single-value 'range'), or if m and n's most-significant bits already differ (meaning their common prefix is empty), the shifting loop terminates almost immediately." },
+          { tag: "ul", items: [
+            "m == n: zero shift iterations needed, answer is m itself — O(1)",
+            "Most-significant bits differ: the very first comparison confirms no common prefix exists, terminating in O(1)"
+          ]}
+        ],
+        average: [
+          { tag: "h2", text: "Average Case — O(log n)" },
+          { tag: "p", text: "The shifting loop runs once per bit position where m and n still match, continuing until they become equal (having shifted away all the differing lower bits) — bounded by the number of bits in n, which is O(log n)." },
+          { tag: "ul", items: [
+            "Each iteration performs a single right-shift on both m and n, an O(1) operation: at most O(log n) iterations (the bit-width of n) before m and n converge to the same value",
+            "Total: O(log n)"
+          ]}
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case — O(log n)" },
+          { tag: "p", text: "If m and n share a very long common binary prefix (e.g. m and n differ only in their lowest bit), the shifting loop must run nearly the full bit-width of n before m and n converge." },
+          { tag: "ul", items: [
+            "Worst case: up to O(log n) shift iterations (bounded by the number of bits needed to represent n, typically 32 or 64 for fixed-width integers, but expressed generally as O(log n))",
+            "This is a dramatic improvement over the naive O(n − m) approach, especially when the range [m, n] is extremely wide — the cost here depends only on the MAGNITUDE of n, not on the WIDTH of the range at all"
+          ]}
+        ]
+      },
+
+      spaceComplexityCalculation: {
+        notation: "O(1)",
+        best: [
+          { tag: "h2", text: "Best Case Space — O(1)" },
+          { tag: "p", text: "Only a single counter variable (tracking how many positions have been shifted) plus the two values m and n themselves (modified in place or in local copies) are needed throughout the algorithm." },
+          { tag: "ul", items: ["m, n (working copies), shiftCount — O(1)"] }
+        ],
+        average: [
+          { tag: "h2", text: "Average Case Space — O(1)" },
+          { tag: "p", text: "Memory usage never depends on the magnitude of m and n or the width of the range [m, n] — it's always exactly a fixed handful of integer variables." },
+          { tag: "ul", items: ["No auxiliary array or recursive call stack — purely iterative with O(1) tracked variables"] }
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case Space — O(1)" },
+          { tag: "p", text: "Even for the maximum possible bit-width (the largest representable integers) or the widest possible range, no additional memory beyond the fixed tracked variables is ever needed." },
+          { tag: "ul", items: ["O(1) regardless of the magnitude of m and n, or how wide the range [m, n] spans"] }
+        ]
+      },
+
+      pseudoCodeandStepexplanation: [
+        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+        { tag: "code", language: "text", text:
+`function rangeBitwiseAnd(m, n):
+    shiftCount ← 0
+
+    while m != n:
+        m ← m >> 1
+        n ← n >> 1
+        shiftCount ← shiftCount + 1
+
+    return m << shiftCount` },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        { tag: "ol", items: [
+          "Repeatedly right-shift BOTH m and n by one bit simultaneously, counting how many shifts have been performed — this progressively strips away the LOWEST bits of both numbers.",
+          "Continue shifting until m and n become EQUAL — at this point, whatever bits remain represent the COMMON PREFIX shared by the original m and n's binary representations (everything from the most-significant bit down to where they first diverged).",
+          "Once m equals n, shift the common value back LEFT by the same number of positions originally shifted away — this restores the common prefix to its correct bit positions, with all the (now-known-to-be-mixed, and therefore AND-able-to-zero) lower bits correctly filled with zeros.",
+          "The resulting value is exactly the bitwise AND of every integer in the original range [m, n]."
+        ]},
+        { tag: "h2", text: "Why it's correct" },
+        { tag: "p", text: "Any bit position where m and n's binary representations DIFFER is guaranteed to take on both 0 and 1 values somewhere within the range [m, n] (since the range includes every integer between them, and that bit position must flip at least once as the range progresses from m to n) — and ANDing a 0 with a 1 at any point always forces that bit position to 0 in the final cumulative result. This means every bit position at or below the FIRST point where m and n differ must be 0 in the answer, while every bit position ABOVE that point — where m and n's bits genuinely agree throughout their entire shared prefix — IS guaranteed to remain that same shared value throughout the whole range (since it never flips for any number between m and n). Right-shifting both values in lockstep until they become equal correctly identifies exactly this shared prefix, and left-shifting back by the same count correctly restores it to its proper bit positions while leaving every lower (necessarily mixed, hence zero) bit as 0." }
+      ]
+    },
+
+    /* ════════════════════════════════════════════════════════════════════
+       4. REVERSE BITS
+    ════════════════════════════════════════════════════════════════════ */
+    {
+      name: "Reverse Bits",
+      href: "/algorithms/bit_manipulation/reverse-bits",
+      type: "Easy",
+
+      about: [
+        { tag: "h1", text: "Reverse Bits" },
+        { tag: "p", text: "Given a 32-bit unsigned integer, reverse the order of its bits — the bit at position 0 (least significant) swaps with the bit at position 31 (most significant), position 1 swaps with position 30, and so on. This is a direct, mechanical bit-by-bit operation: extract each bit from the input one at a time, and place it into the MIRRORED position of the output." },
+        { tag: "p", text: "Because the number of bits is FIXED (32, for a standard unsigned integer), this operation always takes exactly the same number of steps regardless of the input value's specific bit pattern — there's no data-dependent variation at all, making it one of the cleanest possible examples of a genuinely O(1) algorithm (since the 'n' in this problem, the bit-width, is a fixed constant, not a variable input size)." },
+        { tag: "h2", text: "When to reach for it" },
+        { tag: "ul", items: [
+          "The literal bit-reversal problem, which appears directly in low-level systems programming: network byte-order conversions, certain checksum/CRC algorithm implementations, and FFT (Fast Fourier Transform) implementations use bit-reversal permutation as a core step",
+          "Any fixed-width binary manipulation problem where every bit must be individually extracted and repositioned",
+          "As a clean illustration of the distinction between 'O(1) because the work is fixed-size by definition' (32 bits is always 32 bits) versus 'O(1) because of an algorithmic shortcut' — this problem is the former, a useful conceptual contrast to highlight",
+          "Network protocol implementations that need to convert between big-endian and little-endian bit/byte ordering, a closely related operation"
+        ]},
+        { tag: "note", variant: "tip", text: "A faster-in-practice approach (still technically O(1) since bit-width is fixed, but with a smaller constant factor) reverses bits in parallel using a sequence of masking-and-shifting operations that swap adjacent bits, then adjacent pairs, then adjacent nibbles, and so on — achieving the full 32-bit reversal in just 5 steps (log₂32) instead of 32 individual bit extractions." }
+      ],
+
+      timeComplexityCalculation: {
+        notation: "O(1)",
+        best: [
+          { tag: "h2", text: "Best Case — O(1)" },
+          { tag: "p", text: "Every bit of the fixed 32-bit input must be examined and placed into its mirrored output position — there's no data-dependent shortcut, since the bit-width is fixed regardless of the input's specific value." },
+          { tag: "ul", items: ["32 fixed iterations (one per bit position), each O(1) work: O(32) = O(1), since 32 is a constant, not a variable input size"] }
+        ],
+        average: [
+          { tag: "h2", text: "Average Case — O(1)" },
+          { tag: "p", text: "Every input requires the exact same fixed 32 bit-extraction-and-placement operations regardless of the specific bit pattern — there's no value-dependent branching at all in this algorithm." },
+          { tag: "ul", items: ["32 iterations × O(1) work each = O(1), since the iteration count is a fixed constant for any standard 32-bit integer"] }
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case — O(1)" },
+          { tag: "p", text: "No input value changes the number of operations performed — this is simultaneously the best, average, and worst case, since bit-width is fixed by the integer type, not by the value being processed." },
+          { tag: "ul", items: [
+            "Worst case identical to best/average: O(1)",
+            "This is a genuine O(1) bound (not just 'O(n) with n treated as a small constant') precisely because the problem's input size (32 bits) is fixed by definition, not a variable parameter of the input"
+          ]}
+        ]
+      },
+
+      spaceComplexityCalculation: {
+        notation: "O(1)",
+        best: [
+          { tag: "h2", text: "Best Case Space — O(1)" },
+          { tag: "p", text: "Only the input value and an accumulating result variable (both fixed-size 32-bit integers) are needed throughout the algorithm." },
+          { tag: "ul", items: ["input, result — O(1), both fixed-size integers"] }
+        ],
+        average: [
+          { tag: "h2", text: "Average Case Space — O(1)" },
+          { tag: "p", text: "Memory usage never depends on the input's specific bit pattern — it's always exactly two fixed-size integer variables." },
+          { tag: "ul", items: ["No auxiliary array needed — the result is built directly, bit by bit, into a single accumulator"] }
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case Space — O(1)" },
+          { tag: "p", text: "No input value increases memory usage beyond the two fixed-size integer variables — this holds regardless of how many 1-bits or 0-bits the input contains." },
+          { tag: "ul", items: ["O(1) regardless of input value, identical across all cases"] }
+        ]
+      },
+
+      pseudoCodeandStepexplanation: [
+        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+        { tag: "code", language: "text", text:
+`function reverseBits(n):                    // n is a 32-bit unsigned integer
+    result ← 0
+
+    for i from 0 to 31:
+        bit ← (n >> i) & 1                    // extract bit at position i from the input
+        result ← result | (bit << (31 − i))   // place it at the MIRRORED position in the output
+
+    return result` },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        { tag: "ol", items: [
+          "Initialise an accumulator 'result' to 0, which will be built up bit by bit.",
+          "For each bit position i from 0 (least significant) to 31 (most significant) in the input, extract that specific bit: right-shift n by i positions, then mask with & 1 to isolate just that single bit.",
+          "Compute the MIRRORED destination position for this bit: position i in the input maps to position (31 − i) in the output, since the bit ordering is being fully reversed.",
+          "Set that mirrored bit in the result accumulator using a left-shift (to move the extracted bit into its correct destination position) combined with OR (to set that bit without disturbing any bits already placed in earlier iterations).",
+          "After processing all 32 bit positions, every input bit has been correctly relocated to its mirrored position, and 'result' holds the fully bit-reversed value."
+        ]},
+        { tag: "h2", text: "Why it's correct" },
+        { tag: "p", text: "The algorithm directly and mechanically implements the definition of bit reversal: for a 32-bit value, the bit at position i in the input must end up at position (31 − i) in the output, for every i from 0 to 31. The extraction step (n >> i) & 1 correctly isolates exactly the bit at position i (shifting it down to the units position, then masking away everything else). The placement step bit << (31 − i) correctly positions that single extracted bit at its mirrored destination, and OR-ing it into the accumulator correctly sets that bit without disturbing any other bit already placed by a previous iteration (since each iteration targets a DISTINCT, non-overlapping output position, OR-ing in a new bit can never accidentally clear or corrupt a previously-set one)." }
+      ]
+    },
+
+    /* ════════════════════════════════════════════════════════════════════
+       5. MISSING NUMBER
+    ════════════════════════════════════════════════════════════════════ */
+    {
+      name: "Missing Number",
+      href: "/algorithms/bit_manipulation/missing-number",
+      type: "Easy",
+
+      about: [
+        { tag: "h1", text: "Missing Number" },
+        { tag: "p", text: "Given an array containing n distinct numbers taken from the range [0, n] (so the array has n elements but the range has n+1 possible values), find the one number from that range that's MISSING from the array. A sum-based approach (compute the expected sum 0+1+...+n via the standard formula, subtract the actual sum of the array) works, but risks integer overflow for very large inputs — the XOR-based approach avoids this entirely, since XOR has no overflow concept the way addition does." },
+        { tag: "p", text: "The technique extends Single Number's exact same self-cancelling XOR principle, but applied across TWO conceptual sets simultaneously: XOR together every index from 0 to n, AND every value actually present in the array, all into a single running accumulator. Every number that's genuinely present in the array (matched against its corresponding index or another occurrence) cancels out via a ^ a = 0, leaving only the one number that has no canceling partner — the missing number." },
+        { tag: "h2", text: "When to reach for it" },
+        { tag: "ul", items: [
+          "The literal 'find the missing number from a range' problem, especially when overflow-safety is a concern (XOR has no overflow failure mode, unlike sum-based approaches with very large n)",
+          "Any 'find what's missing from an otherwise-complete set' problem that can be reframed as an XOR-cancellation — a direct generalisation of the Single Number technique to a different but structurally related scenario",
+          "As a demonstration that the SAME core algebraic trick (XOR self-cancellation) can be adapted to solve superficially different-looking problems, once the underlying 'things that should cancel out' structure is recognised",
+          "Data integrity/checksum applications verifying that a complete, expected set of identifiers is fully present, without needing the overflow-prone arithmetic-sum approach"
+        ]},
+        { tag: "note", variant: "tip", text: "This is a great illustration of pattern RECOGNITION transfer: once you understand WHY XOR cancellation works for Single Number (pairs cancel, leaving the unpaired survivor), recognising that 'every index-value pair should cancel except for one unmatched index' is a structurally similar (not identical) setup is the key insight — the specific mechanics differ slightly, but the underlying XOR-cancellation principle is the same." }
+      ],
+
+      timeComplexityCalculation: {
+        notation: "O(n)",
+        best: [
+          { tag: "h2", text: "Best Case — O(n)" },
+          { tag: "p", text: "Every index from 0 to n, and every array value, must be XOR-ed into the running result to guarantee correctness — there's no early-exit shortcut, since skipping any value could change which number survives the cancellation process." },
+          { tag: "ul", items: [
+            "n array elements + (n+1) indices to XOR together: O(n) total operations",
+            "Best case still requires the full pass, since correctness depends on every value being present to correctly cancel"
+          ]}
+        ],
+        average: [
+          { tag: "h2", text: "Average Case — O(n)" },
+          { tag: "p", text: "Every element and index triggers an identical O(1) XOR operation regardless of its specific value — there's no value-dependent branching in this algorithm at all." },
+          { tag: "ul", items: ["O(n) total XOR operations (n array values + n+1 indices, simplified to O(n)) × O(1) each = O(n)"] }
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case — O(n)" },
+          { tag: "p", text: "No array configuration increases the cost beyond a single full pass over both the array and the index range — this is simultaneously the best, average, and worst case." },
+          { tag: "ul", items: [
+            "Worst case identical to best/average: O(n)",
+            "Matches a sum-based approach's time complexity exactly, while additionally avoiding any overflow risk for large n"
+          ]}
+        ]
+      },
+
+      spaceComplexityCalculation: {
+        notation: "O(1)",
+        best: [
+          { tag: "h2", text: "Best Case Space — O(1)" },
+          { tag: "p", text: "Only a single running variable (the accumulated XOR result) is needed throughout the entire algorithm, regardless of array size." },
+          { tag: "ul", items: ["result accumulator — O(1)"] }
+        ],
+        average: [
+          { tag: "h2", text: "Average Case Space — O(1)" },
+          { tag: "p", text: "Memory usage never depends on array length or content — it's always exactly one integer-sized accumulator, matching Single Number's space efficiency exactly." },
+          { tag: "ul", items: ["No auxiliary array, set, or map — purely one running scalar"] }
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case Space — O(1)" },
+          { tag: "p", text: "No array size or content increases memory usage beyond the single accumulator variable." },
+          { tag: "ul", items: ["O(1) regardless of n — identical space efficiency to Single Number, since both rely on the exact same single-accumulator XOR technique"] }
+        ]
+      },
+
+      pseudoCodeandStepexplanation: [
+        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+        { tag: "code", language: "text", text:
+`function missingNumber(nums):
+    result ← length(nums)              // pre-seed with index n (since loop below only covers 0..n-1)
+
+    for i from 0 to length(nums) − 1:
+        result ← result ^ i ^ nums[i]
+
+    return result` },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        { tag: "ol", items: [
+          "Seed the accumulator with n (the array's length, equivalently the largest possible index in the full [0, n] range) — this accounts for the one index value (n itself) that the upcoming loop, bounded by the array's actual length, won't otherwise reach.",
+          "For each array position i (from 0 to n−1), XOR BOTH the index i AND the value stored at nums[i] into the accumulator — conceptually, this XORs together the complete set {0, 1, ..., n} (every possible index in the full range) with the complete set of actual array values.",
+          "Every number that genuinely belongs in the array's range AND is actually present gets XOR-ed in TWICE overall: once as an 'expected' index value, and once as an 'actual' array value — these two occurrences cancel out to 0, exactly like Single Number's pairing logic.",
+          "The one number from the full range [0, n] that's genuinely MISSING from the array only ever gets XOR-ed in ONCE (as an expected index, never as an actual value) — leaving it as the sole uncancelled survivor in the final accumulated result."
+        ]},
+        { tag: "h2", text: "Why it's correct" },
+        { tag: "p", text: "The accumulator effectively computes the XOR of the complete set {0, 1, 2, ..., n} together with the XOR of every actual array value — by commutativity and associativity, this can be regrouped as XOR-ing together every NUMBER THAT APPEARS IN BOTH conceptual sets (which cancels to 0, exactly as in Single Number) plus whatever appears in ONLY ONE of the two sets. Since the array contains exactly n distinct values all drawn from the (n+1)-element range [0, n], exactly one number from that range is absent from the array — every OTHER number in the range appears in BOTH the 'expected indices' set and the 'actual values' set (contributing a cancelling pair), while the missing number appears ONLY in the 'expected indices' set, surviving as the final uncancelled XOR result." }
+      ]
+    }
+
+  ]
+};
+
+/* ─── Schema v2 — Flexible Content Nodes (see arrays-section.js for full spec) ──
+ *  ContentBlock = ContentNode[]
+ *  ContentNode tags in use here: h1, h2, p, ul, ol, table, code, note, blockquote
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+const RANGE_STRUCTURES_SECTION = {
+  name: "Range Structures",
+  href: "/algorithms/range_structures",
+  desc: "Segment trees, BIT/Fenwick, range queries",
+  complexity: "O(log n)",
+  count: 4,
+
+  about: [
+    { tag: "h1", text: "Range Structures" },
+    { tag: "p", text: "Range structures answer queries about a CONTIGUOUS RANGE of an array — sum, minimum, maximum, GCD, or any other associative aggregate — efficiently, even when the underlying array can also be UPDATED. The naive approach recomputes the aggregate over the requested range from scratch every query, costing O(range length) per query; every structure in this section exists to beat that bound by precomputing and maintaining partial aggregates that can be combined quickly." },
+    { tag: "p", text: "The defining trade-off across this entire section is STATIC vs. DYNAMIC data. If the array never changes after being built, a Sparse Table achieves the best possible query time (O(1)) by precomputing every useful range upfront. If the array needs to support updates, a Segment Tree or Fenwick Tree is required instead, trading that O(1) query time for O(log n) query AND O(log n) update — Square Root Decomposition sits in between, offering a simpler-to-implement O(√n) for both, useful when O(log n) implementation complexity isn't worth it for the problem at hand." },
+    { tag: "h2", text: "Choosing the right structure" },
+    { tag: "table",
+      headers: ["Structure", "Build", "Query", "Update", "Best For"],
+      rows: [
+        ["Segment Tree", "O(n)", "O(log n)", "O(log n)", "General-purpose: any associative operation, point or range updates"],
+        ["Fenwick Tree (BIT)", "O(n log n) naive / O(n) optimal", "O(log n)", "O(log n)", "Prefix sums and similar invertible operations, simpler to code than Segment Tree"],
+        ["Sparse Table", "O(n log n)", "O(1)", "Not supported (static only)", "Static arrays with many repeated queries — e.g. Range Minimum Query"],
+        ["Square Root Decomposition", "O(n)", "O(√n)", "O(√n)", "Simpler implementation when O(log n) isn't required, or for operations that don't fit a tree/BIT cleanly"]
+      ]
+    },
+    { tag: "h2", text: "The idempotence distinction" },
+    { tag: "p", text: "A subtle but important detail: Sparse Table's O(1) query trick (using two possibly-OVERLAPPING precomputed ranges to cover the query range) only works correctly for IDEMPOTENT operations — ones where combining a value with itself changes nothing (min(x, x) = x, max(x, x) = x, gcd(x, x) = x). It does NOT work for sum, since sum(x, x) = 2x ≠ x — overlapping ranges would double-count. This is why Sparse Table is the go-to for Range MIN/MAX Query specifically, while Fenwick Tree and Segment Tree handle sum (and other non-idempotent operations) correctly." },
+    { tag: "note", variant: "tip", text: "If a problem only ever needs to answer range queries on a NEVER-CHANGING array, always reach for Sparse Table first when the operation is idempotent (min/max/gcd) — O(1) per query is unbeatable, and the O(n log n) build cost is a one-time fee." }
+  ],
+
+  items: [
+
+    /* ════════════════════════════════════════════════════════════════════
+       1. SEGMENT TREE
+    ════════════════════════════════════════════════════════════════════ */
+    {
+      name: "Segment Tree",
+      href: "/algorithms/range_structures/segment-tree",
+      type: "Hard",
+
+      about: [
+        { tag: "h1", text: "Segment Tree" },
+        { tag: "p", text: "A Segment Tree is a binary tree built over an array, where each leaf represents a single array element, and each internal node represents the AGGREGATE (sum, min, max, or any associative operation) of its entire subtree's range. This structure allows both range queries AND point/range updates in O(log n), making it the most general-purpose and flexible range structure in this section — it works for essentially any associative operation, not just sum or idempotent operations like Sparse Table requires." },
+        { tag: "p", text: "The tree is conventionally stored in a flat array (not pointer-based nodes), using the same index arithmetic as a binary heap: node i's children are at 2i+1 and 2i+2. A query or update walks down from the root, recursively splitting the requested range against each node's covered range — fully contained, fully disjoint, or partially overlapping — and only recursing into children when partial overlap requires it." },
+        { tag: "h2", text: "When to reach for it" },
+        { tag: "ul", items: [
+          "Range queries (sum, min, max, GCD, or any associative combiner) on an array that ALSO needs to support updates — the single most general-purpose range structure when both capabilities are needed simultaneously",
+          "Competitive programming problems requiring range updates (add a value to an entire range) combined with range queries — solved with 'lazy propagation', an extension that defers update work until a node is actually visited by a later query",
+          "Computational geometry sweep-line algorithms, where a Segment Tree often tracks coverage or intersection counts across a dynamically changing set of intervals",
+          "Any problem where Fenwick Tree's simpler structure doesn't directly support the needed operation (Fenwick Tree is naturally suited to invertible operations like sum; Segment Tree handles non-invertible ones like min/max just as easily)"
+        ]},
+        { tag: "note", variant: "tip", text: "Segment Tree is strictly more general than Fenwick Tree — anything a Fenwick Tree can do, a Segment Tree can also do, often with the same O(log n) bounds. Fenwick Tree's advantage is purely implementation simplicity and a smaller constant factor for the specific case of prefix-sum-style queries." }
+      ],
+
+      timeComplexityCalculation: {
+        notation: "O(log n) query/update",
+        best: [
+          { tag: "h2", text: "Best Case — O(1) query" },
+          { tag: "p", text: "If the queried range happens to EXACTLY match a single node's covered range (e.g. querying the entire array, which exactly matches the root), the query resolves immediately without needing to recurse into any children at all." },
+          { tag: "ul", items: [
+            "Exact node-range match: O(1), since no further recursion is needed once a node's range exactly equals the query range",
+            "This is a favourable-input case, not the general bound for arbitrary range queries"
+          ]}
+        ],
+        average: [
+          { tag: "h2", text: "Average Case — O(log n) query, O(log n) update" },
+          { tag: "p", text: "A typical range query recurses down the tree, and at each level, at most a constant number of nodes are 'partially overlapping' and require further recursion — bounding the total visited nodes by the tree's height, O(log n)." },
+          { tag: "ul", items: [
+            "Query: at each of the O(log n) levels, at most O(1) nodes require splitting into both children (the rest are either fully contained — answered immediately — or fully disjoint — skipped immediately): O(log n) total",
+            "Update (point update): follows a single root-to-leaf path, updating O(log n) ancestors along the way: O(log n)"
+          ]}
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case — O(log n) query, O(log n) update" },
+          { tag: "p", text: "No query range or update position increases the cost beyond the tree's fixed height — this holds regardless of how 'awkwardly' a range query happens to be positioned relative to the tree's node boundaries." },
+          { tag: "ul", items: [
+            "Worst case matches average exactly: O(log n) for both query and update, since tree height is structurally fixed at ⌈log₂ n⌉ regardless of query/update pattern",
+            "This guaranteed bound (no adversarial input degrades it) is a key structural advantage shared with Fenwick Tree, in contrast to data structures whose performance can vary with access pattern"
+          ]}
+        ]
+      },
+
+      spaceComplexityCalculation: {
+        notation: "O(n)",
+        best: [
+          { tag: "h2", text: "Best Case Space — O(n)" },
+          { tag: "p", text: "The flat-array representation of the tree always requires space proportional to n, typically allocated as an array of size 4n (a conventional safe upper bound that accommodates the tree's structure regardless of whether n is a power of 2)." },
+          { tag: "ul", items: ["Tree array: O(n) (commonly sized 4n as a simple, safe, non-tight upper bound)"] }
+        ],
+        average: [
+          { tag: "h2", text: "Average Case Space — O(n)" },
+          { tag: "p", text: "Space usage is fixed by the original array's length alone, regardless of the specific values stored or which aggregate operation the tree is built around." },
+          { tag: "ul", items: ["Same O(n) bound regardless of value distribution or query/update history"] }
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case Space — O(n)" },
+          { tag: "p", text: "No input array configuration increases space beyond the fixed tree-array allocation — this is both the floor and ceiling for the structure's memory footprint." },
+          { tag: "ul", items: ["O(n) total, identical across all cases — a tight implementation using exactly 2n (for a 'iterative bottom-up' Segment Tree variant restricted to n being a power of 2) is possible, but the conventional 4n bound remains O(n) regardless"] }
+        ]
+      },
+
+      pseudoCodeandStepexplanation: [
+        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+        { tag: "p", text: "Sum-based Segment Tree (the same template generalises directly to min/max/GCD by swapping the combine operation):" },
+        { tag: "code", language: "text", text:
+`function build(arr, node, start, end):
+    if start == end:
+        tree[node] ← arr[start]
+        return
+    mid ← (start + end) / 2
+    build(arr, 2*node + 1, start, mid)
+    build(arr, 2*node + 2, mid + 1, end)
+    tree[node] ← tree[2*node + 1] + tree[2*node + 2]
+
+function update(node, start, end, idx, value):
+    if start == end:
+        tree[node] ← value
+        return
+    mid ← (start + end) / 2
+    if idx <= mid:
+        update(2*node + 1, start, mid, idx, value)
+    else:
+        update(2*node + 2, mid + 1, end, idx, value)
+    tree[node] ← tree[2*node + 1] + tree[2*node + 2]
+
+function query(node, start, end, L, R):              // query range [L, R]
+    if R < start or end < L:
+        return IDENTITY                                // fully disjoint — contributes nothing
+    if L <= start and end <= R:
+        return tree[node]                               // fully contained — return directly
+    mid ← (start + end) / 2
+    return query(2*node+1, start, mid, L, R) + query(2*node+2, mid+1, end, L, R)` },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        { tag: "ol", items: [
+          "build: recursively split the array's range in half until reaching single-element leaves, then combine each pair of children's values bottom-up to populate every internal node with its subtree's aggregate.",
+          "update: walk down to the specific leaf corresponding to the index being updated, change its value, then recombine every ancestor on the path back up to the root, since each ancestor's stored aggregate depends on this leaf.",
+          "query: at each node, check the relationship between the node's covered range and the query range — fully disjoint (contribute nothing, return the operation's identity value, e.g. 0 for sum), fully contained (return this node's precomputed aggregate directly, no further recursion needed), or partially overlapping (recurse into both children and combine their results).",
+          "The query's total work is bounded because at each tree level, only the nodes whose range is partially (not fully) overlapping with the query range require further recursion — and there are at most O(1) such 'boundary' nodes per level, giving O(log n) total across all levels."
+        ]},
+        { tag: "h2", text: "Why it's correct" },
+        { tag: "p", text: "By construction (and maintained by every update), each internal node's stored value is exactly the combined aggregate of its entire subtree's range — this invariant is established during build (bottom-up combination) and correctly re-established after every update (by recombining every ancestor on the path from the changed leaf back to the root). The query function's three-way case split correctly and completely partitions any possible relationship between a node's range and the query range: fully outside contributes the identity element (correctly adding nothing to the combined result), fully inside returns the exact precomputed answer for that sub-range (correct by the maintained invariant), and partial overlap is correctly handled by recursively combining the contributions from both children, which together exactly cover the node's full range. Since these three cases are exhaustive and each correctly resolves its scenario, the overall query result is exactly the correct aggregate over the full requested range [L, R]." }
+      ]
+    },
+
+    /* ════════════════════════════════════════════════════════════════════
+       2. FENWICK TREE (BIT)
+    ════════════════════════════════════════════════════════════════════ */
+    {
+      name: "Fenwick Tree (BIT)",
+      href: "/algorithms/range_structures/fenwick",
+      type: "Medium",
+
+      about: [
+        { tag: "h1", text: "Fenwick Tree (Binary Indexed Tree)" },
+        { tag: "p", text: "A Fenwick Tree, devised by Peter Fenwick in 1994, answers prefix-sum queries (and, with a small extension, arbitrary range-sum queries via subtraction) and supports point updates, both in O(log n) — achieving the same asymptotic bounds as a Segment Tree for this specific class of operations, but with a notably simpler implementation: no explicit tree structure, no recursion required, just a single array and one bit-level trick." },
+        { tag: "p", text: "The entire mechanism rests on a single identity: i & (-i) isolates the LOWEST SET BIT of i (the same bit-clearing family of tricks covered in the Bit Manipulation section). Each index i in the Fenwick array is made 'responsible for' a range of the original array whose length is exactly that lowest-set-bit value — this clever, implicit range assignment is what allows both updates and prefix-sum queries to be computed by repeatedly jumping between indices using exactly this one bitwise operation, with no explicit tree traversal needed." },
+        { tag: "h2", text: "When to reach for it" },
+        { tag: "ul", items: [
+          "Range-sum queries (or any operation expressible via prefix sums and subtraction) on an array that also needs point updates — the standard, simplest choice for 'sum of range [l, r], with point updates' specifically",
+          "Counting inversions in an array (a classic application: process elements and use Fenwick Tree to count, in O(log n) per element, how many already-processed elements are less than the current one)",
+          "Competitive programming, where Fenwick Tree's much shorter and simpler implementation (compared to a full Segment Tree) is frequently preferred whenever the problem's operation fits its invertible-aggregate model",
+          "As a strict subset of Segment Tree's capability: any problem solvable by Fenwick Tree is also solvable by Segment Tree, but not vice versa (Segment Tree also handles non-invertible operations like min/max, which Fenwick Tree's prefix-subtraction trick cannot)"
+        ]},
+        { tag: "note", variant: "warning", text: "Fenwick Tree's range-query trick (rangeSum(l, r) = prefixSum(r) − prefixSum(l−1)) only works for INVERTIBLE operations like sum, where subtraction correctly 'removes' a sub-range's contribution — it does NOT work for min, max, or GCD, which have no inverse operation; use a Segment Tree for those instead." }
+      ],
+
+      timeComplexityCalculation: {
+        notation: "O(log n)",
+        best: [
+          { tag: "h2", text: "Best Case — O(1)" },
+          { tag: "p", text: "If the queried prefix-sum index has very few set bits in its binary representation (e.g. index 1, which is just a single bit), the query loop terminates after very few iterations." },
+          { tag: "ul", items: ["Index with a single set bit (e.g. a power of 2): as few as 1 iteration — O(1)", "This is a favourable-input case, not the general bound"] }
+        ],
+        average: [
+          { tag: "h2", text: "Average Case — O(log n)" },
+          { tag: "p", text: "Both query and update repeatedly jump between indices using the lowest-set-bit operation, and the number of jumps is bounded by the number of bits in the index, which is O(log n)." },
+          { tag: "ul", items: [
+            "Query (prefix sum up to index i): repeatedly subtract the lowest set bit (i ← i − (i & −i)) until reaching 0, accumulating the value at each visited index — bounded by O(log n) jumps, since each jump clears at least one bit",
+            "Update (add a value at index i): repeatedly add the lowest set bit (i ← i + (i & −i)) until exceeding n, updating the value at each visited index — also bounded by O(log n) jumps"
+          ]}
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case — O(log n)" },
+          { tag: "p", text: "If the index has the maximum possible number of set bits (e.g. all 1s in binary, like 0b1111), both the query and update loops must perform the maximum number of jumps before terminating." },
+          { tag: "ul", items: [
+            "Worst case: O(log n) jumps, bounded by the bit-width of n",
+            "This guaranteed bound (no adversarial index degrades it beyond O(log n)) matches Segment Tree's bound for the same class of operations, with a notably simpler implementation"
+          ]}
+        ]
+      },
+
+      spaceComplexityCalculation: {
+        notation: "O(n)",
+        best: [
+          { tag: "h2", text: "Best Case Space — O(n)" },
+          { tag: "p", text: "The Fenwick array always requires exactly n+1 entries (typically using 1-indexing for the bit-trick to work cleanly), regardless of the specific values stored." },
+          { tag: "ul", items: ["Fenwick array: O(n)"] }
+        ],
+        average: [
+          { tag: "h2", text: "Average Case Space — O(n)" },
+          { tag: "p", text: "Space usage is fixed by the original array's length alone — notably smaller in practice than a Segment Tree's conventional 4n allocation, despite both being O(n) asymptotically." },
+          { tag: "ul", items: ["Same O(n) bound regardless of value distribution, with a smaller constant factor than the typical Segment Tree implementation"] }
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case Space — O(n)" },
+          { tag: "p", text: "No input array configuration increases space beyond the fixed n+1-entry array — this is both the floor and ceiling for the structure's memory footprint." },
+          { tag: "ul", items: ["O(n) total, identical across all cases — a meaningful practical advantage over Segment Tree's larger constant factor, while matching its asymptotic class"] }
+        ]
+      },
+
+      pseudoCodeandStepexplanation: [
+        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+        { tag: "code", language: "text", text:
+`function update(tree, n, index, delta):     // index is 1-based
+    while index <= n:
+        tree[index] ← tree[index] + delta
+        index ← index + (index & −index)      // jump to the next responsible index
+
+function prefixSum(tree, index):              // sum of elements [1, index]
+    sum ← 0
+    while index > 0:
+        sum ← sum + tree[index]
+        index ← index − (index & −index)       // jump to the next contributing index
+    return sum
+
+function rangeSum(tree, left, right):          // sum of elements [left, right], 1-based
+    return prefixSum(tree, right) − prefixSum(tree, left − 1)` },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        { tag: "ol", items: [
+          "update(index, delta): starting at the given index, repeatedly add delta to tree[index], then jump to the NEXT index that's also responsible for covering this position, computed via index + (index & −index) — continue until exceeding the array bounds.",
+          "prefixSum(index): starting at the given index, repeatedly add tree[index] to a running sum, then jump DOWN to the next index that contributes to this prefix, computed via index − (index & −index) — continue until reaching 0.",
+          "The two jump directions (adding vs. subtracting the lowest set bit) are deliberately opposite: update propagates UPWARD to every ancestor range that includes this position, while query walks DOWNWARD, accumulating contributions from a decreasing sequence of ranges that together exactly cover [1, index].",
+          "rangeSum(left, right): compute the prefix sum up to 'right', then subtract the prefix sum up to 'left − 1' — since prefix sums are simple cumulative totals, subtracting removes exactly the unwanted portion, exactly like the basic Prefix Sum technique covered in the Arrays section."
+        ]},
+        { tag: "h2", text: "Why it's correct" },
+        { tag: "p", text: "Each Fenwick array index i is implicitly responsible for covering exactly the range of original-array positions [i − (i & −i) + 1, i] — a range whose length is precisely i's lowest set bit value, a consequence of how binary representations decompose. The update operation's upward-jumping sequence (i ← i + (i & −i)) correctly visits every Fenwick index whose RESPONSIBLE RANGE includes the updated position, since adding the lowest set bit is exactly the operation that finds the next index whose range extends to cover the current one. The prefixSum operation's downward-jumping sequence correctly decomposes the range [1, index] into a small number of DISJOINT, non-overlapping Fenwick-responsible ranges whose union exactly equals [1, index] — this decomposition is guaranteed unique and complete because subtracting the lowest set bit at each step is exactly equivalent to peeling off the binary representation of 'index' one set bit at a time, and any positive integer's binary representation has a unique decomposition into its set bits." }
+      ]
+    },
+
+    /* ════════════════════════════════════════════════════════════════════
+       3. SPARSE TABLE
+    ════════════════════════════════════════════════════════════════════ */
+    {
+      name: "Sparse Table",
+      href: "/algorithms/range_structures/sparse-table",
+      type: "Hard",
+
+      about: [
+        { tag: "h1", text: "Sparse Table" },
+        { tag: "p", text: "A Sparse Table precomputes the answer for every range whose length is a POWER OF TWO, starting at every possible position — this allows ANY range query to be answered in O(1) by combining just TWO precomputed power-of-two ranges that together cover the full requested range (even if those two ranges OVERLAP), at the cost of O(n log n) preprocessing time and space, and the structure being entirely STATIC (no updates supported after construction)." },
+        { tag: "p", text: "This O(1) query trick relies critically on the operation being IDEMPOTENT (combining a value with itself produces that same value, e.g. min(x, x) = x). For a range [L, R] of length len, find k = ⌊log₂(len)⌋, then combine the precomputed range starting at L with length 2^k, and the precomputed range ENDING at R with that same length 2^k — these two ranges might overlap in the middle, but for an idempotent operation like min/max, double-counting the overlapping portion changes nothing about the final answer." },
+        { tag: "h2", text: "When to reach for it" },
+        { tag: "ul", items: [
+          "Range Minimum Query (RMQ) or Range Maximum Query on a STATIC array (one that never changes after the structure is built) with MANY repeated queries — the O(1) per-query cost is unbeatable once the O(n log n) build cost is paid once",
+          "As a preprocessing step for the Lowest Common Ancestor problem (Trees section): LCA can be reduced to an RMQ problem via Euler tour technique, and Sparse Table is the standard structure used to answer that resulting RMQ in O(1) per query",
+          "GCD range queries on a static array — GCD is also idempotent (gcd(x, x) = x), making it another valid use case alongside min/max",
+          "Specifically AVOID Sparse Table for sum queries (not idempotent — overlapping ranges would double-count) or for any scenario requiring updates after construction — Fenwick Tree or Segment Tree are the correct choices in those cases instead"
+        ]},
+        { tag: "note", variant: "warning", text: "Using Sparse Table's overlapping-range trick for SUM queries is a classic correctness bug — sum(x, x) = 2x, not x, so the overlapping middle portion gets double-counted, silently producing a wrong (inflated) answer. Always verify idempotence before applying this technique to a new operation." }
+      ],
+
+      timeComplexityCalculation: {
+        notation: "O(n log n) build / O(1) query",
+        best: [
+          { tag: "h2", text: "Best Case — O(n log n) build, O(1) query" },
+          { tag: "p", text: "Building the table always requires computing every power-of-two range's value for every starting position — there's no shortcut even for the most favourable array content, since every table entry potentially contributes to some future query's answer." },
+          { tag: "ul", items: [
+            "Build: for each of O(log n) power-of-two range LENGTHS, compute the answer for every one of O(n) possible starting positions, each in O(1) by combining two half-length ranges already computed: O(n log n) total",
+            "Query: always exactly 2 lookups plus 1 combine operation, regardless of the specific range requested: O(1)"
+          ]}
+        ],
+        average: [
+          { tag: "h2", text: "Average Case — O(n log n) build, O(1) query" },
+          { tag: "p", text: "Both build and query perform the same fixed structural work regardless of the array's specific values — table construction is a deterministic dynamic program over (length, start-position) pairs, and queries are always a fixed 2-lookup combination." },
+          { tag: "ul", items: ["Build: O(n log n), identical regardless of value distribution", "Query: O(1) per query, with m total queries costing O(m) combined"] }
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case — O(n log n) build, O(1) query" },
+          { tag: "p", text: "No array content increases the build or query cost beyond these fixed structural bounds — this is simultaneously the best, average, and worst case for both operations." },
+          { tag: "ul", items: [
+            "Worst case identical to best/average: O(n log n) build, O(1) per query",
+            "For m total queries after the one-time build: O(n log n + m) overall, which is unbeatable for a static array with a large number of repeated queries, compared to Segment Tree's O(n + m log n) or naive recomputation's O(n·m)"
+          ]}
+        ]
+      },
+
+      spaceComplexityCalculation: {
+        notation: "O(n log n)",
+        best: [
+          { tag: "h2", text: "Best Case Space — O(n log n)" },
+          { tag: "p", text: "The table must store a precomputed answer for every (power-of-two length, starting position) combination — O(log n) possible lengths times O(n) possible starting positions, regardless of the array's specific values." },
+          { tag: "ul", items: ["2D table: O(log n) length-levels × O(n) starting positions = O(n log n)"] }
+        ],
+        average: [
+          { tag: "h2", text: "Average Case Space — O(n log n)" },
+          { tag: "p", text: "Space usage is fixed by the array's length alone, since every (length, position) combination must have a stored entry regardless of value distribution." },
+          { tag: "ul", items: ["Same O(n log n) bound regardless of array content"] }
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case Space — O(n log n)" },
+          { tag: "p", text: "No array configuration increases space beyond the fixed 2D table size — this is the structural cost of trading away update capability and Fenwick/Segment Tree's smaller O(n) footprint for genuinely O(1) queries." },
+          { tag: "ul", items: ["O(n log n) total, identical across all cases — notably more space than Fenwick Tree's or Segment Tree's O(n), the direct cost of achieving O(1) query time"] }
+        ]
+      },
+
+      pseudoCodeandStepexplanation: [
+        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+        { tag: "p", text: "Range Minimum Query (RMQ) Sparse Table:" },
+        { tag: "code", language: "text", text:
+`function buildSparseTable(arr):
+    n ← length(arr)
+    K ← floor(log2(n)) + 1
+    table ← 2D array of size n x K
+
+    for i from 0 to n − 1:
+        table[i][0] ← arr[i]               // ranges of length 2^0 = 1
+
+    for j from 1 to K − 1:
+        for i from 0 to n − (1 << j):
+            table[i][j] ← min(table[i][j − 1], table[i + (1 << (j − 1))][j − 1])
+
+    return table
+
+function query(table, L, R):                // inclusive range [L, R]
+    length ← R − L + 1
+    k ← floor(log2(length))
+    return min(table[L][k], table[R − (1 << k) + 1][k])` },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        { tag: "ol", items: [
+          "Build the base level (j = 0): every range of length 2^0 = 1 is just a single element, so table[i][0] is trivially arr[i].",
+          "Build each subsequent level (j > 0) using the PREVIOUS level: a range of length 2^j starting at i can be split exactly in half into two ranges of length 2^(j-1) — combine their already-computed values (table[i][j-1] and table[i + 2^(j-1)][j-1]) to get this level's value, exactly like a bottom-up dynamic program.",
+          "For a query on range [L, R], compute k = ⌊log₂(length)⌋ — the largest power of two that fits within the range's length.",
+          "Combine TWO precomputed ranges of length 2^k: one starting at L (covering [L, L + 2^k − 1]), and one ENDING at R (covering [R − 2^k + 1, R]) — together, these two ranges are guaranteed to fully cover [L, R], possibly with some overlap in the middle.",
+          "Since min (or max, or gcd) is idempotent, this overlap causes no correctness issue — the combined result of the two overlapping ranges is exactly the same as if the range had been covered without any overlap at all."
+        ]},
+        { tag: "h2", text: "Why it's correct" },
+        { tag: "p", text: "The build phase correctly computes table[i][j] as the minimum of the range [i, i + 2^j − 1] by induction on j: the base case (j=0, single elements) is trivially correct, and each subsequent level correctly combines two already-correctly-computed half-length ranges that, together, exactly and exhaustively cover the full 2^j-length range with no gaps. For the query phase, since 2^k ≤ length ≤ 2^(k+1) − 1 (by the definition of k as the largest power of two fitting within the range), the two chosen ranges [L, L+2^k−1] and [R−2^k+1, R] are each fully WITHIN the query range [L, R] (so they only include valid, in-range elements), and their UNION is guaranteed to cover the ENTIRE query range (since their combined length 2×2^k ≥ length, by the choice of k, they cannot fail to meet in the middle). Because the underlying operation is idempotent, the fact that they might overlap and 'double-count' some middle elements has no effect on the final combined value — min(min(A), min(B)) for any two ranges A and B that together cover [L,R], even with overlap, is always exactly min over [L,R]." }
+      ]
+    },
+
+    /* ════════════════════════════════════════════════════════════════════
+       4. SQUARE ROOT DECOMPOSITION
+    ════════════════════════════════════════════════════════════════════ */
+    {
+      name: "Square Root Decomposition",
+      href: "/algorithms/range_structures/sqrt-decomp",
+      type: "Hard",
+
+      about: [
+        { tag: "h1", text: "Square Root Decomposition" },
+        { tag: "p", text: "Square Root Decomposition divides an array into roughly √n equally-sized BLOCKS, each of size roughly √n, and precomputes an aggregate (sum, min, max, etc.) for each block. A range query combines the FULLY-covered blocks (using their precomputed aggregates, O(1) each) with the PARTIALLY-covered blocks at the range's two ends (scanned element-by-element, O(√n) each) — balancing query cost between the two extremes of 'no precomputation at all' (O(n) per query) and 'full tree-based precomputation' (O(log n) per query, but more complex to implement)." },
+        { tag: "p", text: "Its appeal is implementation SIMPLICITY relative to Segment Tree or Fenwick Tree: there's no tree structure, no recursive logic, and no bit-manipulation tricks required — just a flat array of block-aggregates and straightforward index arithmetic (block index = position / blockSize) to determine which block any given position belongs to. This makes it a popular choice when O(√n) is fast enough for the problem's constraints and the reduced implementation complexity is worth the slightly worse asymptotic bound compared to O(log n) structures." },
+        { tag: "h2", text: "When to reach for it" },
+        { tag: "ul", items: [
+          "Range queries and updates where O(√n) is provably fast enough for the given constraints, and the simpler implementation (versus Segment Tree or Fenwick Tree) is genuinely valuable — competitive programming time pressure is the classic scenario",
+          "Operations that don't cleanly fit a tree or BIT structure, but DO decompose naturally into per-block aggregates — e.g. 'count of distinct elements in a range' (using a per-block frequency structure) is awkward for a Segment Tree but natural for block decomposition",
+          "'Mo's Algorithm', a well-known offline query-processing technique for answering MANY range queries efficiently, is built directly on top of the same block-decomposition principle as Square Root Decomposition",
+          "As a clean illustration of a recurring algorithmic idea: balancing precomputation against per-query work by choosing block size as the SQUARE ROOT of n specifically minimizes the WORST-CASE combination of 'number of full blocks' and 'size of partial-block scans', a calculus-optimization argument worth understanding on its own"
+        ]},
+        { tag: "note", variant: "tip", text: "The choice of block size √n isn't arbitrary — it's the value that minimizes max(n / blockSize, blockSize), the sum of 'number of blocks to potentially scan' and 'elements per block to potentially scan'. Any other block size makes one of these two costs worse, which is why √n is specifically optimal for this technique's balanced trade-off." }
+      ],
+
+      timeComplexityCalculation: {
+        notation: "O(√n)",
+        best: [
+          { tag: "h2", text: "Best Case — O(1)" },
+          { tag: "p", text: "If the queried range happens to align EXACTLY with block boundaries (starting and ending precisely at block edges), the query can be answered using only the precomputed per-block aggregates, with no partial-block scanning needed at all." },
+          { tag: "ul", items: ["Range aligns exactly with block boundaries: O(range length / blockSize) full-block lookups, no partial scanning — can be as fast as O(1) for a single-block-aligned range", "This is a favourable-input case, not the general bound"] }
+        ],
+        average: [
+          { tag: "h2", text: "Average Case — O(√n)" },
+          { tag: "p", text: "A typical range query touches some number of fully-covered blocks (each O(1) to incorporate) plus two PARTIALLY-covered blocks at the range's ends (each requiring an O(√n) element-by-element scan, since a block has roughly √n elements)." },
+          { tag: "ul", items: [
+            "Up to O(√n) fully-covered blocks, each O(1) to incorporate: O(√n) total",
+            "Two partial blocks (at the start and end of the range), each scanned element-by-element: O(√n) total",
+            "Combined: O(√n)"
+          ]}
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case — O(√n)" },
+          { tag: "p", text: "Even the least favourable range alignment (maximally misaligned with block boundaries on both ends) still bounds total work by O(√n), since neither the number of full blocks nor the size of each partial-block scan can exceed O(√n) by construction of the block size choice." },
+          { tag: "ul", items: [
+            "Worst case matches average: O(√n) for both query and update",
+            "Update (changing a single element): O(1) to update the element itself plus O(1) to update its block's precomputed aggregate — actually O(1) for point updates, with the O(√n) bound applying specifically to RANGE queries and range updates"
+          ]}
+        ]
+      },
+
+      spaceComplexityCalculation: {
+        notation: "O(√n)",
+        best: [
+          { tag: "h2", text: "Best Case Space — O(n + √n)" },
+          { tag: "p", text: "The original array itself requires O(n) space, plus an additional array of per-block aggregates requiring O(√n) space (since there are roughly n / √n = √n total blocks)." },
+          { tag: "ul", items: ["Original array: O(n)", "Block-aggregate array: O(√n) (number of blocks)"] }
+        ],
+        average: [
+          { tag: "h2", text: "Average Case Space — O(n + √n)" },
+          { tag: "p", text: "Space usage is fixed by the array's length and the resulting number of blocks, both determined entirely by n, regardless of the specific values stored." },
+          { tag: "ul", items: ["Same O(n + √n) = O(n) bound regardless of value distribution — the auxiliary block structure itself is O(√n), a notably small overhead compared to the original array"] }
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case Space — O(n + √n)" },
+          { tag: "p", text: "No array configuration increases space beyond the original array plus the fixed-size block-aggregate structure — this is both the floor and ceiling for the technique's memory footprint." },
+          { tag: "ul", items: [
+            "O(n) for the original data + O(√n) for block aggregates, conventionally simplified and cited as the auxiliary O(√n) cost specifically, since the O(n) original array storage is typically considered part of the input rather than algorithmic overhead"
+          ]}
+        ]
+      },
+
+      pseudoCodeandStepexplanation: [
+        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+        { tag: "p", text: "Sum-based Square Root Decomposition:" },
+        { tag: "code", language: "text", text:
+`function build(arr):
+    n ← length(arr)
+    blockSize ← ceil(sqrt(n))
+    numBlocks ← ceil(n / blockSize)
+    blockSum ← array of size numBlocks, all zero
+
+    for i from 0 to n − 1:
+        blockSum[i / blockSize] ← blockSum[i / blockSize] + arr[i]
+
+    return (arr, blockSum, blockSize)
+
+function update(arr, blockSum, blockSize, index, newValue):
+    blockSum[index / blockSize] ← blockSum[index / blockSize] − arr[index] + newValue
+    arr[index] ← newValue
+
+function rangeSum(arr, blockSum, blockSize, L, R):     // inclusive range [L, R]
+    sum ← 0
+    startBlock ← L / blockSize
+    endBlock ← R / blockSize
+
+    if startBlock == endBlock:
+        for i from L to R:
+            sum ← sum + arr[i]                          // entire range within one block
+        return sum
+
+    for i from L to (startBlock + 1) * blockSize − 1:
+        sum ← sum + arr[i]                              // partial first block
+
+    for b from startBlock + 1 to endBlock − 1:
+        sum ← sum + blockSum[b]                          // fully-covered blocks
+
+    for i from endBlock * blockSize to R:
+        sum ← sum + arr[i]                              // partial last block
+
+    return sum` },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        { tag: "ol", items: [
+          "Divide the array into blocks of size approximately √n, and precompute the sum of each block.",
+          "update: changing a single element requires updating both the element itself and its containing block's precomputed sum — both O(1) operations.",
+          "rangeSum: identify which block contains L (the start) and which contains R (the end). If they're the SAME block, just scan the small range directly.",
+          "Otherwise, handle three distinct regions: the PARTIAL portion of the starting block (scan element-by-element from L to that block's end), every block FULLY contained between the start and end blocks (use their precomputed sums directly, O(1) each), and the PARTIAL portion of the ending block (scan element-by-element from that block's start to R).",
+          "Summing these three contributions together gives the correct total for the full range [L, R]."
+        ]},
+        { tag: "h2", text: "Why it's correct" },
+        { tag: "p", text: "The range [L, R] is exhaustively and exactly partitioned into exactly three non-overlapping pieces: the tail-end of the starting block (from L to that block's boundary), zero or more complete blocks in between, and the head of the ending block (from that block's start to R) — every element of [L, R] falls into exactly one of these three categories, with no element double-counted or omitted. The partial-block portions are correctly summed via direct element-by-element scanning, and the fully-covered blocks are correctly summed via their precomputed blockSum values, which by construction (maintained correctly through every update) always hold the exact sum of their entire block's current contents. Since all three regions are correctly and completely accounted for with no overlap, their combined sum is exactly the correct answer for the full requested range." }
+      ]
+    }
+
+  ]
+};
+
 export const ALGODATA = [
 
   /* ══════════════════════════════════════════════════════════════════════════
@@ -9357,38 +10308,26 @@ export const ALGODATA = [
   /* ══════════════════════════════════════════════════════════════════════════
      BIT MANIPULATION
   ══════════════════════════════════════════════════════════════════════════ */
-  {
-    name: "Bit Manipulation",
-    href: "/algorithms/bit_manipulation",
-    about: { h1: "", p: "", ul: { content: "", li: [] } },
-    desc: "XOR tricks, bitmasking, power of two",
-    complexity: "O(1)",
-    count: 5,
-    items: [
-      { name: "Single Number", href: "/algorithms/bit_manipulation/single-number", type: "Easy", about: { h1: "", p: "", ul: { content: "", li: [] } }, timeComplexityCalculation: { notation: "O(n)", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, spaceComplexityCalculation: { notation: "O(1)", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, pseudoCodeandStepexplanation: { h1: "", p: "", ul: { content: "", li: [] } } },
-      { name: "Counting Bits", href: "/algorithms/bit_manipulation/counting-bits", type: "Easy", about: { h1: "", p: "", ul: { content: "", li: [] } }, timeComplexityCalculation: { notation: "O(n)", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, spaceComplexityCalculation: { notation: "O(n)", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, pseudoCodeandStepexplanation: { h1: "", p: "", ul: { content: "", li: [] } } },
-      { name: "Bitwise AND of Numbers Range", href: "/algorithms/bit_manipulation/bitwise-and", type: "Medium", about: { h1: "", p: "", ul: { content: "", li: [] } }, timeComplexityCalculation: { notation: "O(log n)", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, spaceComplexityCalculation: { notation: "O(1)", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, pseudoCodeandStepexplanation: { h1: "", p: "", ul: { content: "", li: [] } } },
-      { name: "Reverse Bits", href: "/algorithms/bit_manipulation/reverse-bits", type: "Easy", about: { h1: "", p: "", ul: { content: "", li: [] } }, timeComplexityCalculation: { notation: "O(1)", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, spaceComplexityCalculation: { notation: "O(1)", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, pseudoCodeandStepexplanation: { h1: "", p: "", ul: { content: "", li: [] } } },
-      { name: "Missing Number", href: "/algorithms/bit_manipulation/missing-number", type: "Easy", about: { h1: "", p: "", ul: { content: "", li: [] } }, timeComplexityCalculation: { notation: "O(n)", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, spaceComplexityCalculation: { notation: "O(1)", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, pseudoCodeandStepexplanation: { h1: "", p: "", ul: { content: "", li: [] } } },
-    ],
-  },
+    BIT_MANIPULATION_SECTION,
 
   /* ══════════════════════════════════════════════════════════════════════════
      RANGE STRUCTURES
   ══════════════════════════════════════════════════════════════════════════ */
-  {
-    name: "Range Structures",
-    href: "/algorithms/range_structures",
-    about: { h1: "", p: "", ul: { content: "", li: [] } },
-    desc: "Segment trees, BIT/Fenwick, range queries",
-    complexity: "O(log n)",
-    count: 4,
-    items: [
-      { name: "Segment Tree", href: "/algorithms/range_structures/segment-tree", type: "Hard", about: { h1: "", p: "", ul: { content: "", li: [] } }, timeComplexityCalculation: { notation: "O(log n) query/update", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, spaceComplexityCalculation: { notation: "O(n)", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, pseudoCodeandStepexplanation: { h1: "", p: "", ul: { content: "", li: [] } } },
-      { name: "Fenwick Tree (BIT)", href: "/algorithms/range_structures/fenwick", type: "Medium", about: { h1: "", p: "", ul: { content: "", li: [] } }, timeComplexityCalculation: { notation: "O(log n)", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, spaceComplexityCalculation: { notation: "O(n)", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, pseudoCodeandStepexplanation: { h1: "", p: "", ul: { content: "", li: [] } } },
-      { name: "Sparse Table", href: "/algorithms/range_structures/sparse-table", type: "Hard", about: { h1: "", p: "", ul: { content: "", li: [] } }, timeComplexityCalculation: { notation: "O(n log n) build / O(1) query", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, spaceComplexityCalculation: { notation: "O(n log n)", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, pseudoCodeandStepexplanation: { h1: "", p: "", ul: { content: "", li: [] } } },
-      { name: "Square Root Decomposition", href: "/algorithms/range_structures/sqrt-decomp", type: "Hard", about: { h1: "", p: "", ul: { content: "", li: [] } }, timeComplexityCalculation: { notation: "O(√n)", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, spaceComplexityCalculation: { notation: "O(√n)", best: { h1: "", p: "", ul: { content: "", li: [] } }, average: { h1: "", p: "", ul: { content: "", li: [] } }, worst: { h1: "", p: "", ul: { content: "", li: [] } } }, pseudoCodeandStepexplanation: { h1: "", p: "", ul: { content: "", li: [] } } },
-    ],
-  },
+    RANGE_STRUCTURES_SECTION,
+
+    /* ══════════════════════════════════════════════════════════════════════════
+     MATH
+  ══════════════════════════════════════════════════════════════════════════ */
+    // MATH_SECTION,
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     ADVANCED DATA STRUCTURES
+  ══════════════════════════════════════════════════════════════════════════ */
+    // ADVANCED_DATA_STRUCTURES_SECTION,
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     MISCELLANEOUS
+  ══════════════════════════════════════════════════════════════════════════ */
+    // MISCELLANEOUS_SECTION,
 
 ];

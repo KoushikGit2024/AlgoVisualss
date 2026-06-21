@@ -1,7 +1,8 @@
 import type { 
   IRBlock, 
   IRIfStatement, 
-  IRWhileStatement, 
+  IRWhileStatement,
+  IRDoWhileStatement,
   IRForStatement, 
   IRNode,
   IRForRangeStatement
@@ -12,6 +13,9 @@ import { EventEmitter } from "../events/EventEmitter";
 import { ExpressionEvaluator } from "../evaluator/ExpressionEvaluator";
 import { StatementExecutor } from "../executor/StatementExecutor";
 import { EventType } from "../types";
+
+// Maximum iterations for any loop before an infinite-loop safety abort.
+const MAX_LOOP_ITERATIONS = 100_000;
 
 /**
  * The `IRWalker` orchestrates the traversal and execution of the Intermediate Representation (IR) tree.
@@ -73,6 +77,9 @@ export class IRWalker {
       case "WhileStatement":
         this.walkWhileStatement(stmt);
         break;
+      case "DoWhileStatement":
+        this.walkDoWhileStatement(stmt);
+        break;
       case "ForStatement":
         this.walkForStatement(stmt);
         break;
@@ -83,10 +90,10 @@ export class IRWalker {
         this.walkBlock(stmt);
         break;
       case "EmptyStatement":
-        // No-op for semicolons or comments
+        // No-op for semicolons, comments, or preprocessor directives
         break;
       default:
-        // Pure expressions are ignored at the statement level
+        // Ignore unrecognized statement kinds rather than crashing
         break;
     }
   }
@@ -94,7 +101,6 @@ export class IRWalker {
   private walkIfStatement(stmt: IRIfStatement): void {
     const conditionValue = this.evaluator.evaluate(stmt.condition);
     this.eventEmitter.emit(stmt.line, EventType.CONDITION, {
-      condition: stmt.condition,
       result: conditionValue
     });
 
@@ -106,15 +112,20 @@ export class IRWalker {
   }
 
   private walkWhileStatement(stmt: IRWhileStatement): void {
-    this.eventEmitter.emit(stmt.line, EventType.LOOP_ENTER, {});
+    this.eventEmitter.emit(stmt.line, EventType.LOOP_ENTER, { loopType: "while" });
     
+    let safetyCounter = 0;
     while (true) {
+      if (++safetyCounter > MAX_LOOP_ITERATIONS) {
+        throw new Error(`Runtime Exception at line ${stmt.line}: Infinite loop detected (exceeded ${MAX_LOOP_ITERATIONS} iterations).`);
+      }
+
       const conditionValue = this.evaluator.evaluate(stmt.condition);
       this.eventEmitter.emit(stmt.line, EventType.CONDITION, { result: conditionValue });
       
       if (!conditionValue) break; 
 
-      this.eventEmitter.emit(stmt.line, EventType.LOOP_ITERATION, {});
+      this.eventEmitter.emit(stmt.line, EventType.LOOP_ITERATION, { iteration: safetyCounter });
       
       try {
         this.walkBlock(stmt.body);
@@ -126,23 +137,70 @@ export class IRWalker {
       }
     }
 
-    this.eventEmitter.emit(stmt.line, EventType.LOOP_EXIT, {});
+    this.eventEmitter.emit(stmt.line, EventType.LOOP_EXIT, { loopType: "while" });
+  }
+
+  /**
+   * Executes a do-while loop — body runs at least once before condition is checked.
+   * Previously missing entirely from the walker, causing do-while blocks to silently no-op.
+   */
+  private walkDoWhileStatement(stmt: IRDoWhileStatement): void {
+    this.eventEmitter.emit(stmt.line, EventType.LOOP_ENTER, { loopType: "do-while" });
+
+    let safetyCounter = 0;
+    do {
+      if (++safetyCounter > MAX_LOOP_ITERATIONS) {
+        throw new Error(`Runtime Exception at line ${stmt.line}: Infinite loop detected in do-while (exceeded ${MAX_LOOP_ITERATIONS} iterations).`);
+      }
+
+      this.eventEmitter.emit(stmt.line, EventType.LOOP_ITERATION, { iteration: safetyCounter });
+
+      try {
+        this.walkBlock(stmt.body);
+      } catch (e: any) {
+        if (e instanceof BreakSignal || e.name === "BreakSignal") {
+          this.eventEmitter.emit(stmt.line, EventType.LOOP_EXIT, { loopType: "do-while" });
+          return;
+        }
+        if (e instanceof ContinueSignal || e.name === "ContinueSignal") {
+          // Continue proceeds to the condition check — do nothing special here
+        } else {
+          throw e;
+        }
+      }
+
+      const conditionValue = this.evaluator.evaluate(stmt.condition);
+      this.eventEmitter.emit(stmt.line, EventType.CONDITION, { result: conditionValue });
+
+      if (!conditionValue) break;
+    } while (true);
+
+    this.eventEmitter.emit(stmt.line, EventType.LOOP_EXIT, { loopType: "do-while" });
   }
 
   public walkForStatement(node: IRForStatement): void {
     // Isolate loop initializers (e.g., `int i = 0`) to prevent scope pollution
     this.scopeManager.enterScope();
+    this.eventEmitter.emit(node.line, EventType.LOOP_ENTER, { loopType: "for" });
 
+    let safetyCounter = 0;
     try {
       if (node.init) {
         this.walkStatement(node.init);
       }
 
       while (true) {
+        if (++safetyCounter > MAX_LOOP_ITERATIONS) {
+          throw new Error(`Runtime Exception at line ${node.line}: Infinite loop detected in for loop (exceeded ${MAX_LOOP_ITERATIONS} iterations).`);
+        }
+
         if (node.condition) {
           const conditionResult = this.evaluator.evaluate(node.condition);
+          this.eventEmitter.emit(node.line, EventType.CONDITION, { result: conditionResult });
           if (!conditionResult) break;
         }
+
+        this.eventEmitter.emit(node.line, EventType.LOOP_ITERATION, { iteration: safetyCounter });
 
         try {
           this.walkBlock(node.body);
@@ -165,6 +223,7 @@ export class IRWalker {
         }
       }
     } finally {
+      this.eventEmitter.emit(node.line, EventType.LOOP_EXIT, { loopType: "for" });
       this.scopeManager.exitScope();
     }
   }
@@ -176,7 +235,19 @@ export class IRWalker {
     // Normalize duck-typed containers to standard JavaScript arrays
     let targetArray = Array.isArray(container) 
       ? container 
-      : (container && typeof container === 'object' && 'data' in container ? (container as any).data : null);
+      : (container && typeof container === 'object' && 'data' in container 
+          ? (container as any).data 
+          : null);
+
+    // Handle Map iteration (for-range over std::map iterates over [key, value] pairs)
+    if (!targetArray && container instanceof Map) {
+      targetArray = Array.from(container.entries());
+    }
+
+    // Handle Set iteration
+    if (!targetArray && container instanceof Set) {
+      targetArray = Array.from(container);
+    }
 
     // Gracefully handle uninitialized or empty adjacency lists
     if (!targetArray || !Array.isArray(targetArray)) {
@@ -186,12 +257,10 @@ export class IRWalker {
     const varName = node.iteratorName;
     const varType = node.iteratorType || "auto";
 
-    let safetyCounter = 0;
+    this.eventEmitter.emit(node.line, EventType.LOOP_ENTER, { loopType: "for-range", collection: varName });
 
     for (let i = 0; i < targetArray.length; i++) {
-      if (safetyCounter++ > 5000) {
-        throw new Error(`Runtime Exception at line ${node.line}: Infinite iteration detected in range-based loop.`);
-      }
+      this.eventEmitter.emit(node.line, EventType.LOOP_ITERATION, { iteration: i + 1 });
 
       // Create a micro-scope for this specific iteration to shadow previous iterator values
       this.scopeManager.enterScope();
@@ -208,10 +277,13 @@ export class IRWalker {
           this.scopeManager.exitScope();
           continue;
         }
+        this.scopeManager.exitScope();
         throw e;
       }
 
       this.scopeManager.exitScope();
     }
+
+    this.eventEmitter.emit(node.line, EventType.LOOP_EXIT, { loopType: "for-range" });
   }
 }

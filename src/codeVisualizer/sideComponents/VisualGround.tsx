@@ -182,19 +182,24 @@ const VisualGround = ({
     const keys = Object.keys(vars);
 
     // 1. Graph Detection
+    // FIX: use ?? fallback to also match keys that merely include 'adj'
     const graphKey = keys.find(k => k.startsWith('adj') || k.startsWith('graph')) ?? keys.find(k => k.includes('adj'));
     if (graphKey) {
       const edgeKey = keys.find(k => k.includes('edge'));
+
+      // FIX: always call unwrapSTL at point-of-use so { data: [...] } wrappers are stripped
       const rawEdges = edgeKey ? unwrapSTL(vars[edgeKey]?.value || []) : [];
-      
-      // Robust Node Count Inference (Fixes the Graph empty bug)
+
+      // FIX: prefer the first adj* key whose value is already a plain array (e.g. adj_list(n))
+      // over the fallback graphKey which may hold {} when the engine hasn't populated it yet
       const adjListKey = keys.find(k => k.startsWith('adj') && Array.isArray(vars[k]?.value));
       const adjList = adjListKey ? vars[adjListKey]?.value : vars[graphKey]?.value;
-      let n = Array.isArray(adjList) ? adjList.length : (vars.n?.value || 0);
+      let n = Array.isArray(adjList) ? adjList.length : (vars['n']?.value || 0);
 
+      // Infer n from edge list when adjacency list is empty
       if (n === 0 && Array.isArray(rawEdges) && rawEdges.length > 0) {
         let maxNode = -1;
-        rawEdges.forEach(e => {
+        rawEdges.forEach((e: any) => {
           if (Array.isArray(e)) {
             if (e[0] > maxNode) maxNode = e[0];
             if (e[1] > maxNode) maxNode = e[1];
@@ -203,6 +208,9 @@ const VisualGround = ({
         n = maxNode + 1;
       }
 
+      // FIX: bail out early so we don't render a graph shell with zero nodes
+      if (n === 0) return { type: 'none', usedKeys: [], props: {} };
+
       const visitedKey = keys.find(k => k.includes('visit'));
       const visited = visitedKey ? (vars[visitedKey]?.value || []) : [];
       const nodeKey = keys.find(k => k.startsWith('ptr_n') || k.includes('node') || k === 'curr' || k === 'u' || k === 'v');
@@ -210,53 +218,40 @@ const VisualGround = ({
 
       const usedKeys = [graphKey, edgeKey, visitedKey, nodeKey, 'n'].filter(Boolean) as string[];
 
-      console.log({
-        snapshot: {
-          type: 'graph',
-        usedKeys,
-        props: {
-          nodes: Array.from({ length: n }).map((_, i) => {
-            const angle = (2 * Math.PI * i) / Math.max(n, 1) - Math.PI / 2;
-            const radius = n <= 3 ? 28 : n <= 6 ? 33 : 38;
-            return {
-              id: String(i),
-              label: String(i),
-              x: 50 + radius * Math.cos(angle),
-              y: 50 + radius * Math.sin(angle),
-            };
-          }),
-          edges: Array.isArray(rawEdges)
-            ? rawEdges
-            .filter((e: any) => Array.isArray(e) && e.length >= 2)
-            .map((e: any[]) => ({ id: `${e[0]}-${e[1]}`, source: String(e[0]), target: String(e[1]) }))
-            : [],
-          highLightNodes: Array.isArray(visited) ? visited.map((v: number, i: number) => v === 1 ? String(i) : null).filter(Boolean) : [],
-          pointers: activeNode !== undefined ? [{ name: nodeKey || 'dfs', nodeId: String(activeNode) }] : []
-        }
-        }}
-      )
+      // FIX: compute circular layout instead of leaving all nodes at (0, 0)
+      const buildNodes = (count: number) =>
+        Array.from({ length: count }).map((_, i) => {
+          const angle = (2 * Math.PI * i) / Math.max(count, 1) - Math.PI / 2;
+          const radius = count <= 3 ? 28 : count <= 6 ? 33 : 38;
+          return {
+            id: String(i),
+            label: String(i),
+            x: 50 + radius * Math.cos(angle),
+            y: 50 + radius * Math.sin(angle),
+          };
+        });
+
+      // FIX: filter malformed edge entries before mapping
+      const buildEdges = (edges: any[]) =>
+        Array.isArray(edges)
+          ? edges
+              .filter((e: any) => Array.isArray(e) && e.length >= 2)
+              .map((e: any[]) => ({ id: `${e[0]}-${e[1]}`, source: String(e[0]), target: String(e[1]) }))
+          : [];
+
       return {
         type: 'graph',
         usedKeys,
         props: {
-          nodes: Array.from({ length: n }).map((_, i) => {
-            const angle = (2 * Math.PI * i) / Math.max(n, 1) - Math.PI / 2;
-            const radius = n <= 3 ? 28 : n <= 6 ? 33 : 38;
-            return {
-              id: String(i),
-              label: String(i),
-              x: 50 + radius * Math.cos(angle),
-              y: 50 + radius * Math.sin(angle),
-            };
-          }),
-          edges: Array.isArray(rawEdges)
-            ? rawEdges
-            .filter((e: any) => Array.isArray(e) && e.length >= 2)
-            .map((e: any[]) => ({ id: `${e[0]}-${e[1]}`, source: String(e[0]), target: String(e[1]) }))
+          nodes: buildNodes(n),
+          edges: buildEdges(rawEdges),
+          highLightNodes: Array.isArray(visited)
+            ? visited.map((v: number, i: number) => v === 1 ? String(i) : null).filter(Boolean)
             : [],
-          highLightNodes: Array.isArray(visited) ? visited.map((v: number, i: number) => v === 1 ? String(i) : null).filter(Boolean) : [],
-          pointers: activeNode !== undefined ? [{ name: nodeKey || 'dfs', nodeId: String(activeNode) }] : []
-        }
+          pointers: activeNode !== undefined
+            ? [{ name: nodeKey || 'curr', nodeId: String(activeNode) }]
+            : [],
+        },
       };
     }
 
@@ -284,14 +279,18 @@ const VisualGround = ({
       const pointers: { name: string, row: number, col: number }[] = [];
       const usedKeys = [matrixKey];
 
-      const rowKey = keys.find(k => k === 'r' || k.includes('row') || k.endsWith('_r'));
-      const colKey = keys.find(k => k === 'c' || k.includes('col') || k.endsWith('_c'));
-      
+      // FIX: extended patterns to also match r_curr / c_curr style names
+      const rowKey = keys.find(k => k === 'r' || k.includes('row') || k.endsWith('_r') || k.startsWith('r_'));
+      const colKey = keys.find(k => k === 'c' || k.includes('col') || k.endsWith('_c') || k.startsWith('c_'));
+
       if (rowKey && colKey && vars[rowKey]?.value !== undefined && vars[colKey]?.value !== undefined) {
         pointers.push({ name: rowKey.replace('_', ''), row: vars[rowKey].value, col: vars[colKey].value });
         usedKeys.push(rowKey, colKey);
       }
-      return { type: 'matrix', usedKeys, props: { value: grid, pointers } };
+
+      // FIX: validate grid is actually a 2D array before passing to D2Array
+      const safeGrid = Array.isArray(grid) && Array.isArray(grid[0]) ? grid : [];
+      return { type: 'matrix', usedKeys, props: { value: safeGrid, pointers } };
     }
 
     // 4. Linked List Detection
@@ -508,7 +507,7 @@ const VisualGround = ({
           </div>
         </div>
 
-        {/* H-Divider (Ultra-sleek 2px visual line with 8px hit area) */}
+        {/* H-Divider */}
         <div onMouseDown={() => setDraggingDiv('h')} className="flex items-center justify-center w-2 cursor-col-resize z-10 shrink-0 hover:bg-surface-2 transition-colors">
           <div className="w-[2px] h-12 rounded-full bg-border" />
         </div>
@@ -536,7 +535,7 @@ const VisualGround = ({
             </div>
           </div>
 
-          {/* V-Divider (Ultra-sleek) */}
+          {/* V-Divider */}
           <div onMouseDown={() => setDraggingDiv('v')} className="flex items-center justify-center h-2 cursor-row-resize z-10 shrink-0 hover:bg-surface-2 transition-colors">
             <div className="h-[2px] w-12 rounded-full bg-border" />
           </div>

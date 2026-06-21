@@ -18,7 +18,7 @@ export class EventEmitter {
 
   /**
    * Registers a callback function to listen for execution events.
-   * * @param callback - The function to be invoked when an event is emitted.
+   * @param callback - The function to be invoked when an event is emitted.
    * @returns A cleanup function to unsubscribe the listener, preventing memory leaks.
    */
   public subscribe(callback: EventCallback): () => void {
@@ -53,8 +53,10 @@ export class EventEmitter {
   }
 
   /**
-   * Resets the internal step counter. Typically called before initiating
+   * Resets the internal step counter to zero. Typically called before initiating
    * a new execution run to ensure chronological consistency across snapshots.
+   * NOTE: Intentionally preserves registered listeners — the ExecutionEngine's
+   * snapshot subscription is set up once in the constructor and must survive resets.
    */
   public reset(): void {
     this.stepCounter = 0;

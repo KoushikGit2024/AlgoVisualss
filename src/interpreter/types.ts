@@ -7,12 +7,13 @@ export type CppType = "int" | "double" | "bool" | "string" | "char" | "void" | "
 
 /**
  * Represents the cross-compiled JavaScript equivalent of a C++ value in memory.
+ * NOTE: `undefined` is used instead of `void` since `void` has no runtime value in JS.
  */
 export type CppValue = 
   | number 
   | boolean 
   | string 
-  | void 
+  | undefined
   | null 
   | CppValue[] 
   | Record<string, any> // Custom Structs, Classes, and proxy objects
@@ -21,11 +22,15 @@ export type CppValue =
   | ((...args: any[]) => any); // C++ Lambdas compiled to JS closures
 
 /**
- * Milestone milestones emitted during program execution.
+ * Execution milestones emitted during program execution.
  * Intercepted by the React UI to trigger synchronized animations and state updates.
  */
 export enum EventType {
   DECLARE = "DECLARE",                 // Variable allocation
+  /**
+   * @deprecated Use ASSIGNMENT instead. Kept for backward compatibility with older
+   * event consumers that may still listen on "ASSIGN".
+   */
   ASSIGN = "ASSIGN",                   // Variable or index mutation (legacy)
   ASSIGNMENT = "ASSIGNMENT",           // Variable or index mutation (standard)
   READ = "READ",                       // Memory access/lookup
@@ -50,7 +55,7 @@ export interface ExecutionEvent {
 }
 
 /**
- * The definitive, serialized execution state at a specific microsecond in time.
+ * The definitive, serialized execution state at a specific point in time.
  * Consumed by the React frontend to perfectly render the execution time-machine.
  */
 export interface RuntimeSnapshot {
@@ -61,7 +66,7 @@ export interface RuntimeSnapshot {
     payload: Record<string, unknown>;
   };
   state: {
-    // UI FIX: The frontend now receives both the CppType and CppValue for rendering!
+    // The frontend receives both the CppType and CppValue for rendering.
     variables: Record<string, { name: string; type: CppType; value: CppValue }>; 
     callStack: string[];                 
     scopeDepth: number;                  

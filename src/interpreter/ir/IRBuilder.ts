@@ -169,7 +169,14 @@ export class IRBuilder {
       case "continue_statement":
         return this.buildContinueStatement(node);
       case "comment":
+      case "preproc_include":
+      case "preproc_def":
+      case "using_declaration":
+        // Preprocessor directives, includes, and using statements are ignored at runtime
         return { kind: "EmptyStatement", line: node.startPosition.row + 1 } as IREmptyStatement;
+      case "compound_statement":
+        // Handles standalone blocks: `{ int x = 0; }` appearing as a statement
+        return this.buildBlock(node);
       case "for_range_loop":
         return this.buildForRangeStatement(node);
       case "ERROR":
@@ -178,7 +185,9 @@ export class IRBuilder {
           `Verify C++ syntax, missing semicolons, or mismatched braces.`
         );
       default:
-        throw new Error(`Compilation Error: Unsupported AST statement type '${node.type}' at line ${node.startPosition.row + 1}`);
+        // Gracefully skip unrecognized statement types as no-ops to prevent cascading failures
+        console.warn(`[IRBuilder] Skipping unsupported AST statement type '${node.type}' at line ${node.startPosition.row + 1}`);
+        return { kind: "EmptyStatement", line: node.startPosition.row + 1 } as IREmptyStatement;
     }
   }
 
@@ -192,18 +201,63 @@ export class IRBuilder {
 
     let name = "unknown";
     let initializer: IRExpression | undefined = undefined;
+    let constructorArgs: IRExpression[] | undefined = undefined;
 
-    // Condition A: Explicit assignment initializer (e.g., int x = 5;)
+    // ── CASE A: Explicit assignment initializer (e.g., int x = 5; or int x = expr;)
     if (declaratorNode.type === "init_declarator") {
       const coreDeclarator = declaratorNode.child(0) as SyntaxNode;
       name = this.getDeclaratorName(coreDeclarator);
-      
-      const valueNode = declaratorNode.child(2);
-      if (valueNode) {
-        initializer = this.buildExpression(valueNode);
+
+      const child1 = declaratorNode.child(1);
+
+      if (child1 && child1.type === "argument_list") {
+        // ── CASE B: Constructor-call syntax (e.g., vector<int> v(n) or vector<int> v(n, 0))
+        // Tree-sitter produces init_declarator with argument_list as child(1) (no `=` sign).
+        constructorArgs = child1.namedChildren
+          .map(c => { try { return this.buildExpression(c); } catch { return null; } })
+          .filter((e): e is IRExpression => e !== null);
+      } else {
+        // Standard assignment: child(1) = `=`, child(2) = value
+        const valueNode = declaratorNode.child(2);
+        if (valueNode) {
+          initializer = this.buildExpression(valueNode);
+        }
       }
-    } else {
-      // Condition B: Pure declaration (e.g., vector<int> list;)
+    }
+    // ── CASE C: function_declarator misparse
+    // Occurs when Tree-sitter treats `Type v(n)` as a function declaration.
+    // e.g., `vector<vector<int>> adj_list(n)` → declarator is function_declarator.
+    else if (declaratorNode.type === "function_declarator") {
+      // child(0) = identifier name, child(1) = parameter_list (actually our constructor args)
+      const nameNode = declaratorNode.child(0);
+      name = nameNode ? this.getDeclaratorName(nameNode) : "unknown";
+
+      const paramList = declaratorNode.namedChildren.find(
+        (c) => c.type === "parameter_list" || c.type === "argument_list"
+      );
+
+      if (paramList) {
+        // Extract constructor args from the "parameter list"
+        const rawArgs: IRExpression[] = [];
+        for (const param of paramList.namedChildren) {
+          try {
+            if (param.type === "parameter_declaration") {
+              // In a parameter_declaration like `int n`, the identifier `n` is the arg.
+              // Try to get the last named child (the declarator/identifier part).
+              const lastChild = param.namedChildren[param.namedChildren.length - 1];
+              if (lastChild) rawArgs.push(this.buildExpression(lastChild));
+            } else {
+              rawArgs.push(this.buildExpression(param));
+            }
+          } catch {
+            // Skip unparseable params silently
+          }
+        }
+        if (rawArgs.length > 0) constructorArgs = rawArgs;
+      }
+    }
+    // ── CASE D: Pure declaration (e.g., vector<int> list; or int* ptr;)
+    else {
       name = this.getDeclaratorName(declaratorNode);
     }
 
@@ -213,12 +267,13 @@ export class IRBuilder {
       variableType: typeNode.text,
       name,
       initializer,
+      constructorArgs,
     };
   }
 
   /**
-   * Recursively pierces through Tree-sitter pointer/reference/array wrappers 
-   * to extract the raw identifier text.
+   * Recursively pierces through Tree-sitter pointer/reference/array/function wrappers 
+   * to extract the raw identifier text of a declarator.
    */
   private getDeclaratorName(node: SyntaxNode): string {
     if (!node) return "unknown";
@@ -230,6 +285,17 @@ export class IRBuilder {
     }
     
     if (node.type === "array_declarator") {
+      const innerDeclarator = node.child(0);
+      return innerDeclarator ? this.getDeclaratorName(innerDeclarator) : "unknown";
+    }
+
+    // ── CRITICAL FIX ──────────────────────────────────────────────────────────
+    // Tree-sitter sometimes parses constructor-call declarations (e.g., `vector<int> v(n)`)
+    // as a `function_declarator` instead of `init_declarator`.
+    // Without this case, `getDeclaratorName` returns the full text "v(n)" and the variable
+    // is stored under the wrong key, causing all subsequent lookups to fail.
+    if (node.type === "function_declarator") {
+      // child(0) is the function name identifier; child(1) is the parameter list
       const innerDeclarator = node.child(0);
       return innerDeclarator ? this.getDeclaratorName(innerDeclarator) : "unknown";
     }
@@ -426,7 +492,9 @@ export class IRBuilder {
   }
 
   private buildForRangeStatement(node: SyntaxNode): IRForRangeStatement {
-    const bodyNode = node.namedChildren.find((c) => c.type === "compound_statement");
+    const bodyNode = node.namedChildren.find(
+      (c) => c.type === "compound_statement" || c.type === "expression_statement"
+    );
     if (!bodyNode) throw new Error(`Syntax Error at line ${node.startPosition.row + 1}: Malformed range-based for loop.`);
 
     const bodyIndex = node.namedChildren.indexOf(bodyNode as SyntaxNode);
@@ -437,11 +505,14 @@ export class IRBuilder {
     const firstNode = node.namedChildren[0];
     
     if (firstNode.type === "declaration") {
-       varType = firstNode.child(0)?.text || "auto";
-       varName = firstNode.child(1)?.text || "unknown";
+      // Use getDeclaratorName to correctly handle `auto&`, `const auto`, pointer declarators, etc.
+      varType = firstNode.child(0)?.text || "auto";
+      const declaratorChild = firstNode.child(1);
+      varName = declaratorChild ? this.getDeclaratorName(declaratorChild) : "unknown";
     } else {
-       varType = firstNode.text;
-       varName = node.namedChildren[1].text;
+      // Fallback for non-standard Tree-sitter structures
+      varType = firstNode.text;
+      varName = node.namedChildren.length > 1 ? node.namedChildren[1].text : "unknown";
     }
 
     return {
@@ -486,8 +557,26 @@ export class IRBuilder {
       case "char_literal":
         return { kind: "Literal", line: node.startPosition.row + 1, valueType: "char", value: node.text.slice(1, -1) };
       case "null":
+      case "nullptr":
         return { kind: "Literal", line: node.startPosition.row + 1, valueType: "nullptr", value: null };
       case "identifier":
+        return { kind: "Identifier", line: node.startPosition.row + 1, name: node.text };
+
+      // ─── QUALIFIED IDENTIFIERS (e.g., std::pair, std::make_pair) ────────────
+      // Treat the full qualified name as a single identifier for function resolution.
+      case "qualified_identifier":
+        return { kind: "Identifier", line: node.startPosition.row + 1, name: node.text };
+
+      // ─── TYPE NAMES IN EXPRESSION CONTEXT ────────────────────────────────────
+      // type_identifier appears when a user-defined class/struct/typedef name is used
+      // in expression position (e.g., as a constructor arg parsed as a type param, or
+      // in a sizeof/alignof expression). Treat it as an identifier for runtime resolution.
+      case "type_identifier":
+        return { kind: "Identifier", line: node.startPosition.row + 1, name: node.text };
+
+      // primitive_type appears in expression context in casts like `(int)x` or `sizeof(int)`.
+      // Return it as an identifier so the executor can interpret it (e.g., INT_MAX lookup).
+      case "primitive_type":
         return { kind: "Identifier", line: node.startPosition.row + 1, name: node.text };
       
       case "subscript_expression":
@@ -503,6 +592,11 @@ export class IRBuilder {
           operator: node.child(0)?.text as UnaryOperator,
           argument: this.buildExpression(node.child(1) as SyntaxNode),
         };
+
+      // ─── SHIFT EXPRESSION ────────────────────────────────────────────────────
+      // Tree-sitter parses `<<` and `>>` as shift_expression (distinct from binary_expression).
+      // They use the same structure: left OP right, so we forward to BinaryExpression.
+      case "shift_expression":
       case "binary_expression":
         return {
           kind: "BinaryExpression",
@@ -511,6 +605,24 @@ export class IRBuilder {
           operator: node.child(1)?.text as BinaryOperator,
           right: this.buildExpression(node.child(2) as SyntaxNode),
         };
+
+      // ─── CAST EXPRESSION (e.g., (int)x, static_cast<int>(x)) ────────────────
+      // Strip the cast and evaluate the underlying expression transparently.
+      case "cast_expression": {
+        const castValueNode = node.namedChildren.find(
+          (c) => c.type !== "type_descriptor" && c.type !== "abstract_type"
+        );
+        if (castValueNode) return this.buildExpression(castValueNode);
+        // Fallback: evaluate last named child if type descriptor detection fails
+        const lastChild = node.namedChildren[node.namedChildren.length - 1];
+        if (lastChild) return this.buildExpression(lastChild);
+        return { kind: "Literal", line: node.startPosition.row + 1, valueType: "int", value: 0 };
+      }
+
+      // ─── SIZED TYPE SPECIFIER (e.g., `long long`, `unsigned int`) ────────────
+      // These appear as number literals in context; treat as identifier reference.
+      case "sized_type_specifier":
+        return { kind: "Identifier", line: node.startPosition.row + 1, name: node.text };
         
       case "call_expression": {
         const calleeNode = node.child(0);
@@ -533,10 +645,19 @@ export class IRBuilder {
           } as unknown as IRExpression; 
         }
 
+        // Extract the canonical function name, stripping template parameters.
+        // e.g., `make_pair<int,int>` → `make_pair`, `sort<int>` → `sort`
+        let calleeName = calleeNode?.text || "unknown";
+        if (calleeNode?.type === "template_function") {
+          calleeName = calleeNode.child(0)?.text || calleeName;
+        }
+        // Also strip any std:: qualifier for cleaner resolution
+        if (calleeName.startsWith("std::")) calleeName = calleeName.slice(5);
+
         return {
           kind: "FunctionCall",
           line: node.startPosition.row + 1,
-          callee: calleeNode?.text || "unknown",
+          callee: calleeName,
           arguments: args,
         };
       }
@@ -630,7 +751,10 @@ export class IRBuilder {
           `Tree-Sitter occasionally fails on ambiguous pointer syntax or complex C++ template parameters.`
         );
       default:
-        throw new Error(`Compilation Error: Unsupported expression type '${node.type}' at line ${node.startPosition.row + 1}`);
+        // For unknown expression types, emit a warning and return a safe null literal
+        // to prevent a single unrecognized node from crashing the entire parse.
+        console.warn(`[IRBuilder] Unsupported expression type '${node.type}' at line ${node.startPosition.row + 1}. Substituting null.`);
+        return { kind: "Literal", line: node.startPosition.row + 1, valueType: "nullptr", value: null };
     }
   }
 

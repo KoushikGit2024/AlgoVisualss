@@ -137,6 +137,306 @@ export class ExecutionEngine {
       if (functionName === "abs") return Math.abs(args[0] as number);
     }
 
+    // ─── EXTENDED C++ STANDARD LIBRARY INTERCEPTS ──────────────────────────────
+
+    // MATH LIBRARY (<cmath>)
+    const MATH_FUNS: Record<string, (...a: number[]) => number> = {
+      sqrt:  Math.sqrt,   cbrt:  Math.cbrt,
+      pow:   Math.pow,    exp:   Math.exp,
+      log:   Math.log,    log2:  Math.log2,    log10: Math.log10,
+      floor: Math.floor,  ceil:  Math.ceil,    round: Math.round, trunc: Math.trunc,
+      sin:   Math.sin,    cos:   Math.cos,     tan:   Math.tan,
+      asin:  Math.asin,   acos:  Math.acos,    atan:  Math.atan,  atan2: Math.atan2,
+      sinh:  Math.sinh,   cosh:  Math.cosh,    tanh:  Math.tanh,
+      fabs:  Math.abs,    fabsf: Math.abs,     fmod:  (a, b) => a % b,
+      hypot: Math.hypot,  ldexp: (x, e) => x * Math.pow(2, e),
+    };
+    if (Object.prototype.hasOwnProperty.call(MATH_FUNS, functionName)) {
+      const args = callNode.arguments.map(a => currentEvaluator.evaluate(a) as number);
+      const result = MATH_FUNS[functionName](...args);
+      this.eventEmitter.emit(callNode.line, EventType.FUNCTION_CALL, { function: functionName, args });
+      this.eventEmitter.emit(callNode.line, EventType.FUNCTION_RETURN, { function: functionName, returnValue: result });
+      return result;
+    }
+
+    // GCD & LCM (<numeric>)
+    if (functionName === "__gcd" || functionName === "gcd") {
+      let a = Math.abs(currentEvaluator.evaluate(callNode.arguments[0]) as number);
+      let b = Math.abs(currentEvaluator.evaluate(callNode.arguments[1]) as number);
+      while (b) { [a, b] = [b, a % b]; }
+      return a;
+    }
+    if (functionName === "lcm") {
+      let a = Math.abs(currentEvaluator.evaluate(callNode.arguments[0]) as number);
+      let b = Math.abs(currentEvaluator.evaluate(callNode.arguments[1]) as number);
+      if (a === 0 || b === 0) return 0;
+      let pa = a, pb = b;
+      while (pb) { [pa, pb] = [pb, pa % pb]; }
+      return (a / pa) * b;
+    }
+
+    // COMPARATOR FUNCTORS — greater<>() / less<>() / greater_equal<>() / less_equal<>()
+    // These are callable objects used as sort comparators. Return a JS comparator function.
+    if (functionName.startsWith("greater") || functionName === "greater") {
+      return ((a: number, b: number) => (a > b ? -1 : a < b ? 1 : 0)) as unknown as CppValue;
+    }
+    if (functionName.startsWith("less") || functionName === "less") {
+      return ((a: number, b: number) => (a < b ? -1 : a > b ? 1 : 0)) as unknown as CppValue;
+    }
+    if (functionName.startsWith("greater_equal")) {
+      return ((a: number, b: number) => (a >= b ? -1 : 1)) as unknown as CppValue;
+    }
+    if (functionName.startsWith("less_equal")) {
+      return ((a: number, b: number) => (a <= b ? -1 : 1)) as unknown as CppValue;
+    }
+
+    // STL SORT with optional comparator (<algorithm>)
+    // Handles: sort(v.begin(), v.end()) and sort(v.begin(), v.end(), greater<int>())
+    if (functionName === "sort" || functionName === "stable_sort") {
+      const arg1 = callNode.arguments[0];
+      if (arg1 && arg1.kind === "MethodCall") {
+        const targetObj = currentEvaluator.evaluate((arg1 as any).object);
+        const arr = Array.isArray(targetObj) ? targetObj : (targetObj as any)?.data;
+        if (arr && Array.isArray(arr)) {
+          if (callNode.arguments.length >= 3) {
+            const cmpVal = currentEvaluator.evaluate(callNode.arguments[2]);
+            if (typeof cmpVal === "function") {
+              arr.sort((a: any, b: any) => {
+                const r = (cmpVal as Function)(a, b);
+                return typeof r === "boolean" ? (r ? -1 : 1) : (r as number);
+              });
+            } else {
+              arr.sort((a: any, b: any) => a - b);
+            }
+          } else {
+            arr.sort((a: any, b: any) => a - b);
+          }
+          this.eventEmitter.emit(callNode.line, EventType.FUNCTION_CALL, { function: functionName, args: [] });
+          this.eventEmitter.emit(callNode.line, EventType.FUNCTION_RETURN, { function: functionName, returnValue: undefined });
+        }
+      }
+      return undefined;
+    }
+
+    // FILL / FILL_N (<algorithm>)
+    if (functionName === "fill" || functionName === "fill_n") {
+      const arg1 = callNode.arguments[0];
+      if (arg1 && arg1.kind === "MethodCall") {
+        const targetObj = currentEvaluator.evaluate((arg1 as any).object);
+        const arr = Array.isArray(targetObj) ? targetObj : (targetObj as any)?.data;
+        if (arr && Array.isArray(arr)) {
+          const fillVal = currentEvaluator.evaluate(
+            functionName === "fill_n" ? callNode.arguments[2] : callNode.arguments[2]
+          );
+          if (functionName === "fill_n") {
+            const n = currentEvaluator.evaluate(callNode.arguments[1]) as number;
+            for (let i = 0; i < n && i < arr.length; i++) arr[i] = fillVal;
+          } else {
+            arr.fill(fillVal);
+          }
+        }
+      }
+      return undefined;
+    }
+
+    // COUNT / COUNT_IF (<algorithm>)
+    if (functionName === "count" || functionName === "count_if") {
+      const arg1 = callNode.arguments[0];
+      if (arg1 && arg1.kind === "MethodCall") {
+        const targetObj = currentEvaluator.evaluate((arg1 as any).object);
+        const arr = Array.isArray(targetObj) ? targetObj : (targetObj as any)?.data;
+        if (arr && Array.isArray(arr)) {
+          if (functionName === "count") {
+            const val = currentEvaluator.evaluate(callNode.arguments[2]);
+            return arr.filter((x: any) => x === val).length;
+          } else {
+            const pred = currentEvaluator.evaluate(callNode.arguments[2]);
+            if (typeof pred === "function") {
+              return arr.filter((x: any) => (pred as Function)(x)).length;
+            }
+          }
+        }
+      }
+      return 0;
+    }
+
+    // UNIQUE (<algorithm>) — removes consecutive duplicates in-place
+    if (functionName === "unique") {
+      const arg1 = callNode.arguments[0];
+      if (arg1 && arg1.kind === "MethodCall") {
+        const targetObj = currentEvaluator.evaluate((arg1 as any).object);
+        const arr = Array.isArray(targetObj) ? targetObj : (targetObj as any)?.data;
+        if (arr && Array.isArray(arr)) {
+          const filtered = arr.filter((v: any, i: number) => i === 0 || v !== arr[i - 1]);
+          arr.splice(0, arr.length, ...filtered);
+          return arr.length; // C++ unique returns iterator to new end
+        }
+      }
+      return 0;
+    }
+
+    // NEXT_PERMUTATION / PREV_PERMUTATION (<algorithm>)
+    if (functionName === "next_permutation" || functionName === "prev_permutation") {
+      const arg1 = callNode.arguments[0];
+      if (arg1 && arg1.kind === "MethodCall") {
+        const targetObj = currentEvaluator.evaluate((arg1 as any).object);
+        const arr = Array.isArray(targetObj) ? targetObj : (targetObj as any)?.data;
+        if (arr && Array.isArray(arr)) {
+          const n = arr.length;
+          let i = n - 2;
+          if (functionName === "next_permutation") {
+            while (i >= 0 && arr[i] >= arr[i + 1]) i--;
+            if (i < 0) { arr.reverse(); return false; }
+            let j = n - 1;
+            while (arr[j] <= arr[i]) j--;
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+            arr.splice(i + 1, n - i - 1, ...arr.slice(i + 1).reverse());
+          } else {
+            while (i >= 0 && arr[i] <= arr[i + 1]) i--;
+            if (i < 0) { arr.reverse(); return false; }
+            let j = n - 1;
+            while (arr[j] >= arr[i]) j--;
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+            arr.splice(i + 1, n - i - 1, ...arr.slice(i + 1).reverse());
+          }
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // BINARY SEARCH — lower_bound / upper_bound (<algorithm>)
+    if (functionName === "lower_bound" || functionName === "upper_bound") {
+      const arg1 = callNode.arguments[0];
+      if (arg1 && arg1.kind === "MethodCall") {
+        const targetObj = currentEvaluator.evaluate((arg1 as any).object);
+        const arr = (Array.isArray(targetObj) ? targetObj : (targetObj as any)?.data) as number[];
+        const val = currentEvaluator.evaluate(callNode.arguments[2]) as number;
+        if (arr && Array.isArray(arr)) {
+          let lo = 0, hi = arr.length;
+          while (lo < hi) {
+            const mid = (lo + hi) >>> 1;
+            const shouldAdvance = functionName === "lower_bound"
+              ? arr[mid] < val
+              : arr[mid] <= val;
+            if (shouldAdvance) lo = mid + 1; else hi = mid;
+          }
+          return lo;
+        }
+      }
+      return 0;
+    }
+
+    // BINARY_SEARCH (<algorithm>) — returns bool
+    if (functionName === "binary_search") {
+      const arg1 = callNode.arguments[0];
+      if (arg1 && arg1.kind === "MethodCall") {
+        const targetObj = currentEvaluator.evaluate((arg1 as any).object);
+        const arr = (Array.isArray(targetObj) ? targetObj : (targetObj as any)?.data) as any[];
+        const val = currentEvaluator.evaluate(callNode.arguments[2]);
+        if (arr && Array.isArray(arr)) {
+          let lo = 0, hi = arr.length;
+          while (lo < hi) {
+            const mid = (lo + hi) >>> 1;
+            if (arr[mid] < val) lo = mid + 1;
+            else if (arr[mid] > val) hi = mid;
+            else return true;
+          }
+          return false;
+        }
+      }
+      return false;
+    }
+
+    // MAKE_PAIR / MAKE_TUPLE
+    if (functionName === "make_pair" || functionName === "pair") {
+      const a0 = currentEvaluator.evaluate(callNode.arguments[0]);
+      const a1 = callNode.arguments.length > 1 ? currentEvaluator.evaluate(callNode.arguments[1]) : undefined;
+      return [a0, a1 !== undefined ? a1 : 0];
+    }
+    if (functionName === "make_tuple") {
+      return callNode.arguments.map(a => currentEvaluator.evaluate(a));
+    }
+
+    // STRING UTILITIES (<string>, <sstream>)
+    if (functionName === "to_string") {
+      const v = currentEvaluator.evaluate(callNode.arguments[0]);
+      return String(v ?? "");
+    }
+    if (functionName === "stoi" || functionName === "stol" || functionName === "stoll") {
+      const s = currentEvaluator.evaluate(callNode.arguments[0]) as string;
+      return parseInt(String(s), 10);
+    }
+    if (functionName === "stod" || functionName === "stof" || functionName === "stold") {
+      const s = currentEvaluator.evaluate(callNode.arguments[0]) as string;
+      return parseFloat(String(s));
+    }
+    if (functionName === "atoi") {
+      const s = currentEvaluator.evaluate(callNode.arguments[0]) as string;
+      return parseInt(String(s), 10);
+    }
+    if (functionName === "atof") {
+      const s = currentEvaluator.evaluate(callNode.arguments[0]) as string;
+      return parseFloat(String(s));
+    }
+    // toupper / tolower for char arithmetic
+    if (functionName === "toupper" || functionName === "tolower") {
+      const c = currentEvaluator.evaluate(callNode.arguments[0]);
+      const ch = typeof c === "string" ? c : String.fromCharCode(c as number);
+      const out = functionName === "toupper" ? ch.toUpperCase() : ch.toLowerCase();
+      return out.charCodeAt(0);
+    }
+    if (functionName === "isdigit") {
+      const c = currentEvaluator.evaluate(callNode.arguments[0]);
+      const ch = typeof c === "string" ? c : String.fromCharCode(c as number);
+      return /\d/.test(ch) ? 1 : 0;
+    }
+    if (functionName === "isalpha") {
+      const c = currentEvaluator.evaluate(callNode.arguments[0]);
+      const ch = typeof c === "string" ? c : String.fromCharCode(c as number);
+      return /[a-zA-Z]/.test(ch) ? 1 : 0;
+    }
+    if (functionName === "isalnum") {
+      const c = currentEvaluator.evaluate(callNode.arguments[0]);
+      const ch = typeof c === "string" ? c : String.fromCharCode(c as number);
+      return /[a-zA-Z0-9]/.test(ch) ? 1 : 0;
+    }
+    if (functionName === "islower") {
+      const c = currentEvaluator.evaluate(callNode.arguments[0]);
+      const ch = typeof c === "string" ? c : String.fromCharCode(c as number);
+      return /[a-z]/.test(ch) ? 1 : 0;
+    }
+    if (functionName === "isupper") {
+      const c = currentEvaluator.evaluate(callNode.arguments[0]);
+      const ch = typeof c === "string" ? c : String.fromCharCode(c as number);
+      return /[A-Z]/.test(ch) ? 1 : 0;
+    }
+    if (functionName === "isspace") {
+      const c = currentEvaluator.evaluate(callNode.arguments[0]);
+      const ch = typeof c === "string" ? c : String.fromCharCode(c as number);
+      return /\s/.test(ch) ? 1 : 0;
+    }
+
+    // PRINTF (<cstdio>) — emits formatted output to the visualizer
+    if (functionName === "printf" || functionName === "fprintf") {
+      const rawArgs = callNode.arguments.map(a => currentEvaluator.evaluate(a));
+      const fmtStr = String(rawArgs[0] ?? "");
+      let argIdx = 1;
+      const formatted = fmtStr.replace(/%[-+0 #]*\d*(?:\.\d+)?[diouxXeEfgGscpn%lh]/g, (match) => {
+        if (match === "%%") return "%";
+        return String(rawArgs[argIdx++] ?? "");
+      });
+      this.eventEmitter.emit(callNode.line, EventType.WRITE, { output: formatted });
+      return 0;
+    }
+
+    // ASSERT — throw on false assertion
+    if (functionName === "assert") {
+      const v = currentEvaluator.evaluate(callNode.arguments[0]);
+      if (!v) throw new Error(`Assertion Failed at line ${callNode.line}: assert(${callNode.arguments[0] ? "expr" : ""}) evaluated to false.`);
+      return undefined;
+    }
+
     // ─── STANDARD FUNCTION INVOCATION ───────────────────────────────────
     const args = callNode.arguments.map(arg => currentEvaluator.evaluate(arg));
     let targetCallee = callNode.callee;
@@ -152,7 +452,15 @@ export class ExecutionEngine {
    * Resolves object-oriented method calls (e.g., container.push_back(), str.substr()).
    */
   public invokeMethodCall(methodNode: IRMethodCall, currentEvaluator: ExpressionEvaluator): CppValue {
-    let objInstance = currentEvaluator.evaluate(methodNode.object);
+    // Evaluate the object instance. Wrapped in try-catch so that if the object's
+    // variable wasn't declared (e.g., due to a constructor-syntax parsing failure),
+    // the auto-recovery block below can still attempt to create it rather than crashing.
+    let objInstance: CppValue;
+    try {
+      objInstance = currentEvaluator.evaluate(methodNode.object);
+    } catch (e) {
+      objInstance = undefined as any;
+    }
 
     // ─── UNIVERSAL OBJECT AUTO-RECOVERY ───────────────────────────────────
     if (!objInstance) {
@@ -241,15 +549,53 @@ export class ExecutionEngine {
     // String STL Polyfills
     else if (isString) {
       handled = true;
+      const s = objInstance as string;
       switch (methodName) {
-        case "substr":
-          const start = args[0] as number;
-          const length = args[1] as number;
-          result = (objInstance as string).substring(start, length ? start + length : undefined);
+        case "substr": {
+          const start = (args[0] as number) ?? 0;
+          const len = args[1] as number;
+          result = len !== undefined ? s.substring(start, start + len) : s.substring(start);
           break;
+        }
         case "size":
-        case "length": result = (objInstance as string).length; break;
-        case "empty": result = (objInstance as string).length === 0; break;
+        case "length": result = s.length; break;
+        case "empty": result = s.length === 0; break;
+        case "at":    result = s[args[0] as number] ?? ""; break;
+        case "front": result = s[0] ?? ""; break;
+        case "back":  result = s[s.length - 1] ?? ""; break;
+        case "c_str": result = s; break;
+        case "find":  result = s.indexOf(String(args[0] ?? ""), args[1] as number ?? 0); break;
+        case "rfind": result = s.lastIndexOf(String(args[0] ?? ""), args[1] as number ?? s.length); break;
+        case "compare": result = s === String(args[0] ?? "") ? 0 : s < String(args[0] ?? "") ? -1 : 1; break;
+        case "starts_with": result = s.startsWith(String(args[0] ?? "")); break;
+        case "ends_with":   result = s.endsWith(String(args[0] ?? "")); break;
+        case "contains":    result = s.includes(String(args[0] ?? "")); break;
+        case "count":       result = (s.match(new RegExp(String(args[0] ?? ""), "g")) || []).length; break;
+        case "to_string":   result = s; break;
+        case "begin":       result = 0; break;
+        case "end":         result = s.length; break;
+        // Note: append/insert/erase/replace return a new string — must update variable via assignment
+        // These return the result; the calling code must handle write-back if needed.
+        case "append":    result = s + String(args[0] ?? ""); break;
+        case "push_back": result = s + String(args[0] ?? ""); break;
+        case "insert":    result = s.slice(0, args[0] as number) + String(args[1] ?? "") + s.slice(args[0] as number); break;
+        case "erase": {
+          const pos = (args[0] as number) ?? 0;
+          const n = (args[1] as number) ?? (s.length - pos);
+          result = s.slice(0, pos) + s.slice(pos + n);
+          break;
+        }
+        case "replace": {
+          const rpos = (args[0] as number) ?? 0;
+          const rlen = (args[1] as number) ?? 0;
+          result = s.slice(0, rpos) + String(args[2] ?? "") + s.slice(rpos + rlen);
+          break;
+        }
+        case "clear": result = ""; break;
+        case "tolower":
+        case "lower":  result = s.toLowerCase(); break;
+        case "toupper":
+        case "upper":  result = s.toUpperCase(); break;
         default: handled = false;
       }
     }
@@ -314,17 +660,21 @@ export class ExecutionEngine {
       throw new Error(`Linker Error: Undefined reference to function '${name}'.`);
     }
 
-    if (args.length !== func.parameters.length) {
+    if (args.length > func.parameters.length) {
       throw new Error(`Parameter Mismatch: Function '${name}' expects ${func.parameters.length} arguments, but received ${args.length}.`);
     }
 
     const frame = this.callStack.push(name);
     this.eventEmitter.emit(func.line, EventType.FUNCTION_CALL, { function: name, args });
 
+    // Pad args with undefined for missing optional-style parameters rather than hard-crashing.
+    // C++ default parameters aren't directly supported, but this prevents runtime failures
+    // when a function is called with fewer arguments due to partial parsing.
     func.parameters.forEach((param, index) => {
       let paramType = param.type as CppType;
       if (paramType.includes("[]") || paramType.includes("*")) paramType = "array" as any; 
-      frame.scopeManager.defineVariable(param.name, paramType, args[index]);
+      const argValue = index < args.length ? args[index] : undefined;
+      frame.scopeManager.defineVariable(param.name, paramType, argValue);
     });
 
     const evaluator = new ExpressionEvaluator(frame.scopeManager, this.eventEmitter);
@@ -357,13 +707,33 @@ export class ExecutionEngine {
       if (expr.kind === "NewExpression") {
         const newExpr = expr as IRNewExpression;
         const evaluatedArgs = newExpr.arguments.map(arg => evaluator.evaluate(arg));
-        if (newExpr.typeName.includes("[")) return [];
+
+        // Handle array allocation: `new int[n]` or `new int[n][m]`
+        if (newExpr.typeName.includes("[")) {
+          const size = evaluatedArgs[0] as number;
+          return typeof size === "number" ? new Array(size).fill(0) : [];
+        }
         
-        // Enforces C++ strict null initialization to prevent undefined property crashes
-        const newObj: Record<string, any> = { next: null, left: null, right: null }; 
-        if (evaluatedArgs.length > 0) { newObj.val = evaluatedArgs[0]; newObj.value = evaluatedArgs[0]; newObj.data = evaluatedArgs[0]; }
-        if (evaluatedArgs.length > 1) { newObj.next = evaluatedArgs[1]; newObj.left = evaluatedArgs[1]; }
-        if (evaluatedArgs.length > 2) { newObj.right = evaluatedArgs[2]; }
+        // Build the new object, assigning args to canonical property names.
+        // Common node types: TreeNode(val), ListNode(val, next), GraphNode(val).
+        // We only add properties that are actually provided — no phantom defaults.
+        const newObj: Record<string, any> = {};
+        if (evaluatedArgs.length > 0) {
+          newObj.val = evaluatedArgs[0];
+          newObj.value = evaluatedArgs[0];
+          newObj.data = evaluatedArgs[0];
+          // Only pre-initialize pointer fields if there are more args or common struct conventions
+          newObj.next = null;
+          newObj.left = null;
+          newObj.right = null;
+        }
+        if (evaluatedArgs.length > 1) { 
+          newObj.next = evaluatedArgs[1]; 
+          newObj.left = evaluatedArgs[1]; 
+        }
+        if (evaluatedArgs.length > 2) { 
+          newObj.right = evaluatedArgs[2]; 
+        }
         return newObj;
       }
       
@@ -389,6 +759,8 @@ export class ExecutionEngine {
       }
       
       if (expr.kind === "Identifier") {
+        // endl, nullptr, NULL are now handled in ExpressionEvaluator.evaluate() directly.
+        // This fallback is kept for any identifiers that slip through the base evaluator.
         if ((expr as any).name === "endl") return "\n";
         if ((expr as any).name === "nullptr" || (expr as any).name === "NULL") return null;
       }

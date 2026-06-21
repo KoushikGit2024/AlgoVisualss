@@ -81,7 +81,9 @@ export class ScopeManager {
   }
 
   /**
-   * Returns the current depth of the call stack / scope chain.
+   * Returns the current depth of the scope chain.
+   * NOTE: Returns 1 when only the root scope is active (constructor initializes one scope).
+   * A value of 2 means one nested block is currently in scope, and so on.
    */
   public getDepth(): number {
     return this.scopes.length;
@@ -95,7 +97,9 @@ export class ScopeManager {
   public captureState(): Record<string, Symbol> {
     const state: Record<string, Symbol> = {};
     
-    // Iterate from root to active scope to properly apply variable shadowing overrides
+    // Iterate from root scope (outermost) to the active scope (innermost).
+    // Inner scopes overwrite outer ones in the flattened result, which correctly
+    // models C++ variable shadowing: inner declarations hide outer ones in the visualizer.
     for (const scope of this.scopes) {
       Object.assign(state, scope.getAll());
     }

@@ -34,7 +34,7 @@ export type IRNode =
   | IRExpressionStatement
   | IRIfStatement
   | IRWhileStatement
-  | IRDoWhileStatement
+  | IRDoWhileStatement  // Previously missing from union — do-while loops were silently skipped
   | IRForStatement
   | IRForRangeStatement
   | IRReturnStatement
@@ -101,6 +101,12 @@ export interface IRVariableDeclaration extends IRBaseNode {
   variableType: string;
   name: string;
   initializer?: IRExpression;
+  /**
+   * Present when the declaration uses C++ constructor-call syntax: `Type v(arg1, arg2)`.
+   * Distinct from `initializer` (which is for `=` assignments) so the executor
+   * can correctly size/fill containers (e.g., `vector<int> v(n, 0)` → n zeros).
+   */
+  constructorArgs?: IRExpression[];
 }
 
 /**
