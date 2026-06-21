@@ -102,7 +102,8 @@ export class IRBuilder {
           if (decl) {
             if (decl.type === "array_declarator") {
               type += "[]";
-              decl = decl.child(0);
+              // FIX 1: Coerce null to undefined
+              decl = decl.child(0) || undefined; 
             }
             fieldName = decl?.text || "unknown";
           }
@@ -129,7 +130,7 @@ export class IRBuilder {
       kind: "StructDeclaration",
       line: node.startPosition.row + 1,
       name,
-      fields
+      fields // Or properties, based on your IRNode interface!
     };
   }
 
@@ -146,8 +147,6 @@ export class IRBuilder {
     }
 
     // ─── POINTER & REFERENCE UNWRAPPING ──────────────────────────────────────────
-    // Tree-Sitter wraps functions returning pointers/references (e.g., BSTNode* insert) 
-    // inside modifier blocks. We must recursively drill down to the core declarator.
     while (declaratorNode && (declaratorNode.type === "pointer_declarator" || declaratorNode.type === "reference_declarator")) {
       declaratorNode = declaratorNode.child(1) as SyntaxNode;
     }
@@ -163,13 +162,8 @@ export class IRBuilder {
           let paramType = param.child(0)?.text || "unknown";
           let paramDeclNode = param.namedChildren.find(c => 
             c.type !== "primitive_type" && c.type !== "type_identifier" && c.type !== "number_literal" && c.type !== "string_literal" && c.type !== "identifier" && c.type !== "true" && c.type !== "false" && c.type !== "null"
-            // Actually, a safer way to find the declarator is to check the named children.
           );
           
-          // Let's use the explicit children by index since Tree-sitter C++ grammar is stable:
-          // For parameter_declaration: child(0) = type, child(1) = declarator
-          // For optional_parameter_declaration: child(0) = type, child(1) = declarator, child(2) = '=', child(3) = default_value
-          // (namedChildren skips the '=')
           paramDeclNode = param.namedChildren.length > 1 ? param.namedChildren[1] : undefined;
           
           let paramName = "unknown";
@@ -177,9 +171,6 @@ export class IRBuilder {
           let defaultValue: IRExpression | undefined = undefined;
 
           if (param.type === "optional_parameter_declaration") {
-             // If namedChildren has 3 items, index 2 is the default value expression.
-             // Sometimes declarator is omitted (e.g., `void f(int = 5)`), then namedChildren[1] is the default value.
-             // To be robust, we'll try to parse the last named child as the default expression if it's an optional param.
              const lastChild = param.namedChildren[param.namedChildren.length - 1];
              if (lastChild && lastChild !== paramDeclNode) {
                try { defaultValue = this.buildExpression(lastChild); } catch (e) { /* ignore */ }
@@ -190,12 +181,15 @@ export class IRBuilder {
           while (paramDeclNode && (paramDeclNode.type === "array_declarator" || paramDeclNode.type === "pointer_declarator" || paramDeclNode.type === "reference_declarator")) {
             if (paramDeclNode.type === "reference_declarator") {
               isReference = true;
-              paramDeclNode = paramDeclNode.child(1);
+              // FIX 2: Coerce null to undefined
+              paramDeclNode = paramDeclNode.child(1) || undefined;
             } else if (paramDeclNode.type === "array_declarator") {
               paramType += "[]";
-              paramDeclNode = paramDeclNode.child(0); 
+              // FIX 3: Coerce null to undefined
+              paramDeclNode = paramDeclNode.child(0) || undefined; 
             } else {
-              paramDeclNode = paramDeclNode.child(1); 
+              // FIX 4: Coerce null to undefined
+              paramDeclNode = paramDeclNode.child(1) || undefined; 
             }
           }
 
