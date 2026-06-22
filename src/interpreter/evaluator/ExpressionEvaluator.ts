@@ -120,7 +120,7 @@ export class ExpressionEvaluator {
           while (symbol.value && typeof symbol.value === "object" && "__ref" in symbol.value) {
             identifierName = symbol.value.__ref;
             targetScopeManager = symbol.value.__callerScope as any;
-            symbol = targetScopeManager.getVariable(identifierName);
+            symbol = targetScopeManager.getVariable(identifierName!);
           }
         } else if (targetNode.kind === "SubscriptExpression") {
           const subNode = targetNode as IRSubscriptExpression;
@@ -141,7 +141,7 @@ export class ExpressionEvaluator {
           }
           
           // ── AUTO-RECOVERY FOR STRUCT ARRAYS ──
-          if (Array.isArray(targetObj) && targetObj[index] === undefined) {
+          if (Array.isArray(targetObj) && index !== null && targetObj[index as keyof typeof targetObj] === undefined) {
              const fieldMap: Record<string, number> = { id: 0, value: 1, left: 2, right: 3, x: 0, y: 1, val: 0, next: 1, first: 0, second: 1 };
              if (index in fieldMap) index = fieldMap[index as string];
           }
@@ -369,7 +369,7 @@ export class ExpressionEvaluator {
       while (symbol.value && typeof symbol.value === "object" && "__ref" in symbol.value) {
         identifierName = symbol.value.__ref;
         targetScopeManager = symbol.value.__callerScope as any;
-        symbol = targetScopeManager.getVariable(identifierName);
+        symbol = targetScopeManager.getVariable(identifierName!);
       }
 
       currentValue = parseNumber(symbol.value);

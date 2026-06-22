@@ -17,7 +17,7 @@ interface DraggableWindowProps {
   windowState: WindowState;
   updateWindow: (partial: Partial<WindowState>) => void;
   bringToFront: () => void;
-  parentRef: React.RefObject<HTMLDivElement>;
+  parentRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function DraggableWindow({ 
