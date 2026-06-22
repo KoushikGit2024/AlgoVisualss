@@ -1,0 +1,329 @@
+import {
+  Network,
+  GitMerge,
+  Grid,
+  List,
+  Link as LinkIcon,
+  ArrowRightLeft,
+  Layers,
+  ShieldAlert,
+  Zap,
+  Info,
+  ListOrdered
+} from "lucide-react";
+
+const DATA_STRUCTURES = [
+  {
+    title: "Graphs — <Graph />",
+    icon: <Network className="text-accent" size={18} />,
+    color: "border-accent/30 bg-accent/5",
+    textColor: "text-accent",
+    description: "Renders a circular node-edge network.",
+    prefixes: [
+      { prefix: "adj", example: "vector<vector<int>> adj_list" },
+      { prefix: "graph", example: "unordered_map<int, vector<int>> graph_map" }
+    ],
+    shape: "Value must be a 2D array (adjacency list) or a non-empty array.",
+    auxiliary: [
+      { role: "Edge list", trigger: "Any variable containing `edge` (e.g., `graph_edges`)", notes: "Expected format: `[[u, v], [x, y]]`" },
+      { role: "Visited state", trigger: "Any variable containing `visit`", notes: "Elements set to `1` pulse with the highlight color" },
+      { role: "Pointer badges", trigger: "`node`, `curr`, `u`, `v`, or `ptr_n*` prefix", notes: "All matching variables render as floating badges simultaneously" }
+    ]
+  },
+  {
+    title: "Trees & BSTs — <Tree />",
+    icon: <GitMerge className="text-success" size={18} />,
+    color: "border-success/30 bg-success/5",
+    textColor: "text-success",
+    description: "Renders a top-down hierarchical tree. Node coordinates are auto-calculated using an in-order layout algorithm.",
+    prefixes: [
+      { prefix: "tree_", example: "vector<TreeNode> tree_nodes" },
+      { prefix: "bst_", example: "vector<Node> bst_data" },
+      { prefix: "trie_", example: "vector<TrieNode> trie_nodes" }
+    ],
+    shape: "Value must be an array of objects, each with `id` and `value` fields.",
+    auxiliary: [
+      { role: "Core pointers", trigger: "`root`, `curr`, `parent`, `temp`", notes: "Stores target node's `id`" },
+      { role: "Branch pointers", trigger: "`left`, `right`", notes: "Badges attach above the target node" }
+    ]
+  },
+  {
+    title: "2D Matrices — <D2Array />",
+    icon: <Grid className="text-accent-2" size={18} />,
+    color: "border-accent-2/30 bg-accent-2/5",
+    textColor: "text-accent-2",
+    description: "Renders a 2D grid/matrix layout.",
+    prefixes: [
+      { prefix: "mat", example: "vector<vector<int>> mat_grid" },
+      { prefix: "grid", example: "vector<vector<int>> grid" },
+      { prefix: "board", example: "char board[8][8]" },
+      { prefix: "dp", example: "vector<vector<int>> dp_table" }
+    ],
+    shape: "Value must be a 2D array (array of arrays).",
+    auxiliary: [
+      { role: "Row", trigger: "`r`, `row`, `*_r`, `r_*`", notes: "Both a row and column variable must exist to drop a pointer." },
+      { role: "Column", trigger: "`c`, `col`, `*_c`, `c_*`", notes: "" }
+    ]
+  },
+  {
+    title: "1D Arrays — <D1Array />",
+    icon: <List className="text-accent-3" size={18} />,
+    color: "border-accent-3/30 bg-accent-3/5",
+    textColor: "text-accent-3",
+    description: "Renders a linear array.",
+    prefixes: [
+      { prefix: "arr", example: "vector<int> arr" },
+      { prefix: "vec", example: "vector<string> vec_names" },
+      { prefix: "nums", example: "vector<int> nums" },
+      { prefix: "seq", example: "vector<float> seq" }
+    ],
+    shape: "Value must be a flat array of primitives (numbers, strings, booleans).",
+    auxiliary: [
+      { role: "Generic indexers", trigger: "`i`, `j`, `k`", notes: "" },
+      { role: "Algorithmic pointers", trigger: "`left`, `right`, `mid`, `curr`, `ptr`", notes: "" },
+      { role: "Composite examples", trigger: "`ptr_i`, `left_idx`", notes: "" }
+    ]
+  },
+  {
+    title: "Linked Lists — <LinkedList />",
+    icon: <LinkIcon className="text-accent" size={18} />,
+    color: "border-accent/30 bg-accent/5",
+    textColor: "text-accent",
+    description: "Renders a horizontal sequence of connected node blocks.",
+    prefixes: [
+      { prefix: "ll_", example: "vector<Node> ll_nodes" },
+      { prefix: "head", example: "Engine emits the fully traversed list as `head`" }
+    ],
+    shape: "Value must be an array of objects, each with `id` and `value` fields.",
+    auxiliary: [
+      { role: "Standard pointers", trigger: "`head`, `tail`, `curr`, `prev`, `next`", notes: "" },
+      { role: "Fast/Slow pointers", trigger: "`slow`, `fast`", notes: "Must hold the `id` or index of the target node." }
+    ]
+  },
+  {
+    title: "Queues & Deques — <Queue />",
+    icon: <ArrowRightLeft className="text-accent-2" size={18} />,
+    color: "border-accent-2/30 bg-accent-2/5",
+    textColor: "text-accent-2",
+    description: "Renders a horizontal FIFO tube where items slide in from the right and exit from the left.",
+    prefixes: [
+      { prefix: "q_", example: "queue<int> q_nodes" },
+      { prefix: "queue", example: "deque<string> queue_names" },
+      { prefix: "deque", example: "deque<int> deque_window" }
+    ],
+    shape: "Value must be a flat array of primitives.",
+    auxiliary: [
+      { role: "Standard ends", trigger: "`front`, `back`, `rear`, `head`, `tail`", notes: "" },
+      { role: "General trackers", trigger: "`curr`, `ptr_front`", notes: "" }
+    ]
+  },
+  {
+    title: "Stacks — <Stack />",
+    icon: <Layers className="text-accent-3" size={18} />,
+    color: "border-accent-3/30 bg-accent-3/5",
+    textColor: "text-accent-3",
+    description: "Renders a vertical LIFO bucket where elements animate strictly top-down.",
+    prefixes: [
+      { prefix: "st_", example: "stack<int> st_nodes" },
+      { prefix: "stack", example: "vector<string> stack_names" }
+    ],
+    shape: "Value must be a flat array of primitives.",
+    auxiliary: [
+      { role: "Stack pointers", trigger: "`top`, `peek`", notes: "Pointer badges attach to the right side of the element." }
+    ]
+  }
+];
+
+export default function VisualizerNamingConventions() {
+  return (
+    <div className="flex flex-col gap-8 pb-10 text-text">
+      
+      {/* Introduction */}
+      <section className="bg-surface-2 p-5 rounded-xl border border-border">
+        <h1 className="text-xl font-bold text-accent mb-3 flex items-center gap-2">
+          <Info size={22} />
+          Detection Philosophy
+        </h1>
+        <p className="text-sm text-muted leading-relaxed mb-4">
+          The <strong className="text-text">VisualGround</strong> engine's heuristic detector parses the AST runtime scope and automatically mounts the correct React component based on variable naming prefixes and value shape.
+        </p>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-start gap-2 bg-surface p-3 rounded-lg border border-border">
+            <span className="w-5 h-5 rounded-full bg-accent/20 text-accent flex items-center justify-center text-xs font-bold shrink-0">1</span>
+            <p className="text-[13px] text-muted"><strong className="text-text">PREFIX match</strong> — Does the variable name start with a known trigger prefix?</p>
+          </div>
+          <div className="flex items-start gap-2 bg-surface p-3 rounded-lg border border-border">
+            <span className="w-5 h-5 rounded-full bg-accent/20 text-accent flex items-center justify-center text-xs font-bold shrink-0">2</span>
+            <p className="text-[13px] text-muted"><strong className="text-text">SHAPE validation</strong> — Is the runtime value actually the correct data shape?</p>
+          </div>
+        </div>
+        <p className="text-[12px] text-muted mt-3 italic">
+          Example: `numRows = 5` will not trigger &lt;D1Array /&gt; even though it starts with `num`, because `5` is a scalar. Only variables whose value passes both checks get visualized.
+        </p>
+      </section>
+
+      {/* Priority Table */}
+      <section>
+        <h2 className="text-lg font-bold text-text mb-4 flex items-center gap-2">
+          <ListOrdered className="text-accent-2" size={20} />
+          Priority Order
+        </h2>
+        <div className="overflow-x-auto border border-border rounded-lg styled-scrollbar">
+          <table className="w-full text-left border-collapse text-[13px]">
+            <thead>
+              <tr className="bg-surface-2">
+                <th className="px-4 py-3 border-b border-r border-border font-semibold text-text">Priority</th>
+                <th className="px-4 py-3 border-b border-r border-border font-semibold text-text">Component</th>
+                <th className="px-4 py-3 border-b border-border font-semibold text-text">Why first?</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { p: 1, c: "<Graph />", w: "Most specific prefix (`adj_`, `graph_`)" },
+                { p: 2, c: "<Tree />", w: "Requires `tree_`/`bst_` + node objects" },
+                { p: 3, c: "<D2Array />", w: "2D array shape (matrix)" },
+                { p: 4, c: "<LinkedList />", w: "Requires `ll_`/`head` + node objects" },
+                { p: 5, c: "<Stack />", w: "Flat array with LIFO semantics" },
+                { p: 6, c: "<Queue />", w: "Flat array with FIFO semantics" },
+                { p: 7, c: "<D1Array />", w: "Generic flat array fallback" }
+              ].map((row, i) => (
+                <tr key={i} className="border-b border-border last:border-b-0 even:bg-surface-2/30 hover:bg-surface-3 transition-colors">
+                  <td className="px-4 py-2.5 border-r border-border text-muted font-mono">{row.p}</td>
+                  <td className="px-4 py-2.5 border-r border-border text-accent-3 font-mono">{row.c}</td>
+                  <td className="px-4 py-2.5 text-muted">{row.w}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Data Structures */}
+      <div className="flex flex-col gap-6">
+        {DATA_STRUCTURES.map((ds, idx) => (
+          <section key={idx} className={`border rounded-xl overflow-hidden ${ds.color.split(" ")[0]} bg-surface`}>
+            {/* Header */}
+            <div className={`px-4 py-3 border-b ${ds.color.split(" ")[0]} ${ds.color.split(" ")[1]} flex items-center gap-2`}>
+              {ds.icon}
+              <h2 className="font-bold text-[14px] text-text">{ds.title}</h2>
+            </div>
+            
+            <div className="p-4 flex flex-col gap-4">
+              <p className="text-[13px] text-muted">{ds.description}</p>
+              
+              {/* Prefixes */}
+              <div>
+                <h3 className="text-[11px] font-bold text-text uppercase tracking-wider mb-2">Primary Structure Prefixes</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {ds.prefixes.map((pref, i) => (
+                    <div key={i} className="flex flex-col bg-surface-2 p-2.5 rounded-lg border border-border">
+                      <span className={`font-mono ${ds.textColor} text-[12px] font-semibold mb-1`}>{pref.prefix}</span>
+                      <code className="text-[11px] text-text bg-surface px-2 py-1 rounded border border-border/50">
+                        {pref.example}
+                      </code>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Shape */}
+              <div className="bg-surface-2/50 border-l-2 border-accent-2 px-3 py-2 text-[12.5px] text-muted italic">
+                <strong className="text-text not-italic">Shape:</strong> {ds.shape}
+              </div>
+
+              {/* Auxiliary Variables */}
+              {ds.auxiliary.length > 0 && (
+                <div>
+                  <h3 className="text-[11px] font-bold text-text uppercase tracking-wider mb-2 mt-2">Auxiliary Variables (Auto-Bound)</h3>
+                  <div className="overflow-x-auto border border-border rounded-lg styled-scrollbar">
+                    <table className="w-full text-left border-collapse text-[12.5px]">
+                      <thead>
+                        <tr className="bg-surface-2">
+                          <th className="px-3 py-2 border-b border-r border-border font-semibold text-text whitespace-nowrap">Role</th>
+                          <th className="px-3 py-2 border-b border-r border-border font-semibold text-text whitespace-nowrap">Trigger</th>
+                          <th className="px-3 py-2 border-b border-border font-semibold text-text">Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ds.auxiliary.map((aux, i) => (
+                          <tr key={i} className="border-b border-border last:border-b-0 even:bg-surface-2/30">
+                            <td className="px-3 py-2 border-r border-border text-muted whitespace-nowrap">{aux.role}</td>
+                            <td className="px-3 py-2 border-r border-border text-accent-3 font-mono">{aux.trigger}</td>
+                            <td className="px-3 py-2 text-muted">{aux.notes}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+        ))}
+      </div>
+
+      {/* Reserved Variables */}
+      <section className="bg-surface-2 p-5 rounded-xl border border-border">
+        <h2 className="text-lg font-bold text-failure mb-3 flex items-center gap-2">
+          <ShieldAlert size={20} />
+          Reserved Variables
+        </h2>
+        <p className="text-[13px] text-muted mb-4">
+          These variable names are <strong className="text-text">never consumed</strong> by the detector and will always appear in the Variables panel:
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {[
+            { v: "n", why: "Common loop counter / size variable" },
+            { v: "maxVal, minVal", why: "Computed results" },
+            { v: "result, ans", why: "Return values" },
+            { v: "temp", why: "When scalar, only consumed by Tree detector when holding a node ID" }
+          ].map((item, i) => (
+            <div key={i} className="flex items-center gap-3 bg-surface p-3 rounded-lg border border-border">
+              <code className="text-failure font-mono text-[12.5px] bg-failure/10 px-2 py-0.5 rounded shrink-0">{item.v}</code>
+              <span className="text-[12px] text-muted">{item.why}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Quick Reference */}
+      <section>
+        <h2 className="text-lg font-bold text-accent-3 mb-4 flex items-center gap-2">
+          <Zap size={20} />
+          Quick Reference
+        </h2>
+        <div className="overflow-x-auto border border-border rounded-lg styled-scrollbar">
+          <table className="w-full text-left border-collapse text-[12px]">
+            <thead>
+              <tr className="bg-surface-2">
+                <th className="px-3 py-2.5 border-b border-r border-border font-semibold text-text whitespace-nowrap">Component</th>
+                <th className="px-3 py-2.5 border-b border-r border-border font-semibold text-text whitespace-nowrap">Primary Prefixes</th>
+                <th className="px-3 py-2.5 border-b border-r border-border font-semibold text-text whitespace-nowrap">Shape Required</th>
+                <th className="px-3 py-2.5 border-b border-border font-semibold text-text">Key Auxiliary Variables</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { c: "<Graph />", p: "adj, graph", s: "2D array", a: "*edge*, *visit*, node/curr/u/v" },
+                { c: "<Tree />", p: "tree_, bst_, trie_", s: "Array of {id, value}", a: "root, curr, parent, temp, left, right" },
+                { c: "<D2Array />", p: "mat, grid, board, dp", s: "2D array", a: "r/row/r_*, c/col/c_* (both req)" },
+                { c: "<D1Array />", p: "arr, vec, nums, seq", s: "Flat array", a: "i, j, k, left, right, mid, curr, ptr" },
+                { c: "<LinkedList />", p: "ll_, head", s: "Array of {id, value}", a: "head, tail, curr, prev, next, slow, fast" },
+                { c: "<Queue />", p: "q_, queue, deque", s: "Flat array", a: "front, back, rear, head, tail, curr" },
+                { c: "<Stack />", p: "st_, stack", s: "Flat array", a: "top, peek" }
+              ].map((row, i) => (
+                <tr key={i} className="border-b border-border last:border-b-0 hover:bg-surface-2 transition-colors">
+                  <td className="px-3 py-2 border-r border-border text-text font-mono whitespace-nowrap">{row.c}</td>
+                  <td className="px-3 py-2 border-r border-border text-accent font-mono">{row.p}</td>
+                  <td className="px-3 py-2 border-r border-border text-muted whitespace-nowrap">{row.s}</td>
+                  <td className="px-3 py-2 text-muted font-mono">{row.a}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  );
+}

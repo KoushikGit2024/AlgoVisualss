@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import CodeEditor from './sideComponents/CodeEditor';
 import VisualGround from './sideComponents/VisualGround';
 import { Info, X } from 'lucide-react';
-import NamingConventions from './dataStructures/Visualizer_Naming_Conventions.mdx';
+import VisualizerNamingConventions from './dataStructures/VisualizerNamingConventions';
 // import { ALGODATA } from '../Pages/algorithms/data/categories/AlgoData';
 
 const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
@@ -17,6 +17,7 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
 
   // ✅ FIX 1: Only reset the code when the 'lang' tab changes!
   useEffect(() => {
+    console.log(codeObject)
     setCode(codeObject[lang] as string);
   }, [lang,codeObject]);
 
@@ -145,7 +146,7 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
               {lang === "c++" ? "Active" : "Inactive"}
             </span>
 
-            <div
+          <div
               className={`w-2 h-2 rounded-full aspect-square shadow-sm ${
                 lang === "c++"
                   ? "bg-success animate-pulse glow-accent"
@@ -166,7 +167,7 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
       {/* ─── Naming Conventions Modal ──────────────────────────────────────── */}
       {showInfo && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-surface border border-border rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+          <div className="bg-surface border border-border rounded-lg shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface-2 shrink-0">
               <h2 className="text-sm font-bold text-text flex items-center gap-2">
                 <Info size={16} className="text-accent" /> Visualizer Naming Conventions
@@ -175,8 +176,8 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
                 <X size={16} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-6 styled-scrollbar prose prose-invert prose-sm max-w-none prose-headings:text-accent prose-a:text-accent-2 prose-code:text-accent-3 prose-pre:bg-bg prose-pre:border prose-pre:border-border prose-th:bg-surface-2 prose-td:border-border">
-              <NamingConventions />
+            <div className="flex-1 overflow-y-auto p-6 md:p-8 styled-scrollbar bg-bg">
+              <VisualizerNamingConventions />
             </div>
           </div>
         </div>
