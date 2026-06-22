@@ -60,6 +60,7 @@ export class IRBuilder {
 
     const functions: IRFunctionDeclaration[] = [];
     const structs: IRStructDeclaration[] = [];
+    const globals: IRVariableDeclaration[] = [];
     
     for (const child of rootNode.namedChildren) {
       if (child.type === "function_definition") {
@@ -71,6 +72,14 @@ export class IRBuilder {
         const structSpec = child.namedChildren.find(c => c.type === "struct_specifier" || c.type === "class_specifier");
         if (structSpec) {
           structs.push(this.buildStructDeclaration(structSpec));
+        } else {
+          // Global variable declaration (e.g., `int dirs[4][2] = {{-1,0},{1,0}};`)
+          try {
+            const varDecls = this.buildVariableDeclaration(child);
+            globals.push(...varDecls);
+          } catch (e) {
+            // Skip unparseable global declarations (e.g., `using namespace std;`)
+          }
         }
       }
     }
@@ -80,6 +89,7 @@ export class IRBuilder {
       line: 1,
       functions,
       structs,
+      globals,
     };
   }
 
@@ -610,13 +620,15 @@ export class IRBuilder {
   }
 
   private buildForStatement(node: SyntaxNode): IRForStatement {
-    const initNode = node.namedChildren[0];
-    const conditionNode = node.namedChildren[1];
-    const updateNode = node.namedChildren[2];
-
-    let bodyNode = node.namedChildren.find((c) => c.type === "compound_statement");
+    // Cast to any to use the web-tree-sitter native childForFieldName method
+    const nativeNode = node as any;
+    const initNode = nativeNode.childForFieldName("initializer") as SyntaxNode | undefined;
+    const conditionNode = nativeNode.childForFieldName("condition") as SyntaxNode | undefined;
+    const updateNode = nativeNode.childForFieldName("update") as SyntaxNode | undefined;
     
-    // Resolve inline body without braces
+    let bodyNode = nativeNode.childForFieldName("body") as SyntaxNode | undefined;
+
+    // Resolve inline body without braces (fallback)
     if (!bodyNode) {
       bodyNode = node.namedChildren[node.namedChildren.length - 1];
     }
@@ -624,29 +636,36 @@ export class IRBuilder {
     if (!bodyNode) throw new Error(`Syntax Error at line ${node.startPosition.row + 1}: Malformed for loop.`);
 
     let init: IRVariableDeclaration | IRVariableDeclaration[] | IRAssignment | undefined;
-    if (initNode.type === "declaration") {
-      init = this.buildVariableDeclaration(initNode);
-    } else if (initNode.type === "assignment_expression") {
-       init = {
-         kind: "Assignment",
-         line: initNode.startPosition.row + 1,
-         target: this.buildExpression(initNode.child(0) as SyntaxNode),
-         operator: (initNode.child(1)?.text || "=") as IRAssignment["operator"],
-         value: this.buildExpression(initNode.child(2) as SyntaxNode)
-       };
+    if (initNode) {
+      if (initNode.type === "declaration") {
+        init = this.buildVariableDeclaration(initNode);
+      } else if (initNode.type === "assignment_expression") {
+         init = {
+           kind: "Assignment",
+           line: initNode.startPosition.row + 1,
+           target: this.buildExpression(initNode.child(0) as SyntaxNode),
+           operator: (initNode.child(1)?.text || "=") as IRAssignment["operator"],
+           value: this.buildExpression(initNode.child(2) as SyntaxNode)
+         };
+      } else {
+         // Fallback for expression statements in initializer
+         init = this.buildExpressionStatement(initNode) as any;
+      }
     }
 
     let update: IRAssignment | IRExpression | undefined;
-    if (updateNode.type === "assignment_expression") {
-      update = {
-         kind: "Assignment",
-         line: updateNode.startPosition.row + 1,
-         target: this.buildExpression(updateNode.child(0) as SyntaxNode),
-         operator: (updateNode.child(1)?.text || "=") as IRAssignment["operator"],
-         value: this.buildExpression(updateNode.child(2) as SyntaxNode)
-       };
-    } else {
-      update = this.buildExpression(updateNode);
+    if (updateNode) {
+      if (updateNode.type === "assignment_expression") {
+        update = {
+           kind: "Assignment",
+           line: updateNode.startPosition.row + 1,
+           target: this.buildExpression(updateNode.child(0) as SyntaxNode),
+           operator: (updateNode.child(1)?.text || "=") as IRAssignment["operator"],
+           value: this.buildExpression(updateNode.child(2) as SyntaxNode)
+         };
+      } else {
+        update = this.buildExpression(updateNode);
+      }
     }
 
     return {
@@ -720,10 +739,20 @@ export class IRBuilder {
         return { kind: "Literal", line: node.startPosition.row + 1, valueType: "bool", value: true };
       case "false":
         return { kind: "Literal", line: node.startPosition.row + 1, valueType: "bool", value: false };
-      case "string_literal":
-        return { kind: "Literal", line: node.startPosition.row + 1, valueType: "string", value: node.text.slice(1, -1) };
-      case "char_literal":
-        return { kind: "Literal", line: node.startPosition.row + 1, valueType: "char", value: node.text.slice(1, -1) };
+      case "string_literal": {
+        const unescaped = node.text.slice(1, -1)
+          .replace(/\\n/g, '\n')
+          .replace(/\\t/g, '\t')
+          .replace(/\\"/g, '"');
+        return { kind: "Literal", line: node.startPosition.row + 1, valueType: "string", value: unescaped };
+      }
+      case "char_literal": {
+        const unescaped = node.text.slice(1, -1)
+          .replace(/\\n/g, '\n')
+          .replace(/\\t/g, '\t')
+          .replace(/\\'/g, "'");
+        return { kind: "Literal", line: node.startPosition.row + 1, valueType: "char", value: unescaped };
+      }
       case "null":
       case "nullptr":
         return { kind: "Literal", line: node.startPosition.row + 1, valueType: "nullptr", value: null };
@@ -761,6 +790,15 @@ export class IRBuilder {
           argument: this.buildExpression(node.child(1) as SyntaxNode),
         };
 
+      case "initializer_list":
+        return {
+          kind: "InitializerList",
+          line: node.startPosition.row + 1,
+          elements: node.namedChildren
+            .filter(c => c.type !== "comment")
+            .map(c => this.buildExpression(c)),
+        };
+
       // ─── SHIFT EXPRESSION ────────────────────────────────────────────────────
       // Tree-sitter parses `<<` and `>>` as shift_expression (distinct from binary_expression).
       // They use the same structure: left OP right, so we forward to BinaryExpression.
@@ -787,6 +825,16 @@ export class IRBuilder {
         return { kind: "Literal", line: node.startPosition.row + 1, valueType: "int", value: 0 };
       }
 
+      case "assignment_expression": {
+        return {
+          kind: "Assignment",
+          line: node.startPosition.row + 1,
+          target: this.buildExpression(node.child(0) as SyntaxNode),
+          operator: (node.child(1)?.text || "=") as IRAssignment["operator"],
+          value: this.buildExpression(node.child(2) as SyntaxNode),
+        };
+      }
+      
       // ─── SIZED TYPE SPECIFIER (e.g., `long long`, `unsigned int`) ────────────
       // These appear as number literals in context; treat as identifier reference.
       case "sized_type_specifier":

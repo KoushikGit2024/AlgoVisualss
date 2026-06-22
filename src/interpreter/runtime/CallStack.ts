@@ -58,6 +58,13 @@ export class CallStack {
     return this.frames[this.frames.length - 1];
   }
 
+  /**
+   * Returns all current execution frames in the stack, from bottom (root) to top (active).
+   */
+  public getAllFrames(): StackFrame[] {
+    return this.frames;
+  }
+
   public isEmpty(): boolean {
     return this.frames.length === 0;
   }

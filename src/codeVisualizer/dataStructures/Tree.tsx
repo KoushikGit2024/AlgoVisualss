@@ -81,15 +81,26 @@ const Tree = ({
 
     traverse(actualRootId, 0);
 
-    // 4. Normalize coordinates to percentages (10% to 90% of the canvas)
-    const xStep = xRank > 1 ? 80 / (xRank - 1) : 0;
-    const yStep = maxDepth > 0 ? 70 / maxDepth : 0; // 70 to leave room at the bottom
+    // 4. Normalize coordinates to percentages
+    // Prevent stretching small trees by capping the maximum step size
+    const maxAllowedXStep = 15; // Max 15% width between nodes
+    const calculatedXStep = xRank > 1 ? 80 / (xRank - 1) : 0;
+    const xStep = Math.min(calculatedXStep, maxAllowedXStep);
+    
+    // Calculate starting X to keep the tree perfectly centered
+    const totalWidth = (xRank > 1 ? xRank - 1 : 0) * xStep;
+    const startX = 50 - totalWidth / 2;
+
+    const maxAllowedYStep = 22; // Max 22% height between levels
+    const calculatedYStep = maxDepth > 0 ? 70 / maxDepth : 0;
+    const yStep = Math.min(calculatedYStep, maxAllowedYStep);
+    const startY = 15; // Start 15% from the top
 
     const finalLayout = new Map<string, { x: number; y: number }>();
     layout.forEach((pos, id) => {
       finalLayout.set(id, {
-        x: xRank === 1 ? 50 : 10 + pos.x * xStep,
-        y: maxDepth === 0 ? 50 : 15 + pos.y * yStep,
+        x: xRank === 1 ? 50 : startX + pos.x * xStep,
+        y: maxDepth === 0 ? 50 : startY + pos.y * yStep,
       });
     });
 
@@ -116,7 +127,7 @@ const Tree = ({
   }
 
   return (
-    <div className="relative w-full h-full min-h-[450px] flex items-center justify-center p-4 overflow-hidden">
+    <div className="relative w-full h-full min-w-[350px] min-h-[450px] flex items-center justify-center p-4 overflow-hidden">
       
       {/* ─── 1. SVG LAYER (Edges) ─── */}
       <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none z-0">

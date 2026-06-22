@@ -135,7 +135,6 @@ const CodeEditor = ({
 
     return () => observer.disconnect();
   }, []);
-
   return (
     <div className="flex-1 h-full w-full relative">
       <style>{`

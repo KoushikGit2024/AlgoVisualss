@@ -44,7 +44,7 @@ export default function VisualPlatforms() {
             className="text-[15px] text-[var(--muted,#94A3B8)] max-w-[600px] leading-[1.6]"
             style={{ animation: "vpFade 0.6s ease 0.35s both" }}
           >
-            Connect your competitive programming profiles. We fetch your live data to generate beautiful, insightful performance metrics.
+            Find your question and generate beautiful, insightful performance metrics.
           </p>
         </header>
 
@@ -128,7 +128,7 @@ function PlatformCard({ platform, index, mounted }: { platform: any, index: numb
       {/* Footer CTA */}
       <div className="flex items-center justify-start border-t border-[var(--border,#2A2445)] pt-[18px] transition-colors duration-300 ease-in-out group-hover:border-[color-mix(in_srgb,var(--brand-color)_20%,transparent)]">
         <span className="font-['Syne',system-ui,sans-serif] font-semibold text-[13px] text-[var(--muted,#94A3B8)] flex items-center gap-1.5 transition-colors duration-300 ease-in-out group-hover:text-[var(--brand-color)]">
-          Connect Profile 
+          Let's Go 
           <span aria-hidden="true" className="opacity-0 -translate-x-2 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:opacity-100 group-hover:translate-x-[2px]">
             →
           </span>

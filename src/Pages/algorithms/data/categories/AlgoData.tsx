@@ -34,7 +34,7 @@
 
 const ARRAYS_SECTION = {
   name: "Arrays",
-
+  href: "/algorithms/arrays",
   about: [
     { tag: "h1", text: "Arrays" },
     { tag: "p", text: "An array stores elements in contiguous memory so that any element can be reached in O(1) time given its index. That single guarantee — constant-time random access — is the foundation every array algorithm exploits, and the reason arrays are usually the first data structure taught and the most frequently used in practice." },
@@ -189,7 +189,21 @@ const ARRAYS_SECTION = {
         { tag: "p", text: "Loop invariant: at the start of every iteration, if a valid pair exists in the original array, at least one such pair lies within arr[left..right]. Each branch only discards index positions that are provably part of no valid pair given the sorted order, so the invariant is preserved until either a pair is found or the search space is exhausted." },
         { tag: "h2", text: "Termination proof" },
         { tag: "p", text: "Every iteration strictly increases left or strictly decreases right by exactly one. The quantity (right − left) therefore strictly decreases on every iteration and starts at a finite value (n − 1), so the loop condition left < right is guaranteed to become false after at most n − 1 iterations." }
-      ]
+      ],
+      codes : {
+        "c++": ``,
+        "python": ``,
+        "java": ``,
+        "js":``,
+        "c":``,
+        "c#":``,
+        "swift":``,
+        "kotlin":``,
+        "scala":``,
+        "go":``,
+        "rust":``,
+        
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -311,7 +325,20 @@ const ARRAYS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "By induction: currentSum after processing index i always equals the maximum sum of any subarray that ends exactly at i. The base case (i = 0) holds trivially. For the inductive step, the maximum subarray ending at i either includes index i−1's optimal subarray extended by arr[i], or it is just arr[i] alone — Kadane's explicitly computes max of those two options at every step, so the invariant holds for all i, and maxSum (the running max of all these per-position optima) is therefore the true global maximum." }
-      ]
+      ],
+      codes : {
+        "c++": ``,
+        "python": ``,
+        "java": ``,
+        "js":``,
+        "c":``,
+        "c#":``,
+        "swift":``,
+        "kotlin":``,
+        "scala":``,
+        "go":``,
+        "rust":``,
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -434,7 +461,20 @@ const ARRAYS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: at the top of every outer-loop iteration, s[left..right−1] contains no duplicate characters. The inner while-loop restores this invariant whenever adding s[right] would violate it, by removing characters from the left until the conflict is resolved — and because left only ever moves forward, no valid window is ever skipped over." }
-      ]
+      ],
+      codes : {
+        "c++": ``,
+        "python": ``,
+        "java": ``,
+        "js":``,
+        "c":``,
+        "c#":``,
+        "swift":``,
+        "kotlin":``,
+        "scala":``,
+        "go":``,
+        "rust":``,
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -553,6 +593,20 @@ const ARRAYS_SECTION = {
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Think of it as pairing off a non-majority element with a majority element to mutually 'cancel'. Since the majority element occurs more than n/2 times, it cannot be fully cancelled out by all the remaining (fewer than n/2) elements combined — at least one uncancelled instance of the majority element must remain as the final candidate when the array is exhausted." }
       ]
+,
+      codes : {
+        "c++": ``,
+        "python": ``,
+        "java": ``,
+        "js":``,
+        "c":``,
+        "c#":``,
+        "swift":``,
+        "kotlin":``,
+        "scala":``,
+        "go":``,
+        "rust":``,
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -667,6 +721,20 @@ function rangeSum(prefix, i, j):        // inclusive range [i, j] over original 
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "By definition, prefix[k] = Σ(arr[0..k-1]). The sum of arr[i..j] is Σ(arr[0..j]) − Σ(arr[0..i-1]) = prefix[j+1] − prefix[i]. This is just basic algebra on cumulative sums — the prefix array is built once in O(n) so that every subsequent query is a single subtraction instead of a fresh O(range length) loop." }
       ]
+,
+      codes : {
+        "c++": ``,
+        "python": ``,
+        "java": ``,
+        "js":``,
+        "c":``,
+        "c#":``,
+        "swift":``,
+        "kotlin":``,
+        "scala":``,
+        "go":``,
+        "rust":``,
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -789,6 +857,20 @@ function rangeSum(prefix, i, j):        // inclusive range [i, j] over original 
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Three loop invariants are maintained at all times: arr[0..low-1] are all 0, arr[low..mid-1] are all 1, and arr[high+1..n-1] are all 2. The region arr[mid..high] is always unclassified. Every iteration either shrinks the unclassified region from the left (0 or 1 case) or from the right (2 case), and the loop terminates exactly when the unclassified region is empty (mid > high), at which point the three invariants together describe a fully sorted three-way partition." }
       ]
+,
+      codes : {
+        "c++": ``,
+        "python": ``,
+        "java": ``,
+        "js":``,
+        "c":``,
+        "c#":``,
+        "swift":``,
+        "kotlin":``,
+        "scala":``,
+        "go":``,
+        "rust":``,
+      }
     }
 
   ]
@@ -801,7 +883,7 @@ function rangeSum(prefix, i, j):        // inclusive range [i, j] over original 
 
 const SORTING_SECTION = {
   name: "Sorting",
-
+  href: "/algorithms/sorting",
   about: [
     { tag: "h1", text: "Sorting" },
     { tag: "p", text: "Sorting rearranges a collection into a defined order — usually ascending or descending — and is one of the most heavily studied problems in computer science because so many other algorithms (binary search, two pointers, greedy interval scheduling, deduplication) assume sorted input as a precondition." },
@@ -928,6 +1010,20 @@ const SORTING_SECTION = {
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: after the i-th outer iteration, the i largest elements are in their correct final positions at the end of the array. Each inner pass guarantees the current maximum of the unsorted region 'bubbles' all the way to the right because every adjacent out-of-order pair it encounters gets swapped. By induction, after n − 1 passes the entire array is sorted." }
       ]
+,
+      codes : {
+        "c++": ``,
+        "python": ``,
+        "java": ``,
+        "js":``,
+        "c":``,
+        "c#":``,
+        "swift":``,
+        "kotlin":``,
+        "scala":``,
+        "go":``,
+        "rust":``,
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1043,6 +1139,20 @@ function merge(left, right):
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "By strong induction on array length: arrays of length ≤ 1 are trivially sorted (base case). Assuming both halves of length < n are correctly sorted by the recursive calls, the merge step produces a fully sorted array by always selecting the smallest remaining element from the two sorted fronts — a textbook two-pointer merge that's provably correct since both input lists are sorted." }
       ]
+,
+      codes : {
+        "c++": ``,
+        "python": ``,
+        "java": ``,
+        "js":``,
+        "c":``,
+        "c#":``,
+        "swift":``,
+        "kotlin":``,
+        "scala":``,
+        "go":``,
+        "rust":``,
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1152,6 +1262,20 @@ function timSort(arr):
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Correctness follows from two well-established sub-algorithms composed together: Insertion Sort is correct for small runs (proven by its own loop invariant), and the merge step is the same provably-correct two-pointer merge used in Merge Sort. Since merging two sorted sequences always produces a sorted sequence, and the algorithm always merges pairs of already-sorted runs, induction on the number of merge passes shows the whole array ends up sorted." }
       ]
+,
+      codes : {
+        "c++": ``,
+        "python": ``,
+        "java": ``,
+        "js":``,
+        "c":``,
+        "c#":``,
+        "swift":``,
+        "kotlin":``,
+        "scala":``,
+        "go":``,
+        "rust":``,
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1262,6 +1386,20 @@ function partition(arr, low, high):
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Partition invariant: at every point during the scan, arr[low..i] contains only elements less than the pivot, and arr[i+1..j-1] contains only elements ≥ the pivot. When the scan completes, swapping the pivot into position i+1 places it exactly between these two correctly-classified regions. By strong induction, recursively partitioning each side (which never includes the already-placed pivot) eventually sorts the entire array, since every element is correctly positioned relative to every pivot it's ever compared against." }
       ]
+,
+      codes : {
+        "c++": ``,
+        "python": ``,
+        "java": ``,
+        "js":``,
+        "c":``,
+        "c#":``,
+        "swift":``,
+        "kotlin":``,
+        "scala":``,
+        "go":``,
+        "rust":``,
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1375,6 +1513,20 @@ function siftDown(arr, heapSize, i):
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Heap invariant: at every step, arr[0..heapSize-1] satisfies the max-heap property, so arr[0] is guaranteed to be the maximum of that region. After the build phase establishes this invariant once, each extraction correctly removes the true maximum and places it at the end, then siftDown restores the invariant for the now-smaller heap. By induction, after n extractions every element has been placed in its correct sorted position, from largest to smallest." }
       ]
+,
+      codes : {
+        "c++": ``,
+        "python": ``,
+        "java": ``,
+        "js":``,
+        "c":``,
+        "c#":``,
+        "swift":``,
+        "kotlin":``,
+        "scala":``,
+        "go":``,
+        "rust":``,
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1487,6 +1639,20 @@ function siftDown(arr, heapSize, i):
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "After the cumulative-count step, count[v] correctly represents the number of elements ≤ v, which equals the index (1-indexed) of the last position any element with value v should occupy in sorted order. Processing the input right-to-left and decrementing count[v] after each placement assigns each occurrence of v to a unique, correctly-ordered slot — and because later (rightward) occurrences are placed first into the highest available slot, earlier occurrences end up in lower slots, preserving their original relative order and making the sort stable." }
       ]
+,
+      codes : {
+        "c++": ``,
+        "python": ``,
+        "java": ``,
+        "js":``,
+        "c":``,
+        "c#":``,
+        "swift":``,
+        "kotlin":``,
+        "scala":``,
+        "go":``,
+        "rust":``,
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1583,6 +1749,20 @@ function siftDown(arr, heapSize, i):
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: at the start of iteration i, arr[0..i-1] contains the i smallest elements of the array, in sorted order. The inner loop correctly identifies the true minimum of the remaining elements arr[i..n-1], and swapping it into position i extends the invariant to i+1 elements. By induction, after n − 1 outer iterations, the entire array satisfies the invariant for i = n, meaning it's fully sorted." }
       ]
+,
+      codes : {
+        "c++": ``,
+        "python": ``,
+        "java": ``,
+        "js":``,
+        "c":``,
+        "c#":``,
+        "swift":``,
+        "kotlin":``,
+        "scala":``,
+        "go":``,
+        "rust":``,
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1696,6 +1876,20 @@ function countingSortByDigit(arr, exp):
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Correctness rests on a key claim: after sorting by digit position i (using a stable sort and considering only digits 0..i), the array is correctly sorted with respect to the number formed by digits 0..i, with ties broken by original input order. By induction on i, once digit position d−1 (the most significant) is processed, the array is sorted by the full numeric value, since every more-significant digit dominates the comparison and stability preserves the correct tie-breaking established by all the less-significant passes before it." }
       ]
+,
+      codes : {
+        "c++": ``,
+        "python": ``,
+        "java": ``,
+        "js":``,
+        "c":``,
+        "c#":``,
+        "swift":``,
+        "kotlin":``,
+        "scala":``,
+        "go":``,
+        "rust":``,
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1794,6 +1988,20 @@ function countingSortByDigit(arr, exp):
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: at the start of outer-loop iteration i, arr[0..i-1] is sorted. The inner while-loop finds the correct insertion point for arr[i] within that sorted prefix by shifting all elements greater than key one step to the right, then places key into the gap. This extends the sorted prefix to arr[0..i] while preserving sorted order, so by induction the entire array is sorted once the outer loop completes." }
       ]
+,
+      codes : {
+        "c++": ``,
+        "python": ``,
+        "java": ``,
+        "js":``,
+        "c":``,
+        "c#":``,
+        "swift":``,
+        "kotlin":``,
+        "scala":``,
+        "go":``,
+        "rust":``,
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1901,7 +2109,20 @@ function countingSortByDigit(arr, exp):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Correctness depends on two facts: first, the bucket-index function must be monotonic — if x < y then x's bucket index is ≤ y's bucket index, ensuring no element in an earlier bucket is ever greater than an element in a later bucket. Second, each bucket is independently sorted before concatenation. Together, these guarantee that concatenating the buckets in order produces a fully sorted array, since within-bucket order is correct (by the bucket's own sort) and across-bucket order is correct (by the monotonic mapping)." }
-      ]
+      ],
+      codes : {
+        "c++": ``,
+        "python": ``,
+        "java": ``,
+        "js":``,
+        "c":``,
+        "c#":``,
+        "swift":``,
+        "kotlin":``,
+        "scala":``,
+        "go":``,
+        "rust":``,
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -2006,7 +2227,20 @@ function countingSortByDigit(arr, exp):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Each gapped pass is, by construction, an ordinary Insertion Sort applied independently to 'gap' separate interleaved sub-sequences of the array (indices 0, gap, 2*gap, ...; indices 1, gap+1, 2*gap+1, ...; and so on) — and Insertion Sort is already proven correct for sorting any single sequence. Crucially, the final pass always uses gap = 1, which is a complete, ordinary Insertion Sort over the entire array — and a correct algorithm applied last always produces a correct final result, regardless of how 'pre-sorted' the input already is from earlier passes." }
-      ]
+      ],
+      codes : {
+        "c++": ``,
+        "python": ``,
+        "java": ``,
+        "js":``,
+        "c":``,
+        "c#":``,
+        "swift":``,
+        "kotlin":``,
+        "scala":``,
+        "go":``,
+        "rust":``,
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -10233,7 +10467,7 @@ function rangeSum(arr, blockSum, blockSize, L, R):     // inclusive range [L, R]
   ]
 };
 
-export const ALGODATA = [
+const ALGODATA = [
 
   /* ══════════════════════════════════════════════════════════════════════════
      ARRAYS
@@ -10331,3 +10565,5 @@ export const ALGODATA = [
     // MISCELLANEOUS_SECTION,
 
 ];
+
+export default ALGODATA;

@@ -1,4 +1,4 @@
-import type { IRProgram, IRFunctionDeclaration, IRFunctionCall, IRMethodCall, IRNewExpression, IRLambdaExpression, IRStructDeclaration, IRExpression } from "../ir/IRNode";
+import type { IRProgram, IRFunctionDeclaration, IRFunctionCall, IRMethodCall, IRNewExpression, IRLambdaExpression, IRStructDeclaration, IRExpression, IRVariableDeclaration } from "../ir/IRNode";
 import { CallStack } from "../runtime/CallStack";
 import { EventEmitter } from "../events/EventEmitter";
 import { ExpressionEvaluator } from "../evaluator/ExpressionEvaluator";
@@ -21,6 +21,8 @@ export class ExecutionEngine {
   private functions: Map<string, IRFunctionDeclaration>;
   public classBlueprints: Map<string, IRStructDeclaration>;
   private snapshots: RuntimeSnapshot[];
+  private globalDeclarations: IRVariableDeclaration[] = [];
+  private globalVariables: Map<string, { type: CppType; value: CppValue }> = new Map();
 
   constructor() {
     this.callStack = new CallStack();
@@ -50,6 +52,8 @@ export class ExecutionEngine {
         this.classBlueprints.set(structDecl.name, structDecl);
       }
     }
+    // Store global variable declarations for evaluation at runtime
+    this.globalDeclarations = program.globals || [];
   }
 
   /**
@@ -60,9 +64,33 @@ export class ExecutionEngine {
   public run(entryPoint: string = "main"): RuntimeSnapshot[] {
     this.snapshots = [];
     this.eventEmitter.reset();
+    this.globalVariables.clear();
     
     if (!this.functions.has(entryPoint)) {
       throw new Error(`Linker Error: Entry point '${entryPoint}' not found in the parsed translation unit.`);
+    }
+
+    // ─── GLOBAL VARIABLE INITIALIZATION ──────────────────────────────────
+    // Evaluate all global declarations before any function runs.
+    // Uses a temporary frame to evaluate initializers, then stores results.
+    if (this.globalDeclarations.length > 0) {
+      const tempFrame = this.callStack.push("__global_init__");
+      const tempEvaluator = new ExpressionEvaluator(tempFrame.scopeManager, this.eventEmitter);
+      const tempExecutor = new StatementExecutor(tempFrame.scopeManager, tempEvaluator, this.eventEmitter, this.classBlueprints);
+
+      for (const globalDecl of this.globalDeclarations) {
+        try {
+          tempExecutor.executeVariableDeclaration(globalDecl);
+          const symbol = tempFrame.scopeManager.getVariable(globalDecl.name);
+          this.globalVariables.set(globalDecl.name, {
+            type: symbol.type as CppType,
+            value: symbol.value
+          });
+        } catch (e) {
+          console.warn(`[Engine] Failed to initialize global '${globalDecl.name}': ${(e as Error).message}`);
+        }
+      }
+      this.callStack.pop(); // Remove temporary frame
     }
 
     this.invokeFunction(entryPoint, []);
@@ -673,8 +701,16 @@ export class ExecutionEngine {
       throw new Error(`Parameter Mismatch: Function '${name}' expects ${func.parameters.length} arguments, but received ${args.length}.`);
     }
 
+    const callerScope = this.callStack.isEmpty() ? null : this.callStack.peek().scopeManager;
     const frame = this.callStack.push(name);
     this.eventEmitter.emit(func.line, EventType.FUNCTION_CALL, { function: name, args });
+
+    // ─── INJECT GLOBAL VARIABLES ──────────────────────────────────────────
+    // Global variables must be accessible from every function's scope.
+    // Define them in the base scope of each new frame before parameters.
+    for (const [gName, gData] of this.globalVariables) {
+      try { frame.scopeManager.defineVariable(gName, gData.type, gData.value); } catch { /* already defined */ }
+    }
 
     // Process arguments: handle pass-by-reference and default parameters
     func.parameters.forEach((param, index) => {
@@ -686,7 +722,6 @@ export class ExecutionEngine {
       // Feature 1: Pass-by-Reference
       // If parameter is a reference, and we received a raw identifier, pass a special __ref object
       if (param.isReference && rawArgs && index < rawArgs.length && rawArgs[index].kind === "Identifier") {
-        const callerScope = this.callStack.peek().scopeManager;
         argValue = { __ref: (rawArgs[index] as any).name, __callerScope: callerScope };
       } 
       // Feature 5: Default Function Parameters
@@ -708,18 +743,6 @@ export class ExecutionEngine {
     evaluator.evaluate = (expr) => {
       if (expr.kind === "FunctionCall") return this.invokeFunctionCall(expr as IRFunctionCall, evaluator);
       if (expr.kind === "MethodCall") return this.invokeMethodCall(expr as IRMethodCall, evaluator);
-      
-      if (expr.kind === "MemberExpression") {
-        const objInstance = evaluator.evaluate((expr as any).object);
-        if (!objInstance) throw new Error(`Memory Access Violation at line ${expr.line}: Attempted to access property '${(expr as any).property}' on a null or undefined object.`);
-        
-        // Pair Auto-Mapper: Translates C++ pair.first/second to JS tuple indices
-        if (Array.isArray(objInstance)) {
-          if ((expr as any).property === "first") return objInstance[0];
-          if ((expr as any).property === "second") return objInstance[1];
-        }
-        return (objInstance as Record<string, any>)[(expr as any).property];
-      }
       
       if (expr.kind === "UnaryExpression" && (expr as any).operator === "*") {
         return evaluator.evaluate((expr as any).argument);

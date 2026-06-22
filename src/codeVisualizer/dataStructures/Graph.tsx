@@ -57,7 +57,7 @@ const Graph = ({
   };
 
   return (
-    <div className="relative w-full h-full min-h-[400px] flex items-center justify-center p-4">
+    <div className="relative w-full h-full min-w-[350px] min-h-[400px] flex items-center justify-center p-4">
       
       {/* ─── 1. SVG LAYER (Edges) ─── */}
       <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none z-0">

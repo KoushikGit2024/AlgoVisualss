@@ -246,10 +246,11 @@ export class StatementExecutor {
       let targetScopeManager = this.scopeManager;
 
       try {
-        const symbol = this.scopeManager.getVariable(varName);
-        if (symbol.value && typeof symbol.value === "object" && "__ref" in symbol.value) {
+        let symbol = this.scopeManager.getVariable(varName);
+        while (symbol.value && typeof symbol.value === "object" && "__ref" in symbol.value) {
           targetVarName = symbol.value.__ref;
           targetScopeManager = symbol.value.__callerScope as any;
+          symbol = targetScopeManager.getVariable(targetVarName);
         }
       } catch (e) { /* ignore */ }
       
@@ -280,8 +281,7 @@ export class StatementExecutor {
       if (targetNode.object.kind === "Identifier") {
         arrayName = (targetNode.object as IRIdentifier).name;
         try {
-          const symbol = this.scopeManager.getVariable(arrayName);
-          targetObj = symbol.value;
+          targetObj = this.evaluator.evaluate(targetNode.object);
         } catch (e) {
           targetObj = new Map(); 
           this.scopeManager.defineVariable(arrayName, "auto", targetObj);
@@ -324,7 +324,13 @@ export class StatementExecutor {
     else if (stmt.target.kind === "MemberExpression") {
       const targetNode = stmt.target as IRMemberExpression;
       const targetObj = this.evaluator.evaluate(targetNode.object) as any;
-      const property = targetNode.property;
+      let property: string | number = targetNode.property;
+      
+      // ── AUTO-RECOVERY FOR STRUCT ARRAYS ──
+      if (Array.isArray(targetObj)) {
+         const fieldMap: Record<string, number> = { id: 0, value: 1, left: 2, right: 3, x: 0, y: 1, val: 0, next: 1, first: 0, second: 1 };
+         if (property in fieldMap) property = fieldMap[property as string];
+      }
       
       if (!targetObj) throw new Error(`Memory Access Violation at line ${stmt.line}: Cannot assign property '${property}' to an undefined object pointer.`);
       

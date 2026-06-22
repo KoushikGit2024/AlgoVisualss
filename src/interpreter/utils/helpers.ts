@@ -18,18 +18,33 @@ export function deepCloneCppValue(value: any): any {
   if (typeof value === "number" || typeof value === "boolean" || typeof value === "string") return value;
   if (typeof value === "function") return "[Function]";
 
-  // Prevent internal execution engine scope objects from leaking into snapshots
+  // Resolve pass-by-reference variables for the snapshot without leaking the scope manager
   if (typeof value === "object" && "__ref" in value) {
+    const callerScope = value.__callerScope;
+    if (callerScope && typeof callerScope.getVariable === 'function') {
+      try {
+        const symbol = callerScope.getVariable(value.__ref);
+        return {
+          __ref: value.__ref,
+          __resolved: deepCloneCppValue(symbol.value)
+        };
+      } catch (e) {
+        return `&${value.__ref}`;
+      }
+    }
     return `&${value.__ref}`;
   }
 
-  // std::map / std::unordered_map polyfill — serialize to plain object for display
+  // std::map / std::unordered_map polyfill — serialize to array of tuples to preserve key types
   if (value instanceof Map) {
-    const obj: Record<string, any> = {};
+    const entries: [any, any][] = [];
     value.forEach((v: any, k: any) => {
-      obj[String(k)] = deepCloneCppValue(v);
+      entries.push([deepCloneCppValue(k), deepCloneCppValue(v)]);
     });
-    return obj;
+    return {
+      __type: "map",
+      entries
+    };
   }
 
   // std::set / std::unordered_set polyfill — serialize to plain array for display
@@ -77,15 +92,32 @@ export function createSnapshot(
   activeScopeManager: ScopeManager
 ): RuntimeSnapshot {
   
-  const rawVariables = activeScopeManager.captureState();
   const variables: Record<string, { name: string; type: CppType; value: CppValue }> = {};
 
-  for (const [key, symbol] of Object.entries(rawVariables)) {
-    variables[key] = {
-      name: symbol.name,
-      type: symbol.type,
-      value: deepCloneCppValue(symbol.value) as CppValue,
-    };
+  // Aggregate variables from all stack frames (bottom to top).
+  // This allows the visualizer to retain context (like graph_edges) during recursive calls.
+  // Inner scopes naturally overwrite outer scope variables with the same name.
+  if (typeof callStack.getAllFrames === 'function') {
+    for (const frame of callStack.getAllFrames()) {
+      const rawVariables = frame.scopeManager.captureState();
+      for (const [key, symbol] of Object.entries(rawVariables)) {
+        variables[key] = {
+          name: symbol.name,
+          type: symbol.type,
+          value: deepCloneCppValue(symbol.value) as CppValue,
+        };
+      }
+    }
+  } else {
+    // Fallback if CallStack wasn't updated
+    const rawVariables = activeScopeManager.captureState();
+    for (const [key, symbol] of Object.entries(rawVariables)) {
+      variables[key] = {
+        name: symbol.name,
+        type: symbol.type,
+        value: deepCloneCppValue(symbol.value) as CppValue,
+      };
+    }
   }
   
   return {

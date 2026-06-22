@@ -6,7 +6,8 @@ import type {
   IRInitializerList,
   IRSubscriptExpression,
   IRTernaryExpression,
-  IRIdentifier
+  IRIdentifier,
+  IRAssignment
 } from "../ir/IRNode";
 import { ScopeManager } from "../runtime/ScopeManager";
 import { EventEmitter } from "../events/EventEmitter";
@@ -82,7 +83,7 @@ export class ExpressionEvaluator {
         
         let val = symbol.value;
         // Unwrap pass-by-reference wrapper object
-        if (val && typeof val === "object" && "__ref" in val) {
+        while (val && typeof val === "object" && "__ref" in val) {
           const callerScope = val.__callerScope as any;
           val = callerScope.getVariable(val.__ref).value;
         }
@@ -104,6 +105,68 @@ export class ExpressionEvaluator {
       case "FunctionCall":
         throw new Error("Execution Context Violation: FunctionCalls must be orchestrated by the ExecutionEngine, not the ExpressionEvaluator.");
         
+      case "Assignment": {
+        const assignExpr = expr as IRAssignment;
+        const targetNode = assignExpr.target;
+        const newValue = this.evaluate(assignExpr.value);
+        let targetObj: any;
+        let index: string | number | null = null;
+        let identifierName: string | null = null;
+        let targetScopeManager = this.scopeManager;
+
+        if (targetNode.kind === "Identifier") {
+          identifierName = (targetNode as IRIdentifier).name;
+          let symbol = this.scopeManager.getVariable(identifierName);
+          while (symbol.value && typeof symbol.value === "object" && "__ref" in symbol.value) {
+            identifierName = symbol.value.__ref;
+            targetScopeManager = symbol.value.__callerScope as any;
+            symbol = targetScopeManager.getVariable(identifierName);
+          }
+        } else if (targetNode.kind === "SubscriptExpression") {
+          const subNode = targetNode as IRSubscriptExpression;
+          targetObj = this.evaluate(subNode.object);
+          index = this.evaluate(subNode.index) as string | number;
+          if (targetObj === null || targetObj === undefined) {
+             const varName = subNode.object.kind === "Identifier" ? (subNode.object as any).name : "expression";
+             throw new Error(`Memory Access Violation at line ${expr.line}: Cannot subscript a null or undefined reference (${varName}).`);
+          }
+        } else if (targetNode.kind === "MemberExpression") {
+          const memNode = targetNode as any;
+          targetObj = this.evaluate(memNode.object);
+          index = memNode.property;
+          
+          if (targetObj === null || targetObj === undefined) {
+             const varName = memNode.object.kind === "Identifier" ? (memNode.object as any).name : "object";
+             throw new Error(`Memory Access Violation at line ${expr.line}: Attempted to write property '${memNode.property}' on a null or undefined object (${varName}).`);
+          }
+          
+          // ── AUTO-RECOVERY FOR STRUCT ARRAYS ──
+          if (Array.isArray(targetObj) && targetObj[index] === undefined) {
+             const fieldMap: Record<string, number> = { id: 0, value: 1, left: 2, right: 3, x: 0, y: 1, val: 0, next: 1, first: 0, second: 1 };
+             if (index in fieldMap) index = fieldMap[index as string];
+          }
+        } else {
+          throw new Error(`Syntax Error at line ${expr.line}: Invalid assignment target.`);
+        }
+
+        // Apply mutation
+        if (identifierName) {
+          targetScopeManager.assignVariable(identifierName, newValue);
+        } else if (targetObj && index !== null) {
+          if (targetObj instanceof Map) targetObj.set(index, newValue);
+          else if (Array.isArray(targetObj)) targetObj[index as number] = newValue;
+          else if (typeof targetObj === 'object' && 'data' in targetObj && Array.isArray(targetObj.data)) targetObj.data[index as number] = newValue;
+          else if (targetObj) targetObj[index] = newValue;
+        }
+
+        this.eventEmitter.emit(expr.line, EventType.ASSIGNMENT, { 
+          target: identifierName || `${index}`, 
+          value: newValue 
+        });
+
+        return newValue;
+      }
+      
       case "UpdateExpression":
         return this.evaluateUpdate(expr as IRUpdateExpression);
         
@@ -117,7 +180,8 @@ export class ExpressionEvaluator {
         const index = this.evaluate(subExpr.index) as string | number;
         
         if (targetObj === null || targetObj === undefined) {
-          throw new Error(`Memory Access Violation at line ${expr.line}: Cannot subscript a null or undefined reference.`);
+          const varName = subExpr.object.kind === "Identifier" ? (subExpr.object as any).name : "expression";
+          throw new Error(`Memory Access Violation at line ${expr.line}: Cannot subscript a null or undefined reference (${varName}).`);
         }
         
         let val: any;
@@ -137,6 +201,35 @@ export class ExpressionEvaluator {
           
         this.eventEmitter.emit(expr.line, EventType.READ, {
           variable: `${safeName}[${index}]`,
+          value: val
+        });
+        
+        return val;
+      }
+
+      case "MemberExpression": {
+        const memExpr = expr as any;
+        const targetObj = this.evaluate(memExpr.object) as any;
+        
+        if (targetObj === null || targetObj === undefined) {
+          const varName = memExpr.object.kind === "Identifier" ? (memExpr.object as any).name : "object";
+          throw new Error(`Memory Access Violation at line ${expr.line}: Attempted to access property '${memExpr.property}' on a null or undefined object (${varName}).`);
+        }
+        
+        let val = targetObj[memExpr.property];
+
+        // ── AUTO-RECOVERY FOR STRUCT ARRAYS ──
+        if (val === undefined && Array.isArray(targetObj)) {
+           const fieldMap: Record<string, number> = { id: 0, value: 1, left: 2, right: 3, x: 0, y: 1, val: 0, next: 1, first: 0, second: 1 };
+           if (memExpr.property in fieldMap) val = targetObj[fieldMap[memExpr.property]];
+        }
+
+        const safeName = memExpr.object.kind === "Identifier" 
+          ? (memExpr.object as any).name 
+          : "object";
+          
+        this.eventEmitter.emit(expr.line, EventType.READ, {
+          variable: `${safeName}.${memExpr.property}`,
           value: val
         });
         
@@ -265,11 +358,21 @@ export class ExpressionEvaluator {
       return isNaN(parsed) ? 0 : parsed;
     };
 
+    let targetScopeManager = this.scopeManager;
+
     // 1. Resolve Memory Location and Current Value
     if (node.argument.kind === "Identifier") {
       identifierName = node.argument.name;
-      const rawVal = this.scopeManager.getVariable(identifierName);
-      currentValue = parseNumber(rawVal);
+      let symbol = this.scopeManager.getVariable(identifierName);
+      
+      // Unwrap chained pass-by-reference variables
+      while (symbol.value && typeof symbol.value === "object" && "__ref" in symbol.value) {
+        identifierName = symbol.value.__ref;
+        targetScopeManager = symbol.value.__callerScope as any;
+        symbol = targetScopeManager.getVariable(identifierName);
+      }
+
+      currentValue = parseNumber(symbol.value);
 
     } else if (node.argument.kind === "SubscriptExpression") {
       targetObject = this.evaluate(node.argument.object);
@@ -307,7 +410,7 @@ export class ExpressionEvaluator {
 
     // 3. Write Back to Memory Frame
     if (identifierName) {
-      this.scopeManager.assignVariable(identifierName, newValue);
+      targetScopeManager.assignVariable(identifierName, newValue);
     } else if (targetObject && targetKey !== null) {
       if (targetObject instanceof Map) {
         targetObject.set(targetKey, newValue);

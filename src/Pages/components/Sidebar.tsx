@@ -161,8 +161,8 @@ function RecursiveNavNode({
 
   return (
     <div className="flex flex-col">
-      <Link
-        to={item.url || "#"}
+      <div
+        // to={item.url || "#"}
         onClick={handleClick}
         className={`group relative w-full flex items-center py-2 rounded-[4px] cursor-pointer transition-all duration-200 ease-out outline-none my-[2px]
           ${collapsed ? "justify-center px-0" : "pr-3"}
@@ -201,9 +201,11 @@ function RecursiveNavNode({
             {/* Supress text and badges when collapsed */}
             {!collapsed && (
               <>
-                <span title={item.label} className={`truncate ${isTopLevel ? "text-[14px] font-semibold" : "text-[13px]"}`}>
-                  <Highlighted text={item.label} query={query} />
-                </span>
+                <Link to={item.url || "#"}>
+                  <span title={item.label} className={`truncate ${isTopLevel ? "text-[14px] font-semibold" : "text-[13px]"}`}>
+                    <Highlighted text={item.label} query={query} />
+                  </span>
+                </Link>
                 
                 {/* Difficulty Badge System */}
                 {item.badge && (
@@ -228,7 +230,7 @@ function RecursiveNavNode({
             />
           )}
         </div>
-      </Link>
+      </div>
 
       {/* Recursive Nested Groups */}
       <AnimatePresence initial={false}>
@@ -287,6 +289,13 @@ export default function Sidebar() {
   const isSidebarPage = isAlgo || isVis;
   
   const currentTopic = isAlgo ? (algoTopic || "algorithms") : (platform || "visualizer");
+
+  // Auto-collapse sidebar when opening CodeWindow (Algorithms route)
+  useEffect(() => {
+    if (isAlgo) {
+      setCollapsed(true);
+    }
+  }, [isAlgo]);
 
   // ─── Drag to Resize Logic ──────────────────────────────────────────
   useEffect(() => {

@@ -62,7 +62,8 @@ export type IRExpression =
   | IRMemberExpression
   | IRMethodCall
   | IRNewExpression
-  | IRLambdaExpression;
+  | IRLambdaExpression
+  | IRAssignment;
 
 // ─── Base Node ───────────────────────────────────────────────────────────────
 
@@ -82,6 +83,7 @@ export interface IRProgram extends IRBaseNode {
   kind: "Program";
   functions: IRFunctionDeclaration[];
   structs: IRStructDeclaration[];
+  globals?: IRVariableDeclaration[];
 }
 
 export interface IRStructDeclaration extends IRBaseNode {
