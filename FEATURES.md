@@ -1,6 +1,8 @@
 # AlgoVisuals — Feature Specification
 
 > A dark-native algorithm visualization platform built for competitive programmers who think in C++.
+>
+> **Navigation:** [Root README](README.md) | [Interpreter Architecture](src/interpreter/README.md) | [Visualizer UI Architecture](src/codeVisualizer/README.md)
 
 ---
 
@@ -56,10 +58,10 @@ A persistent navigation bar (sticky top or side) provides instant switching betw
 
 ### Type Contracts (`types.ts`)
 
-A single `AnimationFrame` interface is the universal currency passed between the parser, the engine, and every visual component:
+A single `RuntimeSnapshot` interface is the universal currency passed between the parser, the engine, and every visual component:
 
 ```ts
-interface AnimationFrame {
+interface RuntimeSnapshot {
   id:            number;
   type:          'ARRAY' | 'TREE' | 'GRAPH';
   data:          any;
@@ -69,21 +71,21 @@ interface AnimationFrame {
 }
 ```
 
-### `useCppParser.ts` Hook
+### Parser Cache (`treeSitter.ts`)
 
-A React hook that encapsulates the entire parser lifecycle:
+A system that encapsulates the entire parser lifecycle:
 
 - Loads **web-tree-sitter** asynchronously on mount.
 - Fetches the C++ grammar from `/public/wasm/`.
 - Maintains a stable parser instance across re-renders.
 - **Garbage collection** — calls `tree.delete()` on every parse cycle to prevent memory leaks during heavy interactive use. This is non-negotiable for long sessions.
 
-### Frame Generator Engine
+### Execution Engine (`ExecutionEngine.ts`)
 
-Pure TypeScript utilities (`ast-to-frames.ts`) that operate on the parsed AST:
+Pure TypeScript runtime that evaluates the transpiled IR:
 
 - Walk the syntax tree to detect **loops**, **swaps**, **comparisons**, and **assignments**.
-- Emit one `AnimationFrame` per meaningful state transition.
+- Emit one `RuntimeSnapshot` per meaningful state transition.
 - Stateless by design — given the same AST, the output is always identical and fully replayable.
 
 ---
@@ -92,15 +94,15 @@ Pure TypeScript utilities (`ast-to-frames.ts`) that operate on the parsed AST:
 
 *The "dumb" rendering components that paint data to screen. They know nothing about algorithms — they only know how to draw.*
 
-### `UniversalPlayer.tsx`
+### `VisualGround.tsx`
 
 The master wrapper that controls playback state for any visualizer:
 
 - **Controls** — Play, Pause, Step Forward, Step Back.
 - **Timeline Scrubber** — A full-width slider (YouTube-style) to jump to any frame in the execution sequence instantly.
-- Accepts an array of `AnimationFrame` objects as its only data dependency; completely agnostic to the algorithm producing them.
+- Accepts an array of `RuntimeSnapshot` objects as its only data dependency; completely agnostic to the algorithm producing them.
 
-### `ArrayPrimitive.tsx`
+### `D1Array.tsx` / `D2Array.tsx`
 
 Renders array state as a horizontal row of blocks:
 
@@ -108,7 +110,7 @@ Renders array state as a horizontal row of blocks:
 - **Pointer indicators** — if pointer `i` targets index `2`, block `2` receives a `border-blue-400` ring and a small floating `i` label below it. Multiple pointers render simultaneously without conflict.
 - Smooth transition animations between states so swaps feel physical, not instant.
 
-### `TreePrimitive.tsx` / `GraphPrimitive.tsx`
+### `Tree.tsx` / `Graph.tsx`
 
 SVG-based renderers inside `bg-panel` containers:
 
@@ -131,7 +133,7 @@ A reusable two-panel layout used across multiple sections:
 
 *Classic CS algorithms brought to life using the primitives above.*
 
-### Sorting — `ArrayPrimitive`
+### Sorting — `D1Array.tsx`
 
 | Algorithm | Visual Behavior |
 |---|---|
@@ -139,11 +141,11 @@ A reusable two-panel layout used across multiple sections:
 | **Merge Sort** | Sub-array boundaries shown with bracket overlays; merged segments fade green |
 | **Quick Sort** | Pivot block highlighted in purple; partition sweep shown with left/right pointer labels |
 
-### Searching — `ArrayPrimitive`
+### Searching — `D1Array.tsx`
 
 - **Binary Search** — The discarded half of the array dims (reduced opacity + desaturated) on each step, leaving only the active search range at full brightness. The mid-pointer is always labeled.
 
-### Graph Traversal — `GraphPrimitive`
+### Graph Traversal — `Graph.tsx`
 
 Three distinct visual states, each with its own color:
 
@@ -169,7 +171,7 @@ An upgraded split-pane layout divided into thirds:
 |---|---|
 | **Left** | Problem description rendered in Markdown |
 | **Center** | C++ code editor with syntax highlighting |
-| **Right** | `UniversalPlayer` + active visualizer |
+| **Right** | `VisualGround` + active visualizer |
 
 ### Live Variable Tracker
 
@@ -196,7 +198,7 @@ Pre-loaded configurations focused on typical CF constraint patterns:
 
 *A personal knowledge base, blog, and progress tracker — integrated directly into the app.*
 
-### Documentation Layout (`DocsLayout.tsx`)
+### Documentation Layout (`Algorithms.tsx` & `DocParser.tsx`)
 
 A clean, centered reading column modeled after Tailwind CSS / MDN documentation:
 
@@ -212,7 +214,7 @@ All notes are written as plain `.md` files and rendered using `react-markdown`:
 
 ### Embedded Mini-Visualizers ✦ *Signature Feature*
 
-The `UniversalPlayer` can be dropped directly into the middle of any Markdown note as a React component. Write an article explaining Dijkstra's algorithm and place a fully interactive, playable visualization right inside the second paragraph. Reading and understanding happen in the same place, at the same time.
+The `VisualGround` player can be dropped directly into the middle of any Markdown note as a React component. Write an article explaining Dijkstra's algorithm and place a fully interactive, playable visualization right inside the second paragraph. Reading and understanding happen in the same place, at the same time.
 
 ### Progress & Journey Dashboard
 

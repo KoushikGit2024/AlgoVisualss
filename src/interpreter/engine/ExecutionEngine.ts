@@ -475,11 +475,21 @@ export class ExecutionEngine {
 
     // ─── STANDARD FUNCTION INVOCATION ───────────────────────────────────
     const args = callNode.arguments.map(arg => currentEvaluator.evaluate(arg));
-    let targetCallee = callNode.callee;
-    try {
-      const localFuncRef = currentEvaluator.evaluate({ kind: "Identifier", name: callNode.callee, line: callNode.line });
-      if (typeof localFuncRef === "string") targetCallee = localFuncRef; 
+    let targetCallee: string | any = callNode.callee;
+    let localFuncRef: any = undefined;
+    try { 
+      const activeScope = this.callStack.peek().scopeManager;
+      localFuncRef = activeScope.getVariable(functionName)?.value;
     } catch (e) { /* Fallback to global registry */ }
+    
+    if (typeof localFuncRef === "function") {
+        return localFuncRef(...args);
+    }
+    
+    if (typeof localFuncRef === "string") targetCallee = localFuncRef; 
+    else if (localFuncRef && typeof localFuncRef === "object" && (localFuncRef as any).kind === "LambdaExpression") {
+        targetCallee = localFuncRef;
+    }
 
     return this.invokeFunction(targetCallee, args, callNode.arguments, currentEvaluator);
   }
@@ -686,8 +696,10 @@ export class ExecutionEngine {
   /**
    * Pushes a new execution frame onto the call stack and executes the targeted function block.
    */
-  private invokeFunction(name: string, args: CppValue[], rawArgs?: IRExpression[], callerEvaluator?: ExpressionEvaluator): CppValue {
-    const func = this.functions.get(name);
+  private invokeFunction(target: string | any, args: CppValue[], rawArgs?: IRExpression[], callerEvaluator?: ExpressionEvaluator): CppValue {
+    const isLambda = typeof target === "object" && target.kind === "LambdaExpression";
+    const name = isLambda ? "<lambda>" : target;
+    const func = isLambda ? target : this.functions.get(name);
     
     // ─── CONSTRUCTOR AUTO-RECOVERY ──────────────────────────────────────────
     if (!func) {
@@ -734,96 +746,7 @@ export class ExecutionEngine {
     });
 
     const evaluator = new ExpressionEvaluator(frame.scopeManager, this.eventEmitter);
-    
-    // ─── AST EVALUATION INTERCEPTOR ─────────────────────────────────────────
-    // Overrides the core evaluator to inject scope-aware resolution for method 
-    // calls, pointers, struct instantiation, and lambda functions.
-    const originalEvaluate = evaluator.evaluate.bind(evaluator);
-    
-    evaluator.evaluate = (expr) => {
-      if (expr.kind === "FunctionCall") return this.invokeFunctionCall(expr as IRFunctionCall, evaluator);
-      if (expr.kind === "MethodCall") return this.invokeMethodCall(expr as IRMethodCall, evaluator);
-      
-      if (expr.kind === "UnaryExpression" && (expr as any).operator === "*") {
-        return evaluator.evaluate((expr as any).argument);
-      }
-
-      if (expr.kind === "NewExpression") {
-        const newExpr = expr as IRNewExpression;
-        const evaluatedArgs = newExpr.arguments.map(arg => evaluator.evaluate(arg));
-
-        // Handle array allocation: `new int[n]` or `new int[n][m]`
-        if (newExpr.typeName.includes("[")) {
-          const size = evaluatedArgs[0] as number;
-          return typeof size === "number" ? new Array(size).fill(0) : [];
-        }
-        
-        // Check if it matches a custom blueprint
-        if (this.classBlueprints && this.classBlueprints.has(newExpr.typeName)) {
-           const blueprint = this.classBlueprints.get(newExpr.typeName)!;
-           const instance: Record<string, any> = {};
-           for (const field of blueprint.fields) {
-             instance[field.name] = field.defaultValue ? evaluator.evaluate(field.defaultValue) : 0;
-           }
-           for (let i = 0; i < evaluatedArgs.length && i < blueprint.fields.length; i++) {
-             instance[blueprint.fields[i].name] = evaluatedArgs[i];
-           }
-           return instance;
-        }
-        
-        // Fallback: Build the new object, assigning args to canonical property names.
-        // Common node types: TreeNode(val), ListNode(val, next), GraphNode(val).
-        // We only add properties that are actually provided — no phantom defaults.
-        const newObj: Record<string, any> = {};
-        if (evaluatedArgs.length > 0) {
-          newObj.val = evaluatedArgs[0];
-          newObj.value = evaluatedArgs[0];
-          newObj.data = evaluatedArgs[0];
-          // Only pre-initialize pointer fields if there are more args or common struct conventions
-          newObj.next = null;
-          newObj.left = null;
-          newObj.right = null;
-        }
-        if (evaluatedArgs.length > 1) { 
-          newObj.next = evaluatedArgs[1]; 
-          newObj.left = evaluatedArgs[1]; 
-        }
-        if (evaluatedArgs.length > 2) { 
-          newObj.right = evaluatedArgs[2]; 
-        }
-        return newObj;
-      }
-      
-      if (expr.kind === "LambdaExpression") {
-        const lambdaExpr = expr as IRLambdaExpression;
-        return (...args: any[]) => {
-          const lambdaFrame = this.callStack.push("lambda");
-          lambdaExpr.parameters.forEach((param, index) => {
-            lambdaFrame.scopeManager.defineVariable(param.name, param.type, args[index]);
-          });
-          const localEvaluator = new ExpressionEvaluator(lambdaFrame.scopeManager, this.eventEmitter);
-          localEvaluator.evaluate = evaluator.evaluate;
-          const localExecutor = new StatementExecutor(lambdaFrame.scopeManager, localEvaluator, this.eventEmitter);
-          const localWalker = new IRWalker(lambdaFrame.scopeManager, localEvaluator, localExecutor, this.eventEmitter);
-          
-          let retVal: any = undefined;
-          try { localWalker.walkBlock(lambdaExpr.body); } 
-          catch (e) { if (e instanceof ReturnSignal) retVal = e.value; else throw e; } 
-          finally { this.callStack.pop(); }
-          
-          return retVal;
-        };
-      }
-      
-      if (expr.kind === "Identifier") {
-        // endl, nullptr, NULL are now handled in ExpressionEvaluator.evaluate() directly.
-        // This fallback is kept for any identifiers that slip through the base evaluator.
-        if ((expr as any).name === "endl") return "\n";
-        if ((expr as any).name === "nullptr" || (expr as any).name === "NULL") return null;
-      }
-      
-      return originalEvaluate(expr);
-    };
+    this.attachEvaluationInterceptor(evaluator);
     // ────────────────────────────────────────────────────────────────────────
 
     const executor = new StatementExecutor(frame.scopeManager, evaluator, this.eventEmitter);
@@ -841,5 +764,94 @@ export class ExecutionEngine {
     }
     
     return returnValue;
+  }
+
+  private attachEvaluationInterceptor(evaluator: ExpressionEvaluator) {
+    const originalEvaluate = evaluator.evaluate.bind(evaluator);
+    
+    evaluator.evaluate = (expr) => {
+      if (expr.kind === "FunctionCall") return this.invokeFunctionCall(expr as IRFunctionCall, evaluator);
+      if (expr.kind === "MethodCall") return this.invokeMethodCall(expr as IRMethodCall, evaluator);
+      
+      if (expr.kind === "UnaryExpression" && (expr as any).operator === "*") {
+        return evaluator.evaluate((expr as any).argument);
+      }
+
+      if (expr.kind === "NewExpression") {
+        const newExpr = expr as IRNewExpression;
+        const evaluatedArgs = newExpr.arguments.map(arg => evaluator.evaluate(arg));
+
+        if (newExpr.typeName.includes("[")) {
+          const size = evaluatedArgs[0] as number;
+          return typeof size === "number" ? new Array(size).fill(0) : [];
+        }
+        
+        if (this.classBlueprints && this.classBlueprints.has(newExpr.typeName)) {
+           const blueprint = this.classBlueprints.get(newExpr.typeName)!;
+           const instance: Record<string, any> = {};
+           for (const field of blueprint.fields) {
+             instance[field.name] = field.defaultValue ? evaluator.evaluate(field.defaultValue) : 0;
+           }
+           for (let i = 0; i < evaluatedArgs.length && i < blueprint.fields.length; i++) {
+             instance[blueprint.fields[i].name] = evaluatedArgs[i];
+           }
+           return instance;
+        }
+        
+        const newObj: Record<string, any> = {};
+        if (evaluatedArgs.length > 0) {
+          newObj.val = evaluatedArgs[0];
+          newObj.value = evaluatedArgs[0];
+          newObj.data = evaluatedArgs[0];
+          newObj.next = null;
+          newObj.left = null;
+          newObj.right = null;
+        }
+        if (evaluatedArgs.length > 1) { 
+          newObj.next = evaluatedArgs[1]; 
+          newObj.left = evaluatedArgs[1]; 
+        }
+        if (evaluatedArgs.length > 2) { 
+          newObj.right = evaluatedArgs[2]; 
+        }
+        return newObj;
+      }
+      
+      if (expr.kind === "LambdaExpression") {
+        const lambdaExpr = expr as IRLambdaExpression;
+        const definitionScope = this.callStack.peek().scopeManager;
+        
+        return (...args: any[]) => {
+          const lambdaFrame = this.callStack.push("lambda");
+          
+          const capturedState = definitionScope.captureState();
+          for (const [vName, vSymbol] of Object.entries(capturedState)) {
+             lambdaFrame.scopeManager.defineVariable(vName, (vSymbol as any).type || "auto", (vSymbol as any).value);
+          }
+          
+          lambdaExpr.parameters.forEach((param, index) => {
+            lambdaFrame.scopeManager.defineVariable(param.name, param.type, args[index]);
+          });
+          const localEvaluator = new ExpressionEvaluator(lambdaFrame.scopeManager, this.eventEmitter);
+          this.attachEvaluationInterceptor(localEvaluator);
+          const localExecutor = new StatementExecutor(lambdaFrame.scopeManager, localEvaluator, this.eventEmitter);
+          const localWalker = new IRWalker(lambdaFrame.scopeManager, localEvaluator, localExecutor, this.eventEmitter);
+          
+          let retVal: any = undefined;
+          try { localWalker.walkBlock(lambdaExpr.body); } 
+          catch (e) { if (e instanceof ReturnSignal) retVal = e.value; else throw e; } 
+          finally { this.callStack.pop(); }
+          
+          return retVal;
+        };
+      }
+      
+      if (expr.kind === "Identifier") {
+        if ((expr as any).name === "endl") return "\n";
+        if ((expr as any).name === "nullptr" || (expr as any).name === "NULL") return null;
+      }
+      
+      return originalEvaluate(expr);
+    };
   }
 }

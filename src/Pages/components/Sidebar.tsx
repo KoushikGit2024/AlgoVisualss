@@ -139,10 +139,11 @@ function NotFound() {
 
 // ─── Recursive Component ──────────────────────────────────────────────────────
 function RecursiveNavNode({
-  item, level = 0, pathname, query, collapsed, onExpandSidebar
+  item, level = 0, pathname, query, collapsed, onExpandSidebar, search
 }: {
   item: NavItem; level?: number; pathname: string; query: string;
   collapsed: boolean; onExpandSidebar: () => void;
+  search: string;
 }) {
   const isFolder = !!item.children && item.children.length > 0;
   const isActiveLink = pathname === item.url;
@@ -201,7 +202,7 @@ function RecursiveNavNode({
             {/* Supress text and badges when collapsed */}
             {!collapsed && (
               <>
-                <Link to={item.url || "#"}>
+                <Link to={item.url ? `${item.url}${search}` : "#"}>
                   <span title={item.label} className={`truncate ${isTopLevel ? "text-[14px] font-semibold" : "text-[13px]"}`}>
                     <Highlighted text={item.label} query={query} />
                   </span>
@@ -252,6 +253,7 @@ function RecursiveNavNode({
                   query={query}
                   collapsed={collapsed}
                   onExpandSidebar={onExpandSidebar}
+                  search={search}
                 />
               ))}
             </div>
@@ -264,7 +266,9 @@ function RecursiveNavNode({
 
 // ─── Sidebar Master Component ─────────────────────────────────────────────────
 export default function Sidebar() {
-  const pathname = useLocation().pathname;
+  const location = useLocation();
+  const pathname = location.pathname;
+  const search = location.search;
   
   // Extract parameters for visualizer or algorithms routes
   const visParams = useMatch("/visualizer/:platform/:qid?/*");
@@ -509,6 +513,7 @@ export default function Sidebar() {
                   setCollapsed(false);
                   if (sidebarWidth < 150) setSidebarWidth(288);
                 }}
+                search={search}
               />
             ))}
           </div>

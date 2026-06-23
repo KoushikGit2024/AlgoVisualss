@@ -17,7 +17,7 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
 
   // ✅ FIX 1: Only reset the code when the 'lang' tab changes!
   useEffect(() => {
-    console.log(codeObject)
+    // console.log(codeObject)
     setCode(codeObject[lang] as string);
   }, [lang,codeObject]);
 

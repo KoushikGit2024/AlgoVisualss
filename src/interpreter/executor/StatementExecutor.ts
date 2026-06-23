@@ -142,6 +142,35 @@ export class StatementExecutor {
       }
     }
 
+
+    
+    // ── STRUCTURED BINDING SUPPORT (e.g. auto [d, u] = pq.top()) ──
+    if (node.name.startsWith("[") && node.name.endsWith("]")) {
+      const parts = node.name.slice(1, -1).split(",").map(s => s.trim());
+      if (Array.isArray(value)) {
+        parts.forEach((p, idx) => {
+          if (p) this.scopeManager.defineVariable(p, node.variableType, value[idx]);
+        });
+      } else if (typeof value === 'object' && value !== null) {
+        // e.g. pair or struct objects { first: 0, second: 1 }
+        const keys = Object.keys(value);
+        parts.forEach((p, idx) => {
+          if (p) this.scopeManager.defineVariable(p, node.variableType, value[keys[idx]]);
+        });
+      } else {
+        // Fallback for primitives
+        parts.forEach(p => {
+          if (p) this.scopeManager.defineVariable(p, node.variableType, value);
+        });
+      }
+      this.eventEmitter.emit(node.line, EventType.DECLARE, {
+        variable: node.name,
+        type: node.variableType,
+        value,
+      });
+      return;
+    }
+
     this.scopeManager.defineVariable(node.name, node.variableType, value);
     this.eventEmitter.emit(node.line, EventType.DECLARE, {
       variable: node.name,

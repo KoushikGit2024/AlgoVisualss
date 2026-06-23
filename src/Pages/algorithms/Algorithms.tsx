@@ -1,15 +1,29 @@
 import { useEffect, useState } from "react";
 import CodeWindow from "../../codeVisualizer/CodeWindow";
 import DocParser from "../../codeVisualizer/sideComponents/parsers/DocParser";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import ALGODATA from "./data/categories/AlgoData";
 import { BookOpen, Code2 } from "lucide-react";
 type ALGODATAITEM = (typeof ALGODATA)[number];
 type subTopicItems = ALGODATAITEM["items"][number];
 const Algorithms = () => {
   const { subTopic, topic } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [data, setData] = useState<ALGODATAITEM | subTopicItems | undefined>();
-  const [activeView, setActiveView] = useState<"docs" | "visualizer">("docs");
+  const [activeView, setActiveView] = useState<"docs" | "visualizer">(
+    searchParams.get("openCode") === "true" ? "visualizer" : "docs"
+  );
+
+  const handleViewChange = (view: "docs" | "visualizer") => {
+    setActiveView(view);
+    const newParams = new URLSearchParams(searchParams);
+    if (view === "visualizer") {
+      newParams.set("openCode", "true");
+    } else {
+      newParams.delete("openCode");
+    }
+    setSearchParams(newParams, { replace: true });
+  };
 
   useEffect(() => {
     if (topic) {
@@ -86,7 +100,7 @@ const Algorithms = () => {
           {/* Floating Toggle */}
           <div className="absolute bottom-6 left-6 z-60 flex bg-surface/90 backdrop-blur-md rounded-full p-1 border border-border shadow-2xl transition-transform hover:scale-105">
             <button
-              onClick={() => setActiveView("docs")}
+              onClick={() => handleViewChange("docs")}
               className={`flex items-center justify-center p-2 rounded-full transition-all ${
                 activeView === "docs" 
                   ? "bg-accent text-bg shadow-md" 
@@ -97,7 +111,7 @@ const Algorithms = () => {
               <BookOpen size={10} />
             </button>
             <button
-              onClick={() => setActiveView("visualizer")}
+              onClick={() => handleViewChange("visualizer")}
               className={`flex items-center justify-center p-2 rounded-full transition-all ${
                 activeView === "visualizer" 
                   ? "bg-accent text-bg shadow-md" 

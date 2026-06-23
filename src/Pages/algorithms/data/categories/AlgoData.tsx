@@ -2349,11 +2349,6 @@ fn main() {
   ]
 };
 
-/* ─── Schema v2 — Flexible Content Nodes (see arrays-section.js for full spec) ──
- *  ContentBlock = ContentNode[]
- *  ContentNode tags in use here: h1, h2, p, ul, ol, table, code, note, blockquote
- * ─────────────────────────────────────────────────────────────────────────── */
-
 const SORTING_SECTION = {
   name: "Sorting",
   href: "/algorithms/sorting",
@@ -7455,11 +7450,6 @@ fn main() {
   ]
 };
 
-/* ─── Schema v2 — Flexible Content Nodes (see arrays-section.js for full spec) ──
- *  ContentBlock = ContentNode[]
- *  ContentNode tags in use here: h1, h2, p, ul, ol, table, code, note, blockquote
- * ─────────────────────────────────────────────────────────────────────────── */
-
 const GRAPHS_SECTION = {
   name: "Graphs",
   href: "/algorithms/graphs",
@@ -7597,7 +7587,444 @@ const GRAPHS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: the queue, at any point, contains vertices from at most two consecutive 'distance layers' (distance d and d+1), and the queue is ordered so all distance-d vertices are dequeued before any distance-(d+1) vertex. By induction on distance d, this guarantees the first time any vertex is discovered, it's discovered via a path of length equal to its true shortest distance from the source — a vertex at true distance d cannot be discovered before all distance-(d-1) vertices have been fully processed, since it can only be reached through one of them." }
-      ]
+      ],
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+#include <queue>
+#include <unordered_map>
+using namespace std;
+
+void bfs(vector<vector<int>>& graph_adj, int source, int n) {
+    vector<int> distance(n, -1);
+    vector<int> parent(n, -1);
+    queue<int> q;
+
+    distance[source] = 0;
+    q.push(source);
+
+    while (!q.empty()) {
+        int current = q.front(); q.pop();
+        cout << "Visiting: " << current << " (dist=" << distance[current] << ")\\n";
+
+        for (int neighbor : graph_adj[current]) {
+            if (distance[neighbor] == -1) {
+                distance[neighbor] = distance[current] + 1;
+                parent[neighbor] = current;
+                q.push(neighbor);
+            }
+        }
+    }
+
+    cout << "\\nDistances from source " << source << ":\\n";
+    for (int i = 0; i < n; i++)
+        cout << "  Node " << i << ": " << distance[i] << "\\n";
+}
+
+int main() {
+    int n = 6;
+    vector<vector<int>> graph_adj(n);
+    // Add undirected edges
+    auto addEdge = [&](int u, int v) {
+        graph_adj[u].push_back(v);
+        graph_adj[v].push_back(u);
+    };
+    addEdge(0, 1); addEdge(0, 2);
+    addEdge(1, 3); addEdge(1, 4);
+    addEdge(2, 5);
+
+    bfs(graph_adj, 0, n);
+    return 0;
+}`,
+
+  "python": `from collections import deque
+
+def bfs(graph_adj, source, n):
+    distance = [-1] * n
+    parent = [-1] * n
+    distance[source] = 0
+    q = deque([source])
+
+    while q:
+        current = q.popleft()
+        print(f"Visiting: {current} (dist={distance[current]})")
+
+        for neighbor in graph_adj[current]:
+            if distance[neighbor] == -1:
+                distance[neighbor] = distance[current] + 1
+                parent[neighbor] = current
+                q.append(neighbor)
+
+    print(f"\\nDistances from source {source}:")
+    for i in range(n):
+        print(f"  Node {i}: {distance[i]}")
+
+if __name__ == "__main__":
+    n = 6
+    graph_adj = [[] for _ in range(n)]
+    def add_edge(u, v):
+        graph_adj[u].append(v)
+        graph_adj[v].append(u)
+    add_edge(0, 1); add_edge(0, 2)
+    add_edge(1, 3); add_edge(1, 4)
+    add_edge(2, 5)
+    bfs(graph_adj, 0, n)`,
+
+  "java": `import java.util.*;
+
+public class Main {
+    static void bfs(List<List<Integer>> graphAdj, int source, int n) {
+        int[] distance = new int[n];
+        int[] parent = new int[n];
+        Arrays.fill(distance, -1);
+        Arrays.fill(parent, -1);
+
+        Queue<Integer> queue = new LinkedList<>();
+        distance[source] = 0;
+        queue.add(source);
+
+        while (!queue.isEmpty()) {
+            int current = queue.poll();
+            System.out.println("Visiting: " + current + " (dist=" + distance[current] + ")");
+
+            for (int neighbor : graphAdj.get(current)) {
+                if (distance[neighbor] == -1) {
+                    distance[neighbor] = distance[current] + 1;
+                    parent[neighbor] = current;
+                    queue.add(neighbor);
+                }
+            }
+        }
+
+        System.out.println("\\nDistances from source " + source + ":");
+        for (int i = 0; i < n; i++)
+            System.out.println("  Node " + i + ": " + distance[i]);
+    }
+
+    public static void main(String[] args) {
+        int n = 6;
+        List<List<Integer>> graphAdj = new ArrayList<>();
+        for (int i = 0; i < n; i++) graphAdj.add(new ArrayList<>());
+
+        int[][] edges = {{0,1},{0,2},{1,3},{1,4},{2,5}};
+        for (int[] e : edges) {
+            graphAdj.get(e[0]).add(e[1]);
+            graphAdj.get(e[1]).add(e[0]);
+        }
+        bfs(graphAdj, 0, n);
+    }
+}`,
+
+  "js": `function bfs(graphAdj, source, n) {
+    const distance = new Array(n).fill(-1);
+    const parent = new Array(n).fill(-1);
+    const queue = [];
+
+    distance[source] = 0;
+    queue.push(source);
+
+    while (queue.length > 0) {
+        const current = queue.shift();
+        console.log(\`Visiting: \${current} (dist=\${distance[current]})\`);
+
+        for (const neighbor of graphAdj[current]) {
+            if (distance[neighbor] === -1) {
+                distance[neighbor] = distance[current] + 1;
+                parent[neighbor] = current;
+                queue.push(neighbor);
+            }
+        }
+    }
+
+    console.log(\`\\nDistances from source \${source}:\`);
+    for (let i = 0; i < n; i++)
+        console.log(\`  Node \${i}: \${distance[i]}\`);
+}
+
+const n = 6;
+const graphAdj = Array.from({length: n}, () => []);
+const addEdge = (u, v) => { graphAdj[u].push(v); graphAdj[v].push(u); };
+addEdge(0,1); addEdge(0,2); addEdge(1,3); addEdge(1,4); addEdge(2,5);
+bfs(graphAdj, 0, n);`,
+
+  "c": `#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MAXN 100
+
+int graph_adj[MAXN][MAXN], deg[MAXN];
+int distance[MAXN], parent[MAXN];
+int queue[MAXN];
+
+void addEdge(int u, int v) {
+    graph_adj[u][deg[u]++] = v;
+    graph_adj[v][deg[v]++] = u;
+}
+
+void bfs(int source, int n) {
+    memset(distance, -1, sizeof(distance));
+    memset(parent, -1, sizeof(parent));
+    int front = 0, back = 0;
+    distance[source] = 0;
+    queue[back++] = source;
+
+    while (front < back) {
+        int current = queue[front++];
+        printf("Visiting: %d (dist=%d)\\n", current, distance[current]);
+        for (int i = 0; i < deg[current]; i++) {
+            int neighbor = graph_adj[current][i];
+            if (distance[neighbor] == -1) {
+                distance[neighbor] = distance[current] + 1;
+                parent[neighbor] = current;
+                queue[back++] = neighbor;
+            }
+        }
+    }
+
+    printf("\\nDistances from source %d:\\n", source);
+    for (int i = 0; i < n; i++)
+        printf("  Node %d: %d\\n", i, distance[i]);
+}
+
+int main() {
+    int n = 6;
+    memset(deg, 0, sizeof(deg));
+    addEdge(0,1); addEdge(0,2); addEdge(1,3); addEdge(1,4); addEdge(2,5);
+    bfs(0, n);
+    return 0;
+}`,
+
+  "c#": `using System;
+using System.Collections.Generic;
+
+class Program {
+    static void Bfs(List<int>[] graphAdj, int source, int n) {
+        int[] distance = new int[n];
+        int[] parent = new int[n];
+        Array.Fill(distance, -1);
+        Array.Fill(parent, -1);
+
+        var queue = new Queue<int>();
+        distance[source] = 0;
+        queue.Enqueue(source);
+
+        while (queue.Count > 0) {
+            int current = queue.Dequeue();
+            Console.WriteLine($"Visiting: {current} (dist={distance[current]})");
+
+            foreach (int neighbor in graphAdj[current]) {
+                if (distance[neighbor] == -1) {
+                    distance[neighbor] = distance[current] + 1;
+                    parent[neighbor] = current;
+                    queue.Enqueue(neighbor);
+                }
+            }
+        }
+
+        Console.WriteLine($"\\nDistances from source {source}:");
+        for (int i = 0; i < n; i++)
+            Console.WriteLine($"  Node {i}: {distance[i]}");
+    }
+
+    static void Main() {
+        int n = 6;
+        var graphAdj = new List<int>[n];
+        for (int i = 0; i < n; i++) graphAdj[i] = new List<int>();
+        int[][] edges = {{0,1},{0,2},{1,3},{1,4},{2,5}};
+        foreach (var e in edges) {
+            graphAdj[e[0]].Add(e[1]);
+            graphAdj[e[1]].Add(e[0]);
+        }
+        Bfs(graphAdj, 0, n);
+    }
+}`,
+
+  "swift": `import Foundation
+
+func bfs(graphAdj: [[Int]], source: Int, n: Int) {
+    var distance = Array(repeating: -1, count: n)
+    var parent = Array(repeating: -1, count: n)
+    var queue = [Int]()
+
+    distance[source] = 0
+    queue.append(source)
+    var front = 0
+
+    while front < queue.count {
+        let current = queue[front]; front += 1
+        print("Visiting: \\(current) (dist=\\(distance[current]))")
+
+        for neighbor in graphAdj[current] {
+            if distance[neighbor] == -1 {
+                distance[neighbor] = distance[current] + 1
+                parent[neighbor] = current
+                queue.append(neighbor)
+            }
+        }
+    }
+
+    print("\\nDistances from source \\(source):")
+    for i in 0..<n { print("  Node \\(i): \\(distance[i])") }
+}
+
+var graphAdj = [[Int]](repeating: [], count: 6)
+let edges = [(0,1),(0,2),(1,3),(1,4),(2,5)]
+for (u, v) in edges {
+    graphAdj[u].append(v); graphAdj[v].append(u)
+}
+bfs(graphAdj: graphAdj, source: 0, n: 6)`,
+
+  "kotlin": `import java.util.LinkedList
+
+fun bfs(graphAdj: Array<MutableList<Int>>, source: Int, n: Int) {
+    val distance = IntArray(n) { -1 }
+    val parent = IntArray(n) { -1 }
+    val queue = LinkedList<Int>()
+
+    distance[source] = 0
+    queue.add(source)
+
+    while (queue.isNotEmpty()) {
+        val current = queue.poll()
+        println("Visiting: $current (dist=\${distance[current]})")
+
+        for (neighbor in graphAdj[current]) {
+            if (distance[neighbor] == -1) {
+                distance[neighbor] = distance[current] + 1
+                parent[neighbor] = current
+                queue.add(neighbor)
+            }
+        }
+    }
+
+    println("\\nDistances from source $source:")
+    for (i in 0 until n) println("  Node $i: \${distance[i]}")
+}
+
+fun main() {
+    val n = 6
+    val graphAdj = Array(n) { mutableListOf<Int>() }
+    val edges = listOf(0 to 1, 0 to 2, 1 to 3, 1 to 4, 2 to 5)
+    for ((u, v) in edges) { graphAdj[u].add(v); graphAdj[v].add(u) }
+    bfs(graphAdj, 0, n)
+}`,
+
+  "scala": `import scala.collection.mutable
+
+object Main extends App {
+    def bfs(graphAdj: Array[mutable.ListBuffer[Int]], source: Int, n: Int): Unit = {
+        val distance = Array.fill(n)(-1)
+        val parent = Array.fill(n)(-1)
+        val queue = mutable.Queue[Int]()
+
+        distance(source) = 0
+        queue.enqueue(source)
+
+        while (queue.nonEmpty) {
+            val current = queue.dequeue()
+            println(s"Visiting: $current (dist=\${distance(current)})")
+
+            for (neighbor <- graphAdj(current)) {
+                if (distance(neighbor) == -1) {
+                    distance(neighbor) = distance(current) + 1
+                    parent(neighbor) = current
+                    queue.enqueue(neighbor)
+                }
+            }
+        }
+
+        println(s"\\nDistances from source $source:")
+        for (i <- 0 until n) println(s"  Node $i: \${distance(i)}")
+    }
+
+    val n = 6
+    val graphAdj = Array.fill(n)(mutable.ListBuffer[Int]())
+    val edges = List((0,1),(0,2),(1,3),(1,4),(2,5))
+    for ((u, v) <- edges) { graphAdj(u) += v; graphAdj(v) += u }
+    bfs(graphAdj, 0, n)
+}`,
+
+  "go": `package main
+
+import "fmt"
+
+func bfs(graphAdj [][]int, source, n int) {
+    distance := make([]int, n)
+    parent := make([]int, n)
+    for i := range distance { distance[i] = -1; parent[i] = -1 }
+
+    queue := []int{source}
+    distance[source] = 0
+
+    for len(queue) > 0 {
+        current := queue[0]; queue = queue[1:]
+        fmt.Printf("Visiting: %d (dist=%d)\\n", current, distance[current])
+
+        for _, neighbor := range graphAdj[current] {
+            if distance[neighbor] == -1 {
+                distance[neighbor] = distance[current] + 1
+                parent[neighbor] = current
+                queue = append(queue, neighbor)
+            }
+        }
+    }
+
+    fmt.Printf("\\nDistances from source %d:\\n", source)
+    for i := 0; i < n; i++ {
+        fmt.Printf("  Node %d: %d\\n", i, distance[i])
+    }
+}
+
+func main() {
+    n := 6
+    graphAdj := make([][]int, n)
+    addEdge := func(u, v int) {
+        graphAdj[u] = append(graphAdj[u], v)
+        graphAdj[v] = append(graphAdj[v], u)
+    }
+    addEdge(0,1); addEdge(0,2); addEdge(1,3); addEdge(1,4); addEdge(2,5)
+    bfs(graphAdj, 0, n)
+}`,
+
+  "rust": `use std::collections::VecDeque;
+
+fn bfs(graph_adj: &Vec<Vec<usize>>, source: usize, n: usize) {
+    let mut distance = vec![-1i32; n];
+    let mut parent = vec![-1i32; n];
+    let mut queue = VecDeque::new();
+
+    distance[source] = 0;
+    queue.push_back(source);
+
+    while let Some(current) = queue.pop_front() {
+        println!("Visiting: {} (dist={})", current, distance[current]);
+
+        for &neighbor in &graph_adj[current] {
+            if distance[neighbor] == -1 {
+                distance[neighbor] = distance[current] + 1;
+                parent[neighbor] = current as i32;
+                queue.push_back(neighbor);
+            }
+        }
+    }
+
+    println!("\\nDistances from source {}:", source);
+    for i in 0..n {
+        println!("  Node {}: {}", i, distance[i]);
+    }
+}
+
+fn main() {
+    let n = 6;
+    let mut graph_adj = vec![vec![]; n];
+    let edges = vec![(0,1),(0,2),(1,3),(1,4),(2,5)];
+    for (u, v) in edges {
+        graph_adj[u].push(v);
+        graph_adj[v].push(u);
+    }
+    bfs(&graph_adj, 0, n);
+}`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -7708,7 +8135,391 @@ const GRAPHS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: a vertex is only enqueued once all of its prerequisite vertices (everything with an edge pointing to it) have already been added to the result. This directly enforces the topological-order requirement: every edge u → v has u processed (and removed from consideration) before v's in-degree can reach zero. If the graph has a cycle, every vertex in that cycle perpetually has at least one unresolved incoming edge from within the cycle, so none of them can ever reach in-degree zero — correctly signalling that no valid topological order exists." }
-      ]
+      ],
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+#include <queue>
+using namespace std;
+
+vector<int> topologicalSort(vector<vector<int>>& graph_adj, int n) {
+    vector<int> inDegree(n, 0);
+    for (int u = 0; u < n; u++)
+        for (int v : graph_adj[u])
+            inDegree[v]++;
+
+    queue<int> q;
+    for (int i = 0; i < n; i++)
+        if (inDegree[i] == 0) q.push(i);
+
+    vector<int> result;
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        result.push_back(u);
+        for (int v : graph_adj[u]) {
+            if (--inDegree[v] == 0) q.push(v);
+        }
+    }
+
+    if ((int)result.size() != n) {
+        cout << "Cycle detected — not a DAG\\n";
+        return {};
+    }
+    return result;
+}
+
+int main() {
+    int n = 6;
+    vector<vector<int>> graph_adj(n);
+    graph_adj[5].push_back(2); graph_adj[5].push_back(0);
+    graph_adj[4].push_back(0); graph_adj[4].push_back(1);
+    graph_adj[2].push_back(3); graph_adj[3].push_back(1);
+
+    vector<int> order = topologicalSort(graph_adj, n);
+    cout << "Topological Order: ";
+    for (int v : order) cout << v << " ";
+    cout << endl;
+    return 0;
+}`,
+
+  "python": `from collections import deque
+
+def topological_sort(graph_adj, n):
+    in_degree = [0] * n
+    for u in range(n):
+        for v in graph_adj[u]:
+            in_degree[v] += 1
+
+    queue = deque(i for i in range(n) if in_degree[i] == 0)
+    result = []
+
+    while queue:
+        u = queue.popleft()
+        result.append(u)
+        for v in graph_adj[u]:
+            in_degree[v] -= 1
+            if in_degree[v] == 0:
+                queue.append(v)
+
+    if len(result) != n:
+        print("Cycle detected — not a DAG")
+        return []
+    return result
+
+if __name__ == "__main__":
+    n = 6
+    graph_adj = [[] for _ in range(n)]
+    graph_adj[5].extend([2, 0])
+    graph_adj[4].extend([0, 1])
+    graph_adj[2].append(3)
+    graph_adj[3].append(1)
+
+    order = topological_sort(graph_adj, n)
+    print("Topological Order:", order)`,
+
+  "java": `import java.util.*;
+
+public class Main {
+    static int[] topologicalSort(List<List<Integer>> graphAdj, int n) {
+        int[] inDegree = new int[n];
+        for (int u = 0; u < n; u++)
+            for (int v : graphAdj.get(u)) inDegree[v]++;
+
+        Queue<Integer> queue = new LinkedList<>();
+        for (int i = 0; i < n; i++)
+            if (inDegree[i] == 0) queue.add(i);
+
+        int[] result = new int[n];
+        int idx = 0;
+        while (!queue.isEmpty()) {
+            int u = queue.poll();
+            result[idx++] = u;
+            for (int v : graphAdj.get(u))
+                if (--inDegree[v] == 0) queue.add(v);
+        }
+
+        if (idx != n) { System.out.println("Cycle detected"); return new int[]{}; }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        int n = 6;
+        List<List<Integer>> graphAdj = new ArrayList<>();
+        for (int i = 0; i < n; i++) graphAdj.add(new ArrayList<>());
+        graphAdj.get(5).addAll(Arrays.asList(2, 0));
+        graphAdj.get(4).addAll(Arrays.asList(0, 1));
+        graphAdj.get(2).add(3);
+        graphAdj.get(3).add(1);
+
+        int[] order = topologicalSort(graphAdj, n);
+        System.out.print("Topological Order: ");
+        for (int v : order) System.out.print(v + " ");
+        System.out.println();
+    }
+}`,
+
+  "js": `function topologicalSort(graphAdj, n) {
+    const inDegree = new Array(n).fill(0);
+    for (let u = 0; u < n; u++)
+        for (const v of graphAdj[u]) inDegree[v]++;
+
+    const queue = [];
+    for (let i = 0; i < n; i++)
+        if (inDegree[i] === 0) queue.push(i);
+
+    const result = [];
+    let front = 0;
+    while (front < queue.length) {
+        const u = queue[front++];
+        result.push(u);
+        for (const v of graphAdj[u])
+            if (--inDegree[v] === 0) queue.push(v);
+    }
+
+    if (result.length !== n) { console.log("Cycle detected"); return []; }
+    return result;
+}
+
+const n = 6;
+const graphAdj = Array.from({length: n}, () => []);
+graphAdj[5].push(2, 0); graphAdj[4].push(0, 1);
+graphAdj[2].push(3); graphAdj[3].push(1);
+console.log("Topological Order:", topologicalSort(graphAdj, n));`,
+
+  "c": `#include <stdio.h>
+#include <string.h>
+#define MAXN 100
+
+int graph_adj[MAXN][MAXN], deg[MAXN], inDegree[MAXN];
+int queue[MAXN], result[MAXN];
+
+void addEdge(int u, int v) { graph_adj[u][deg[u]++] = v; inDegree[v]++; }
+
+int topologicalSort(int n) {
+    int front = 0, back = 0, idx = 0;
+    for (int i = 0; i < n; i++)
+        if (inDegree[i] == 0) queue[back++] = i;
+
+    while (front < back) {
+        int u = queue[front++];
+        result[idx++] = u;
+        for (int i = 0; i < deg[u]; i++) {
+            int v = graph_adj[u][i];
+            if (--inDegree[v] == 0) queue[back++] = v;
+        }
+    }
+    return idx == n;
+}
+
+int main() {
+    int n = 6;
+    memset(deg, 0, sizeof(deg));
+    memset(inDegree, 0, sizeof(inDegree));
+    addEdge(5,2); addEdge(5,0); addEdge(4,0);
+    addEdge(4,1); addEdge(2,3); addEdge(3,1);
+
+    if (topologicalSort(n)) {
+        printf("Topological Order: ");
+        for (int i = 0; i < n; i++) printf("%d ", result[i]);
+        printf("\\n");
+    } else printf("Cycle detected\\n");
+    return 0;
+}`,
+
+  "c#": `using System;
+using System.Collections.Generic;
+
+class Program {
+    static int[] TopologicalSort(List<int>[] graphAdj, int n) {
+        int[] inDegree = new int[n];
+        for (int u = 0; u < n; u++)
+            foreach (int v in graphAdj[u]) inDegree[v]++;
+
+        var queue = new Queue<int>();
+        for (int i = 0; i < n; i++)
+            if (inDegree[i] == 0) queue.Enqueue(i);
+
+        var result = new List<int>();
+        while (queue.Count > 0) {
+            int u = queue.Dequeue();
+            result.Add(u);
+            foreach (int v in graphAdj[u])
+                if (--inDegree[v] == 0) queue.Enqueue(v);
+        }
+
+        if (result.Count != n) { Console.WriteLine("Cycle detected"); return new int[]{}; }
+        return result.ToArray();
+    }
+
+    static void Main() {
+        int n = 6;
+        var graphAdj = new List<int>[n];
+        for (int i = 0; i < n; i++) graphAdj[i] = new List<int>();
+        graphAdj[5].AddRange(new[]{2,0}); graphAdj[4].AddRange(new[]{0,1});
+        graphAdj[2].Add(3); graphAdj[3].Add(1);
+
+        int[] order = TopologicalSort(graphAdj, n);
+        Console.WriteLine("Topological Order: " + string.Join(" ", order));
+    }
+}`,
+
+  "swift": `func topologicalSort(graphAdj: [[Int]], n: Int) -> [Int] {
+    var inDegree = Array(repeating: 0, count: n)
+    for u in 0..<n { for v in graphAdj[u] { inDegree[v] += 1 } }
+
+    var queue = (0..<n).filter { inDegree[$0] == 0 }
+    var result = [Int]()
+    var front = 0
+
+    while front < queue.count {
+        let u = queue[front]; front += 1
+        result.append(u)
+        for v in graphAdj[u] {
+            inDegree[v] -= 1
+            if inDegree[v] == 0 { queue.append(v) }
+        }
+    }
+
+    if result.count != n { print("Cycle detected"); return [] }
+    return result
+}
+
+var graphAdj = [[Int]](repeating: [], count: 6)
+graphAdj[5] = [2, 0]; graphAdj[4] = [0, 1]
+graphAdj[2] = [3]; graphAdj[3] = [1]
+print("Topological Order:", topologicalSort(graphAdj: graphAdj, n: 6))`,
+
+  "kotlin": `import java.util.LinkedList
+
+fun topologicalSort(graphAdj: Array<MutableList<Int>>, n: Int): List<Int> {
+    val inDegree = IntArray(n)
+    for (u in 0 until n) for (v in graphAdj[u]) inDegree[v]++
+
+    val queue = LinkedList<Int>()
+    for (i in 0 until n) if (inDegree[i] == 0) queue.add(i)
+
+    val result = mutableListOf<Int>()
+    while (queue.isNotEmpty()) {
+        val u = queue.poll()
+        result.add(u)
+        for (v in graphAdj[u])
+            if (--inDegree[v] == 0) queue.add(v)
+    }
+
+    if (result.size != n) { println("Cycle detected"); return emptyList() }
+    return result
+}
+
+fun main() {
+    val n = 6
+    val graphAdj = Array(n) { mutableListOf<Int>() }
+    graphAdj[5].addAll(listOf(2, 0)); graphAdj[4].addAll(listOf(0, 1))
+    graphAdj[2].add(3); graphAdj[3].add(1)
+    println("Topological Order: \${topologicalSort(graphAdj, n)}")
+}`,
+
+  "scala": `import scala.collection.mutable
+
+object Main extends App {
+    def topologicalSort(graphAdj: Array[mutable.ListBuffer[Int]], n: Int): List[Int] = {
+        val inDegree = Array.fill(n)(0)
+        for (u <- 0 until n; v <- graphAdj(u)) inDegree(v) += 1
+
+        val queue = mutable.Queue[Int]()
+        for (i <- 0 until n if inDegree(i) == 0) queue.enqueue(i)
+
+        val result = mutable.ListBuffer[Int]()
+        while (queue.nonEmpty) {
+            val u = queue.dequeue()
+            result += u
+            for (v <- graphAdj(u)) {
+                inDegree(v) -= 1
+                if (inDegree(v) == 0) queue.enqueue(v)
+            }
+        }
+
+        if (result.length != n) { println("Cycle detected"); return List() }
+        result.toList
+    }
+
+    val n = 6
+    val graphAdj = Array.fill(n)(mutable.ListBuffer[Int]())
+    graphAdj(5) ++= List(2, 0); graphAdj(4) ++= List(0, 1)
+    graphAdj(2) += 3; graphAdj(3) += 1
+    println(s"Topological Order: \${topologicalSort(graphAdj, n)}")
+}`,
+
+  "go": `package main
+
+import "fmt"
+
+func topologicalSort(graphAdj [][]int, n int) []int {
+    inDegree := make([]int, n)
+    for u := 0; u < n; u++ {
+        for _, v := range graphAdj[u] { inDegree[v]++ }
+    }
+
+    queue := []int{}
+    for i := 0; i < n; i++ {
+        if inDegree[i] == 0 { queue = append(queue, i) }
+    }
+
+    result := []int{}
+    for len(queue) > 0 {
+        u := queue[0]; queue = queue[1:]
+        result = append(result, u)
+        for _, v := range graphAdj[u] {
+            inDegree[v]--
+            if inDegree[v] == 0 { queue = append(queue, v) }
+        }
+    }
+
+    if len(result) != n { fmt.Println("Cycle detected"); return nil }
+    return result
+}
+
+func main() {
+    n := 6
+    graphAdj := make([][]int, n)
+    graphAdj[5] = []int{2, 0}; graphAdj[4] = []int{0, 1}
+    graphAdj[2] = []int{3}; graphAdj[3] = []int{1}
+    fmt.Println("Topological Order:", topologicalSort(graphAdj, n))
+}`,
+
+  "rust": `use std::collections::VecDeque;
+
+fn topological_sort(graph_adj: &Vec<Vec<usize>>, n: usize) -> Option<Vec<usize>> {
+    let mut in_degree = vec![0usize; n];
+    for u in 0..n {
+        for &v in &graph_adj[u] { in_degree[v] += 1; }
+    }
+
+    let mut queue = VecDeque::new();
+    for i in 0..n { if in_degree[i] == 0 { queue.push_back(i); } }
+
+    let mut result = Vec::new();
+    while let Some(u) = queue.pop_front() {
+        result.push(u);
+        for &v in &graph_adj[u] {
+            in_degree[v] -= 1;
+            if in_degree[v] == 0 { queue.push_back(v); }
+        }
+    }
+
+    if result.len() != n { println!("Cycle detected"); return None; }
+    Some(result)
+}
+
+fn main() {
+    let n = 6;
+    let mut graph_adj = vec![vec![]; n];
+    graph_adj[5] = vec![2, 0]; graph_adj[4] = vec![0, 1];
+    graph_adj[2] = vec![3]; graph_adj[3] = vec![1];
+    if let Some(order) = topological_sort(&graph_adj, n) {
+        println!("Topological Order: {:?}", order);
+    }
+}`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -7822,7 +8633,444 @@ const GRAPHS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The key invariant relies on non-negative weights: when a vertex u is extracted from the priority queue, its current distance value is provably its true shortest distance from the source. This holds because every vertex still in the queue has a distance ≥ u's distance (by the min-heap property), and since all edge weights are non-negative, any path through a not-yet-finalised vertex could only be longer or equal — never shorter — than the direct path already found to u. This greedy 'finalise the closest vertex first' strategy therefore never needs to revisit or correct an already-finalised vertex, which is exactly what breaks down if negative weights are allowed." }
-      ]
+      ],
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+using namespace std;
+
+typedef pair<int,int> pii;
+
+vector<int> dijkstra(vector<vector<pii>>& graph_adj, int source, int n) {
+    vector<int> dist(n, INT_MAX);
+    priority_queue<pii, vector<pii>, greater<pii>> pq;
+
+    dist[source] = 0;
+    pq.push({0, source});
+
+    while (!pq.empty()) {
+        auto [d, u] = pq.top(); pq.pop();
+        if (d > dist[u]) continue;
+
+        for (auto [weight, v] : graph_adj[u]) {
+            if (dist[u] + weight < dist[v]) {
+                dist[v] = dist[u] + weight;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+    return dist;
+}
+
+int main() {
+    int n = 5;
+    vector<vector<pii>> graph_adj(n);
+    auto addEdge = [&](int u, int v, int w) {
+        graph_adj[u].push_back({w, v});
+        graph_adj[v].push_back({w, u});
+    };
+    addEdge(0,1,10); addEdge(0,2,3); addEdge(1,2,1);
+    addEdge(1,3,2);  addEdge(2,3,8); addEdge(2,4,2);
+    addEdge(3,4,7);
+
+    vector<int> dist = dijkstra(graph_adj, 0, n);
+    cout << "Shortest distances from node 0:\\n";
+    for (int i = 0; i < n; i++)
+        cout << "  Node " << i << ": " << dist[i] << "\\n";
+    return 0;
+}`,
+
+  "python": `import heapq
+
+def dijkstra(graph_adj, source, n):
+    dist = [float('inf')] * n
+    dist[source] = 0
+    pq = [(0, source)]
+
+    while pq:
+        d, u = heapq.heappop(pq)
+        if d > dist[u]:
+            continue
+        for weight, v in graph_adj[u]:
+            if dist[u] + weight < dist[v]:
+                dist[v] = dist[u] + weight
+                heapq.heappush(pq, (dist[v], v))
+
+    return dist
+
+if __name__ == "__main__":
+    n = 5
+    graph_adj = [[] for _ in range(n)]
+    def add_edge(u, v, w):
+        graph_adj[u].append((w, v))
+        graph_adj[v].append((w, u))
+    add_edge(0,1,10); add_edge(0,2,3); add_edge(1,2,1)
+    add_edge(1,3,2);  add_edge(2,3,8); add_edge(2,4,2)
+    add_edge(3,4,7)
+
+    dist = dijkstra(graph_adj, 0, n)
+    print("Shortest distances from node 0:")
+    for i, d in enumerate(dist):
+        print(f"  Node {i}: {d}")`,
+
+  "java": `import java.util.*;
+
+public class Main {
+    static int[] dijkstra(List<int[]>[] graphAdj, int source, int n) {
+        int[] dist = new int[n];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[source] = 0;
+
+        PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(a -> a[0]));
+        pq.offer(new int[]{0, source});
+
+        while (!pq.isEmpty()) {
+            int[] curr = pq.poll();
+            int d = curr[0], u = curr[1];
+            if (d > dist[u]) continue;
+
+            for (int[] edge : graphAdj[u]) {
+                int v = edge[0], w = edge[1];
+                if (dist[u] + w < dist[v]) {
+                    dist[v] = dist[u] + w;
+                    pq.offer(new int[]{dist[v], v});
+                }
+            }
+        }
+        return dist;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void main(String[] args) {
+        int n = 5;
+        List<int[]>[] graphAdj = new ArrayList[n];
+        for (int i = 0; i < n; i++) graphAdj[i] = new ArrayList<>();
+        int[][] edges = {{0,1,10},{0,2,3},{1,2,1},{1,3,2},{2,3,8},{2,4,2},{3,4,7}};
+        for (int[] e : edges) {
+            graphAdj[e[0]].add(new int[]{e[1], e[2]});
+            graphAdj[e[1]].add(new int[]{e[0], e[2]});
+        }
+
+        int[] dist = dijkstra(graphAdj, 0, n);
+        System.out.println("Shortest distances from node 0:");
+        for (int i = 0; i < n; i++)
+            System.out.println("  Node " + i + ": " + dist[i]);
+    }
+}`,
+
+  "js": `function dijkstra(graphAdj, source, n) {
+    const dist = new Array(n).fill(Infinity);
+    dist[source] = 0;
+    // Min-heap: [distance, node]
+    const pq = [[0, source]];
+
+    while (pq.length > 0) {
+        pq.sort((a, b) => a[0] - b[0]);
+        const [d, u] = pq.shift();
+        if (d > dist[u]) continue;
+
+        for (const [v, w] of graphAdj[u]) {
+            if (dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w;
+                pq.push([dist[v], v]);
+            }
+        }
+    }
+    return dist;
+}
+
+const n = 5;
+const graphAdj = Array.from({length: n}, () => []);
+const addEdge = (u, v, w) => { graphAdj[u].push([v,w]); graphAdj[v].push([u,w]); };
+addEdge(0,1,10); addEdge(0,2,3); addEdge(1,2,1);
+addEdge(1,3,2);  addEdge(2,3,8); addEdge(2,4,2); addEdge(3,4,7);
+
+const dist = dijkstra(graphAdj, 0, n);
+console.log("Shortest distances from node 0:");
+dist.forEach((d, i) => console.log(\`  Node \${i}: \${d}\`));`,
+
+  "c": `#include <stdio.h>
+#include <limits.h>
+#include <string.h>
+#define MAXN 100
+#define INF INT_MAX
+
+int graph_adj[MAXN][MAXN], weight[MAXN][MAXN], deg[MAXN];
+int dist[MAXN];
+int visited[MAXN];
+
+void addEdge(int u, int v, int w) {
+    graph_adj[u][deg[u]] = v; weight[u][deg[u]++] = w;
+    graph_adj[v][deg[v]] = u; weight[v][deg[v]++] = w;
+}
+
+void dijkstra(int source, int n) {
+    for (int i = 0; i < n; i++) { dist[i] = INF; visited[i] = 0; }
+    dist[source] = 0;
+
+    for (int iter = 0; iter < n; iter++) {
+        int u = -1;
+        for (int i = 0; i < n; i++)
+            if (!visited[i] && (u == -1 || dist[i] < dist[u])) u = i;
+        if (dist[u] == INF) break;
+        visited[u] = 1;
+
+        for (int i = 0; i < deg[u]; i++) {
+            int v = graph_adj[u][i], w = weight[u][i];
+            if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;
+        }
+    }
+}
+
+int main() {
+    int n = 5;
+    memset(deg, 0, sizeof(deg));
+    addEdge(0,1,10); addEdge(0,2,3); addEdge(1,2,1);
+    addEdge(1,3,2);  addEdge(2,3,8); addEdge(2,4,2); addEdge(3,4,7);
+    dijkstra(0, n);
+    printf("Shortest distances from node 0:\\n");
+    for (int i = 0; i < n; i++)
+        printf("  Node %d: %d\\n", i, dist[i]);
+    return 0;
+}`,
+
+  "c#": `using System;
+using System.Collections.Generic;
+
+class Program {
+    static int[] Dijkstra(List<(int v, int w)>[] graphAdj, int source, int n) {
+        int[] dist = new int[n];
+        Array.Fill(dist, int.MaxValue);
+        dist[source] = 0;
+
+        var pq = new SortedSet<(int d, int u)>(Comparer<(int,int)>.Create((a,b) =>
+            a.d != b.d ? a.d.CompareTo(b.d) : a.u.CompareTo(b.u)));
+        pq.Add((0, source));
+
+        while (pq.Count > 0) {
+            var (d, u) = pq.Min; pq.Remove(pq.Min);
+            if (d > dist[u]) continue;
+
+            foreach (var (v, w) in graphAdj[u]) {
+                if (dist[u] + w < dist[v]) {
+                    pq.Remove((dist[v], v));
+                    dist[v] = dist[u] + w;
+                    pq.Add((dist[v], v));
+                }
+            }
+        }
+        return dist;
+    }
+
+    static void Main() {
+        int n = 5;
+        var graphAdj = new List<(int,int)>[n];
+        for (int i = 0; i < n; i++) graphAdj[i] = new List<(int,int)>();
+        int[][] edges = {{0,1,10},{0,2,3},{1,2,1},{1,3,2},{2,3,8},{2,4,2},{3,4,7}};
+        foreach (var e in edges) {
+            graphAdj[e[0]].Add((e[1], e[2]));
+            graphAdj[e[1]].Add((e[0], e[2]));
+        }
+
+        int[] dist = Dijkstra(graphAdj, 0, n);
+        Console.WriteLine("Shortest distances from node 0:");
+        for (int i = 0; i < n; i++)
+            Console.WriteLine($"  Node {i}: {dist[i]}");
+    }
+}`,
+
+  "swift": `func dijkstra(graphAdj: [[(Int, Int)]], source: Int, n: Int) -> [Int] {
+    var dist = Array(repeating: Int.max, count: n)
+    dist[source] = 0
+    // Simple priority queue using sorted array: (distance, node)
+    var pq: [(Int, Int)] = [(0, source)]
+
+    while !pq.isEmpty {
+        pq.sort { $0.0 < $1.0 }
+        let (d, u) = pq.removeFirst()
+        if d > dist[u] { continue }
+
+        for (v, w) in graphAdj[u] {
+            if dist[u] + w < dist[v] {
+                dist[v] = dist[u] + w
+                pq.append((dist[v], v))
+            }
+        }
+    }
+    return dist
+}
+
+var graphAdj = [[(Int, Int)]](repeating: [], count: 5)
+let edges = [(0,1,10),(0,2,3),(1,2,1),(1,3,2),(2,3,8),(2,4,2),(3,4,7)]
+for (u, v, w) in edges {
+    graphAdj[u].append((v, w)); graphAdj[v].append((u, w))
+}
+let dist = dijkstra(graphAdj: graphAdj, source: 0, n: 5)
+print("Shortest distances from node 0:")
+for (i, d) in dist.enumerated() { print("  Node \\(i): \\(d)") }`,
+
+  "kotlin": `import java.util.PriorityQueue
+
+fun dijkstra(graphAdj: Array<MutableList<Pair<Int,Int>>>, source: Int, n: Int): IntArray {
+    val dist = IntArray(n) { Int.MAX_VALUE }
+    dist[source] = 0
+    val pq = PriorityQueue<Pair<Int,Int>>(compareBy { it.first })
+    pq.add(0 to source)
+
+    while (pq.isNotEmpty()) {
+        val (d, u) = pq.poll()
+        if (d > dist[u]) continue
+        for ((v, w) in graphAdj[u]) {
+            if (dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w
+                pq.add(dist[v] to v)
+            }
+        }
+    }
+    return dist
+}
+
+fun main() {
+    val n = 5
+    val graphAdj = Array(n) { mutableListOf<Pair<Int,Int>>() }
+    val edges = listOf(0 to Pair(1,10), 0 to Pair(2,3), 1 to Pair(2,1),
+                       1 to Pair(3,2), 2 to Pair(3,8), 2 to Pair(4,2), 3 to Pair(4,7))
+    for ((u, vw) in edges) {
+        graphAdj[u].add(vw); graphAdj[vw.first].add(u to vw.second)
+    }
+
+    val dist = dijkstra(graphAdj, 0, n)
+    println("Shortest distances from node 0:")
+    dist.forEachIndexed { i, d -> println("  Node $i: $d") }
+}`,
+
+  "scala": `import scala.collection.mutable
+
+object Main extends App {
+    def dijkstra(graphAdj: Array[mutable.ListBuffer[(Int,Int)]], source: Int, n: Int): Array[Int] = {
+        val dist = Array.fill(n)(Int.MaxValue)
+        dist(source) = 0
+        val pq = mutable.PriorityQueue[(Int,Int)]()(Ordering.by(-_._1))
+        pq.enqueue((0, source))
+
+        while (pq.nonEmpty) {
+            val (d, u) = pq.dequeue()
+            if (d <= dist(u)) {
+                for ((v, w) <- graphAdj(u)) {
+                    if (dist(u) + w < dist(v)) {
+                        dist(v) = dist(u) + w
+                        pq.enqueue((dist(v), v))
+                    }
+                }
+            }
+        }
+        dist
+    }
+
+    val n = 5
+    val graphAdj = Array.fill(n)(mutable.ListBuffer[(Int,Int)]())
+    val edges = List((0,1,10),(0,2,3),(1,2,1),(1,3,2),(2,3,8),(2,4,2),(3,4,7))
+    for ((u, v, w) <- edges) { graphAdj(u) += ((v,w)); graphAdj(v) += ((u,w)) }
+
+    val dist = dijkstra(graphAdj, 0, n)
+    println("Shortest distances from node 0:")
+    dist.zipWithIndex.foreach { case (d, i) => println(s"  Node $i: $d") }
+}`,
+
+  "go": `package main
+
+import (
+    "container/heap"
+    "fmt"
+    "math"
+)
+
+type Item struct { dist, node int }
+type PQ []Item
+func (pq PQ) Len() int            { return len(pq) }
+func (pq PQ) Less(i, j int) bool  { return pq[i].dist < pq[j].dist }
+func (pq PQ) Swap(i, j int)       { pq[i], pq[j] = pq[j], pq[i] }
+func (pq *PQ) Push(x interface{}) { *pq = append(*pq, x.(Item)) }
+func (pq *PQ) Pop() interface{}   { old := *pq; n := len(old); x := old[n-1]; *pq = old[:n-1]; return x }
+
+func dijkstra(graphAdj [][][2]int, source, n int) []int {
+    dist := make([]int, n)
+    for i := range dist { dist[i] = math.MaxInt32 }
+    dist[source] = 0
+
+    pq := &PQ{{0, source}}
+    heap.Init(pq)
+
+    for pq.Len() > 0 {
+        curr := heap.Pop(pq).(Item)
+        d, u := curr.dist, curr.node
+        if d > dist[u] { continue }
+
+        for _, edge := range graphAdj[u] {
+            v, w := edge[0], edge[1]
+            if dist[u]+w < dist[v] {
+                dist[v] = dist[u] + w
+                heap.Push(pq, Item{dist[v], v})
+            }
+        }
+    }
+    return dist
+}
+
+func main() {
+    n := 5
+    graphAdj := make([][][2]int, n)
+    addEdge := func(u, v, w int) {
+        graphAdj[u] = append(graphAdj[u], [2]int{v, w})
+        graphAdj[v] = append(graphAdj[v], [2]int{u, w})
+    }
+    addEdge(0,1,10); addEdge(0,2,3); addEdge(1,2,1)
+    addEdge(1,3,2);  addEdge(2,3,8); addEdge(2,4,2); addEdge(3,4,7)
+
+    dist := dijkstra(graphAdj, 0, n)
+    fmt.Println("Shortest distances from node 0:")
+    for i, d := range dist { fmt.Printf("  Node %d: %d\\n", i, d) }
+}`,
+
+  "rust": `use std::collections::BinaryHeap;
+use std::cmp::Reverse;
+
+fn dijkstra(graph_adj: &Vec<Vec<(usize, i32)>>, source: usize, n: usize) -> Vec<i32> {
+    let mut dist = vec![i32::MAX; n];
+    dist[source] = 0;
+    let mut pq = BinaryHeap::new();
+    pq.push(Reverse((0i32, source)));
+
+    while let Some(Reverse((d, u))) = pq.pop() {
+        if d > dist[u] { continue; }
+        for &(v, w) in &graph_adj[u] {
+            if dist[u] + w < dist[v] {
+                dist[v] = dist[u] + w;
+                pq.push(Reverse((dist[v], v)));
+            }
+        }
+    }
+    dist
+}
+
+fn main() {
+    let n = 5;
+    let mut graph_adj = vec![vec![]; n];
+    let edges = vec![(0,1,10),(0,2,3),(1,2,1),(1,3,2),(2,3,8),(2,4,2),(3,4,7)];
+    for (u, v, w) in edges {
+        graph_adj[u].push((v, w));
+        graph_adj[v].push((u, w));
+    }
+
+    let dist = dijkstra(&graph_adj, 0, n);
+    println!("Shortest distances from node 0:");
+    for (i, d) in dist.iter().enumerate() {
+        println!("  Node {}: {}", i, d);
+    }
+}`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -7924,7 +9172,352 @@ const GRAPHS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Inductive claim: after k rounds of relaxing all edges, distance[v] is correct for every vertex v whose true shortest path from the source uses at most k edges. The base case (k=0) holds trivially (only the source, at distance 0, has a 0-edge path). The inductive step holds because if the true shortest path to v uses exactly k edges and ends with edge (u, v), then by the inductive hypothesis distance[u] is already correct after k−1 rounds, so round k's relaxation of edge (u,v) correctly sets distance[v]. Since any simple shortest path has at most V−1 edges, V−1 rounds guarantee correctness for all vertices — and if a valid relaxation is still possible after that, the only explanation is a negative cycle, since no simple shortest path can have more than V−1 edges." }
-      ]
+      ],
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+#include <climits>
+using namespace std;
+
+struct Edge { int u, v, w; };
+
+vector<int> bellmanFord(int n, vector<Edge>& graph_edges, int source) {
+    vector<int> dist(n, INT_MAX);
+    dist[source] = 0;
+
+    for (int i = 1; i < n; i++) {
+        for (auto& [u, v, w] : graph_edges) {
+            if (dist[u] != INT_MAX && dist[u] + w < dist[v])
+                dist[v] = dist[u] + w;
+        }
+    }
+
+    for (auto& [u, v, w] : graph_edges) {
+        if (dist[u] != INT_MAX && dist[u] + w < dist[v]) {
+            cout << "Negative cycle detected!\\n";
+            return {};
+        }
+    }
+    return dist;
+}
+
+int main() {
+    int n = 5;
+    vector<Edge> graph_edges = {
+        {0,1,-1},{0,2,4},{1,2,3},{1,3,2},{1,4,2},{3,2,5},{3,1,1},{4,3,-3}
+    };
+
+    vector<int> dist = bellmanFord(n, graph_edges, 0);
+    if (!dist.empty()) {
+        cout << "Shortest distances from node 0:\\n";
+        for (int i = 0; i < n; i++)
+            cout << "  Node " << i << ": " << dist[i] << "\\n";
+    }
+    return 0;
+}`,
+
+  "python": `def bellman_ford(n, graph_edges, source):
+    dist = [float('inf')] * n
+    dist[source] = 0
+
+    for _ in range(n - 1):
+        for u, v, w in graph_edges:
+            if dist[u] != float('inf') and dist[u] + w < dist[v]:
+                dist[v] = dist[u] + w
+
+    for u, v, w in graph_edges:
+        if dist[u] != float('inf') and dist[u] + w < dist[v]:
+            print("Negative cycle detected!")
+            return None
+
+    return dist
+
+if __name__ == "__main__":
+    n = 5
+    graph_edges = [(0,1,-1),(0,2,4),(1,2,3),(1,3,2),(1,4,2),(3,2,5),(3,1,1),(4,3,-3)]
+    dist = bellman_ford(n, graph_edges, 0)
+    if dist:
+        print("Shortest distances from node 0:")
+        for i, d in enumerate(dist):
+            print(f"  Node {i}: {d}")`,
+
+  "java": `import java.util.*;
+
+public class Main {
+    static int[] bellmanFord(int n, int[][] graphEdges, int source) {
+        int[] dist = new int[n];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[source] = 0;
+
+        for (int i = 1; i < n; i++) {
+            for (int[] e : graphEdges) {
+                int u = e[0], v = e[1], w = e[2];
+                if (dist[u] != Integer.MAX_VALUE && dist[u] + w < dist[v])
+                    dist[v] = dist[u] + w;
+            }
+        }
+
+        for (int[] e : graphEdges) {
+            if (dist[e[0]] != Integer.MAX_VALUE && dist[e[0]] + e[2] < dist[e[1]]) {
+                System.out.println("Negative cycle detected!");
+                return new int[]{};
+            }
+        }
+        return dist;
+    }
+
+    public static void main(String[] args) {
+        int n = 5;
+        int[][] graphEdges = {{0,1,-1},{0,2,4},{1,2,3},{1,3,2},{1,4,2},{3,2,5},{3,1,1},{4,3,-3}};
+        int[] dist = bellmanFord(n, graphEdges, 0);
+        if (dist.length > 0) {
+            System.out.println("Shortest distances from node 0:");
+            for (int i = 0; i < n; i++)
+                System.out.println("  Node " + i + ": " + dist[i]);
+        }
+    }
+}`,
+
+  "js": `function bellmanFord(n, graphEdges, source) {
+    const dist = new Array(n).fill(Infinity);
+    dist[source] = 0;
+
+    for (let i = 1; i < n; i++) {
+        for (const [u, v, w] of graphEdges) {
+            if (dist[u] !== Infinity && dist[u] + w < dist[v])
+                dist[v] = dist[u] + w;
+        }
+    }
+
+    for (const [u, v, w] of graphEdges) {
+        if (dist[u] !== Infinity && dist[u] + w < dist[v]) {
+            console.log("Negative cycle detected!");
+            return null;
+        }
+    }
+    return dist;
+}
+
+const n = 5;
+const graphEdges = [[0,1,-1],[0,2,4],[1,2,3],[1,3,2],[1,4,2],[3,2,5],[3,1,1],[4,3,-3]];
+const dist = bellmanFord(n, graphEdges, 0);
+if (dist) {
+    console.log("Shortest distances from node 0:");
+    dist.forEach((d, i) => console.log(\`  Node \${i}: \${d}\`));
+}`,
+
+  "c": `#include <stdio.h>
+#include <limits.h>
+
+typedef struct { int u, v, w; } Edge;
+
+void bellmanFord(int n, Edge* graph_edges, int m, int source) {
+    int dist[100];
+    for (int i = 0; i < n; i++) dist[i] = INT_MAX;
+    dist[source] = 0;
+
+    for (int i = 1; i < n; i++)
+        for (int j = 0; j < m; j++)
+            if (dist[graph_edges[j].u] != INT_MAX &&
+                dist[graph_edges[j].u] + graph_edges[j].w < dist[graph_edges[j].v])
+                dist[graph_edges[j].v] = dist[graph_edges[j].u] + graph_edges[j].w;
+
+    for (int j = 0; j < m; j++)
+        if (dist[graph_edges[j].u] != INT_MAX &&
+            dist[graph_edges[j].u] + graph_edges[j].w < dist[graph_edges[j].v]) {
+            printf("Negative cycle detected!\\n"); return;
+        }
+
+    printf("Shortest distances from node %d:\\n", source);
+    for (int i = 0; i < n; i++) printf("  Node %d: %d\\n", i, dist[i]);
+}
+
+int main() {
+    Edge graph_edges[] = {{0,1,-1},{0,2,4},{1,2,3},{1,3,2},{1,4,2},{3,2,5},{3,1,1},{4,3,-3}};
+    bellmanFord(5, graph_edges, 8, 0);
+    return 0;
+}`,
+
+  "c#": `using System;
+
+class Program {
+    static int[] BellmanFord(int n, int[][] graphEdges, int source) {
+        int[] dist = new int[n];
+        Array.Fill(dist, int.MaxValue);
+        dist[source] = 0;
+
+        for (int i = 1; i < n; i++)
+            foreach (var e in graphEdges)
+                if (dist[e[0]] != int.MaxValue && dist[e[0]] + e[2] < dist[e[1]])
+                    dist[e[1]] = dist[e[0]] + e[2];
+
+        foreach (var e in graphEdges)
+            if (dist[e[0]] != int.MaxValue && dist[e[0]] + e[2] < dist[e[1]]) {
+                Console.WriteLine("Negative cycle detected!"); return new int[]{};
+            }
+        return dist;
+    }
+
+    static void Main() {
+        int n = 5;
+        int[][] graphEdges = {{0,1,-1},{0,2,4},{1,2,3},{1,3,2},{1,4,2},{3,2,5},{3,1,1},{4,3,-3}};
+        int[] dist = BellmanFord(n, graphEdges, 0);
+        if (dist.Length > 0) {
+            Console.WriteLine("Shortest distances from node 0:");
+            for (int i = 0; i < n; i++)
+                Console.WriteLine($"  Node {i}: {dist[i]}");
+        }
+    }
+}`,
+
+  "swift": `func bellmanFord(n: Int, graphEdges: [(Int,Int,Int)], source: Int) -> [Int]? {
+    var dist = Array(repeating: Int.max, count: n)
+    dist[source] = 0
+
+    for _ in 1..<n {
+        for (u, v, w) in graphEdges {
+            if dist[u] != Int.max && dist[u] + w < dist[v] {
+                dist[v] = dist[u] + w
+            }
+        }
+    }
+
+    for (u, v, w) in graphEdges {
+        if dist[u] != Int.max && dist[u] + w < dist[v] {
+            print("Negative cycle detected!"); return nil
+        }
+    }
+    return dist
+}
+
+let graphEdges = [(0,1,-1),(0,2,4),(1,2,3),(1,3,2),(1,4,2),(3,2,5),(3,1,1),(4,3,-3)]
+if let dist = bellmanFord(n: 5, graphEdges: graphEdges, source: 0) {
+    print("Shortest distances from node 0:")
+    for (i, d) in dist.enumerated() { print("  Node \\(i): \\(d)") }
+}`,
+
+  "kotlin": `fun bellmanFord(n: Int, graphEdges: List<Triple<Int,Int,Int>>, source: Int): IntArray? {
+    val dist = IntArray(n) { Int.MAX_VALUE }
+    dist[source] = 0
+
+    repeat(n - 1) {
+        for ((u, v, w) in graphEdges)
+            if (dist[u] != Int.MAX_VALUE && dist[u] + w < dist[v])
+                dist[v] = dist[u] + w
+    }
+
+    for ((u, v, w) in graphEdges)
+        if (dist[u] != Int.MAX_VALUE && dist[u] + w < dist[v]) {
+            println("Negative cycle detected!"); return null
+        }
+    return dist
+}
+
+fun main() {
+    val graphEdges = listOf(
+        Triple(0,1,-1), Triple(0,2,4), Triple(1,2,3), Triple(1,3,2),
+        Triple(1,4,2), Triple(3,2,5), Triple(3,1,1), Triple(4,3,-3)
+    )
+    bellmanFord(5, graphEdges, 0)?.let { dist ->
+        println("Shortest distances from node 0:")
+        dist.forEachIndexed { i, d -> println("  Node $i: $d") }
+    }
+}`,
+
+  "scala": `object Main extends App {
+    def bellmanFord(n: Int, graphEdges: List[(Int,Int,Int)], source: Int): Option[Array[Int]] = {
+        val dist = Array.fill(n)(Int.MaxValue)
+        dist(source) = 0
+
+        for (_ <- 1 until n; (u, v, w) <- graphEdges)
+            if (dist(u) != Int.MaxValue && dist(u) + w < dist(v))
+                dist(v) = dist(u) + w
+
+        for ((u, v, w) <- graphEdges)
+            if (dist(u) != Int.MaxValue && dist(u) + w < dist(v)) {
+                println("Negative cycle detected!"); return None
+            }
+        Some(dist)
+    }
+
+    val graphEdges = List((0,1,-1),(0,2,4),(1,2,3),(1,3,2),(1,4,2),(3,2,5),(3,1,1),(4,3,-3))
+    bellmanFord(5, graphEdges, 0).foreach { dist =>
+        println("Shortest distances from node 0:")
+        dist.zipWithIndex.foreach { case (d, i) => println(s"  Node $i: $d") }
+    }
+}`,
+
+  "go": `package main
+
+import (
+    "fmt"
+    "math"
+)
+
+type Edge struct{ u, v, w int }
+
+func bellmanFord(n int, graphEdges []Edge, source int) []int {
+    dist := make([]int, n)
+    for i := range dist { dist[i] = math.MaxInt32 }
+    dist[source] = 0
+
+    for i := 1; i < n; i++ {
+        for _, e := range graphEdges {
+            if dist[e.u] != math.MaxInt32 && dist[e.u]+e.w < dist[e.v] {
+                dist[e.v] = dist[e.u] + e.w
+            }
+        }
+    }
+
+    for _, e := range graphEdges {
+        if dist[e.u] != math.MaxInt32 && dist[e.u]+e.w < dist[e.v] {
+            fmt.Println("Negative cycle detected!")
+            return nil
+        }
+    }
+    return dist
+}
+
+func main() {
+    graphEdges := []Edge{{0,1,-1},{0,2,4},{1,2,3},{1,3,2},{1,4,2},{3,2,5},{3,1,1},{4,3,-3}}
+    dist := bellmanFord(5, graphEdges, 0)
+    if dist != nil {
+        fmt.Println("Shortest distances from node 0:")
+        for i, d := range dist { fmt.Printf("  Node %d: %d\\n", i, d) }
+    }
+}`,
+
+  "rust": `fn bellman_ford(n: usize, graph_edges: &[(usize, usize, i32)], source: usize) -> Option<Vec<i32>> {
+    let mut dist = vec![i32::MAX; n];
+    dist[source] = 0;
+
+    for _ in 1..n {
+        for &(u, v, w) in graph_edges {
+            if dist[u] != i32::MAX && dist[u] + w < dist[v] {
+                dist[v] = dist[u] + w;
+            }
+        }
+    }
+
+    for &(u, v, w) in graph_edges {
+        if dist[u] != i32::MAX && dist[u] + w < dist[v] {
+            println!("Negative cycle detected!");
+            return None;
+        }
+    }
+    Some(dist)
+}
+
+fn main() {
+    let graph_edges = vec![(0,1,-1),(0,2,4),(1,2,3),(1,3,2),(1,4,2),(3,2,5),(3,1,1),(4,3,-3)];
+    if let Some(dist) = bellman_ford(5, &graph_edges, 0) {
+        println!("Shortest distances from node 0:");
+        for (i, d) in dist.iter().enumerate() {
+            println!("  Node {}: {}", i, d);
+        }
+    }
+}`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -8033,7 +9626,355 @@ const GRAPHS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Inductive claim: after processing intermediate vertex k, dist[i][j] correctly holds the shortest path from i to j using only vertices from {0, 1, ..., k} as possible intermediates. Base case (before any k is processed) holds because dist[i][j] is initialised to the direct edge weight, which is trivially the shortest path using zero intermediates. Inductive step: the shortest path from i to j using vertices up to k either avoids k entirely (so it's already captured by dist[i][j] from the previous iteration) or passes through k exactly once (since revisiting k offers no benefit), in which case it equals dist[i][k] + dist[k][j], both of which are already correctly computed using vertices up to k−1 by the inductive hypothesis. Taking the minimum of these two options correctly updates dist[i][j] for intermediates up to k. By induction, after k = V−1, all pairs are correctly computed using any vertex as an intermediate." }
-      ]
+      ],
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+#include <climits>
+using namespace std;
+
+const int INF = 1e9;
+
+vector<vector<int>> floydWarshall(int n, vector<tuple<int,int,int>>& graph_edges) {
+    vector<vector<int>> dist(n, vector<int>(n, INF));
+    for (int i = 0; i < n; i++) dist[i][i] = 0;
+    for (auto& [u, v, w] : graph_edges) {
+        dist[u][v] = min(dist[u][v], w);
+        dist[v][u] = min(dist[v][u], w);
+    }
+
+    for (int k = 0; k < n; k++)
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++)
+                if (dist[i][k] < INF && dist[k][j] < INF)
+                    dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j]);
+
+    return dist;
+}
+
+int main() {
+    int n = 4;
+    vector<tuple<int,int,int>> graph_edges = {{0,1,3},{0,3,7},{1,2,2},{2,3,1},{1,3,5}};
+    auto dist = floydWarshall(n, graph_edges);
+
+    cout << "All-pairs shortest distances:\\n";
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++)
+            cout << (dist[i][j] == INF ? -1 : dist[i][j]) << "\\t";
+        cout << "\\n";
+    }
+    return 0;
+}`,
+
+  "python": `INF = float('inf')
+
+def floyd_warshall(n, graph_edges):
+    dist = [[INF]*n for _ in range(n)]
+    for i in range(n): dist[i][i] = 0
+    for u, v, w in graph_edges:
+        dist[u][v] = min(dist[u][v], w)
+        dist[v][u] = min(dist[v][u], w)
+
+    for k in range(n):
+        for i in range(n):
+            for j in range(n):
+                if dist[i][k] + dist[k][j] < dist[i][j]:
+                    dist[i][j] = dist[i][k] + dist[k][j]
+    return dist
+
+if __name__ == "__main__":
+    n = 4
+    graph_edges = [(0,1,3),(0,3,7),(1,2,2),(2,3,1),(1,3,5)]
+    dist = floyd_warshall(n, graph_edges)
+    print("All-pairs shortest distances:")
+    for row in dist:
+        print("  ", [d if d != INF else -1 for d in row])`,
+
+  "java": `import java.util.*;
+
+public class Main {
+    static final int INF = (int)1e9;
+
+    static int[][] floydWarshall(int n, int[][] graphEdges) {
+        int[][] dist = new int[n][n];
+        for (int[] row : dist) Arrays.fill(row, INF);
+        for (int i = 0; i < n; i++) dist[i][i] = 0;
+        for (int[] e : graphEdges) {
+            dist[e[0]][e[1]] = Math.min(dist[e[0]][e[1]], e[2]);
+            dist[e[1]][e[0]] = Math.min(dist[e[1]][e[0]], e[2]);
+        }
+
+        for (int k = 0; k < n; k++)
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
+                    if (dist[i][k] < INF && dist[k][j] < INF)
+                        dist[i][j] = Math.min(dist[i][j], dist[i][k] + dist[k][j]);
+        return dist;
+    }
+
+    public static void main(String[] args) {
+        int n = 4;
+        int[][] graphEdges = {{0,1,3},{0,3,7},{1,2,2},{2,3,1},{1,3,5}};
+        int[][] dist = floydWarshall(n, graphEdges);
+        System.out.println("All-pairs shortest distances:");
+        for (int[] row : dist) {
+            for (int d : row) System.out.print((d == INF ? -1 : d) + "\\t");
+            System.out.println();
+        }
+    }
+}`,
+
+  "js": `const INF = 1e9;
+
+function floydWarshall(n, graphEdges) {
+    const dist = Array.from({length: n}, (_, i) =>
+        Array.from({length: n}, (_, j) => i === j ? 0 : INF));
+
+    for (const [u, v, w] of graphEdges) {
+        dist[u][v] = Math.min(dist[u][v], w);
+        dist[v][u] = Math.min(dist[v][u], w);
+    }
+
+    for (let k = 0; k < n; k++)
+        for (let i = 0; i < n; i++)
+            for (let j = 0; j < n; j++)
+                if (dist[i][k] + dist[k][j] < dist[i][j])
+                    dist[i][j] = dist[i][k] + dist[k][j];
+    return dist;
+}
+
+const n = 4;
+const graphEdges = [[0,1,3],[0,3,7],[1,2,2],[2,3,1],[1,3,5]];
+const dist = floydWarshall(n, graphEdges);
+console.log("All-pairs shortest distances:");
+dist.forEach(row => console.log(" ", row.map(d => d === INF ? -1 : d)));`,
+
+  "c": `#include <stdio.h>
+#define INF 1000000000
+#define MAXN 100
+
+int dist[MAXN][MAXN];
+
+void floydWarshall(int n, int graphEdges[][3], int m) {
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            dist[i][j] = (i == j) ? 0 : INF;
+
+    for (int e = 0; e < m; e++) {
+        int u = graphEdges[e][0], v = graphEdges[e][1], w = graphEdges[e][2];
+        if (w < dist[u][v]) dist[u][v] = w;
+        if (w < dist[v][u]) dist[v][u] = w;
+    }
+
+    for (int k = 0; k < n; k++)
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++)
+                if (dist[i][k] < INF && dist[k][j] < INF &&
+                    dist[i][k] + dist[k][j] < dist[i][j])
+                    dist[i][j] = dist[i][k] + dist[k][j];
+}
+
+int main() {
+    int n = 4;
+    int graphEdges[][3] = {{0,1,3},{0,3,7},{1,2,2},{2,3,1},{1,3,5}};
+    floydWarshall(n, graphEdges, 5);
+    printf("All-pairs shortest distances:\\n");
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++)
+            printf("%d\\t", dist[i][j] == INF ? -1 : dist[i][j]);
+        printf("\\n");
+    }
+    return 0;
+}`,
+
+  "c#": `using System;
+
+class Program {
+    const int INF = (int)1e9;
+
+    static int[,] FloydWarshall(int n, int[][] graphEdges) {
+        int[,] dist = new int[n, n];
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++)
+                dist[i, j] = (i == j) ? 0 : INF;
+
+        foreach (var e in graphEdges) {
+            dist[e[0], e[1]] = Math.Min(dist[e[0], e[1]], e[2]);
+            dist[e[1], e[0]] = Math.Min(dist[e[1], e[0]], e[2]);
+        }
+
+        for (int k = 0; k < n; k++)
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
+                    if (dist[i,k] < INF && dist[k,j] < INF)
+                        dist[i,j] = Math.Min(dist[i,j], dist[i,k] + dist[k,j]);
+        return dist;
+    }
+
+    static void Main() {
+        int n = 4;
+        int[][] graphEdges = {{0,1,3},{0,3,7},{1,2,2},{2,3,1},{1,3,5}};
+        int[,] dist = FloydWarshall(n, graphEdges);
+        Console.WriteLine("All-pairs shortest distances:");
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++)
+                Console.Write((dist[i,j] == INF ? -1 : dist[i,j]) + "\\t");
+            Console.WriteLine();
+        }
+    }
+}`,
+
+  "swift": `let INF = Int.max / 2
+
+func floydWarshall(n: Int, graphEdges: [(Int,Int,Int)]) -> [[Int]] {
+    var dist = Array(repeating: Array(repeating: INF, count: n), count: n)
+    for i in 0..<n { dist[i][i] = 0 }
+    for (u, v, w) in graphEdges {
+        dist[u][v] = min(dist[u][v], w)
+        dist[v][u] = min(dist[v][u], w)
+    }
+
+    for k in 0..<n {
+        for i in 0..<n {
+            for j in 0..<n {
+                if dist[i][k] < INF && dist[k][j] < INF &&
+                   dist[i][k] + dist[k][j] < dist[i][j] {
+                    dist[i][j] = dist[i][k] + dist[k][j]
+                }
+            }
+        }
+    }
+    return dist
+}
+
+let graphEdges = [(0,1,3),(0,3,7),(1,2,2),(2,3,1),(1,3,5)]
+let dist = floydWarshall(n: 4, graphEdges: graphEdges)
+print("All-pairs shortest distances:")
+for row in dist { print(" ", row.map { $0 == INF ? -1 : $0 }) }`,
+
+  "kotlin": `fun floydWarshall(n: Int, graphEdges: List<Triple<Int,Int,Int>>): Array<IntArray> {
+    val INF = Int.MAX_VALUE / 2
+    val dist = Array(n) { i -> IntArray(n) { j -> if (i == j) 0 else INF } }
+    for ((u, v, w) in graphEdges) {
+        dist[u][v] = minOf(dist[u][v], w)
+        dist[v][u] = minOf(dist[v][u], w)
+    }
+
+    for (k in 0 until n)
+        for (i in 0 until n)
+            for (j in 0 until n)
+                if (dist[i][k] < INF && dist[k][j] < INF)
+                    dist[i][j] = minOf(dist[i][j], dist[i][k] + dist[k][j])
+    return dist
+}
+
+fun main() {
+    val graphEdges = listOf(Triple(0,1,3),Triple(0,3,7),Triple(1,2,2),Triple(2,3,1),Triple(1,3,5))
+    val dist = floydWarshall(4, graphEdges)
+    val INF = Int.MAX_VALUE / 2
+    println("All-pairs shortest distances:")
+    for (row in dist) println("  " + row.map { if (it == INF) -1 else it })
+}`,
+
+  "scala": `object Main extends App {
+    val INF = Int.MaxValue / 2
+
+    def floydWarshall(n: Int, graphEdges: List[(Int,Int,Int)]): Array[Array[Int]] = {
+        val dist = Array.tabulate(n, n)((i, j) => if (i == j) 0 else INF)
+        for ((u, v, w) <- graphEdges) {
+            dist(u)(v) = dist(u)(v) min w
+            dist(v)(u) = dist(v)(u) min w
+        }
+        for (k <- 0 until n; i <- 0 until n; j <- 0 until n)
+            if (dist(i)(k) < INF && dist(k)(j) < INF)
+                dist(i)(j) = dist(i)(j) min (dist(i)(k) + dist(k)(j))
+        dist
+    }
+
+    val graphEdges = List((0,1,3),(0,3,7),(1,2,2),(2,3,1),(1,3,5))
+    val dist = floydWarshall(4, graphEdges)
+    println("All-pairs shortest distances:")
+    for (row <- dist) println("  " + row.map(d => if (d == INF) -1 else d).mkString(", "))
+}`,
+
+  "go": `package main
+
+import (
+    "fmt"
+    "math"
+)
+
+func floydWarshall(n int, graphEdges [][3]int) [][]int {
+    dist := make([][]int, n)
+    for i := range dist {
+        dist[i] = make([]int, n)
+        for j := range dist[i] {
+            if i == j { dist[i][j] = 0 } else { dist[i][j] = math.MaxInt32 / 2 }
+        }
+    }
+    for _, e := range graphEdges {
+        u, v, w := e[0], e[1], e[2]
+        if w < dist[u][v] { dist[u][v] = w }
+        if w < dist[v][u] { dist[v][u] = w }
+    }
+
+    for k := 0; k < n; k++ {
+        for i := 0; i < n; i++ {
+            for j := 0; j < n; j++ {
+                if dist[i][k]+dist[k][j] < dist[i][j] {
+                    dist[i][j] = dist[i][k] + dist[k][j]
+                }
+            }
+        }
+    }
+    return dist
+}
+
+func main() {
+    graphEdges := [][3]int{{0,1,3},{0,3,7},{1,2,2},{2,3,1},{1,3,5}}
+    dist := floydWarshall(4, graphEdges)
+    fmt.Println("All-pairs shortest distances:")
+    INF := math.MaxInt32 / 2
+    for _, row := range dist {
+        for _, d := range row {
+            if d == INF { fmt.Print("-1\\t") } else { fmt.Printf("%d\\t", d) }
+        }
+        fmt.Println()
+    }
+}`,
+
+  "rust": `fn floyd_warshall(n: usize, graph_edges: &[(usize, usize, i32)]) -> Vec<Vec<i32>> {
+    let INF = i32::MAX / 2;
+    let mut dist = vec![vec![INF; n]; n];
+    for i in 0..n { dist[i][i] = 0; }
+    for &(u, v, w) in graph_edges {
+        dist[u][v] = dist[u][v].min(w);
+        dist[v][u] = dist[v][u].min(w);
+    }
+
+    for k in 0..n {
+        for i in 0..n {
+            for j in 0..n {
+                if dist[i][k] < INF && dist[k][j] < INF {
+                    dist[i][j] = dist[i][j].min(dist[i][k] + dist[k][j]);
+                }
+            }
+        }
+    }
+    dist
+}
+
+fn main() {
+    let graph_edges = vec![(0,1,3),(0,3,7),(1,2,2),(2,3,1),(1,3,5)];
+    let dist = floyd_warshall(4, &graph_edges);
+    let INF = i32::MAX / 2;
+    println!("All-pairs shortest distances:");
+    for row in &dist {
+        let display: Vec<_> = row.iter().map(|&d| if d == INF { -1 } else { d }).collect();
+        println!("  {:?}", display);
+    }
+}`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -8135,7 +10076,435 @@ const GRAPHS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "This follows from the Cut Property of MSTs: for any partition of the vertices into two non-empty sets, the minimum-weight edge crossing that partition must be part of some MST. Processing edges in ascending weight order and only adding an edge when it connects two different components is exactly choosing, at each step, the minimum-weight edge crossing the cut between 'already-connected components' and 'everything else' — which the Cut Property guarantees is always safe to include. The greedy choice never needs to be undone, and since Union-Find correctly tracks connectivity, every cycle-forming edge is correctly rejected, yielding a true minimum spanning tree." }
-      ]
+      ],
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+struct UnionFind {
+    vector<int> parent, rank;
+    UnionFind(int n) : parent(n), rank(n, 0) { iota(parent.begin(), parent.end(), 0); }
+    int find(int x) { return parent[x] == x ? x : parent[x] = find(parent[x]); }
+    bool unite(int x, int y) {
+        x = find(x); y = find(y);
+        if (x == y) return false;
+        if (rank[x] < rank[y]) swap(x, y);
+        parent[y] = x;
+        if (rank[x] == rank[y]) rank[x]++;
+        return true;
+    }
+};
+
+struct Edge { int u, v, w; };
+
+vector<Edge> kruskal(int n, vector<Edge>& graph_edges) {
+    sort(graph_edges.begin(), graph_edges.end(), [](auto& a, auto& b){ return a.w < b.w; });
+    UnionFind uf(n);
+    vector<Edge> mst;
+
+    for (auto& e : graph_edges) {
+        if (uf.unite(e.u, e.v)) {
+            mst.push_back(e);
+            if ((int)mst.size() == n - 1) break;
+        }
+    }
+    return mst;
+}
+
+int main() {
+    int n = 4;
+    vector<Edge> graph_edges = {{0,1,10},{0,2,6},{0,3,5},{1,3,15},{2,3,4}};
+    auto mst = kruskal(n, graph_edges);
+    int total = 0;
+    cout << "MST edges:\\n";
+    for (auto& e : mst) {
+        cout << "  " << e.u << " -- " << e.v << " (weight " << e.w << ")\\n";
+        total += e.w;
+    }
+    cout << "Total MST weight: " << total << "\\n";
+    return 0;
+}`,
+
+  "python": `def find(parent, x):
+    if parent[x] != x:
+        parent[x] = find(parent, parent[x])
+    return parent[x]
+
+def union(parent, rank, x, y):
+    px, py = find(parent, x), find(parent, y)
+    if px == py: return False
+    if rank[px] < rank[py]: px, py = py, px
+    parent[py] = px
+    if rank[px] == rank[py]: rank[px] += 1
+    return True
+
+def kruskal(n, graph_edges):
+    graph_edges.sort(key=lambda e: e[2])
+    parent = list(range(n))
+    rank = [0] * n
+    mst = []
+
+    for u, v, w in graph_edges:
+        if union(parent, rank, u, v):
+            mst.append((u, v, w))
+            if len(mst) == n - 1: break
+    return mst
+
+if __name__ == "__main__":
+    n = 4
+    graph_edges = [(0,1,10),(0,2,6),(0,3,5),(1,3,15),(2,3,4)]
+    mst = kruskal(n, graph_edges)
+    total = sum(w for _,_,w in mst)
+    print("MST edges:")
+    for u, v, w in mst: print(f"  {u} -- {v} (weight {w})")
+    print(f"Total MST weight: {total}")`,
+
+  "java": `import java.util.*;
+
+public class Main {
+    static int[] parent, rank;
+    static int find(int x) { return parent[x] == x ? x : (parent[x] = find(parent[x])); }
+    static boolean union(int x, int y) {
+        x = find(x); y = find(y);
+        if (x == y) return false;
+        if (rank[x] < rank[y]) { int t = x; x = y; y = t; }
+        parent[y] = x;
+        if (rank[x] == rank[y]) rank[x]++;
+        return true;
+    }
+
+    public static void main(String[] args) {
+        int n = 4;
+        int[][] graphEdges = {{0,1,10},{0,2,6},{0,3,5},{1,3,15},{2,3,4}};
+        Arrays.sort(graphEdges, Comparator.comparingInt(e -> e[2]));
+        parent = new int[n]; rank = new int[n];
+        for (int i = 0; i < n; i++) parent[i] = i;
+
+        List<int[]> mst = new ArrayList<>();
+        for (int[] e : graphEdges) {
+            if (union(e[0], e[1])) {
+                mst.add(e);
+                if (mst.size() == n - 1) break;
+            }
+        }
+
+        int total = 0;
+        System.out.println("MST edges:");
+        for (int[] e : mst) {
+            System.out.println("  " + e[0] + " -- " + e[1] + " (weight " + e[2] + ")");
+            total += e[2];
+        }
+        System.out.println("Total MST weight: " + total);
+    }
+}`,
+
+  "js": `function find(parent, x) {
+    if (parent[x] !== x) parent[x] = find(parent, parent[x]);
+    return parent[x];
+}
+function union(parent, rank, x, y) {
+    let px = find(parent, x), py = find(parent, y);
+    if (px === py) return false;
+    if (rank[px] < rank[py]) [px, py] = [py, px];
+    parent[py] = px;
+    if (rank[px] === rank[py]) rank[px]++;
+    return true;
+}
+
+function kruskal(n, graphEdges) {
+    graphEdges.sort((a, b) => a[2] - b[2]);
+    const parent = Array.from({length: n}, (_, i) => i);
+    const rank = new Array(n).fill(0);
+    const mst = [];
+
+    for (const [u, v, w] of graphEdges) {
+        if (union(parent, rank, u, v)) {
+            mst.push([u, v, w]);
+            if (mst.length === n - 1) break;
+        }
+    }
+    return mst;
+}
+
+const n = 4;
+const graphEdges = [[0,1,10],[0,2,6],[0,3,5],[1,3,15],[2,3,4]];
+const mst = kruskal(n, graphEdges);
+const total = mst.reduce((s, [,,w]) => s + w, 0);
+console.log("MST edges:");
+mst.forEach(([u,v,w]) => console.log(\`  \${u} -- \${v} (weight \${w})\`));
+console.log("Total MST weight:", total);`,
+
+  "c": `#include <stdio.h>
+#include <stdlib.h>
+#define MAXN 100
+
+int parent[MAXN], rnk[MAXN];
+
+int find(int x) { return parent[x] == x ? x : (parent[x] = find(parent[x])); }
+int unite(int x, int y) {
+    x = find(x); y = find(y);
+    if (x == y) return 0;
+    if (rnk[x] < rnk[y]) { int t = x; x = y; y = t; }
+    parent[y] = x;
+    if (rnk[x] == rnk[y]) rnk[x]++;
+    return 1;
+}
+
+typedef struct { int u, v, w; } Edge;
+
+int cmp(const void* a, const void* b) {
+    return ((Edge*)a)->w - ((Edge*)b)->w;
+}
+
+int main() {
+    int n = 4;
+    Edge graph_edges[] = {{0,1,10},{0,2,6},{0,3,5},{1,3,15},{2,3,4}};
+    int m = 5;
+    qsort(graph_edges, m, sizeof(Edge), cmp);
+    for (int i = 0; i < n; i++) { parent[i] = i; rnk[i] = 0; }
+
+    int total = 0, cnt = 0;
+    printf("MST edges:\\n");
+    for (int i = 0; i < m && cnt < n-1; i++) {
+        if (unite(graph_edges[i].u, graph_edges[i].v)) {
+            printf("  %d -- %d (weight %d)\\n", graph_edges[i].u, graph_edges[i].v, graph_edges[i].w);
+            total += graph_edges[i].w; cnt++;
+        }
+    }
+    printf("Total MST weight: %d\\n", total);
+    return 0;
+}`,
+
+  "c#": `using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program {
+    static int[] parent, rank;
+    static int Find(int x) => parent[x] == x ? x : (parent[x] = Find(parent[x]));
+    static bool Union(int x, int y) {
+        x = Find(x); y = Find(y);
+        if (x == y) return false;
+        if (rank[x] < rank[y]) (x, y) = (y, x);
+        parent[y] = x;
+        if (rank[x] == rank[y]) rank[x]++;
+        return true;
+    }
+
+    static void Main() {
+        int n = 4;
+        int[][] graphEdges = {{0,1,10},{0,2,6},{0,3,5},{1,3,15},{2,3,4}};
+        var sorted = graphEdges.OrderBy(e => e[2]).ToList();
+        parent = Enumerable.Range(0, n).ToArray();
+        rank = new int[n];
+
+        var mst = new List<int[]>();
+        foreach (var e in sorted) {
+            if (Union(e[0], e[1])) {
+                mst.Add(e);
+                if (mst.Count == n - 1) break;
+            }
+        }
+
+        int total = mst.Sum(e => e[2]);
+        Console.WriteLine("MST edges:");
+        foreach (var e in mst)
+            Console.WriteLine($"  {e[0]} -- {e[1]} (weight {e[2]})");
+        Console.WriteLine($"Total MST weight: {total}");
+    }
+}`,
+
+  "swift": `func kruskal(n: Int, graphEdges: [(Int,Int,Int)]) -> [(Int,Int,Int)] {
+    var parent = Array(0..<n)
+    var rank = Array(repeating: 0, count: n)
+
+    func find(_ x: Int) -> Int {
+        if parent[x] != x { parent[x] = find(parent[x]) }
+        return parent[x]
+    }
+    func union(_ x: Int, _ y: Int) -> Bool {
+        var px = find(x), py = find(y)
+        if px == py { return false }
+        if rank[px] < rank[py] { swap(&px, &py) }
+        parent[py] = px
+        if rank[px] == rank[py] { rank[px] += 1 }
+        return true
+    }
+
+    let sorted = graphEdges.sorted { $0.2 < $1.2 }
+    var mst = [(Int,Int,Int)]()
+    for (u, v, w) in sorted {
+        if union(u, v) {
+            mst.append((u, v, w))
+            if mst.count == n - 1 { break }
+        }
+    }
+    return mst
+}
+
+let graphEdges = [(0,1,10),(0,2,6),(0,3,5),(1,3,15),(2,3,4)]
+let mst = kruskal(n: 4, graphEdges: graphEdges)
+let total = mst.reduce(0) { $0 + $1.2 }
+print("MST edges:")
+for (u, v, w) in mst { print("  \\(u) -- \\(v) (weight \\(w))") }
+print("Total MST weight: \\(total)")`,
+
+  "kotlin": `fun kruskal(n: Int, graphEdges: List<Triple<Int,Int,Int>>): List<Triple<Int,Int,Int>> {
+    val parent = IntArray(n) { it }
+    val rank = IntArray(n)
+
+    fun find(x: Int): Int = if (parent[x] == x) x else { parent[x] = find(parent[x]); parent[x] }
+    fun union(x: Int, y: Int): Boolean {
+        var px = find(x); var py = find(y)
+        if (px == py) return false
+        if (rank[px] < rank[py]) { val t = px; px = py; py = t }
+        parent[py] = px
+        if (rank[px] == rank[py]) rank[px]++
+        return true
+    }
+
+    val mst = mutableListOf<Triple<Int,Int,Int>>()
+    for ((u, v, w) in graphEdges.sortedBy { it.third }) {
+        if (union(u, v)) {
+            mst.add(Triple(u, v, w))
+            if (mst.size == n - 1) break
+        }
+    }
+    return mst
+}
+
+fun main() {
+    val graphEdges = listOf(Triple(0,1,10),Triple(0,2,6),Triple(0,3,5),Triple(1,3,15),Triple(2,3,4))
+    val mst = kruskal(4, graphEdges)
+    val total = mst.sumOf { it.third }
+    println("MST edges:")
+    mst.forEach { (u, v, w) -> println("  $u -- $v (weight $w)") }
+    println("Total MST weight: $total")
+}`,
+
+  "scala": `object Main extends App {
+    def kruskal(n: Int, graphEdges: List[(Int,Int,Int)]): List[(Int,Int,Int)] = {
+        val parent = Array.tabulate(n)(identity)
+        val rank = Array.fill(n)(0)
+
+        def find(x: Int): Int = if (parent(x) == x) x else { parent(x) = find(parent(x)); parent(x) }
+        def union(x: Int, y: Int): Boolean = {
+            var px = find(x); var py = find(y)
+            if (px == py) return false
+            if (rank(px) < rank(py)) { val t = px; px = py; py = t }
+            parent(py) = px
+            if (rank(px) == rank(py)) rank(px) += 1
+            true
+        }
+
+        val mst = scala.collection.mutable.ListBuffer[(Int,Int,Int)]()
+        for ((u, v, w) <- graphEdges.sortBy(_._3)) {
+            if (union(u, v)) {
+                mst += ((u, v, w))
+                if (mst.length == n - 1) return mst.toList
+            }
+        }
+        mst.toList
+    }
+
+    val graphEdges = List((0,1,10),(0,2,6),(0,3,5),(1,3,15),(2,3,4))
+    val mst = kruskal(4, graphEdges)
+    val total = mst.map(_._3).sum
+    println("MST edges:")
+    mst.foreach { case (u,v,w) => println(s"  $u -- $v (weight $w)") }
+    println(s"Total MST weight: $total")
+}`,
+
+  "go": `package main
+
+import (
+    "fmt"
+    "sort"
+)
+
+type Edge struct{ u, v, w int }
+
+var parent, rank []int
+
+func find(x int) int {
+    if parent[x] != x { parent[x] = find(parent[x]) }
+    return parent[x]
+}
+func unite(x, y int) bool {
+    px, py := find(x), find(y)
+    if px == py { return false }
+    if rank[px] < rank[py] { px, py = py, px }
+    parent[py] = px
+    if rank[px] == rank[py] { rank[px]++ }
+    return true
+}
+
+func kruskal(n int, graphEdges []Edge) []Edge {
+    sort.Slice(graphEdges, func(i, j int) bool { return graphEdges[i].w < graphEdges[j].w })
+    parent = make([]int, n); rank = make([]int, n)
+    for i := range parent { parent[i] = i }
+
+    mst := []Edge{}
+    for _, e := range graphEdges {
+        if unite(e.u, e.v) {
+            mst = append(mst, e)
+            if len(mst) == n-1 { break }
+        }
+    }
+    return mst
+}
+
+func main() {
+    graphEdges := []Edge{{0,1,10},{0,2,6},{0,3,5},{1,3,15},{2,3,4}}
+    mst := kruskal(4, graphEdges)
+    total := 0
+    fmt.Println("MST edges:")
+    for _, e := range mst {
+        fmt.Printf("  %d -- %d (weight %d)\\n", e.u, e.v, e.w)
+        total += e.w
+    }
+    fmt.Println("Total MST weight:", total)
+}`,
+
+  "rust": `fn find(parent: &mut Vec<usize>, x: usize) -> usize {
+    if parent[x] != x { parent[x] = find(parent, parent[x]); }
+    parent[x]
+}
+fn union(parent: &mut Vec<usize>, rank: &mut Vec<usize>, x: usize, y: usize) -> bool {
+    let (mut px, mut py) = (find(parent, x), find(parent, y));
+    if px == py { return false; }
+    if rank[px] < rank[py] { std::mem::swap(&mut px, &mut py); }
+    parent[py] = px;
+    if rank[px] == rank[py] { rank[px] += 1; }
+    true
+}
+
+fn kruskal(n: usize, mut graph_edges: Vec<(usize, usize, i32)>) -> Vec<(usize, usize, i32)> {
+    graph_edges.sort_by_key(|e| e.2);
+    let mut parent: Vec<usize> = (0..n).collect();
+    let mut rank = vec![0usize; n];
+    let mut mst = vec![];
+
+    for (u, v, w) in graph_edges {
+        if union(&mut parent, &mut rank, u, v) {
+            mst.push((u, v, w));
+            if mst.len() == n - 1 { break; }
+        }
+    }
+    mst
+}
+
+fn main() {
+    let graph_edges = vec![(0,1,10),(0,2,6),(0,3,5),(1,3,15),(2,3,4)];
+    let mst = kruskal(4, graph_edges);
+    let total: i32 = mst.iter().map(|e| e.2).sum();
+    println!("MST edges:");
+    for (u, v, w) in &mst { println!("  {} -- {} (weight {})", u, v, w); }
+    println!("Total MST weight: {}", total);
+}`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -8248,7 +10617,432 @@ const GRAPHS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "This also follows from the Cut Property: at every step, the current tree and the remaining unvisited vertices form a cut of the graph. The algorithm always selects the minimum-weight edge crossing that cut (the smallest key among not-yet-included vertices), which the Cut Property guarantees is safe to add to some MST. Since this greedy choice is repeated for every vertex addition and is always provably safe, the final tree — having connected all V vertices with exactly V − 1 such safe edges — is guaranteed to be a true minimum spanning tree." }
-      ]
+      ],
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+using namespace std;
+
+typedef pair<int,int> pii;
+
+int prim(vector<vector<pii>>& graph_adj, int n, int start = 0) {
+    vector<int> key(n, INT_MAX);
+    vector<bool> inTree(n, false);
+    priority_queue<pii, vector<pii>, greater<pii>> pq;
+
+    key[start] = 0;
+    pq.push({0, start});
+    int mstWeight = 0;
+
+    while (!pq.empty()) {
+        auto [k, u] = pq.top(); pq.pop();
+        if (inTree[u]) continue;
+        inTree[u] = true;
+        mstWeight += k;
+
+        for (auto [v, w] : graph_adj[u]) {
+            if (!inTree[v] && w < key[v]) {
+                key[v] = w;
+                pq.push({w, v});
+            }
+        }
+    }
+    return mstWeight;
+}
+
+int main() {
+    int n = 5;
+    vector<vector<pii>> graph_adj(n);
+    auto addEdge = [&](int u, int v, int w) {
+        graph_adj[u].push_back({v, w});
+        graph_adj[v].push_back({u, w});
+    };
+    addEdge(0,1,2); addEdge(0,3,6); addEdge(1,2,3);
+    addEdge(1,3,8); addEdge(1,4,5); addEdge(2,4,7); addEdge(3,4,9);
+
+    cout << "MST total weight: " << prim(graph_adj, n) << "\\n";
+    return 0;
+}`,
+
+  "python": `import heapq
+
+def prim(graph_adj, n, start=0):
+    key = [float('inf')] * n
+    in_tree = [False] * n
+    pq = [(0, start)]
+    key[start] = 0
+    mst_weight = 0
+
+    while pq:
+        k, u = heapq.heappop(pq)
+        if in_tree[u]: continue
+        in_tree[u] = True
+        mst_weight += k
+
+        for v, w in graph_adj[u]:
+            if not in_tree[v] and w < key[v]:
+                key[v] = w
+                heapq.heappush(pq, (w, v))
+
+    return mst_weight
+
+if __name__ == "__main__":
+    n = 5
+    graph_adj = [[] for _ in range(n)]
+    def add_edge(u, v, w):
+        graph_adj[u].append((v, w))
+        graph_adj[v].append((u, w))
+    add_edge(0,1,2); add_edge(0,3,6); add_edge(1,2,3)
+    add_edge(1,3,8); add_edge(1,4,5); add_edge(2,4,7); add_edge(3,4,9)
+    print("MST total weight:", prim(graph_adj, n))`,
+
+  "java": `import java.util.*;
+
+public class Main {
+    @SuppressWarnings("unchecked")
+    public static void main(String[] args) {
+        int n = 5;
+        List<int[]>[] graphAdj = new ArrayList[n];
+        for (int i = 0; i < n; i++) graphAdj[i] = new ArrayList<>();
+        int[][] edges = {{0,1,2},{0,3,6},{1,2,3},{1,3,8},{1,4,5},{2,4,7},{3,4,9}};
+        for (int[] e : edges) {
+            graphAdj[e[0]].add(new int[]{e[1], e[2]});
+            graphAdj[e[1]].add(new int[]{e[0], e[2]});
+        }
+
+        int[] key = new int[n];
+        boolean[] inTree = new boolean[n];
+        Arrays.fill(key, Integer.MAX_VALUE);
+        key[0] = 0;
+        PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(a -> a[0]));
+        pq.offer(new int[]{0, 0});
+        int mstWeight = 0;
+
+        while (!pq.isEmpty()) {
+            int[] curr = pq.poll();
+            int k = curr[0], u = curr[1];
+            if (inTree[u]) continue;
+            inTree[u] = true;
+            mstWeight += k;
+
+            for (int[] e : graphAdj[u]) {
+                int v = e[0], w = e[1];
+                if (!inTree[v] && w < key[v]) {
+                    key[v] = w;
+                    pq.offer(new int[]{w, v});
+                }
+            }
+        }
+        System.out.println("MST total weight: " + mstWeight);
+    }
+}`,
+
+  "js": `function prim(graphAdj, n, start = 0) {
+    const key = new Array(n).fill(Infinity);
+    const inTree = new Array(n).fill(false);
+    const pq = [[0, start]];
+    key[start] = 0;
+    let mstWeight = 0;
+
+    while (pq.length > 0) {
+        pq.sort((a, b) => a[0] - b[0]);
+        const [k, u] = pq.shift();
+        if (inTree[u]) continue;
+        inTree[u] = true;
+        mstWeight += k;
+
+        for (const [v, w] of graphAdj[u]) {
+            if (!inTree[v] && w < key[v]) {
+                key[v] = w;
+                pq.push([w, v]);
+            }
+        }
+    }
+    return mstWeight;
+}
+
+const n = 5;
+const graphAdj = Array.from({length: n}, () => []);
+const addEdge = (u,v,w) => { graphAdj[u].push([v,w]); graphAdj[v].push([u,w]); };
+addEdge(0,1,2); addEdge(0,3,6); addEdge(1,2,3);
+addEdge(1,3,8); addEdge(1,4,5); addEdge(2,4,7); addEdge(3,4,9);
+console.log("MST total weight:", prim(graphAdj, n));`,
+
+  "c": `#include <stdio.h>
+#include <limits.h>
+#define MAXN 100
+
+int graph_adj[MAXN][MAXN], gweight[MAXN][MAXN], deg[MAXN];
+int key[MAXN]; int inTree[MAXN];
+
+void addEdge(int u, int v, int w) {
+    graph_adj[u][deg[u]] = v; gweight[u][deg[u]++] = w;
+    graph_adj[v][deg[v]] = u; gweight[v][deg[v]++] = w;
+}
+
+int prim(int n) {
+    for (int i = 0; i < n; i++) { key[i] = INT_MAX; inTree[i] = 0; }
+    key[0] = 0;
+    int mstWeight = 0;
+
+    for (int iter = 0; iter < n; iter++) {
+        int u = -1;
+        for (int i = 0; i < n; i++)
+            if (!inTree[i] && (u == -1 || key[i] < key[u])) u = i;
+        inTree[u] = 1;
+        mstWeight += key[u];
+
+        for (int i = 0; i < deg[u]; i++) {
+            int v = graph_adj[u][i], w = gweight[u][i];
+            if (!inTree[v] && w < key[v]) key[v] = w;
+        }
+    }
+    return mstWeight;
+}
+
+int main() {
+    int n = 5;
+    addEdge(0,1,2); addEdge(0,3,6); addEdge(1,2,3);
+    addEdge(1,3,8); addEdge(1,4,5); addEdge(2,4,7); addEdge(3,4,9);
+    printf("MST total weight: %d\\n", prim(n));
+    return 0;
+}`,
+
+  "c#": `using System;
+using System.Collections.Generic;
+
+class Program {
+    static void Main() {
+        int n = 5;
+        var graphAdj = new List<(int v, int w)>[n];
+        for (int i = 0; i < n; i++) graphAdj[i] = new List<(int,int)>();
+        int[][] edges = {{0,1,2},{0,3,6},{1,2,3},{1,3,8},{1,4,5},{2,4,7},{3,4,9}};
+        foreach (var e in edges) {
+            graphAdj[e[0]].Add((e[1], e[2]));
+            graphAdj[e[1]].Add((e[0], e[2]));
+        }
+
+        int[] key = new int[n];
+        bool[] inTree = new bool[n];
+        Array.Fill(key, int.MaxValue);
+        key[0] = 0;
+        var pq = new SortedSet<(int,int)>(Comparer<(int,int)>.Create((a,b) =>
+            a.Item1 != b.Item1 ? a.Item1.CompareTo(b.Item1) : a.Item2.CompareTo(b.Item2)));
+        pq.Add((0, 0));
+        int mstWeight = 0;
+
+        while (pq.Count > 0) {
+            var (k, u) = pq.Min; pq.Remove(pq.Min);
+            if (inTree[u]) continue;
+            inTree[u] = true;
+            mstWeight += k;
+
+            foreach (var (v, w) in graphAdj[u]) {
+                if (!inTree[v] && w < key[v]) {
+                    pq.Remove((key[v], v));
+                    key[v] = w;
+                    pq.Add((w, v));
+                }
+            }
+        }
+        Console.WriteLine("MST total weight: " + mstWeight);
+    }
+}`,
+
+  "swift": `import Foundation
+
+func prim(graphAdj: [[(Int, Int)]], n: Int, start: Int = 0) -> Int {
+    var key = Array(repeating: Int.max, count: n)
+    var inTree = Array(repeating: false, count: n)
+    var pq: [(Int, Int)] = [(0, start)]
+    key[start] = 0
+    var mstWeight = 0
+
+    while !pq.isEmpty {
+        pq.sort { $0.0 < $1.0 }
+        let (k, u) = pq.removeFirst()
+        if inTree[u] { continue }
+        inTree[u] = true
+        mstWeight += k
+
+        for (v, w) in graphAdj[u] {
+            if !inTree[v] && w < key[v] {
+                key[v] = w
+                pq.append((w, v))
+            }
+        }
+    }
+    return mstWeight
+}
+
+var graphAdj = [[(Int,Int)]](repeating: [], count: 5)
+let edges = [(0,1,2),(0,3,6),(1,2,3),(1,3,8),(1,4,5),(2,4,7),(3,4,9)]
+for (u, v, w) in edges {
+    graphAdj[u].append((v, w)); graphAdj[v].append((u, w))
+}
+print("MST total weight:", prim(graphAdj: graphAdj, n: 5))`,
+
+  "kotlin": `import java.util.PriorityQueue
+
+fun prim(graphAdj: Array<MutableList<Pair<Int,Int>>>, n: Int, start: Int = 0): Int {
+    val key = IntArray(n) { Int.MAX_VALUE }
+    val inTree = BooleanArray(n)
+    val pq = PriorityQueue<Pair<Int,Int>>(compareBy { it.first })
+    key[start] = 0
+    pq.add(0 to start)
+    var mstWeight = 0
+
+    while (pq.isNotEmpty()) {
+        val (k, u) = pq.poll()
+        if (inTree[u]) continue
+        inTree[u] = true
+        mstWeight += k
+
+        for ((v, w) in graphAdj[u]) {
+            if (!inTree[v] && w < key[v]) {
+                key[v] = w
+                pq.add(w to v)
+            }
+        }
+    }
+    return mstWeight
+}
+
+fun main() {
+    val n = 5
+    val graphAdj = Array(n) { mutableListOf<Pair<Int,Int>>() }
+    val edges = listOf(0 to Pair(1,2),0 to Pair(3,6),1 to Pair(2,3),
+                       1 to Pair(3,8),1 to Pair(4,5),2 to Pair(4,7),3 to Pair(4,9))
+    for ((u, vw) in edges) { graphAdj[u].add(vw); graphAdj[vw.first].add(u to vw.second) }
+    println("MST total weight: \${prim(graphAdj, n)}")
+}`,
+
+  "scala": `import scala.collection.mutable
+
+object Main extends App {
+    def prim(graphAdj: Array[mutable.ListBuffer[(Int,Int)]], n: Int, start: Int = 0): Int = {
+        val key = Array.fill(n)(Int.MaxValue)
+        val inTree = Array.fill(n)(false)
+        val pq = mutable.PriorityQueue[(Int,Int)]()(Ordering.by(-_._1))
+        key(start) = 0; pq.enqueue((0, start))
+        var mstWeight = 0
+
+        while (pq.nonEmpty) {
+            val (k, u) = pq.dequeue()
+            if (!inTree(u)) {
+                inTree(u) = true; mstWeight += k
+                for ((v, w) <- graphAdj(u)) {
+                    if (!inTree(v) && w < key(v)) {
+                        key(v) = w; pq.enqueue((w, v))
+                    }
+                }
+            }
+        }
+        mstWeight
+    }
+
+    val n = 5
+    val graphAdj = Array.fill(n)(mutable.ListBuffer[(Int,Int)]())
+    val edges = List((0,1,2),(0,3,6),(1,2,3),(1,3,8),(1,4,5),(2,4,7),(3,4,9))
+    for ((u, v, w) <- edges) { graphAdj(u) += ((v,w)); graphAdj(v) += ((u,w)) }
+    println(s"MST total weight: \${prim(graphAdj, n)}")
+}`,
+
+  "go": `package main
+
+import (
+    "container/heap"
+    "fmt"
+    "math"
+)
+
+type Item struct{ w, v int }
+type PQ []Item
+func (pq PQ) Len() int            { return len(pq) }
+func (pq PQ) Less(i, j int) bool  { return pq[i].w < pq[j].w }
+func (pq PQ) Swap(i, j int)       { pq[i], pq[j] = pq[j], pq[i] }
+func (pq *PQ) Push(x interface{}) { *pq = append(*pq, x.(Item)) }
+func (pq *PQ) Pop() interface{}   { old := *pq; n := len(old); x := old[n-1]; *pq = old[:n-1]; return x }
+
+func prim(graphAdj [][][2]int, n int) int {
+    key := make([]int, n)
+    for i := range key { key[i] = math.MaxInt32 }
+    inTree := make([]bool, n)
+    key[0] = 0
+
+    pq := &PQ{{0, 0}}
+    heap.Init(pq)
+    mstWeight := 0
+
+    for pq.Len() > 0 {
+        curr := heap.Pop(pq).(Item)
+        k, u := curr.w, curr.v
+        if inTree[u] { continue }
+        inTree[u] = true
+        mstWeight += k
+
+        for _, edge := range graphAdj[u] {
+            v, w := edge[0], edge[1]
+            if !inTree[v] && w < key[v] {
+                key[v] = w
+                heap.Push(pq, Item{w, v})
+            }
+        }
+    }
+    return mstWeight
+}
+
+func main() {
+    n := 5
+    graphAdj := make([][][2]int, n)
+    addEdge := func(u, v, w int) {
+        graphAdj[u] = append(graphAdj[u], [2]int{v, w})
+        graphAdj[v] = append(graphAdj[v], [2]int{u, w})
+    }
+    addEdge(0,1,2); addEdge(0,3,6); addEdge(1,2,3)
+    addEdge(1,3,8); addEdge(1,4,5); addEdge(2,4,7); addEdge(3,4,9)
+    fmt.Println("MST total weight:", prim(graphAdj, n))
+}`,
+
+  "rust": `use std::collections::BinaryHeap;
+use std::cmp::Reverse;
+
+fn prim(graph_adj: &Vec<Vec<(usize, i32)>>, n: usize) -> i32 {
+    let mut key = vec![i32::MAX; n];
+    let mut in_tree = vec![false; n];
+    let mut pq = BinaryHeap::new();
+    key[0] = 0;
+    pq.push(Reverse((0i32, 0usize)));
+    let mut mst_weight = 0;
+
+    while let Some(Reverse((k, u))) = pq.pop() {
+        if in_tree[u] { continue; }
+        in_tree[u] = true;
+        mst_weight += k;
+
+        for &(v, w) in &graph_adj[u] {
+            if !in_tree[v] && w < key[v] {
+                key[v] = w;
+                pq.push(Reverse((w, v)));
+            }
+        }
+    }
+    mst_weight
+}
+
+fn main() {
+    let n = 5;
+    let mut graph_adj = vec![vec![]; n];
+    let edges = vec![(0,1,2),(0,3,6),(1,2,3),(1,3,8),(1,4,5),(2,4,7),(3,4,9)];
+    for (u, v, w) in edges {
+        graph_adj[u].push((v, w));
+        graph_adj[v].push((u, w));
+    }
+    println!("MST total weight: {}", prim(&graph_adj, n));
+}`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -8352,7 +11146,267 @@ function dfsVisit(graph, u, visited):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: a vertex is marked visited exactly once, the moment it is first discovered, which prevents infinite loops on cyclic graphs and guarantees each vertex is processed exactly once. By induction on the recursion: dfsVisit(u) correctly visits u and then recursively visits every vertex reachable from u that hasn't already been visited by an earlier call in the traversal — so starting from the source, every vertex reachable from it is eventually visited, since each unvisited neighbor triggers a recursive call that itself is guaranteed (by the inductive hypothesis) to visit everything reachable from that neighbor." }
-      ]
+      ],
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+using namespace std;
+
+void dfsVisit(vector<vector<int>>& graph_adj, int u, vector<bool>& visited) {
+    visited[u] = true;
+    cout << "Visiting: " << u << "\\n";
+    for (int v : graph_adj[u])
+        if (!visited[v]) dfsVisit(graph_adj, v, visited);
+}
+
+void dfs(vector<vector<int>>& graph_adj, int source, int n) {
+    vector<bool> visited(n, false);
+    dfsVisit(graph_adj, source, visited);
+}
+
+int main() {
+    int n = 6;
+    vector<vector<int>> graph_adj(n);
+    auto addEdge = [&](int u, int v) {
+        graph_adj[u].push_back(v);
+        graph_adj[v].push_back(u);
+    };
+    addEdge(0,1); addEdge(0,2); addEdge(1,3);
+    addEdge(1,4); addEdge(2,5);
+    dfs(graph_adj, 0, n);
+    return 0;
+}`,
+
+  "python": `def dfs_visit(graph_adj, u, visited):
+    visited[u] = True
+    print(f"Visiting: {u}")
+    for v in graph_adj[u]:
+        if not visited[v]:
+            dfs_visit(graph_adj, v, visited)
+
+def dfs(graph_adj, source, n):
+    visited = [False] * n
+    dfs_visit(graph_adj, source, visited)
+
+if __name__ == "__main__":
+    n = 6
+    graph_adj = [[] for _ in range(n)]
+    def add_edge(u, v):
+        graph_adj[u].append(v); graph_adj[v].append(u)
+    add_edge(0,1); add_edge(0,2); add_edge(1,3)
+    add_edge(1,4); add_edge(2,5)
+    dfs(graph_adj, 0, n)`,
+
+  "java": `import java.util.*;
+
+public class Main {
+    static void dfsVisit(List<List<Integer>> graphAdj, int u, boolean[] visited) {
+        visited[u] = true;
+        System.out.println("Visiting: " + u);
+        for (int v : graphAdj.get(u))
+            if (!visited[v]) dfsVisit(graphAdj, v, visited);
+    }
+
+    static void dfs(List<List<Integer>> graphAdj, int source, int n) {
+        boolean[] visited = new boolean[n];
+        dfsVisit(graphAdj, source, visited);
+    }
+
+    public static void main(String[] args) {
+        int n = 6;
+        List<List<Integer>> graphAdj = new ArrayList<>();
+        for (int i = 0; i < n; i++) graphAdj.add(new ArrayList<>());
+        int[][] edges = {{0,1},{0,2},{1,3},{1,4},{2,5}};
+        for (int[] e : edges) {
+            graphAdj.get(e[0]).add(e[1]);
+            graphAdj.get(e[1]).add(e[0]);
+        }
+        dfs(graphAdj, 0, n);
+    }
+}`,
+
+  "js": `function dfsVisit(graphAdj, u, visited) {
+    visited[u] = true;
+    console.log(\`Visiting: \${u}\`);
+    for (const v of graphAdj[u])
+        if (!visited[v]) dfsVisit(graphAdj, v, visited);
+}
+
+function dfs(graphAdj, source, n) {
+    const visited = new Array(n).fill(false);
+    dfsVisit(graphAdj, source, visited);
+}
+
+const n = 6;
+const graphAdj = Array.from({length: n}, () => []);
+const addEdge = (u, v) => { graphAdj[u].push(v); graphAdj[v].push(u); };
+addEdge(0,1); addEdge(0,2); addEdge(1,3); addEdge(1,4); addEdge(2,5);
+dfs(graphAdj, 0, n);`,
+
+  "c": `#include <stdio.h>
+#define MAXN 100
+
+int graph_adj[MAXN][MAXN], deg[MAXN], visited[MAXN];
+
+void addEdge(int u, int v) {
+    graph_adj[u][deg[u]++] = v;
+    graph_adj[v][deg[v]++] = u;
+}
+
+void dfsVisit(int u) {
+    visited[u] = 1;
+    printf("Visiting: %d\\n", u);
+    for (int i = 0; i < deg[u]; i++)
+        if (!visited[graph_adj[u][i]])
+            dfsVisit(graph_adj[u][i]);
+}
+
+int main() {
+    int n = 6;
+    for (int i = 0; i < n; i++) { deg[i] = 0; visited[i] = 0; }
+    addEdge(0,1); addEdge(0,2); addEdge(1,3);
+    addEdge(1,4); addEdge(2,5);
+    dfsVisit(0);
+    return 0;
+}`,
+
+  "c#": `using System;
+using System.Collections.Generic;
+
+class Program {
+    static void DfsVisit(List<int>[] graphAdj, int u, bool[] visited) {
+        visited[u] = true;
+        Console.WriteLine($"Visiting: {u}");
+        foreach (int v in graphAdj[u])
+            if (!visited[v]) DfsVisit(graphAdj, v, visited);
+    }
+
+    static void Dfs(List<int>[] graphAdj, int source, int n) {
+        bool[] visited = new bool[n];
+        DfsVisit(graphAdj, source, visited);
+    }
+
+    static void Main() {
+        int n = 6;
+        var graphAdj = new List<int>[n];
+        for (int i = 0; i < n; i++) graphAdj[i] = new List<int>();
+        int[][] edges = {{0,1},{0,2},{1,3},{1,4},{2,5}};
+        foreach (var e in edges) { graphAdj[e[0]].Add(e[1]); graphAdj[e[1]].Add(e[0]); }
+        Dfs(graphAdj, 0, n);
+    }
+}`,
+
+  "swift": `func dfsVisit(graphAdj: [[Int]], u: Int, visited: inout [Bool]) {
+    visited[u] = true
+    print("Visiting: \\(u)")
+    for v in graphAdj[u] {
+        if !visited[v] { dfsVisit(graphAdj: graphAdj, u: v, visited: &visited) }
+    }
+}
+
+func dfs(graphAdj: [[Int]], source: Int, n: Int) {
+    var visited = Array(repeating: false, count: n)
+    dfsVisit(graphAdj: graphAdj, u: source, visited: &visited)
+}
+
+var graphAdj = [[Int]](repeating: [], count: 6)
+let edges = [(0,1),(0,2),(1,3),(1,4),(2,5)]
+for (u, v) in edges { graphAdj[u].append(v); graphAdj[v].append(u) }
+dfs(graphAdj: graphAdj, source: 0, n: 6)`,
+
+  "kotlin": `fun dfsVisit(graphAdj: Array<MutableList<Int>>, u: Int, visited: BooleanArray) {
+    visited[u] = true
+    println("Visiting: $u")
+    for (v in graphAdj[u])
+        if (!visited[v]) dfsVisit(graphAdj, v, visited)
+}
+
+fun dfs(graphAdj: Array<MutableList<Int>>, source: Int, n: Int) {
+    val visited = BooleanArray(n)
+    dfsVisit(graphAdj, source, visited)
+}
+
+fun main() {
+    val n = 6
+    val graphAdj = Array(n) { mutableListOf<Int>() }
+    val edges = listOf(0 to 1, 0 to 2, 1 to 3, 1 to 4, 2 to 5)
+    for ((u, v) in edges) { graphAdj[u].add(v); graphAdj[v].add(u) }
+    dfs(graphAdj, 0, n)
+}`,
+
+  "scala": `object Main extends App {
+    def dfsVisit(graphAdj: Array[scala.collection.mutable.ListBuffer[Int]],
+                 u: Int, visited: Array[Boolean]): Unit = {
+        visited(u) = true
+        println(s"Visiting: $u")
+        for (v <- graphAdj(u) if !visited(v)) dfsVisit(graphAdj, v, visited)
+    }
+
+    def dfs(graphAdj: Array[scala.collection.mutable.ListBuffer[Int]],
+            source: Int, n: Int): Unit = {
+        val visited = Array.fill(n)(false)
+        dfsVisit(graphAdj, source, visited)
+    }
+
+    val n = 6
+    val graphAdj = Array.fill(n)(scala.collection.mutable.ListBuffer[Int]())
+    val edges = List((0,1),(0,2),(1,3),(1,4),(2,5))
+    for ((u, v) <- edges) { graphAdj(u) += v; graphAdj(v) += u }
+    dfs(graphAdj, 0, n)
+}`,
+
+  "go": `package main
+
+import "fmt"
+
+func dfsVisit(graphAdj [][]int, u int, visited []bool) {
+    visited[u] = true
+    fmt.Printf("Visiting: %d\\n", u)
+    for _, v := range graphAdj[u] {
+        if !visited[v] { dfsVisit(graphAdj, v, visited) }
+    }
+}
+
+func dfs(graphAdj [][]int, source, n int) {
+    visited := make([]bool, n)
+    dfsVisit(graphAdj, source, visited)
+}
+
+func main() {
+    n := 6
+    graphAdj := make([][]int, n)
+    addEdge := func(u, v int) {
+        graphAdj[u] = append(graphAdj[u], v)
+        graphAdj[v] = append(graphAdj[v], u)
+    }
+    addEdge(0,1); addEdge(0,2); addEdge(1,3); addEdge(1,4); addEdge(2,5)
+    dfs(graphAdj, 0, n)
+}`,
+
+  "rust": `fn dfs_visit(graph_adj: &Vec<Vec<usize>>, u: usize, visited: &mut Vec<bool>) {
+    visited[u] = true;
+    println!("Visiting: {}", u);
+    for &v in &graph_adj[u] {
+        if !visited[v] { dfs_visit(graph_adj, v, visited); }
+    }
+}
+
+fn dfs(graph_adj: &Vec<Vec<usize>>, source: usize, n: usize) {
+    let mut visited = vec![false; n];
+    dfs_visit(graph_adj, source, &mut visited);
+}
+
+fn main() {
+    let n = 6;
+    let mut graph_adj = vec![vec![]; n];
+    let edges = vec![(0,1),(0,2),(1,3),(1,4),(2,5)];
+    for (u, v) in edges {
+        graph_adj[u].push(v);
+        graph_adj[v].push(u);
+    }
+    dfs(&graph_adj, 0, n);
+}`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -8480,16 +11534,566 @@ function dfsVisit(graph, u, visited):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The left-link value of a vertex u, by construction, represents the smallest discovery index reachable from u's DFS subtree via tree edges plus at most one back/cross edge to a vertex still on the stack (i.e. still part of an unfinished SCC). A vertex u is the root of its SCC exactly when left[u] == disc[u] — meaning no vertex in u's subtree can reach back to an ancestor of u, so u's subtree (restricted to the still-on-stack vertices) cannot be merged with any SCC further up the DFS tree. Popping the stack down to and including u therefore yields exactly the set of vertices mutually reachable through u, which is by definition u's complete strongly connected component, and this argument applies recursively to every SCC root encountered during the traversal." }
-      ]
+      ],
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+#include <stack>
+#include <algorithm>
+using namespace std;
+
+struct Tarjan {
+    int n, timer = 0;
+    vector<vector<int>>& graph_adj;
+    vector<int> disc, low;
+    vector<bool> onStack;
+    stack<int> stk;
+    vector<vector<int>> sccs;
+
+    Tarjan(vector<vector<int>>& g, int n) : n(n), graph_adj(g),
+        disc(n,-1), low(n,0), onStack(n,false) {}
+
+    void strongConnect(int u) {
+        disc[u] = low[u] = timer++;
+        stk.push(u); onStack[u] = true;
+
+        for (int v : graph_adj[u]) {
+            if (disc[v] == -1) {
+                strongConnect(v);
+                low[u] = min(low[u], low[v]);
+            } else if (onStack[v]) {
+                low[u] = min(low[u], disc[v]);
+            }
+        }
+
+        if (low[u] == disc[u]) {
+            vector<int> scc;
+            while (true) {
+                int w = stk.top(); stk.pop();
+                onStack[w] = false;
+                scc.push_back(w);
+                if (w == u) break;
+            }
+            sccs.push_back(scc);
+        }
+    }
+
+    vector<vector<int>> run() {
+        for (int i = 0; i < n; i++)
+            if (disc[i] == -1) strongConnect(i);
+        return sccs;
+    }
+};
+
+int main() {
+    int n = 8;
+    vector<vector<int>> graph_adj(n);
+    auto addEdge = [&](int u, int v) { graph_adj[u].push_back(v); };
+    addEdge(0,1); addEdge(1,2); addEdge(2,0); addEdge(1,3);
+    addEdge(3,4); addEdge(4,5); addEdge(5,3); addEdge(4,6);
+    addEdge(6,7); addEdge(7,6);
+
+    Tarjan t(graph_adj, n);
+    auto sccs = t.run();
+    cout << "Strongly Connected Components:\\n";
+    for (auto& scc : sccs) {
+        cout << "  { ";
+        for (int v : scc) cout << v << " ";
+        cout << "}\\n";
+    }
+    return 0;
+}`,
+
+  "python": `def tarjan_scc(graph_adj, n):
+    disc = [-1] * n
+    low = [0] * n
+    on_stack = [False] * n
+    stack = []
+    sccs = []
+    timer = [0]
+
+    def strong_connect(u):
+        disc[u] = low[u] = timer[0]; timer[0] += 1
+        stack.append(u); on_stack[u] = True
+
+        for v in graph_adj[u]:
+            if disc[v] == -1:
+                strong_connect(v)
+                low[u] = min(low[u], low[v])
+            elif on_stack[v]:
+                low[u] = min(low[u], disc[v])
+
+        if low[u] == disc[u]:
+            scc = []
+            while True:
+                w = stack.pop(); on_stack[w] = False; scc.append(w)
+                if w == u: break
+            sccs.append(scc)
+
+    for i in range(n):
+        if disc[i] == -1:
+            strong_connect(i)
+    return sccs
+
+if __name__ == "__main__":
+    n = 8
+    graph_adj = [[] for _ in range(n)]
+    edges = [(0,1),(1,2),(2,0),(1,3),(3,4),(4,5),(5,3),(4,6),(6,7),(7,6)]
+    for u, v in edges: graph_adj[u].append(v)
+
+    sccs = tarjan_scc(graph_adj, n)
+    print("Strongly Connected Components:")
+    for scc in sccs: print(" ", scc)`,
+
+  "java": `import java.util.*;
+
+public class Main {
+    static int n, timer;
+    static int[] disc, low;
+    static boolean[] onStack;
+    static Deque<Integer> stack;
+    static List<List<Integer>> graphAdj, sccs;
+
+    static void strongConnect(int u) {
+        disc[u] = low[u] = timer++;
+        stack.push(u); onStack[u] = true;
+
+        for (int v : graphAdj.get(u)) {
+            if (disc[v] == -1) {
+                strongConnect(v);
+                low[u] = Math.min(low[u], low[v]);
+            } else if (onStack[v]) {
+                low[u] = Math.min(low[u], disc[v]);
+            }
+        }
+
+        if (low[u] == disc[u]) {
+            List<Integer> scc = new ArrayList<>();
+            while (true) {
+                int w = stack.pop();
+                onStack[w] = false;
+                scc.add(w);
+                if (w == u) break;
+            }
+            sccs.add(scc);
+        }
+    }
+
+    public static void main(String[] args) {
+        n = 8; timer = 0;
+        disc = new int[n]; Arrays.fill(disc, -1);
+        low = new int[n]; onStack = new boolean[n];
+        stack = new ArrayDeque<>(); sccs = new ArrayList<>();
+        graphAdj = new ArrayList<>();
+        for (int i = 0; i < n; i++) graphAdj.add(new ArrayList<>());
+
+        int[][] edges = {{0,1},{1,2},{2,0},{1,3},{3,4},{4,5},{5,3},{4,6},{6,7},{7,6}};
+        for (int[] e : edges) graphAdj.get(e[0]).add(e[1]);
+
+        for (int i = 0; i < n; i++) if (disc[i] == -1) strongConnect(i);
+
+        System.out.println("Strongly Connected Components:");
+        for (List<Integer> scc : sccs) System.out.println("  " + scc);
+    }
+}`,
+
+  "js": `function tarjanSCC(graphAdj, n) {
+    const disc = new Array(n).fill(-1);
+    const low = new Array(n).fill(0);
+    const onStack = new Array(n).fill(false);
+    const stack = [];
+    const sccs = [];
+    let timer = 0;
+
+    function strongConnect(u) {
+        disc[u] = low[u] = timer++;
+        stack.push(u); onStack[u] = true;
+
+        for (const v of graphAdj[u]) {
+            if (disc[v] === -1) {
+                strongConnect(v);
+                low[u] = Math.min(low[u], low[v]);
+            } else if (onStack[v]) {
+                low[u] = Math.min(low[u], disc[v]);
+            }
+        }
+
+        if (low[u] === disc[u]) {
+            const scc = [];
+            while (true) {
+                const w = stack.pop(); onStack[w] = false; scc.push(w);
+                if (w === u) break;
+            }
+            sccs.push(scc);
+        }
+    }
+
+    for (let i = 0; i < n; i++) if (disc[i] === -1) strongConnect(i);
+    return sccs;
+}
+
+const n = 8;
+const graphAdj = Array.from({length: n}, () => []);
+const edges = [[0,1],[1,2],[2,0],[1,3],[3,4],[4,5],[5,3],[4,6],[6,7],[7,6]];
+for (const [u, v] of edges) graphAdj[u].push(v);
+const sccs = tarjanSCC(graphAdj, n);
+console.log("Strongly Connected Components:");
+sccs.forEach(scc => console.log(" ", scc));`,
+
+  "c": `#include <stdio.h>
+#include <string.h>
+#define MAXN 100
+
+int graph_adj[MAXN][MAXN], deg[MAXN];
+int disc[MAXN], low[MAXN], onStack[MAXN];
+int stk[MAXN], top_stk = 0, timer_val = 0;
+int scc[MAXN][MAXN], scc_size[MAXN], num_scc = 0;
+
+void addEdge(int u, int v) { graph_adj[u][deg[u]++] = v; }
+
+int min2(int a, int b) { return a < b ? a : b; }
+
+void strongConnect(int u) {
+    disc[u] = low[u] = timer_val++;
+    stk[top_stk++] = u; onStack[u] = 1;
+
+    for (int i = 0; i < deg[u]; i++) {
+        int v = graph_adj[u][i];
+        if (disc[v] == -1) {
+            strongConnect(v);
+            low[u] = min2(low[u], low[v]);
+        } else if (onStack[v]) {
+            low[u] = min2(low[u], disc[v]);
+        }
+    }
+
+    if (low[u] == disc[u]) {
+        int idx = num_scc; scc_size[idx] = 0;
+        while (1) {
+            int w = stk[--top_stk]; onStack[w] = 0;
+            scc[idx][scc_size[idx]++] = w;
+            if (w == u) break;
+        }
+        num_scc++;
+    }
+}
+
+int main() {
+    int n = 8;
+    memset(deg, 0, sizeof(deg)); memset(disc, -1, sizeof(disc));
+    memset(onStack, 0, sizeof(onStack));
+    int edges[][2] = {{0,1},{1,2},{2,0},{1,3},{3,4},{4,5},{5,3},{4,6},{6,7},{7,6}};
+    for (int i = 0; i < 10; i++) addEdge(edges[i][0], edges[i][1]);
+    for (int i = 0; i < n; i++) if (disc[i] == -1) strongConnect(i);
+
+    printf("Strongly Connected Components:\\n");
+    for (int i = 0; i < num_scc; i++) {
+        printf("  { ");
+        for (int j = 0; j < scc_size[i]; j++) printf("%d ", scc[i][j]);
+        printf("}\\n");
+    }
+    return 0;
+}`,
+
+  "c#": `using System;
+using System.Collections.Generic;
+
+class Program {
+    static int n, timer;
+    static int[] disc, low;
+    static bool[] onStack;
+    static Stack<int> stack;
+    static List<int>[] graphAdj;
+    static List<List<int>> sccs;
+
+    static void StrongConnect(int u) {
+        disc[u] = low[u] = timer++;
+        stack.Push(u); onStack[u] = true;
+
+        foreach (int v in graphAdj[u]) {
+            if (disc[v] == -1) {
+                StrongConnect(v);
+                low[u] = Math.Min(low[u], low[v]);
+            } else if (onStack[v]) {
+                low[u] = Math.Min(low[u], disc[v]);
+            }
+        }
+
+        if (low[u] == disc[u]) {
+            var scc = new List<int>();
+            while (true) {
+                int w = stack.Pop(); onStack[w] = false; scc.Add(w);
+                if (w == u) break;
+            }
+            sccs.Add(scc);
+        }
+    }
+
+    static void Main() {
+        n = 8; timer = 0;
+        disc = new int[n]; Array.Fill(disc, -1);
+        low = new int[n]; onStack = new bool[n];
+        stack = new Stack<int>(); sccs = new List<List<int>>();
+        graphAdj = new List<int>[n];
+        for (int i = 0; i < n; i++) graphAdj[i] = new List<int>();
+
+        int[][] edges = {{0,1},{1,2},{2,0},{1,3},{3,4},{4,5},{5,3},{4,6},{6,7},{7,6}};
+        foreach (var e in edges) graphAdj[e[0]].Add(e[1]);
+
+        for (int i = 0; i < n; i++) if (disc[i] == -1) StrongConnect(i);
+
+        Console.WriteLine("Strongly Connected Components:");
+        foreach (var scc in sccs)
+            Console.WriteLine("  [" + string.Join(", ", scc) + "]");
+    }
+}`,
+
+  "swift": `func tarjanSCC(graphAdj: [[Int]], n: Int) -> [[Int]] {
+    var disc = Array(repeating: -1, count: n)
+    var low = Array(repeating: 0, count: n)
+    var onStack = Array(repeating: false, count: n)
+    var stack = [Int]()
+    var sccs = [[Int]]()
+    var timer = 0
+
+    func strongConnect(_ u: Int) {
+        disc[u] = timer; low[u] = timer; timer += 1
+        stack.append(u); onStack[u] = true
+
+        for v in graphAdj[u] {
+            if disc[v] == -1 {
+                strongConnect(v)
+                low[u] = min(low[u], low[v])
+            } else if onStack[v] {
+                low[u] = min(low[u], disc[v])
+            }
+        }
+
+        if low[u] == disc[u] {
+            var scc = [Int]()
+            while true {
+                let w = stack.removeLast(); onStack[w] = false; scc.append(w)
+                if w == u { break }
+            }
+            sccs.append(scc)
+        }
+    }
+
+    for i in 0..<n { if disc[i] == -1 { strongConnect(i) } }
+    return sccs
+}
+
+var graphAdj = [[Int]](repeating: [], count: 8)
+let edges = [(0,1),(1,2),(2,0),(1,3),(3,4),(4,5),(5,3),(4,6),(6,7),(7,6)]
+for (u, v) in edges { graphAdj[u].append(v) }
+let sccs = tarjanSCC(graphAdj: graphAdj, n: 8)
+print("Strongly Connected Components:")
+for scc in sccs { print(" ", scc) }`,
+
+  "kotlin": `fun tarjanSCC(graphAdj: Array<MutableList<Int>>, n: Int): List<List<Int>> {
+    val disc = IntArray(n) { -1 }
+    val low = IntArray(n)
+    val onStack = BooleanArray(n)
+    val stack = ArrayDeque<Int>()
+    val sccs = mutableListOf<List<Int>>()
+    var timer = 0
+
+    fun strongConnect(u: Int) {
+        disc[u] = timer; low[u] = timer; timer++
+        stack.addLast(u); onStack[u] = true
+
+        for (v in graphAdj[u]) {
+            if (disc[v] == -1) {
+                strongConnect(v)
+                low[u] = minOf(low[u], low[v])
+            } else if (onStack[v]) {
+                low[u] = minOf(low[u], disc[v])
+            }
+        }
+
+        if (low[u] == disc[u]) {
+            val scc = mutableListOf<Int>()
+            while (true) {
+                val w = stack.removeLast(); onStack[w] = false; scc.add(w)
+                if (w == u) break
+            }
+            sccs.add(scc)
+        }
+    }
+
+    for (i in 0 until n) if (disc[i] == -1) strongConnect(i)
+    return sccs
+}
+
+fun main() {
+    val n = 8
+    val graphAdj = Array(n) { mutableListOf<Int>() }
+    val edges = listOf(0 to 1,1 to 2,2 to 0,1 to 3,3 to 4,4 to 5,5 to 3,4 to 6,6 to 7,7 to 6)
+    for ((u, v) in edges) graphAdj[u].add(v)
+    val sccs = tarjanSCC(graphAdj, n)
+    println("Strongly Connected Components:")
+    sccs.forEach { println("  $it") }
+}`,
+
+  "scala": `import scala.collection.mutable
+
+object Main extends App {
+    def tarjanSCC(graphAdj: Array[mutable.ListBuffer[Int]], n: Int): List[List[Int]] = {
+        val disc = Array.fill(n)(-1)
+        val low = Array.fill(n)(0)
+        val onStack = Array.fill(n)(false)
+        val stack = mutable.Stack[Int]()
+        val sccs = mutable.ListBuffer[List[Int]]()
+        var timer = 0
+
+        def strongConnect(u: Int): Unit = {
+            disc(u) = timer; low(u) = timer; timer += 1
+            stack.push(u); onStack(u) = true
+
+            for (v <- graphAdj(u)) {
+                if (disc(v) == -1) {
+                    strongConnect(v); low(u) = low(u) min low(v)
+                } else if (onStack(v)) {
+                    low(u) = low(u) min disc(v)
+                }
+            }
+
+            if (low(u) == disc(u)) {
+                val scc = mutable.ListBuffer[Int]()
+                var cont = true
+                while (cont) {
+                    val w = stack.pop(); onStack(w) = false; scc += w
+                    if (w == u) cont = false
+                }
+                sccs += scc.toList
+            }
+        }
+
+        for (i <- 0 until n if disc(i) == -1) strongConnect(i)
+        sccs.toList
+    }
+
+    val n = 8
+    val graphAdj = Array.fill(n)(mutable.ListBuffer[Int]())
+    val edges = List((0,1),(1,2),(2,0),(1,3),(3,4),(4,5),(5,3),(4,6),(6,7),(7,6))
+    for ((u, v) <- edges) graphAdj(u) += v
+
+    val sccs = tarjanSCC(graphAdj, n)
+    println("Strongly Connected Components:")
+    sccs.foreach(scc => println(s"  $scc"))
+}`,
+
+  "go": `package main
+
+import "fmt"
+
+func tarjanSCC(graphAdj [][]int, n int) [][]int {
+    disc := make([]int, n)
+    low := make([]int, n)
+    onStack := make([]bool, n)
+    for i := range disc { disc[i] = -1 }
+    stack := []int{}
+    sccs := [][]int{}
+    timer := 0
+
+    var strongConnect func(u int)
+    strongConnect = func(u int) {
+        disc[u] = timer; low[u] = timer; timer++
+        stack = append(stack, u); onStack[u] = true
+
+        for _, v := range graphAdj[u] {
+            if disc[v] == -1 {
+                strongConnect(v)
+                if low[v] < low[u] { low[u] = low[v] }
+            } else if onStack[v] {
+                if disc[v] < low[u] { low[u] = disc[v] }
+            }
+        }
+
+        if low[u] == disc[u] {
+            scc := []int{}
+            for {
+                w := stack[len(stack)-1]; stack = stack[:len(stack)-1]
+                onStack[w] = false; scc = append(scc, w)
+                if w == u { break }
+            }
+            sccs = append(sccs, scc)
+        }
+    }
+
+    for i := 0; i < n; i++ { if disc[i] == -1 { strongConnect(i) } }
+    return sccs
+}
+
+func main() {
+    n := 8
+    graphAdj := make([][]int, n)
+    edges := [][2]int{{0,1},{1,2},{2,0},{1,3},{3,4},{4,5},{5,3},{4,6},{6,7},{7,6}}
+    for _, e := range edges { graphAdj[e[0]] = append(graphAdj[e[0]], e[1]) }
+    sccs := tarjanSCC(graphAdj, n)
+    fmt.Println("Strongly Connected Components:")
+    for _, scc := range sccs { fmt.Println(" ", scc) }
+}`,
+
+  "rust": `fn tarjan_scc(graph_adj: &Vec<Vec<usize>>, n: usize) -> Vec<Vec<usize>> {
+    let mut disc = vec![usize::MAX; n];
+    let mut low = vec![0usize; n];
+    let mut on_stack = vec![false; n];
+    let mut stack = Vec::new();
+    let mut sccs = Vec::new();
+    let mut timer = 0usize;
+
+    fn strong_connect(
+        u: usize, graph_adj: &Vec<Vec<usize>>, disc: &mut Vec<usize>,
+        low: &mut Vec<usize>, on_stack: &mut Vec<bool>,
+        stack: &mut Vec<usize>, sccs: &mut Vec<Vec<usize>>, timer: &mut usize,
+    ) {
+        disc[u] = *timer; low[u] = *timer; *timer += 1;
+        stack.push(u); on_stack[u] = true;
+
+        for &v in &graph_adj[u] {
+            if disc[v] == usize::MAX {
+                strong_connect(v, graph_adj, disc, low, on_stack, stack, sccs, timer);
+                low[u] = low[u].min(low[v]);
+            } else if on_stack[v] {
+                low[u] = low[u].min(disc[v]);
+            }
+        }
+
+        if low[u] == disc[u] {
+            let mut scc = Vec::new();
+            loop {
+                let w = stack.pop().unwrap();
+                on_stack[w] = false; scc.push(w);
+                if w == u { break; }
+            }
+            sccs.push(scc);
+        }
+    }
+
+    for i in 0..n {
+        if disc[i] == usize::MAX {
+            strong_connect(i, graph_adj, &mut disc, &mut low,
+                          &mut on_stack, &mut stack, &mut sccs, &mut timer);
+        }
+    }
+    sccs
+}
+
+fn main() {
+    let n = 8;
+    let mut graph_adj = vec![vec![]; n];
+    let edges = vec![(0,1),(1,2),(2,0),(1,3),(3,4),(4,5),(5,3),(4,6),(6,7),(7,6)];
+    for (u, v) in edges { graph_adj[u].push(v); }
+    let sccs = tarjan_scc(&graph_adj, n);
+    println!("Strongly Connected Components:");
+    for scc in &sccs { println!("  {:?}", scc); }
+}`
+      }
     }
 
   ]
 };
-
-/* ─── Schema v2 — Flexible Content Nodes (see arrays-section.js for full spec) ──
- *  ContentBlock = ContentNode[]
- *  ContentNode tags in use here: h1, h2, p, ul, ol, table, code, note, blockquote
- * ─────────────────────────────────────────────────────────────────────────── */
 
 const TREES_SECTION = {
   name: "Trees",
@@ -9132,11 +12736,6 @@ function fixInsertViolations(tree, node):
 
   ]
 };
-
-/* ─── Schema v2 — Flexible Content Nodes (see arrays-section.js for full spec) ──
- *  ContentBlock = ContentNode[]
- *  ContentNode tags in use here: h1, h2, p, ul, ol, table, code, note, blockquote
- * ─────────────────────────────────────────────────────────────────────────── */
 
 const DYNAMIC_PROGRAMMING_SECTION = {
   name: "Dynamic Programming",
@@ -9899,11 +13498,6 @@ const DYNAMIC_PROGRAMMING_SECTION = {
   ]
 };
 
-/* ─── Schema v2 — Flexible Content Nodes (see arrays-section.js for full spec) ──
- *  ContentBlock = ContentNode[]
- *  ContentNode tags in use here: h1, h2, p, ul, ol, table, code, note, blockquote
- * ─────────────────────────────────────────────────────────────────────────── */
-
 const LINKED_LISTS_SECTION = {
   name: "Linked Lists",
   href: "/algorithms/linked_lists",
@@ -10481,11 +14075,6 @@ function findCycleStart(head):
   ]
 };
 
-/* ─── Schema v2 — Flexible Content Nodes (see arrays-section.js for full spec) ──
- *  ContentBlock = ContentNode[]
- *  ContentNode tags in use here: h1, h2, p, ul, ol, table, code, note, blockquote
- * ─────────────────────────────────────────────────────────────────────────── */
-
 const STACKS_SECTION = {
   name: "Stacks",
   href: "/algorithms/stacks",
@@ -11041,11 +14630,6 @@ const STACKS_SECTION = {
   ]
 };
 
-/* ─── Schema v2 — Flexible Content Nodes (see arrays-section.js for full spec) ──
- *  ContentBlock = ContentNode[]
- *  ContentNode tags in use here: h1, h2, p, ul, ol, table, code, note, blockquote
- * ─────────────────────────────────────────────────────────────────────────── */
-
 const QUEUES_SECTION = {
   name: "Queues",
   href: "/algorithms/queues",
@@ -11516,11 +15100,6 @@ const QUEUES_SECTION = {
 
   ]
 };
-
-/* ─── Schema v2 — Flexible Content Nodes (see arrays-section.js for full spec) ──
- *  ContentBlock = ContentNode[]
- *  ContentNode tags in use here: h1, h2, p, ul, ol, table, code, note, blockquote
- * ─────────────────────────────────────────────────────────────────────────── */
 
 const HASH_MAPS_SECTION = {
   name: "Hash Maps",
@@ -12087,11 +15666,6 @@ const HASH_MAPS_SECTION = {
   ]
 };
 
-/* ─── Schema v2 — Flexible Content Nodes (see arrays-section.js for full spec) ──
- *  ContentBlock = ContentNode[]
- *  ContentNode tags in use here: h1, h2, p, ul, ol, table, code, note, blockquote
- * ─────────────────────────────────────────────────────────────────────────── */
-
 const HEAP_SECTION = {
   name: "Heap",
   href: "/algorithms/heap",
@@ -12531,11 +16105,6 @@ const HEAP_SECTION = {
 
   ]
 };
-
-/* ─── Schema v2 — Flexible Content Nodes (see arrays-section.js for full spec) ──
- *  ContentBlock = ContentNode[]
- *  ContentNode tags in use here: h1, h2, p, ul, ol, table, code, note, blockquote
- * ─────────────────────────────────────────────────────────────────────────── */
 
 const RECURSION_SECTION = {
   name: "Recursion",
@@ -13105,11 +16674,6 @@ function isValid(board, row, col, digit):
 
   ]
 };
-
-/* ─── Schema v2 — Flexible Content Nodes (see arrays-section.js for full spec) ──
- *  ContentBlock = ContentNode[]
- *  ContentNode tags in use here: h1, h2, p, ul, ol, table, code, note, blockquote
- * ─────────────────────────────────────────────────────────────────────────── */
 
 const STRINGS_SECTION = {
   name: "Strings",
@@ -13688,11 +17252,6 @@ function zSearch(text, pattern):
   ]
 };
 
-/* ─── Schema v2 — Flexible Content Nodes (see arrays-section.js for full spec) ──
- *  ContentBlock = ContentNode[]
- *  ContentNode tags in use here: h1, h2, p, ul, ol, table, code, note, blockquote
- * ─────────────────────────────────────────────────────────────────────────── */
-
 const TRIES_SECTION = {
   name: "Tries",
   href: "/algorithms/tries",
@@ -14078,11 +17637,6 @@ class Trie:
 
   ]
 };
-
-/* ─── Schema v2 — Flexible Content Nodes (see arrays-section.js for full spec) ──
- *  ContentBlock = ContentNode[]
- *  ContentNode tags in use here: h1, h2, p, ul, ol, table, code, note, blockquote
- * ─────────────────────────────────────────────────────────────────────────── */
 
 const GREEDY_SECTION = {
   name: "Greedy",
@@ -14617,11 +18171,6 @@ function cutPropertyProof_sketch(graph, S):
   ]
 };
 
-/* ─── Schema v2 — Flexible Content Nodes (see arrays-section.js for full spec) ──
- *  ContentBlock = ContentNode[]
- *  ContentNode tags in use here: h1, h2, p, ul, ol, table, code, note, blockquote
- * ─────────────────────────────────────────────────────────────────────────── */
-
 const BIT_MANIPULATION_SECTION = {
   name: "Bit Manipulation",
   href: "/algorithms/bit_manipulation",
@@ -15102,11 +18651,6 @@ const BIT_MANIPULATION_SECTION = {
 
   ]
 };
-
-/* ─── Schema v2 — Flexible Content Nodes (see arrays-section.js for full spec) ──
- *  ContentBlock = ContentNode[]
- *  ContentNode tags in use here: h1, h2, p, ul, ol, table, code, note, blockquote
- * ─────────────────────────────────────────────────────────────────────────── */
 
 const RANGE_STRUCTURES_SECTION = {
   name: "Range Structures",

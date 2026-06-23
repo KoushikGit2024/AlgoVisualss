@@ -102,6 +102,9 @@ export class ExpressionEvaluator {
       case "BinaryExpression":
         return this.evaluateBinary(expr);
 
+      case "LambdaExpression":
+        return expr; // Return the AST node itself so it can be stored as a callable value
+        
       case "FunctionCall":
         throw new Error("Execution Context Violation: FunctionCalls must be orchestrated by the ExecutionEngine, not the ExpressionEvaluator.");
         

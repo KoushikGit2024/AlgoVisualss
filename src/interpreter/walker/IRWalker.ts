@@ -312,7 +312,21 @@ export class IRWalker {
 
       // Create a micro-scope for this specific iteration to shadow previous iterator values
       this.scopeManager.enterScope();
-      this.scopeManager.defineVariable(varName, varType, targetArray[i]);
+      
+      const val = targetArray[i];
+      if (varName.startsWith("[") && varName.endsWith("]")) {
+        const parts = varName.slice(1, -1).split(",").map(s => s.trim());
+        if (Array.isArray(val)) {
+          parts.forEach((p, idx) => { if (p) this.scopeManager.defineVariable(p, varType, val[idx]); });
+        } else if (typeof val === 'object' && val !== null) {
+          const keys = Object.keys(val);
+          parts.forEach((p, idx) => { if (p) this.scopeManager.defineVariable(p, varType, val[keys[idx]]); });
+        } else {
+          parts.forEach(p => { if (p) this.scopeManager.defineVariable(p, varType, val); });
+        }
+      } else {
+        this.scopeManager.defineVariable(varName, varType, val);
+      }
 
       try {
         this.walkBlock(node.body);

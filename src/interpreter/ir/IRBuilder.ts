@@ -413,8 +413,8 @@ export class IRBuilder {
           .map(c => { try { return this.buildExpression(c); } catch { return null; } })
           .filter((e): e is IRExpression => e !== null);
       } else {
-        // Standard assignment: child(1) = `=`, child(2) = value
-        const valueNode = declaratorNode.child(2);
+        // Standard assignment
+        const valueNode = (declaratorNode as any).childForFieldName("value") || declaratorNode.namedChildren[1];
         if (valueNode) {
           initializer = this.buildExpression(valueNode);
         }
@@ -613,9 +613,13 @@ export class IRBuilder {
   }
 
   private buildWhileStatement(node: SyntaxNode): IRWhileStatement {
-    const conditionNode = (node as any).childForFieldName("condition")
-                          || node.namedChildren.find((c) => c.type === "condition_clause")?.namedChildren[0] 
+    let conditionNode = (node as any).childForFieldName("condition")
+                          || node.namedChildren.find((c) => c.type === "condition_clause")
                           || node.namedChildren.find((c) => c.type === "parenthesized_expression");
+    
+    if (conditionNode && conditionNode.type === "condition_clause") {
+      conditionNode = conditionNode.namedChildren[0];
+    }
     
     let bodyNode = (node as any).childForFieldName("body") as SyntaxNode | undefined;
     if (!bodyNode) {
@@ -640,7 +644,11 @@ export class IRBuilder {
     if (!bodyNode) {
         bodyNode = node.namedChildren.find((c) => c.type === "compound_statement" || c.type === "expression_statement");
     }
-    const conditionNode = (node as any).childForFieldName("condition") || node.namedChildren.find((c) => c.type === "parenthesized_expression");
+    let conditionNode = (node as any).childForFieldName("condition") || node.namedChildren.find((c) => c.type === "parenthesized_expression");
+
+    if (conditionNode && conditionNode.type === "condition_clause") {
+      conditionNode = conditionNode.namedChildren[0];
+    }
 
     if (!conditionNode || !bodyNode) throw new Error(`Syntax Error at line ${node.startPosition.row + 1}: Malformed do-while loop.`);
 
@@ -712,13 +720,20 @@ export class IRBuilder {
   }
 
   private buildForRangeStatement(node: SyntaxNode): IRForRangeStatement {
-    const bodyNode = node.namedChildren.find(
-      (c) => c.type === "compound_statement" || c.type === "expression_statement"
-    );
+    let bodyNode = (node as any).childForFieldName("body") as SyntaxNode | undefined;
+    if (!bodyNode && node.namedChildren.length > 0) {
+      bodyNode = node.namedChildren[node.namedChildren.length - 1];
+    }
+    
     if (!bodyNode) throw new Error(`Syntax Error at line ${node.startPosition.row + 1}: Malformed range-based for loop.`);
 
-    const bodyIndex = node.namedChildren.indexOf(bodyNode as SyntaxNode);
-    const collectionNode = node.namedChildren[bodyIndex - 1];
+    let collectionNode = (node as any).childForFieldName("right") as SyntaxNode | undefined;
+    if (!collectionNode) {
+      const bodyIndex = node.namedChildren.findIndex(c => (c as any).id === (bodyNode as any).id);
+      collectionNode = node.namedChildren[bodyIndex - 1];
+    }
+    
+    if (!collectionNode) throw new Error(`Syntax Error at line ${node.startPosition.row + 1}: Missing collection in range-based for loop.`);
 
     let varType = "auto";
     let varName = "unknown";
@@ -728,7 +743,7 @@ export class IRBuilder {
       let typeParts: string[] = [];
       let declaratorChild: SyntaxNode | undefined = undefined;
       for (const c of firstNode.namedChildren) {
-          if (c.type === "identifier" || c.type === "pointer_declarator" || c.type === "reference_declarator" || c.type === "array_declarator" || c.type === "function_declarator") {
+          if (c.type === "identifier" || c.type === "pointer_declarator" || c.type === "reference_declarator" || c.type === "array_declarator" || c.type === "function_declarator" || c.type === "structured_binding_declarator") {
               declaratorChild = c;
               break;
           }
@@ -739,7 +754,7 @@ export class IRBuilder {
     } else {
       // Fallback for non-standard Tree-sitter structures
       varType = firstNode.text;
-      varName = node.namedChildren.length > 1 ? node.namedChildren[1].text : "unknown";
+      varName = node.namedChildren.length > 1 ? this.getDeclaratorName(node.namedChildren[1]) : "unknown";
     }
 
     return {
@@ -773,8 +788,10 @@ export class IRBuilder {
 
   private buildExpression(node: SyntaxNode): IRExpression {
     switch (node.type) {
-      case "number_literal":
-        return { kind: "Literal", line: node.startPosition.row + 1, valueType: "double", value: Number(node.text) };
+      case "number_literal": {
+        const cleanText = node.text.replace(/[fFuUlL]+$/, "");
+        return { kind: "Literal", line: node.startPosition.row + 1, valueType: "double", value: Number(cleanText) };
+      }
       case "true":
         return { kind: "Literal", line: node.startPosition.row + 1, valueType: "bool", value: true };
       case "false":
@@ -995,14 +1012,24 @@ export class IRBuilder {
         // Recursively extract parameter declarations across capture/declarator boundaries
         const extractParams = (n: SyntaxNode) => {
           if (n.type === "parameter_declaration") {
-            const pType = n.child(0)?.text || "unknown";
-            const pDecl = n.child(1);
+            const pType = (n as any).childForFieldName("type")?.text || n.child(0)?.text || "unknown";
+            let pDeclNode: SyntaxNode | undefined = (n as any).childForFieldName("declarator");
+            if (!pDeclNode) {
+                for (const c of n.namedChildren) {
+                  if (c.type === "identifier" || c.type === "pointer_declarator" || c.type === "reference_declarator" || c.type === "array_declarator" || c.type === "function_declarator") {
+                    pDeclNode = c;
+                    break;
+                  }
+                }
+            }
             parameters.push({
               type: pType,
-              name: pDecl ? this.getDeclaratorName(pDecl) : "unknown",
+              name: pDeclNode ? this.getDeclaratorName(pDeclNode) : "unknown",
             });
           } else {
-            n.namedChildren.forEach(extractParams);
+            if (n.type !== "compound_statement") {
+               n.namedChildren.forEach(extractParams);
+            }
           }
         };
         node.namedChildren.forEach(extractParams);

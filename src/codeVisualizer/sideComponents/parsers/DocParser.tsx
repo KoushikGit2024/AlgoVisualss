@@ -236,26 +236,24 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         const cfg = {
           tip: {
             icon: <Lightbulb size={15} />,
-            classes:
-              "border-green-400/30 bg-green-400/5 text-green-100/90",
-            iconClass: "text-green-400",
+            classes: "border-green-500/30 bg-green-500/10 text-[var(--text)]",
+            iconClass: "text-green-500",
             label: "TIP",
-            labelClass: "text-green-400",
+            labelClass: "text-green-500 font-bold",
           },
           warning: {
             icon: <AlertTriangle size={15} />,
-            classes:
-              "border-yellow-400/30 bg-yellow-400/5 text-yellow-100/90",
-            iconClass: "text-yellow-400",
+            classes: "border-yellow-500/30 bg-yellow-500/10 text-[var(--text)]",
+            iconClass: "text-yellow-500",
             label: "WARNING",
-            labelClass: "text-yellow-400",
+            labelClass: "text-yellow-500 font-bold",
           },
           info: {
             icon: <Info size={15} />,
-            classes: "border-blue-400/30 bg-blue-400/5 text-blue-100/90",
-            iconClass: "text-blue-400",
+            classes: "border-blue-500/30 bg-blue-500/10 text-[var(--text)]",
+            iconClass: "text-blue-500",
             label: "NOTE",
-            labelClass: "text-blue-400",
+            labelClass: "text-blue-500 font-bold",
           },
         };
         const c = cfg[node.variant] ?? cfg.info;
@@ -268,7 +266,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
             <div className={`${c.iconClass} shrink-0 mt-0.5`}>{c.icon}</div>
             <div>
               <span
-                className={`${c.labelClass} font-mono text-[10px] font-bold tracking-widest mr-2`}
+                className={`${c.labelClass} font-mono text-[10px] tracking-widest mr-2`}
               >
                 {c.label}
               </span>
@@ -399,18 +397,43 @@ const DocParser = ({ data }: { data: any }) => {
 
         {/* ── Section 1: About / Introduction ─────────────────────────── */}
         <section>
-          {/* Difficulty badge */}
-          {sub.type && (
-            <span
-              className={`inline-block font-mono text-[10px] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border mb-4 ${
-                TYPE_STYLES[sub.type] ?? TYPE_STYLES.Medium
-              }`}
-            >
-              {sub.type.toUpperCase()}
-            </span>
+          {/* If the first element is an h1, render it alongside the badge */}
+          {sub.about && sub.about.length > 0 && sub.about[0].tag === "h1" ? (
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-border mt-6 first:mt-0">
+              <h1 className="text-xl font-bold text-accent m-0 p-0 border-none">
+                {sub.about[0].text}
+              </h1>
+              {sub.type && (
+                <span
+                  className={`shrink-0 inline-block font-mono text-[10px] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border ${
+                    TYPE_STYLES[sub.type] ?? TYPE_STYLES.Medium
+                  }`}
+                >
+                  {sub.type.toUpperCase()}
+                </span>
+              )}
+            </div>
+          ) : (
+            // Fallback if no h1 at start
+            sub.type && (
+              <span
+                className={`inline-block font-mono text-[10px] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border mb-4 ${
+                  TYPE_STYLES[sub.type] ?? TYPE_STYLES.Medium
+                }`}
+              >
+                {sub.type.toUpperCase()}
+              </span>
+            )
           )}
-          {renderNodes(sub.about)}
+          
+          {/* Render the rest of the nodes, skipping the first h1 if we just rendered it */}
+          {renderNodes(
+            sub.about && sub.about.length > 0 && sub.about[0].tag === "h1"
+              ? sub.about.slice(1)
+              : sub.about
+          )}
         </section>
+
         {/* ── Section 2: Pseudocode & step explanation ─────────────────── */}
         {Array.isArray(sub.pseudoCodeandStepexplanation) &&
           sub.pseudoCodeandStepexplanation.length > 0 && (
