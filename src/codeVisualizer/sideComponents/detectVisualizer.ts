@@ -112,14 +112,14 @@ function normalizeNodeArray(val: any[]): any[] {
 
 // ─── PREFIX MATCHERS ────────────────────────────────────────────────────────
 
-const GRAPH_PREFIXES   = ['adj', 'graph'];
-const TREE_PREFIXES    = ['tree_', 'bst_', 'trie_'];
-const MATRIX_PREFIXES  = ['mat', 'grid', 'board', 'dp'];
-const LL_PREFIXES      = ['ll_'];
-const STACK_PREFIXES   = ['st_', 'stack'];
-const QUEUE_PREFIXES   = ['q_', 'queue', 'deque'];
-const ARRAY_PREFIXES   = ['arr', 'vec', 'nums', 'seq'];
-const MAP_PREFIXES     = ['map', 'dict', 'freq'];
+const GRAPH_PREFIXES   = ['adj', 'graph', 'network'];
+const TREE_PREFIXES    = ['tree_', 'bst_', 'trie_', 'root_', 'heap_', 'forest_'];
+const MATRIX_PREFIXES  = ['mat', 'grid', 'board', 'dp', 'table', 'matrix'];
+const LL_PREFIXES      = ['ll_', 'list_node', 'linked_list'];
+const STACK_PREFIXES   = ['st_', 'stack', 'stk'];
+const QUEUE_PREFIXES   = ['q_', 'queue', 'deque', 'buffer_q'];
+const ARRAY_PREFIXES   = ['arr', 'vec', 'nums', 'seq', 'list', 'buffer', 'cache', 'res', 'str', 'text', 'word', 'chars'];
+const MAP_PREFIXES     = ['map', 'dict', 'freq', 'count', 'hash', 'cache_map', 'memo', 'set', 'seen', 'visited'];
 
 function matchesPrefix(name: string, prefixes: string[]): boolean {
   const lower = name.toLowerCase();

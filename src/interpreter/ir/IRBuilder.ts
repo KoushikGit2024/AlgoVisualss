@@ -25,6 +25,7 @@ import type {
   IRStructDeclaration,
   IRSwitchStatement,
   IRCaseClause,
+  IRFunctionCall
 } from "./IRNode";
 
 /**
@@ -169,12 +170,20 @@ export class IRBuilder {
     if (parametersNode && parametersNode.type === "parameter_list") {
       for (const param of parametersNode.namedChildren) {
         if (param.type === "parameter_declaration" || param.type === "optional_parameter_declaration") {
-          let paramType = param.child(0)?.text || "unknown";
-          let paramDeclNode = param.namedChildren.find(c => 
-            c.type !== "primitive_type" && c.type !== "type_identifier" && c.type !== "number_literal" && c.type !== "string_literal" && c.type !== "identifier" && c.type !== "true" && c.type !== "false" && c.type !== "null"
-          );
+          let paramTypeParts: string[] = [];
+          let paramDeclNode: SyntaxNode | undefined = undefined;
           
-          paramDeclNode = param.namedChildren.length > 1 ? param.namedChildren[1] : undefined;
+          for (const c of param.namedChildren) {
+            if (c.type === "identifier" || c.type === "pointer_declarator" || c.type === "reference_declarator" || c.type === "array_declarator" || c.type === "function_declarator") {
+              paramDeclNode = c;
+              break;
+            }
+            paramTypeParts.push(c.text);
+          }
+          
+          let paramType = paramTypeParts.join(" ");
+          if (!paramType) paramType = "unknown";
+
           
           let paramName = "unknown";
           let isReference = false;
@@ -232,6 +241,19 @@ export class IRBuilder {
    */
   private buildBlock(node: SyntaxNode): IRBlock {
     const statements: IRNode[] = [];
+
+    // If the node itself is not a compound block, treat it as a single statement.
+    if (node.type !== "compound_statement") {
+      const stmt = this.buildStatement(node);
+      if (Array.isArray(stmt)) statements.push(...stmt);
+      else statements.push(stmt);
+      return {
+        kind: "Block",
+        line: node.startPosition.row + 1,
+        statements,
+      };
+    }
+
     for (const child of node.namedChildren) {
       const stmt = this.buildStatement(child);
       if (Array.isArray(stmt)) {
@@ -591,9 +613,17 @@ export class IRBuilder {
   }
 
   private buildWhileStatement(node: SyntaxNode): IRWhileStatement {
-    const conditionNode = node.namedChildren.find((c) => c.type === "condition_clause")?.namedChildren[0] 
+    const conditionNode = (node as any).childForFieldName("condition")
+                          || node.namedChildren.find((c) => c.type === "condition_clause")?.namedChildren[0] 
                           || node.namedChildren.find((c) => c.type === "parenthesized_expression");
-    const bodyNode = node.namedChildren.find((c) => c.type === "compound_statement");
+    
+    let bodyNode = (node as any).childForFieldName("body") as SyntaxNode | undefined;
+    if (!bodyNode) {
+      bodyNode = node.namedChildren.find((c) => c.type === "compound_statement" || c.type === "expression_statement");
+      if (!bodyNode && node.namedChildren.length > 0) {
+        bodyNode = node.namedChildren[node.namedChildren.length - 1];
+      }
+    }
 
     if (!conditionNode || !bodyNode) throw new Error(`Syntax Error at line ${node.startPosition.row + 1}: Malformed while loop.`);
 
@@ -606,8 +636,11 @@ export class IRBuilder {
   }
 
   private buildDoWhileStatement(node: SyntaxNode): IRDoWhileStatement {
-    const bodyNode = node.namedChildren.find((c) => c.type === "compound_statement");
-    const conditionNode = node.namedChildren.find((c) => c.type === "parenthesized_expression");
+    let bodyNode = (node as any).childForFieldName("body") as SyntaxNode | undefined;
+    if (!bodyNode) {
+        bodyNode = node.namedChildren.find((c) => c.type === "compound_statement" || c.type === "expression_statement");
+    }
+    const conditionNode = (node as any).childForFieldName("condition") || node.namedChildren.find((c) => c.type === "parenthesized_expression");
 
     if (!conditionNode || !bodyNode) throw new Error(`Syntax Error at line ${node.startPosition.row + 1}: Malformed do-while loop.`);
 
@@ -692,9 +725,16 @@ export class IRBuilder {
     const firstNode = node.namedChildren[0];
     
     if (firstNode.type === "declaration") {
-      // Use getDeclaratorName to correctly handle `auto&`, `const auto`, pointer declarators, etc.
-      varType = firstNode.child(0)?.text || "auto";
-      const declaratorChild = firstNode.child(1);
+      let typeParts: string[] = [];
+      let declaratorChild: SyntaxNode | undefined = undefined;
+      for (const c of firstNode.namedChildren) {
+          if (c.type === "identifier" || c.type === "pointer_declarator" || c.type === "reference_declarator" || c.type === "array_declarator" || c.type === "function_declarator") {
+              declaratorChild = c;
+              break;
+          }
+          typeParts.push(c.text);
+      }
+      varType = typeParts.join(" ") || "auto";
       varName = declaratorChild ? this.getDeclaratorName(declaratorChild) : "unknown";
     } else {
       // Fallback for non-standard Tree-sitter structures
@@ -818,11 +858,25 @@ export class IRBuilder {
         const castValueNode = node.namedChildren.find(
           (c) => c.type !== "type_descriptor" && c.type !== "abstract_type"
         );
-        if (castValueNode) return this.buildExpression(castValueNode);
-        // Fallback: evaluate last named child if type descriptor detection fails
-        const lastChild = node.namedChildren[node.namedChildren.length - 1];
-        if (lastChild) return this.buildExpression(lastChild);
-        return { kind: "Literal", line: node.startPosition.row + 1, valueType: "int", value: 0 };
+        let innerExpr: IRExpression;
+        if (castValueNode) {
+            innerExpr = this.buildExpression(castValueNode);
+        } else {
+            const lastChild = node.namedChildren[node.namedChildren.length - 1];
+            if (lastChild) innerExpr = this.buildExpression(lastChild);
+            else innerExpr = { kind: "Literal", line: node.startPosition.row + 1, valueType: "int", value: 0 };
+        }
+        
+        const isIntCast = node.text.replace(/\s+/g, "").startsWith("(int)") || node.text.replace(/\s+/g, "").startsWith("(long)");
+        if (isIntCast) {
+            return {
+                kind: "FunctionCall",
+                line: node.startPosition.row + 1,
+                callee: "trunc",
+                arguments: [innerExpr]
+            } as IRFunctionCall;
+        }
+        return innerExpr;
       }
 
       case "assignment_expression": {

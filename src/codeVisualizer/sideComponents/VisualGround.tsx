@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 // The ?worker flag is Vite's magic syntax to bundle this as a background thread!
 import EngineWorker from '../../lib/engine.worker?worker';
-import { InfoIcon, Play, Pause, SkipBack, SkipForward, RotateCcw, RefreshCw, Activity, Terminal } from 'lucide-react';
+import { InfoIcon, Play, Pause, SkipBack, SkipForward, RotateCcw, RefreshCw, Activity, Terminal, Cpu } from 'lucide-react';
 
 import Graph from '../dataStructures/Graph'; 
 import D1Array from '../dataStructures/D1Array';
@@ -260,7 +260,7 @@ const VisualGround = ({
     return (
       <div className="flex flex-col items-center justify-center h-full w-full p-2 text-center bg-bg">
         <div className="bg-failure/10 border border-failure/40 p-4 rounded-sm max-w-md w-full shadow-lg flex flex-col gap-3">
-           <h3 className="text-failure font-bold text-sm flex items-center justify-center gap-1"><Activity size={16}/> Engine Crash</h3>
+           <h3 className="text-failure font-bold text-sm flex items-center justify-center gap-1"><Cpu size={16}/> Engine Crash</h3>
            <div className="bg-bg/50 p-2 rounded border border-failure/20 overflow-auto max-h-32">
              <p className="text-[10px] text-failure font-mono text-left">{error}</p>
            </div>

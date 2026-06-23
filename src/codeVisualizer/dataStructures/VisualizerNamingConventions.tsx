@@ -9,7 +9,8 @@ import {
   ShieldAlert,
   Zap,
   Info,
-  ListOrdered
+  ListOrdered,
+  Database
 } from "lucide-react";
 
 const DATA_STRUCTURES = [
@@ -21,7 +22,8 @@ const DATA_STRUCTURES = [
     description: "Renders a circular node-edge network.",
     prefixes: [
       { prefix: "adj", example: "vector<vector<int>> adj_list" },
-      { prefix: "graph", example: "unordered_map<int, vector<int>> graph_map" }
+      { prefix: "graph", example: "unordered_map<int, vector<int>> graph_map" },
+      { prefix: "network", example: "vector<vector<int>> network_nodes" }
     ],
     shape: "Value must be a 2D array (adjacency list) or a non-empty array.",
     auxiliary: [
@@ -39,7 +41,10 @@ const DATA_STRUCTURES = [
     prefixes: [
       { prefix: "tree_", example: "vector<TreeNode> tree_nodes" },
       { prefix: "bst_", example: "vector<Node> bst_data" },
-      { prefix: "trie_", example: "vector<TrieNode> trie_nodes" }
+      { prefix: "trie_", example: "vector<TrieNode> trie_nodes" },
+      { prefix: "root_", example: "TreeNode* root_node" },
+      { prefix: "heap_", example: "vector<int> heap_arr" },
+      { prefix: "forest_", example: "vector<TreeNode> forest_nodes" }
     ],
     shape: "Value must be an array of objects, each with `id` and `value` fields.",
     auxiliary: [
@@ -57,7 +62,9 @@ const DATA_STRUCTURES = [
       { prefix: "mat", example: "vector<vector<int>> mat_grid" },
       { prefix: "grid", example: "vector<vector<int>> grid" },
       { prefix: "board", example: "char board[8][8]" },
-      { prefix: "dp", example: "vector<vector<int>> dp_table" }
+      { prefix: "dp", example: "vector<vector<int>> dp_table" },
+      { prefix: "table", example: "int table[5][5]" },
+      { prefix: "matrix", example: "vector<vector<int>> matrix_data" }
     ],
     shape: "Value must be a 2D array (array of arrays).",
     auxiliary: [
@@ -75,7 +82,11 @@ const DATA_STRUCTURES = [
       { prefix: "arr", example: "vector<int> arr" },
       { prefix: "vec", example: "vector<string> vec_names" },
       { prefix: "nums", example: "vector<int> nums" },
-      { prefix: "seq", example: "vector<float> seq" }
+      { prefix: "seq", example: "vector<float> seq" },
+      { prefix: "list", example: "vector<int> list_items" },
+      { prefix: "buffer", example: "char buffer[256]" },
+      { prefix: "str", example: "string str_val" },
+      { prefix: "res", example: "vector<int> res_out" }
     ],
     shape: "Value must be a flat array of primitives (numbers, strings, booleans).",
     auxiliary: [
@@ -92,7 +103,9 @@ const DATA_STRUCTURES = [
     description: "Renders a horizontal sequence of connected node blocks.",
     prefixes: [
       { prefix: "ll_", example: "vector<Node> ll_nodes" },
-      { prefix: "head", example: "Engine emits the fully traversed list as `head`" }
+      { prefix: "head", example: "Engine emits the fully traversed list as `head`" },
+      { prefix: "list_node", example: "ListNode* list_node_ptr" },
+      { prefix: "linked_list", example: "vector<Node> linked_list_data" }
     ],
     shape: "Value must be an array of objects, each with `id` and `value` fields.",
     auxiliary: [
@@ -109,7 +122,8 @@ const DATA_STRUCTURES = [
     prefixes: [
       { prefix: "q_", example: "queue<int> q_nodes" },
       { prefix: "queue", example: "deque<string> queue_names" },
-      { prefix: "deque", example: "deque<int> deque_window" }
+      { prefix: "deque", example: "deque<int> deque_window" },
+      { prefix: "buffer_q", example: "queue<char> buffer_q" }
     ],
     shape: "Value must be a flat array of primitives.",
     auxiliary: [
@@ -125,12 +139,32 @@ const DATA_STRUCTURES = [
     description: "Renders a vertical LIFO bucket where elements animate strictly top-down.",
     prefixes: [
       { prefix: "st_", example: "stack<int> st_nodes" },
-      { prefix: "stack", example: "vector<string> stack_names" }
+      { prefix: "stack", example: "vector<string> stack_names" },
+      { prefix: "stk", example: "stack<char> stk_chars" }
     ],
     shape: "Value must be a flat array of primitives.",
     auxiliary: [
       { role: "Stack pointers", trigger: "`top`, `peek`", notes: "Pointer badges attach to the right side of the element." }
     ]
+  },
+  {
+    title: "Maps & Sets — <MapVisualizer />",
+    icon: <Database className="text-success" size={18} />,
+    color: "border-success/30 bg-success/5",
+    textColor: "text-success",
+    description: "Renders key-value pairs or set elements.",
+    prefixes: [
+      { prefix: "map", example: "unordered_map<int, int> map_freq" },
+      { prefix: "dict", example: "map<string, int> dict" },
+      { prefix: "freq", example: "unordered_map<char, int> freq" },
+      { prefix: "count", example: "unordered_map<int, int> count" },
+      { prefix: "hash", example: "unordered_set<int> hash_set" },
+      { prefix: "seen", example: "unordered_set<int> seen" },
+      { prefix: "visited", example: "unordered_set<int> visited_nodes" },
+      { prefix: "memo", example: "unordered_map<int, int> memo" }
+    ],
+    shape: "Value must be a map or set object internally emitted by the engine.",
+    auxiliary: []
   }
 ];
 
@@ -304,13 +338,14 @@ export default function VisualizerNamingConventions() {
             </thead>
             <tbody>
               {[
-                { c: "<Graph />", p: "adj, graph", s: "2D array", a: "*edge*, *visit*, node/curr/u/v" },
-                { c: "<Tree />", p: "tree_, bst_, trie_", s: "Array of {id, value}", a: "root, curr, parent, temp, left, right" },
-                { c: "<D2Array />", p: "mat, grid, board, dp", s: "2D array", a: "r/row/r_*, c/col/c_* (both req)" },
-                { c: "<D1Array />", p: "arr, vec, nums, seq", s: "Flat array", a: "i, j, k, left, right, mid, curr, ptr" },
-                { c: "<LinkedList />", p: "ll_, head", s: "Array of {id, value}", a: "head, tail, curr, prev, next, slow, fast" },
-                { c: "<Queue />", p: "q_, queue, deque", s: "Flat array", a: "front, back, rear, head, tail, curr" },
-                { c: "<Stack />", p: "st_, stack", s: "Flat array", a: "top, peek" }
+                { c: "<Graph />", p: "adj, graph, network", s: "2D array", a: "*edge*, *visit*, node/curr/u/v" },
+                { c: "<Tree />", p: "tree_, bst_, trie_, root_, heap_, forest_", s: "Array of {id, value}", a: "root, curr, parent, temp, left, right" },
+                { c: "<D2Array />", p: "mat, grid, board, dp, table, matrix", s: "2D array", a: "r/row/r_*, c/col/c_* (both req)" },
+                { c: "<D1Array />", p: "arr, vec, nums, seq, list, buffer, cache, res, str, text, word, chars", s: "Flat array", a: "i, j, k, left, right, mid, curr, ptr" },
+                { c: "<LinkedList />", p: "ll_, head, list_node, linked_list", s: "Array of {id, value}", a: "head, tail, curr, prev, next, slow, fast" },
+                { c: "<Queue />", p: "q_, queue, deque, buffer_q", s: "Flat array", a: "front, back, rear, head, tail, curr" },
+                { c: "<Stack />", p: "st_, stack, stk", s: "Flat array", a: "top, peek" },
+                { c: "<MapVisualizer />", p: "map, dict, freq, count, hash, cache_map, memo, set, seen, visited", s: "Map/Set Object", a: "None" }
               ].map((row, i) => (
                 <tr key={i} className="border-b border-border last:border-b-0 hover:bg-surface-2 transition-colors">
                   <td className="px-3 py-2 border-r border-border text-text font-mono whitespace-nowrap">{row.c}</td>

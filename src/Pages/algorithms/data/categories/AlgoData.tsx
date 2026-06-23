@@ -68,7 +68,7 @@ const ARRAYS_SECTION = {
       about: [
         { tag: "h1", text: "Two Pointers" },
         { tag: "p", text: "The Two Pointers pattern uses two index variables that move through a sequence according to a rule, instead of one index moving alone or two nested loops moving independently. The two most common variants are opposite-direction (one pointer starts at each end and they move toward each other) and same-direction (both pointers start near the beginning and move forward at different rates, sometimes called the 'fast and slow' or 'read/write' variant)." },
-        { tag: "p", text: "Its value is asymptotic: a brute-force search for a pair or triplet satisfying a condition typically costs O(n²) or O(n³) with nested loops. In highly concurrent environments—like a server-authoritative multiplayer backend matching game states—nested loops introduce unacceptable latency. Two Pointers exploits sorted order (or a monotonic property) to discard half the remaining search space on every step, collapsing that to O(n)." },
+        { tag: "p", text: "Its value is asymptotic: a brute-force search for a pair or triplet satisfying a condition typically costs O(n²) or O(n³) with nested loops. In highly concurrent environments — like a server-authoritative multiplayer backend matching game states — nested loops introduce unacceptable latency. Two Pointers exploits sorted order (or a monotonic property) to discard half the remaining search space on every step, collapsing that to O(n)." },
         { tag: "h2", text: "When to reach for it" },
         { tag: "ul", items: [
           "The array or string is sorted, or can be sorted without breaking the problem's constraints",
@@ -97,25 +97,29 @@ const ARRAYS_SECTION = {
           { tag: "ol", items: [
             "Initialise left = 0 and right = n − 1 — O(1)",
             "arr[left] + arr[right] equals target on the very first check",
-            "Loop exits after exactly 1 iteration — O(1) inner work"
+            "Loop exits after exactly 1 iteration — O(1) inner work",
+            "Classification remains O(n) because correctness depends on the pointers being able to reach any element of an n-sized input"
           ]},
           { tag: "note", variant: "tip", text: "'Best case O(1) work done' and 'best case time complexity classification' are different things — always classify by what the algorithm is capable of needing, not by the luckiest possible input." }
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n)" },
-          { tag: "p", text: "On a uniformly random sorted array, the expected number of iterations before the pointers meet or the answer is found is proportional to n. Each iteration moves exactly one pointer by one position." },
+          { tag: "p", text: "On a uniformly random sorted array, the expected number of iterations before the pointers meet or the answer is found is proportional to n. Each iteration moves exactly one pointer by one position, so the two pointers can make at most n − 1 combined moves before colliding." },
           { tag: "ul", items: [
             "left only increases, right only decreases — neither pointer revisits a position",
-            "Total combined pointer movement across the whole run is bounded by n"
+            "Total combined pointer movement across the whole run is bounded by n",
+            "Each iteration does O(1) work: one addition, one comparison, one pointer update",
+            "n iterations × O(1) per iteration = O(n) average"
           ]}
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n)" },
-          { tag: "p", text: "The worst case happens when no valid pair exists at all, or the only valid pair sits at the final possible comparison — the pointers must walk all the way to the middle of the array." },
+          { tag: "p", text: "The worst case happens when no valid pair exists at all, or the only valid pair sits at the final possible comparison — the pointers must walk all the way to the middle of the array before the loop condition left < right fails." },
           { tag: "ul", items: [
             "left advances from 0 up to ⌊n/2⌋",
             "right retreats from n − 1 down to ⌈n/2⌉",
-            "Total comparisons made: n − 1, which is Θ(n)"
+            "Total comparisons made: n − 1, which is Θ(n)",
+            "This matches the Ω(n) lower bound for any algorithm that must inspect every element at least once in the worst case — Two Pointers is asymptotically optimal here"
           ]}
         ]
       },
@@ -125,22 +129,36 @@ const ARRAYS_SECTION = {
         best: [
           { tag: "h2", text: "Best Case Space — O(1)" },
           { tag: "p", text: "Two Pointers operates in-place on the original array. The only memory used is a fixed, small number of scalar variables." },
-          { tag: "ul", items: ["left index — O(1)", "right index — O(1)"] }
+          { tag: "ul", items: [
+            "left index — O(1)",
+            "right index — O(1)",
+            "a temporary sum/comparison variable — O(1)",
+            "no auxiliary arrays, hash sets, or recursive call stack"
+          ]}
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(1)" },
-          { tag: "p", text: "Memory usage never depends on the values inside the array or how many iterations run." }
+          { tag: "p", text: "Memory usage never depends on the values inside the array or how many iterations run — it is structurally constant." },
+          { tag: "ul", items: [
+            "The algorithm reads the input array directly without copying it",
+            "Loop variables remain fixed-size integers regardless of n",
+            "Iterative implementation — no growing call stack"
+          ]}
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(1)" },
           { tag: "p", text: "Even traversing the entire array without success allocates nothing beyond the two index variables already accounted for." },
+          { tag: "ul", items: [
+            "2 integer pointers + O(1) temporaries, regardless of n",
+            "If the caller wants the actual pair returned, that's O(1) to store two indices, not O(n)"
+          ]},
           { tag: "note", variant: "warning", text: "If a problem asks you to collect ALL valid pairs (not just one), the output itself can be O(n) or larger — that space belongs to the result set, not to the algorithm's auxiliary footprint." }
         ]
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "p", text: "Below is the canonical opposite-direction template, solving 'Two-Sum II': given a 1-indexed sorted array, return the positions of the two numbers that add up to a target." },
+        { tag: "p", text: "Below is the canonical opposite-direction template, solving 'Two-Sum II': given a 1-indexed sorted array, return the positions of the two nums that add up to a target." },
         { tag: "code", language: "text", text:
 `function twoSum(arr, target):
     left  ← 0
@@ -157,21 +175,35 @@ const ARRAYS_SECTION = {
             right ← right − 1                  // need a smaller sum
 
     return NOT_FOUND` },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        { tag: "ol", items: [
+          "Initialise left to the first index (0) and right to the last index (n − 1).",
+          "Enter the loop: continue as long as left < right — they haven't crossed or met.",
+          "Compute currentSum = arr[left] + arr[right] in O(1).",
+          "If currentSum equals target → pair found. Return 1-based indices immediately.",
+          "If currentSum is too small, arr[left] is too small. Increment left to move to a strictly larger value (array is sorted ascending).",
+          "If currentSum is too large, arr[right] is too large. Decrement right to move to a strictly smaller value.",
+          "Each iteration discards at least one index permanently — the search space strictly shrinks.",
+          "If the loop exits without returning, no valid pair exists for the given target."
+        ]},
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Loop invariant: at the start of every iteration, if a valid pair exists in the original array, at least one such pair lies within arr[left..right]. Each branch only discards index positions that are provably part of no valid pair given the sorted order, so the invariant is preserved until either a pair is found or the search space is exhausted." }
+        { tag: "p", text: "Loop invariant: at the start of every iteration, if a valid pair exists in the original array, at least one such pair lies within arr[left..right]. Each branch only discards index positions that are provably part of no valid pair given the sorted order, so the invariant is preserved until either a pair is found or the search space is exhausted." },
+        { tag: "h2", text: "Termination proof" },
+        { tag: "p", text: "Every iteration strictly increases left or strictly decreases right by exactly one. The quantity (right − left) therefore strictly decreases on every iteration and starts at a finite value (n − 1), so the loop condition left < right is guaranteed to become false after at most n − 1 iterations." }
       ],
-      codes : {
+
+      codes: {
         "c++": `#include <iostream>
 #include <vector>
 
 using namespace std;
 
-vector<int> twoSum(vector<int>& numbers, int target) {
+vector<int> twoSum(vector<int>& nums, int target) {
     int left = 0;
-    int right = numbers.size() - 1;
+    int right = nums.size() - 1;
     
     while (left < right) {
-        int sum = numbers[left] + numbers[right];
+        int sum = nums[left] + nums[right];
         
         if (sum == target) {
             // Returning 1-based indices as per classic Two Sum II rules
@@ -186,17 +218,17 @@ vector<int> twoSum(vector<int>& numbers, int target) {
 }
 
 int main() {
-    vector<int> numbers = {2, 7, 11, 15};
+    vector<int> nums = {2, 7, 11, 15};
     int target = 9;
-    vector<int> result = twoSum(numbers, target);
+    vector<int> result = twoSum(nums, target);
     cout << "Indices: " << result[0] << ", " << result[1] << endl;
     return 0;
 }`,
-        "python": `def two_sum(numbers, target):
-    left, right = 0, len(numbers) - 1
+        "python": `def two_sum(nums, target):
+    left, right = 0, len(nums) - 1
     
     while left < right:
-        current_sum = numbers[left] + numbers[right]
+        current_sum = nums[left] + nums[right]
         if current_sum == target:
             return [left + 1, right + 1]
         elif current_sum < target:
@@ -207,19 +239,19 @@ int main() {
     return [-1, -1]
 
 if __name__ == "__main__":
-    numbers = [2, 7, 11, 15]
+    nums = [2, 7, 11, 15]
     target = 9
-    result = two_sum(numbers, target)
+    result = two_sum(nums, target)
     print(f"Indices: {result[0]}, {result[1]}")`,
         "java": `import java.util.Arrays;
 
 public class Main {
-    public static int[] twoSum(int[] numbers, int target) {
+    public static int[] twoSum(int[] nums, int target) {
         int left = 0;
-        int right = numbers.length - 1;
+        int right = nums.length - 1;
         
         while (left < right) {
-            int sum = numbers[left] + numbers[right];
+            int sum = nums[left] + nums[right];
             if (sum == target) {
                 return new int[]{left + 1, right + 1};
             } else if (sum < target) {
@@ -232,18 +264,18 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        int[] numbers = {2, 7, 11, 15};
+        int[] nums = {2, 7, 11, 15};
         int target = 9;
-        int[] result = twoSum(numbers, target);
+        int[] result = twoSum(nums, target);
         System.out.println("Indices: " + result[0] + ", " + result[1]);
     }
 }`,
-        "js": `function twoSum(numbers, target) {
+        "js": `function twoSum(nums, target) {
     let left = 0;
-    let right = numbers.length - 1;
+    let right = nums.length - 1;
     
     while (left < right) {
-        const sum = numbers[left] + numbers[right];
+        const sum = nums[left] + nums[right];
         if (sum === target) {
             return [left + 1, right + 1];
         } else if (sum < target) {
@@ -255,21 +287,21 @@ public class Main {
     return [-1, -1];
 }
 
-const numbers = [2, 7, 11, 15];
+const nums = [2, 7, 11, 15];
 const target = 9;
-const result = twoSum(numbers, target);
+const result = twoSum(nums, target);
 console.log("Indices:", result[0], ",", result[1]);`,
         "c": `#include <stdio.h>
 #include <stdlib.h>
 
-int* twoSum(int* numbers, int numbersSize, int target, int* returnSize) {
+int* twoSum(int* nums, int numsSize, int target, int* returnSize) {
     int left = 0;
-    int right = numbersSize - 1;
+    int right = numsSize - 1;
     int* result = (int*)malloc(2 * sizeof(int));
     *returnSize = 2;
     
     while (left < right) {
-        int sum = numbers[left] + numbers[right];
+        int sum = nums[left] + nums[right];
         if (sum == target) {
             result[0] = left + 1;
             result[1] = right + 1;
@@ -287,10 +319,10 @@ int* twoSum(int* numbers, int numbersSize, int target, int* returnSize) {
 }
 
 int main() {
-    int numbers[] = {2, 7, 11, 15};
+    int nums[] = {2, 7, 11, 15};
     int target = 9;
     int returnSize;
-    int* result = twoSum(numbers, 4, target, &returnSize);
+    int* result = twoSum(nums, 4, target, &returnSize);
     printf("Indices: %d, %d\\n", result[0], result[1]);
     free(result);
     return 0;
@@ -298,12 +330,12 @@ int main() {
         "c#": `using System;
 
 class Program {
-    public static int[] TwoSum(int[] numbers, int target) {
+    public static int[] TwoSum(int[] nums, int target) {
         int left = 0;
-        int right = numbers.Length - 1;
+        int right = nums.Length - 1;
         
         while (left < right) {
-            int sum = numbers[left] + numbers[right];
+            int sum = nums[left] + nums[right];
             if (sum == target) {
                 return new int[] { left + 1, right + 1 };
             } else if (sum < target) {
@@ -316,18 +348,18 @@ class Program {
     }
 
     static void Main() {
-        int[] numbers = { 2, 7, 11, 15 };
+        int[] nums = { 2, 7, 11, 15 };
         int target = 9;
-        int[] result = TwoSum(numbers, target);
+        int[] result = TwoSum(nums, target);
         Console.WriteLine($"Indices: {result[0]}, {result[1]}");
     }
 }`,
-        "swift": `func twoSum(_ numbers: [Int], _ target: Int) -> [Int] {
+        "swift": `func twoSum(_ nums: [Int], _ target: Int) -> [Int] {
     var left = 0
-    var right = numbers.count - 1
+    var right = nums.count - 1
     
     while left < right {
-        let sum = numbers[left] + numbers[right]
+        let sum = nums[left] + nums[right]
         if sum == target {
             return [left + 1, right + 1]
         } else if sum < target {
@@ -339,15 +371,15 @@ class Program {
     return [-1, -1]
 }
 
-let numbers = [2, 7, 11, 15]
-let result = twoSum(numbers, 9)
+let nums = [2, 7, 11, 15]
+let result = twoSum(nums, 9)
 print("Indices: \\(result[0]), \\(result[1])")`,
-        "kotlin": `fun twoSum(numbers: IntArray, target: Int): IntArray {
+        "kotlin": `fun twoSum(nums: IntArray, target: Int): IntArray {
     var left = 0
-    var right = numbers.size - 1
+    var right = nums.size - 1
     
     while (left < right) {
-        val sum = numbers[left] + numbers[right]
+        val sum = nums[left] + nums[right]
         if (sum == target) {
             return intArrayOf(left + 1, right + 1)
         } else if (sum < target) {
@@ -360,18 +392,18 @@ print("Indices: \\(result[0]), \\(result[1])")`,
 }
 
 fun main() {
-    val numbers = intArrayOf(2, 7, 11, 15)
+    val nums = intArrayOf(2, 7, 11, 15)
     val target = 9
-    val result = twoSum(numbers, target)
+    val result = twoSum(nums, target)
     println("Indices: \${result[0]}, \${result[1]}")
 }`,
         "scala": `object Main extends App {
-    def twoSum(numbers: Array[Int], target: Int): Array[Int] = {
+    def twoSum(nums: Array[Int], target: Int): Array[Int] = {
         var left = 0
-        var right = numbers.length - 1
+        var right = nums.length - 1
         
         while (left < right) {
-            val sum = numbers(left) + numbers(right)
+            val sum = nums(left) + nums(right)
             if (sum == target) {
                 return Array(left + 1, right + 1)
             } else if (sum < target) {
@@ -383,21 +415,21 @@ fun main() {
         Array(-1, -1)
     }
 
-    val numbers = Array(2, 7, 11, 15)
+    val nums = Array(2, 7, 11, 15)
     val target = 9
-    val result = twoSum(numbers, target)
+    val result = twoSum(nums, target)
     println(s"Indices: \${result(0)}, \${result(1)}")
 }`,
         "go": `package main
 
 import "fmt"
 
-func twoSum(numbers []int, target int) []int {
+func twoSum(nums []int, target int) []int {
     left := 0
-    right := len(numbers) - 1
+    right := len(nums) - 1
     
     for left < right {
-        sum := numbers[left] + numbers[right]
+        sum := nums[left] + nums[right]
         if sum == target {
             return []int{left + 1, right + 1}
         } else if sum < target {
@@ -410,17 +442,17 @@ func twoSum(numbers []int, target int) []int {
 }
 
 func main() {
-    numbers := []int{2, 7, 11, 15}
+    nums := []int{2, 7, 11, 15}
     target := 9
-    result := twoSum(numbers, target)
+    result := twoSum(nums, target)
     fmt.Printf("Indices: %d, %d\\n", result[0], result[1])
 }`,
-        "rust": `fn two_sum(numbers: Vec<i32>, target: i32) -> Vec<i32> {
+        "rust": `fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
     let mut left = 0;
-    let mut right = numbers.len() - 1;
+    let mut right = nums.len() - 1;
     
     while left < right {
-        let sum = numbers[left] + numbers[right];
+        let sum = nums[left] + nums[right];
         if sum == target {
             return vec![(left + 1) as i32, (right + 1) as i32];
         } else if sum < target {
@@ -433,9 +465,9 @@ func main() {
 }
 
 fn main() {
-    let numbers = vec![2, 7, 11, 15];
+    let nums = vec![2, 7, 11, 15];
     let target = 9;
-    let result = two_sum(numbers, target);
+    let result = two_sum(nums, target);
     println!("Indices: {}, {}", result[0], result[1]);
 }`
       }
@@ -468,28 +500,29 @@ fn main() {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case — O(n)" },
-          { tag: "p", text: "Kadane's always scans every element exactly once — there is no early-exit condition, because the maximum subarray could end at any position, including the very last index." },
+          { tag: "p", text: "Kadane's always scans every element exactly once — there is no early-exit condition, because the maximum subarray could end at any position, including the very last index. So best case equals worst case: a single Θ(n) pass." },
           { tag: "ul", items: [
             "Initialise currentSum = arr[0], maxSum = arr[0] — O(1)",
             "For each of the remaining n − 1 elements, do exactly one comparison and one addition",
-            "No data pattern allows the loop to terminate early"
+            "No data pattern allows the loop to terminate early — total work is always n − 1 steps"
           ]}
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n)" },
-          { tag: "p", text: "Because the algorithm performs identical O(1) work at every index regardless of the values encountered, average case is identical to best and worst." },
+          { tag: "p", text: "Because the algorithm performs identical O(1) work at every index regardless of the values encountered, there is no notion of 'lucky' or 'unlucky' input that changes the iteration count — average case is identical to best and worst." },
           { tag: "ul", items: [
             "Each iteration: currentSum = max(arr[i], currentSum + arr[i]) — O(1)",
             "Each iteration: maxSum = max(maxSum, currentSum) — O(1)",
-            "n iterations of O(1) work = O(n)"
+            "n iterations of O(1) work = O(n) regardless of distribution of positive/negative values"
           ]}
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n)" },
-          { tag: "p", text: "No nested loops or recursion — strictly linear regardless of how many sign changes occur in the array." },
+          { tag: "p", text: "The worst case is identical to the average and best case in iteration count, since Kadane's has no conditional early termination — it always processes the full array exactly once." },
           { tag: "ul", items: [
             "All n elements are visited once: Θ(n)",
-            "Matches the Ω(n) lower bound, since any correct algorithm must inspect every element at least once"
+            "No nested loops or recursion — strictly linear regardless of how many sign changes occur in the array",
+            "This matches the Ω(n) lower bound, since any correct algorithm must inspect every element at least once (any unread element could be part of the optimal subarray)"
           ]}
         ]
       },
@@ -498,19 +531,29 @@ fn main() {
         notation: "O(1)",
         best: [
           { tag: "h2", text: "Best Case Space — O(1)" },
-          { tag: "p", text: "Only two scalar accumulators are required: the running sum ending at the current index, and the best sum seen so far." }
+          { tag: "p", text: "Only two scalar accumulators are required: the running sum ending at the current index, and the best sum seen so far." },
+          { tag: "ul", items: [
+            "currentSum — O(1)",
+            "maxSum — O(1)",
+            "loop index i — O(1)"
+          ]}
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(1)" },
-          { tag: "p", text: "Memory usage is completely independent of input values." },
+          { tag: "p", text: "Memory usage is completely independent of input values — it is always exactly two accumulators." },
           { tag: "ul", items: [
-            "No auxiliary array is built",
+            "No auxiliary array is built, unlike the divide-and-conquer maximum-subarray approach",
             "No recursion stack — the algorithm is a single iterative loop"
           ]}
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(1)" },
-          { tag: "p", text: "Even tracking the start/end indices of the optimal subarray only adds two more O(1) scalars." }
+          { tag: "p", text: "Even tracking the start/end indices of the optimal subarray (a common follow-up requirement) only adds two more O(1) scalars." },
+          { tag: "ul", items: [
+            "currentSum, maxSum: O(1)",
+            "optional tempStart, bestStart, bestEnd indices: O(1) each",
+            "Total auxiliary space remains O(1) regardless of n"
+          ]}
         ]
       },
 
@@ -521,7 +564,7 @@ fn main() {
 `function maxSubArray(arr):
     currentSum ← arr[0]
     maxSum     ← arr[0]
-    
+
     for i from 1 to length(arr) − 1:
         if arr[i] > currentSum + arr[i]:
             currentSum ← arr[i]        // start fresh at i
@@ -532,10 +575,20 @@ fn main() {
             maxSum ← currentSum
 
     return maxSum` },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        { tag: "ol", items: [
+          "Seed both currentSum and maxSum with arr[0] — a subarray of length 1 is always valid, and initialising to 0 would fail on all-negative arrays.",
+          "For every index i from 1 onward, decide: does adding arr[i] to the existing run beat starting a brand-new run at i alone?",
+          "If arr[i] > currentSum + arr[i], the existing run is a net drag (currentSum is negative) — discard it and restart from i.",
+          "Otherwise, extending is beneficial — add arr[i] to currentSum.",
+          "After updating currentSum, compare it to maxSum and update the global best if improved.",
+          "Repeat through every element; maxSum after the final iteration holds the answer."
+        ]},
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "By induction: currentSum after processing index i always equals the maximum sum of any subarray that ends exactly at i. The base case (i = 0) holds trivially. For the inductive step, the maximum subarray ending at i either includes index i−1's optimal subarray extended by arr[i], or it is just arr[i] alone — Kadane's explicitly computes max of those two options at every step." }
+        { tag: "p", text: "By induction: currentSum after processing index i always equals the maximum sum of any subarray that ends exactly at i. The base case (i = 0) holds trivially. For the inductive step, the maximum subarray ending at i either includes index i−1's optimal subarray extended by arr[i], or it is just arr[i] alone — Kadane's explicitly computes max of those two options at every step, so the invariant holds for all i, and maxSum (the running max of all these per-position optima) is therefore the true global maximum." }
       ],
-      codes : {
+
+      codes: {
         "c++": `#include <iostream>
 #include <vector>
 #include <algorithm>
@@ -545,13 +598,13 @@ using namespace std;
 int maxSubArray(vector<int>& nums) {
     if (nums.empty()) return 0;
     
-    // Initialize both to the first element to correctly handle 
+    // Initialize both to the first element to correctly handle
     // arrays containing exclusively negative numbers.
     int currentSum = nums[0];
     int maxSum = nums[0];
     
     for (size_t i = 1; i < nums.size(); i++) {
-        // Is it better to append to the previous subarray, 
+        // Is it better to append to the previous subarray,
         // or start a brand new one here?
         currentSum = max(nums[i], currentSum + nums[i]);
         
@@ -628,9 +681,7 @@ int maxSubArray(int* nums, int numsSize) {
     
     for (int i = 1; i < numsSize; i++) {
         currentSum = (nums[i] > currentSum + nums[i]) ? nums[i] : currentSum + nums[i];
-        if (currentSum > maxSum) {
-            maxSum = currentSum;
-        }
+        if (currentSum > maxSum) maxSum = currentSum;
     }
     
     return maxSum;
@@ -722,20 +773,17 @@ fun main() {
 import "fmt"
 
 func maxSubArray(nums []int) int {
-    if len(nums) == 0 {
-        return 0
-    }
+    if len(nums) == 0 { return 0 }
     
     currentSum := nums[0]
     maxSum := nums[0]
     
     for i := 1; i < len(nums); i++ {
-        if nums[i] > currentSum + nums[i] {
+        if nums[i] > currentSum+nums[i] {
             currentSum = nums[i]
         } else {
             currentSum += nums[i]
         }
-        
         if currentSum > maxSum {
             maxSum = currentSum
         }
@@ -808,27 +856,27 @@ fn main() {
           { tag: "p", text: "The right pointer always sweeps the full array once — there's no early exit, since the longest/shortest valid window could end at the very last index." },
           { tag: "ul", items: [
             "right traverses indices 0 to n − 1 exactly once — n steps",
-            "left only ever moves forward, never backward",
-            "Best case still requires reading every element at least once"
+            "left only ever moves forward, never backward, bounding its total movement across the whole algorithm by n",
+            "Best case still requires reading every element at least once to confirm no better window exists later"
           ]}
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n)" },
-          { tag: "p", text: "This is the key amortised-analysis argument: although there appear to be two nested-looking pointers, neither pointer ever resets or moves backward." },
+          { tag: "p", text: "This is the key amortised-analysis argument: although there appear to be two nested-looking pointers, neither pointer ever resets or moves backward, so the combined work across the entire run is linear, not quadratic." },
           { tag: "ul", items: [
-            "right makes exactly n forward moves",
-            "left makes at most n forward moves over the whole algorithm",
+            "right makes exactly n forward moves over the whole algorithm",
+            "left makes at most n forward moves (it can never exceed right)",
             "Total pointer movements ≤ 2n → O(n)",
-            "Per-step work (updating a sum or frequency map) is O(1) amortised"
+            "Per-step work (updating a sum or frequency map by one element) is O(1) amortised"
           ]}
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n)" },
-          { tag: "p", text: "Even in pathological cases — e.g. a string where every character is identical, forcing the window to repeatedly shrink — the total number of left-pointer moves across the entire algorithm is still bounded by n." },
+          { tag: "p", text: "Even in pathological cases — e.g. a string where every character is identical, forcing the window to repeatedly shrink — the total number of left-pointer moves across the entire algorithm is still bounded by n, because left cannot move past right." },
           { tag: "ul", items: [
-            "Worst-case total iterations of the outer loop: n",
-            "Worst-case total iterations of the inner shrink loop, summed across the whole run: ≤ n",
-            "Combined: O(n) + O(n) = O(n), not O(n²)"
+            "Worst-case total iterations of the outer (right) loop: n",
+            "Worst-case total iterations of the inner (left) shrink loop, summed across the whole run: ≤ n",
+            "Combined: O(n) + O(n) = O(n), not O(n²) — this is the entire point of the amortised argument"
           ]},
           { tag: "note", variant: "warning", text: "A common implementation mistake is resetting or rescanning the window from scratch after every shrink — that turns the technique back into O(n²) and defeats its purpose." }
         ]
@@ -838,7 +886,7 @@ fn main() {
         notation: "O(1) – O(k)",
         best: [
           { tag: "h2", text: "Best Case Space — O(1)" },
-          { tag: "p", text: "For numeric-sum windows (e.g. max sum subarray of size k), only the running sum and the two pointers are needed." },
+          { tag: "p", text: "For numeric-sum windows (e.g. max sum subarray of size k), only the running sum and the two pointers are needed — no auxiliary collection." },
           { tag: "ul", items: [
             "left, right pointers — O(1)",
             "windowSum accumulator — O(1)"
@@ -846,7 +894,7 @@ fn main() {
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(k) or O(Σ)" },
-          { tag: "p", text: "When the window must track which elements it contains (distinct characters, frequency counts), a hash map or fixed-size array is needed." },
+          { tag: "p", text: "When the window must track which elements it contains (distinct characters, frequency counts), a hash map or fixed-size array is needed, bounded by the window size k or the alphabet size Σ." },
           { tag: "ul", items: [
             "Frequency map holds at most min(window size, alphabet size) entries",
             "For ASCII/lowercase-letter problems this is effectively O(1) since Σ ≤ 26 or 128",
@@ -855,10 +903,11 @@ fn main() {
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(min(n, Σ))" },
-          { tag: "p", text: "In the worst case the window grows to cover nearly the entire input before shrinking." },
+          { tag: "p", text: "In the worst case the window grows to cover nearly the entire input before shrinking, so any per-element tracking structure can hold up to that many distinct entries." },
           { tag: "ul", items: [
             "Frequency/count map: up to min(n, alphabet size) entries",
-            "Two pointers: O(1)"
+            "Two pointers: O(1)",
+            "No recursion — purely iterative"
           ]}
         ]
       },
@@ -867,25 +916,35 @@ fn main() {
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
         { tag: "p", text: "Variable-size shrinkable window — 'Longest Substring Without Repeating Characters':" },
         { tag: "code", language: "text", text:
-`function lengthOfLongestSubstring(s):
+`function lengthOfLongestSubstring(str_s):
     seen   ← empty hash set
     left   ← 0
     best   ← 0
 
     for right from 0 to length(s) − 1:
-        while s[right] is in seen:
-            remove s[left] from seen
+        while str_s[right] is in seen:
+            remove str_s[left] from seen
             left ← left + 1
 
-        add s[right] to seen
+        add str_s[right] to seen
         best ← max(best, right − left + 1)
 
     return best` },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        { tag: "ol", items: [
+          "right scans forward one character at a time, always trying to extend the current valid window.",
+          "Before admitting str_s[right] into the window, check whether it already exists in the 'seen' set — which would create a duplicate.",
+          "If a duplicate is found, shrink from the left: remove str_s[left] from the set and advance left. Repeat until the duplicate is gone.",
+          "Once the window is valid again (no duplicates), add str_s[right] to the set.",
+          "Update best if the current window length (right − left + 1) exceeds the previous best.",
+          "Continue until right reaches the end of the string. Return best."
+        ]},
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Invariant: at the top of every outer-loop iteration, s[left..right−1] contains no duplicate characters. The inner while-loop restores this invariant whenever adding s[right] would violate it, by removing characters from the left until the conflict is resolved." }
+        { tag: "p", text: "Invariant: at the top of every outer-loop iteration, str_s[left..right−1] contains no duplicate characters. The inner while-loop restores this invariant whenever adding str_s[right] would violate it, by removing characters from the left until the conflict is resolved — and because left only ever moves forward, no valid window is ever skipped over." }
       ],
-      codes : {
-        "c++": `#include <iostream>
+
+      codes: {
+  "c++": `#include <iostream>
 #include <string>
 #include <unordered_set>
 #include <algorithm>
@@ -893,22 +952,16 @@ fn main() {
 using namespace std;
 
 int lengthOfLongestSubstring(string s) {
-    unordered_set<char> windowChars;
+    unordered_set<char> seen;
     int left = 0;
     int maxLength = 0;
     
-    for (int right = 0; right < s.length(); right++) {
-        // If the new character is already in the window, shrink from the left
-        // until the duplicate is evicted. 
-        while (windowChars.count(s[right])) {
-            windowChars.erase(s[left]);
+    for (int right = 0; right < (int)s.length(); right++) {
+        while (seen.count(s[right])) {
+            seen.erase(s[left]);
             left++;
         }
-        
-        // Window is now valid again. Add the new character.
-        windowChars.insert(s[right]);
-        
-        // Check if this new valid window is the largest we've seen.
+        seen.insert(s[right]);
         maxLength = max(maxLength, right - left + 1);
     }
     
@@ -920,7 +973,8 @@ int main() {
     cout << "Longest Substring Length: " << lengthOfLongestSubstring(s) << endl;
     return 0;
 }`,
-        "python": `def length_of_longest_substring(s: str) -> int:
+
+  "python": `def length_of_longest_substring(s: str) -> int:
     window_chars = set()
     left = 0
     max_length = 0
@@ -938,21 +992,22 @@ int main() {
 if __name__ == "__main__":
     s = "abcabcbb"
     print(f"Longest Substring Length: {length_of_longest_substring(s)}")`,
-        "java": `import java.util.HashSet;
+
+  "java": `import java.util.HashSet;
 import java.util.Set;
 
 public class Main {
     public static int lengthOfLongestSubstring(String s) {
-        Set<Character> windowChars = new HashSet<>();
+        Set<Character> seen = new HashSet<>();
         int left = 0;
         int maxLength = 0;
         
         for (int right = 0; right < s.length(); right++) {
-            while (windowChars.contains(s.charAt(right))) {
-                windowChars.remove(s.charAt(left));
+            while (seen.contains(s.charAt(right))) {
+                seen.remove(s.charAt(left));
                 left++;
             }
-            windowChars.add(s.charAt(right));
+            seen.add(s.charAt(right));
             maxLength = Math.max(maxLength, right - left + 1);
         }
         
@@ -964,17 +1019,18 @@ public class Main {
         System.out.println("Longest Substring Length: " + lengthOfLongestSubstring(s));
     }
 }`,
-        "js": `function lengthOfLongestSubstring(s) {
-    const windowChars = new Set();
+
+  "js": `function lengthOfLongestSubstring(s) {
+    const seen = new Set();
     let left = 0;
     let maxLength = 0;
     
     for (let right = 0; right < s.length; right++) {
-        while (windowChars.has(s[right])) {
-            windowChars.delete(s[left]);
+        while (seen.has(s[right])) {
+            seen.delete(s[left]);
             left++;
         }
-        windowChars.add(s[right]);
+        seen.add(s[right]);
         maxLength = Math.max(maxLength, right - left + 1);
     }
     
@@ -983,11 +1039,12 @@ public class Main {
 
 const s = "abcabcbb";
 console.log("Longest Substring Length:", lengthOfLongestSubstring(s));`,
-        "c": `#include <stdio.h>
+
+  "c": `#include <stdio.h>
 #include <string.h>
 
 int lengthOfLongestSubstring(char* s) {
-    int map[256] = {0}; // Track presence in ASCII
+    int map[256] = {0};
     int left = 0, right = 0;
     int maxLength = 0;
     
@@ -998,9 +1055,7 @@ int lengthOfLongestSubstring(char* s) {
         }
         map[(unsigned char)s[right]]++;
         int currentLength = right - left + 1;
-        if (currentLength > maxLength) {
-            maxLength = currentLength;
-        }
+        if (currentLength > maxLength) maxLength = currentLength;
         right++;
     }
     return maxLength;
@@ -1011,20 +1066,21 @@ int main() {
     printf("Longest Substring Length: %d\\n", lengthOfLongestSubstring(s));
     return 0;
 }`,
-        "c#": `using System;
+
+  "c#": `using System;
 using System.Collections.Generic;
 
 class Program {
     public static int LengthOfLongestSubstring(string s) {
-        HashSet<char> windowChars = new HashSet<char>();
+        HashSet<char> seen = new HashSet<char>();
         int left = 0, maxLength = 0;
         
         for (int right = 0; right < s.Length; right++) {
-            while (windowChars.Contains(s[right])) {
-                windowChars.Remove(s[left]);
+            while (seen.Contains(s[right])) {
+                seen.Remove(s[left]);
                 left++;
             }
-            windowChars.Add(s[right]);
+            seen.Add(s[right]);
             maxLength = Math.Max(maxLength, right - left + 1);
         }
         return maxLength;
@@ -1035,17 +1091,18 @@ class Program {
         Console.WriteLine($"Longest Substring Length: {LengthOfLongestSubstring(s)}");
     }
 }`,
-        "swift": `func lengthOfLongestSubstring(_ s: String) -> Int {
-    var windowChars = Set<Character>()
+
+  "swift": `func lengthOfLongestSubstring(_ s: String) -> Int {
+    var seen = Set<Character>()
     var left = s.startIndex
     var maxLength = 0
     
     for right in s.indices {
-        while windowChars.contains(s[right]) {
-            windowChars.remove(s[left])
+        while seen.contains(s[right]) {
+            seen.remove(s[left])
             left = s.index(after: left)
         }
-        windowChars.insert(s[right])
+        seen.insert(s[right])
         let distance = s.distance(from: left, to: right) + 1
         maxLength = max(maxLength, distance)
     }
@@ -1054,19 +1111,20 @@ class Program {
 
 let s = "abcabcbb"
 print("Longest Substring Length: \\(lengthOfLongestSubstring(s))")`,
-        "kotlin": `import kotlin.math.max
+
+  "kotlin": `import kotlin.math.max
 
 fun lengthOfLongestSubstring(s: String): Int {
-    val windowChars = mutableSetOf<Char>()
+    val seen = mutableSetOf<Char>()
     var left = 0
     var maxLength = 0
     
     for (right in s.indices) {
-        while (windowChars.contains(s[right])) {
-            windowChars.remove(s[left])
+        while (seen.contains(s[right])) {
+            seen.remove(s[left])
             left++
         }
-        windowChars.add(s[right])
+        seen.add(s[right])
         maxLength = max(maxLength, right - left + 1)
     }
     return maxLength
@@ -1076,20 +1134,21 @@ fun main() {
     val s = "abcabcbb"
     println("Longest Substring Length: \${lengthOfLongestSubstring(s)}")
 }`,
-        "scala": `import scala.collection.mutable
+
+  "scala": `import scala.collection.mutable
 
 object Main extends App {
     def lengthOfLongestSubstring(s: String): Int = {
-        val windowChars = mutable.Set[Char]()
+        val seen = mutable.Set[Char]()
         var left = 0
         var maxLength = 0
         
         for (right <- 0 until s.length) {
-            while (windowChars.contains(s(right))) {
-                windowChars.remove(s(left))
+            while (seen.contains(s(right))) {
+                seen.remove(s(left))
                 left += 1
             }
-            windowChars.add(s(right))
+            seen.add(s(right))
             maxLength = math.max(maxLength, right - left + 1)
         }
         maxLength
@@ -1098,24 +1157,24 @@ object Main extends App {
     val s = "abcabcbb"
     println(s"Longest Substring Length: \${lengthOfLongestSubstring(s)}")
 }`,
-        "go": `package main
+
+  "go": `package main
 
 import "fmt"
 
 func lengthOfLongestSubstring(s string) int {
-    windowChars := make(map[byte]bool)
+    seen := make(map[byte]bool)
     left := 0
     maxLength := 0
     
     for right := 0; right < len(s); right++ {
-        for windowChars[s[right]] {
-            delete(windowChars, s[left])
+        for seen[s[right]] {
+            delete(seen, s[left])
             left++
         }
-        windowChars[s[right]] = true
-        currentLength := right - left + 1
-        if currentLength > maxLength {
-            maxLength = currentLength
+        seen[s[right]] = true
+        if right-left+1 > maxLength {
+            maxLength = right - left + 1
         }
     }
     return maxLength
@@ -1125,21 +1184,22 @@ func main() {
     s := "abcabcbb"
     fmt.Printf("Longest Substring Length: %d\\n", lengthOfLongestSubstring(s))
 }`,
-        "rust": `use std::collections::HashSet;
+
+  "rust": `use std::collections::HashSet;
 use std::cmp;
 
 fn length_of_longest_substring(s: String) -> i32 {
     let chars: Vec<char> = s.chars().collect();
-    let mut window_chars = HashSet::new();
+    let mut seen = HashSet::new();
     let mut left = 0;
     let mut max_length = 0;
     
     for right in 0..chars.len() {
-        while window_chars.contains(&chars[right]) {
-            window_chars.remove(&chars[left]);
+        while seen.contains(&chars[right]) {
+            seen.remove(&chars[left]);
             left += 1;
         }
-        window_chars.insert(chars[right]);
+        seen.insert(chars[right]);
         max_length = cmp::max(max_length, right - left + 1);
     }
     max_length as i32
@@ -1178,27 +1238,27 @@ fn main() {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case — O(n)" },
-          { tag: "p", text: "The algorithm always performs a single full pass through the array to determine the final candidate — there's no shortcut." },
+          { tag: "p", text: "The algorithm always performs a single full pass through the array to determine the final candidate — there's no shortcut even if the first element happens to be the eventual majority element." },
           { tag: "ul", items: [
             "Initialise candidate = none, count = 0 — O(1)",
             "Iterate all n elements once, doing O(1) work per element",
-            "No early exit: even a 'lucky' input still requires confirming via the full count mechanism"
+            "No early exit: even a 'lucky' input still requires the full count mechanism to produce a verified candidate"
           ]}
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n)" },
-          { tag: "p", text: "Every element triggers exactly one comparison and one increment/decrement of the counter." },
+          { tag: "p", text: "Every element triggers exactly one comparison and one increment/decrement of the counter (or one candidate reassignment), regardless of the array's value distribution." },
           { tag: "ul", items: [
-            "n iterations, O(1) work each: compare element to candidate, then update count",
+            "n iterations, O(1) work each: compare element to candidate, then ++count or --count or reassign",
             "Total: O(n)"
           ]}
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n)" },
-          { tag: "p", text: "Even with maximal candidate-switching, each switch is still O(1)." },
+          { tag: "p", text: "Even with maximal candidate-switching (the count hits zero repeatedly), each switch is still O(1), so the total work stays linear." },
           { tag: "ul", items: [
             "If using the two-pass verified version: pass 1 finds the candidate (O(n)), pass 2 confirms its count (O(n))",
-            "2 × O(n) = O(n)",
+            "2 × O(n) = O(n) — constant factor does not change the asymptotic class",
             "Matches the Ω(n) lower bound since every element must be read at least once"
           ]}
         ]
@@ -1208,12 +1268,18 @@ fn main() {
         notation: "O(1)",
         best: [
           { tag: "h2", text: "Best Case Space — O(1)" },
-          { tag: "p", text: "Only a candidate variable and an integer counter are maintained — no hash map." },
-          { tag: "ul", items: ["candidate — O(1)", "count — O(1)"] }
+          { tag: "p", text: "Only a candidate variable and an integer counter are maintained — no hash map of element frequencies is ever built." },
+          { tag: "ul", items: [
+            "candidate — O(1)",
+            "count — O(1)"
+          ]}
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(1)" },
-          { tag: "p", text: "Space usage is completely independent of how many distinct values appear or how often the candidate changes." }
+          { tag: "p", text: "Space usage is completely independent of how many distinct values appear or how often the candidate changes." },
+          { tag: "ul", items: [
+            "No auxiliary array, set, or map — a direct contrast with the hash-counting approach which needs O(n) space in the worst case"
+          ]}
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(1)" },
@@ -1227,12 +1293,13 @@ fn main() {
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+        { tag: "p", text: "Phase 1 finds the surviving candidate; Phase 2 (optional) verifies it when a majority is not guaranteed." },
         { tag: "code", language: "text", text:
 `function majorityElement(arr):
     candidate ← null
     count     ← 0
 
-    // Phase 1: find a candidate
+    // Phase 1: find a candidate via cancellation
     for x in arr:
         if count == 0:
             candidate ← x
@@ -1242,11 +1309,30 @@ fn main() {
         else:
             count ← count − 1
 
-    return candidate` },
+    // Phase 2 (optional — only needed when majority is not guaranteed):
+    verifyCount ← 0
+    for x in arr:
+        if x == candidate:
+            verifyCount ← verifyCount + 1
+    if verifyCount > length(arr) / 2:
+        return candidate
+    else:
+        return NO_MAJORITY_EXISTS` },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        { tag: "ol", items: [
+          "Initialise candidate = null and count = 0.",
+          "For each element x: if count is 0, adopt x as the new candidate and set count = 1.",
+          "If x matches the current candidate, increment count — x is 'voting' for it.",
+          "If x does not match, decrement count — x cancels one vote for the candidate.",
+          "After one full pass, the surviving candidate is the only element that could possibly be the majority.",
+          "(Optional) Run a second pass to count how many times the candidate actually appears.",
+          "If it appears more than n/2 times, return it. Otherwise, no true majority exists."
+        ]},
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Think of it as pairing off a non-majority element with a majority element to mutually 'cancel'. Since the majority element occurs more than n/2 times, it cannot be fully cancelled out by all the remaining (fewer than n/2) elements combined." }
+        { tag: "p", text: "Think of it as pairing off a non-majority element with a majority element to mutually 'cancel'. Since the majority element occurs more than n/2 times, it cannot be fully cancelled out by all the remaining (fewer than n/2) elements combined — at least one uncancelled instance of the majority element must remain as the final candidate when the array is exhausted." }
       ],
-      codes : {
+
+      codes: {
         "c++": `#include <iostream>
 #include <vector>
 
@@ -1256,19 +1342,16 @@ int majorityElement(vector<int>& nums) {
     int candidate = 0;
     int count = 0;
     
-    for (int num : nums) {
+    for (int i=0 ; i < nums.size() ; i++) {
         if (count == 0) {
             // Pick a new candidate when the count drops to 0
-            candidate = num;
+            candidate = nums[i];
         }
-        
         // If the current number matches the candidate, increment the vote.
         // Otherwise, decrement the vote (cancelling it out).
-        count += (num == candidate) ? 1 : -1;
+        count += (nums[i] == candidate) ? 1 : -1;
     }
     
-    // In standard problems (like LeetCode 169), the majority element 
-    // is guaranteed to exist.
     return candidate;
 }
 
@@ -1411,9 +1494,7 @@ fun main() {
         var count = 0
         
         for (num <- nums) {
-            if (count == 0) {
-                candidate = num
-            }
+            if (count == 0) candidate = num
             if (num == candidate) count += 1 else count -= 1
         }
         
@@ -1457,11 +1538,7 @@ func main() {
         if count == 0 {
             candidate = num;
         }
-        if num == candidate {
-            count += 1;
-        } else {
-            count -= 1;
-        }
+        if num == candidate { count += 1; } else { count -= 1; }
     }
     
     candidate
@@ -1485,7 +1562,7 @@ fn main() {
       about: [
         { tag: "h1", text: "Prefix Sum" },
         { tag: "p", text: "A prefix sum array precomputes the cumulative sum of all elements up to each index, so that the sum of any contiguous range [i, j] of the original array can be answered in O(1) time afterward, instead of O(j − i) per query." },
-        { tag: "p", text: "Formally, prefix[i] = arr[0] + arr[1] + ... + arr[i−1] (with prefix[0] = 0 by convention). The sum of the original range arr[i..j] inclusive is then simply prefix[j+1] − prefix[i] — a single subtraction." },
+        { tag: "p", text: "Formally, arr_prefix[i] = arr[0] + arr[1] + ... + arr[i−1] (with arr_prefix[0] = 0 by convention). The sum of the original range arr[i..j] inclusive is then simply arr_prefix[j+1] − arr_prefix[i] — a single subtraction." },
         { tag: "p", text: "Prefix sums are excellent for offline batch processing before transmission. If a sensor gateway logs offline data metrics and needs to query cumulative totals before dispatching them via long-range networks like LoRa, prefix sums reduce processing time to O(1) per query. It is also heavily used in 2D array analysis, such as validating move bounds or scoring regions on a grid-based game board." },
         { tag: "h2", text: "When to reach for it" },
         { tag: "ul", items: [
@@ -1502,29 +1579,35 @@ fn main() {
             ["Subarray sum equals K (count)", "O(n²) brute force", "O(n) with hash map of running prefix sums"]
           ]
         },
-        { tag: "note", variant: "tip", text: "'Subarray sum equals K' is really a Two Sum problem in disguise: you're looking for two prefix sums whose difference is K, which is exactly two-sum on the prefix-sum sequence. A hash map tracking seen prefixes resolves it in O(n)." }
+        { tag: "note", variant: "tip", text: "'Subarray sum equals K' is really a Two Sum problem in disguise: you're looking for two prefix sums whose difference is K. A hash map tracking seen prefixes resolves it in O(n)." }
       ],
 
       timeComplexityCalculation: {
         notation: "O(n) build / O(1) query",
         best: [
           { tag: "h2", text: "Best Case — O(n) build, O(1) per query" },
-          { tag: "p", text: "Building the prefix array always requires visiting every element once — there is no shortcut even for the simplest possible input." },
+          { tag: "p", text: "Building the prefix array always requires visiting every element once — there is no shortcut even for the simplest possible input — and once built, every query is answered with a single subtraction regardless of the range size." },
           { tag: "ul", items: [
-            "Build loop: prefix[i] = prefix[i−1] + arr[i−1] for all i — Θ(n)",
-            "Each query: prefix[j+1] − prefix[i] — O(1)"
+            "Build loop: arr_prefix[i] = arr_prefix[i−1] + arr[i−1] for all i — Θ(n)",
+            "Each query: arr_prefix[j+1] − arr_prefix[i] — O(1), always exactly one subtraction"
           ]}
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n) build, O(1) per query" },
-          { tag: "p", text: "Build cost and per-query cost are both structurally fixed and don't depend on the values in the array." }
+          { tag: "p", text: "Build cost and per-query cost are both structurally fixed and don't depend on the values in the array, only on its length and the number of queries m." },
+          { tag: "ul", items: [
+            "Build: n additions, one per index — Θ(n)",
+            "m queries × O(1) each = O(m)",
+            "Total for n elements and m queries: O(n + m)"
+          ]}
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n) build, O(1) per query" },
-          { tag: "p", text: "There is no input that makes prefix-sum construction or querying slower than the bounds above." },
+          { tag: "p", text: "There is no input that makes arr_prefix-sum construction or querying slower than the bounds above — both are structurally guaranteed regardless of array contents." },
           { tag: "ul", items: [
-            "Build remains Θ(n) in every case",
-            "Query remains O(1) in every case"
+            "Build remains Θ(n) in every case — a single linear scan with no conditional branching",
+            "Query remains O(1) in every case — always exactly one subtraction",
+            "Compare to brute force which is O(n) per query and O(nm) total — prefix sum wins decisively as m grows"
           ]}
         ]
       },
@@ -1533,11 +1616,19 @@ fn main() {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case Space — O(n)" },
-          { tag: "p", text: "The prefix sum array itself must store one cumulative value per original element (plus one sentinel at index 0)." }
+          { tag: "p", text: "The prefix sum array itself must store one cumulative value per original element (plus one sentinel at index 0), so it always requires Θ(n) space, regardless of the values being summed." },
+          { tag: "ul", items: [
+            "prefix array of length n + 1 — Θ(n)",
+            "No way to avoid this allocation if O(1) queries are required"
+          ]}
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(n)" },
-          { tag: "p", text: "Space usage is identical for every input of a given length n." }
+          { tag: "p", text: "Space usage is identical for every input of a given length n — it's purely a function of array length, not content." },
+          { tag: "ul", items: [
+            "1 array of n+1 integers — Θ(n)",
+            "Optional hash map for the 'subarray sum = K' variant adds up to O(n) more in the worst case"
+          ]}
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(n)" },
@@ -1552,278 +1643,268 @@ fn main() {
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "p", text: "Build once, then answer any range-sum query in O(1):" },
+        { tag: "p", text: "Build the prefix array once in O(n), then answer any range-sum query in O(1):" },
         { tag: "code", language: "text", text:
 `function buildPrefixSum(arr):
     n ← length(arr)
-    prefix ← array of size n + 1, all zero
+    arr_prefix ← array of size n + 1, all zero
     for i from 1 to n:
-        prefix[i] ← prefix[i − 1] + arr[i − 1]
-    return prefix
+        arr_prefix[i] ← arr_prefix[i − 1] + arr[i − 1]
+    return arr_prefix
 
-function rangeSum(prefix, i, j):        // inclusive range [i, j] over original arr
-    return prefix[j + 1] − prefix[i]` },
+function rangeSum(arr_prefix, i, j):        // inclusive range [i, j] over original arr
+    return arr_prefix[j + 1] − arr_prefix[i]` },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        { tag: "ol", items: [
+          "Allocate a prefix array of size n + 1 and set arr_prefix[0] = 0 — this sentinel represents 'sum of zero elements', avoiding off-by-one issues.",
+          "For each index i from 1 to n, compute arr_prefix[i] = arr_prefix[i-1] + arr[i-1]. This accumulates the running total.",
+          "To query the inclusive range [i, j], compute arr_prefix[j+1] − arr_prefix[i].",
+          "arr_prefix[j+1] holds the sum of arr[0..j] (everything up to and including j).",
+          "arr_prefix[i] holds the sum of arr[0..i-1] (everything before i).",
+          "Subtracting removes the unwanted arr_prefix, leaving exactly arr[i..j]."
+        ]},
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "By definition, prefix[k] = Σ(arr[0..k-1]). The sum of arr[i..j] is Σ(arr[0..j]) − Σ(arr[0..i-1]) = prefix[j+1] − prefix[i]. This is just basic algebra on cumulative sums." }
+        { tag: "p", text: "By definition, arr_prefix[k] = Σ(arr[0..k-1]). The sum of arr[i..j] is Σ(arr[0..j]) − Σ(arr[0..i-1]) = arr_prefix[j+1] − arr_prefix[i]. This is just basic algebra on cumulative sums — the prefix array is built once in O(n) so that every subsequent query is a single subtraction instead of a fresh O(range length) loop." }
       ],
-      codes : {
+
+      codes: {
         "c++": `#include <iostream>
 #include <vector>
 
 using namespace std;
 
-class PrefixSum {
-private:
-    vector<int> prefix;
+// Build phase: O(n) Time, O(n) Space
+vector<int> buildPrefixSum(const vector<int>& nums) {
+    vector<int> arr_prefix(nums.size() + 1, 0);
+    for (size_t i = 0; i < nums.size(); i++) {
+        arr_prefix[i + 1] = arr_prefix[i] + nums[i];
+    }
+    return arr_prefix;
+}
 
-public:
-    // Build phase: O(n) Time, O(n) Space
-    PrefixSum(vector<int>& nums) {
-        // Size is n + 1 to accommodate the 0 sentinel at index 0.
-        // This avoids edge-case bounds checks when querying from index 0.
-        prefix.assign(nums.size() + 1, 0);
-        
-        for (size_t i = 0; i < nums.size(); i++) {
-            prefix[i + 1] = prefix[i] + nums[i];
-        }
-    }
-    
-    // Query phase: O(1) Time
-    // left and right are inclusive indices based on the original array.
-    int sumRange(int left, int right) {
-        return prefix[right + 1] - prefix[left];
-    }
-};
+// Query phase: O(1) Time
+int sumRange(const vector<int>& arr_prefix, int left, int right) {
+    return arr_prefix[right + 1] - arr_prefix[left];
+}
 
 int main() {
     vector<int> nums = {-2, 0, 3, -5, 2, -1};
-    PrefixSum* obj = new PrefixSum(nums);
+    vector<int> arr_prefix = buildPrefixSum(nums);
     
-    cout << "Sum [0, 2]: " << obj->sumRange(0, 2) << endl; // -2 + 0 + 3 = 1
-    cout << "Sum [2, 5]: " << obj->sumRange(2, 5) << endl; // 3 - 5 + 2 - 1 = -1
-    cout << "Sum [0, 5]: " << obj->sumRange(0, 5) << endl; // -3
+    cout << "Sum [0, 2]: " << sumRange(arr_prefix, 0, 2) << endl;
+    cout << "Sum [2, 5]: " << sumRange(arr_prefix, 2, 5) << endl;
+    cout << "Sum [0, 5]: " << sumRange(arr_prefix, 0, 5) << endl;
     
-    delete obj;
     return 0;
 }`,
-        "python": `class PrefixSum:
-    def __init__(self, nums):
-        self.prefix = [0] * (len(nums) + 1)
-        for i in range(len(nums)):
-            self.prefix[i + 1] = self.prefix[i] + nums[i]
 
-    def sum_range(self, left: int, right: int) -> int:
-        return self.prefix[right + 1] - self.prefix[left]
+        "python": `def build_prefix_sum(nums):
+    arr_prefix = [0] * (len(nums) + 1)
+    for i in range(len(nums)):
+        arr_prefix[i + 1] = arr_prefix[i] + nums[i]
+    return arr_prefix
+
+def sum_range(arr_prefix, left: int, right: int) -> int:
+    return arr_prefix[right + 1] - arr_prefix[left]
 
 if __name__ == "__main__":
     nums = [-2, 0, 3, -5, 2, -1]
-    obj = PrefixSum(nums)
-    print(f"Sum [0, 2]: {obj.sum_range(0, 2)}")
-    print(f"Sum [2, 5]: {obj.sum_range(2, 5)}")`,
+    arr_prefix = build_prefix_sum(nums)
+    
+    print(f"Sum [0, 2]: {sum_range(arr_prefix, 0, 2)}")
+    print(f"Sum [2, 5]: {sum_range(arr_prefix, 2, 5)}")`,
+
         "java": `public class Main {
-    public static class PrefixSum {
-        private int[] prefix;
-
-        public PrefixSum(int[] nums) {
-            prefix = new int[nums.length + 1];
-            for (int i = 0; i < nums.length; i++) {
-                prefix[i + 1] = prefix[i] + nums[i];
-            }
+    public static int[] buildPrefixSum(int[] nums) {
+        int[] arr_prefix = new int[nums.length + 1];
+        for (int i = 0; i < nums.length; i++) {
+            arr_prefix[i + 1] = arr_prefix[i] + nums[i];
         }
+        return arr_prefix;
+    }
 
-        public int sumRange(int left, int right) {
-            return prefix[right + 1] - prefix[left];
-        }
+    public static int sumRange(int[] arr_prefix, int left, int right) {
+        return arr_prefix[right + 1] - arr_prefix[left];
     }
 
     public static void main(String[] args) {
         int[] nums = {-2, 0, 3, -5, 2, -1};
-        PrefixSum obj = new PrefixSum(nums);
-        System.out.println("Sum [0, 2]: " + obj.sumRange(0, 2));
-        System.out.println("Sum [2, 5]: " + obj.sumRange(2, 5));
+        int[] arr_prefix = buildPrefixSum(nums);
+        
+        System.out.println("Sum [0, 2]: " + sumRange(arr_prefix, 0, 2));
+        System.out.println("Sum [2, 5]: " + sumRange(arr_prefix, 2, 5));
     }
 }`,
-        "js": `class PrefixSum {
-    constructor(nums) {
-        this.prefix = new Array(nums.length + 1).fill(0);
-        for (let i = 0; i < nums.length; i++) {
-            this.prefix[i + 1] = this.prefix[i] + nums[i];
-        }
-    }
 
-    sumRange(left, right) {
-        return this.prefix[right + 1] - this.prefix[left];
+        "js": `function buildPrefixSum(nums) {
+    const arr_prefix = new Array(nums.length + 1).fill(0);
+    for (let i = 0; i < nums.length; i++) {
+        arr_prefix[i + 1] = arr_prefix[i] + nums[i];
     }
+    return arr_prefix;
+}
+
+function sumRange(arr_prefix, left, right) {
+    return arr_prefix[right + 1] - arr_prefix[left];
 }
 
 const nums = [-2, 0, 3, -5, 2, -1];
-const obj = new PrefixSum(nums);
-console.log("Sum [0, 2]:", obj.sumRange(0, 2));
-console.log("Sum [2, 5]:", obj.sumRange(2, 5));`,
+const arr_prefix = buildPrefixSum(nums);
+
+console.log("Sum [0, 2]:", sumRange(arr_prefix, 0, 2));
+console.log("Sum [2, 5]:", sumRange(arr_prefix, 2, 5));`,
+
         "c": `#include <stdio.h>
 #include <stdlib.h>
 
-typedef struct {
-    int* prefix;
-} NumArray;
-
-NumArray* numArrayCreate(int* nums, int numsSize) {
-    NumArray* obj = (NumArray*)malloc(sizeof(NumArray));
-    obj->prefix = (int*)malloc((numsSize + 1) * sizeof(int));
-    obj->prefix[0] = 0;
+int* buildPrefixSum(int* nums, int numsSize) {
+    int* arr_prefix = (int*)malloc((numsSize + 1) * sizeof(int));
+    arr_prefix[0] = 0;
     for (int i = 0; i < numsSize; i++) {
-        obj->prefix[i + 1] = obj->prefix[i] + nums[i];
+        arr_prefix[i + 1] = arr_prefix[i] + nums[i];
     }
-    return obj;
+    return arr_prefix;
 }
 
-int numArraySumRange(NumArray* obj, int left, int right) {
-    return obj->prefix[right + 1] - obj->prefix[left];
-}
-
-void numArrayFree(NumArray* obj) {
-    free(obj->prefix);
-    free(obj);
+int sumRange(int* arr_prefix, int left, int right) {
+    return arr_prefix[right + 1] - arr_prefix[left];
 }
 
 int main() {
     int nums[] = {-2, 0, 3, -5, 2, -1};
-    NumArray* obj = numArrayCreate(nums, 6);
-    printf("Sum [0, 2]: %d\\n", numArraySumRange(obj, 0, 2));
-    printf("Sum [2, 5]: %d\\n", numArraySumRange(obj, 2, 5));
-    numArrayFree(obj);
+    int* arr_prefix = buildPrefixSum(nums, 6);
+    
+    printf("Sum [0, 2]: %d\\n", sumRange(arr_prefix, 0, 2));
+    printf("Sum [2, 5]: %d\\n", sumRange(arr_prefix, 2, 5));
+    
+    free(arr_prefix);
     return 0;
 }`,
+
         "c#": `using System;
 
-public class PrefixSum {
-    private int[] prefix;
-
-    public PrefixSum(int[] nums) {
-        prefix = new int[nums.Length + 1];
-        for (int i = 0; i < nums.Length; i++) {
-            prefix[i + 1] = prefix[i] + nums[i];
-        }
-    }
-
-    public int SumRange(int left, int right) {
-        return prefix[right + 1] - prefix[left];
-    }
-}
-
 class Program {
+    static int[] BuildPrefixSum(int[] nums) {
+        int[] arr_prefix = new int[nums.Length + 1];
+        for (int i = 0; i < nums.Length; i++) {
+            arr_prefix[i + 1] = arr_prefix[i] + nums[i];
+        }
+        return arr_prefix;
+    }
+
+    static int SumRange(int[] arr_prefix, int left, int right) {
+        return arr_prefix[right + 1] - arr_prefix[left];
+    }
+
     static void Main() {
         int[] nums = {-2, 0, 3, -5, 2, -1};
-        PrefixSum obj = new PrefixSum(nums);
-        Console.WriteLine($"Sum [0, 2]: {obj.SumRange(0, 2)}");
-        Console.WriteLine($"Sum [2, 5]: {obj.SumRange(2, 5)}");
+        int[] arr_prefix = BuildPrefixSum(nums);
+        
+        Console.WriteLine($"Sum [0, 2]: {SumRange(arr_prefix, 0, 2)}");
+        Console.WriteLine($"Sum [2, 5]: {SumRange(arr_prefix, 2, 5)}");
     }
 }`,
-        "swift": `class PrefixSum {
-    private var prefix: [Int]
 
-    init(_ nums: [Int]) {
-        prefix = Array(repeating: 0, count: nums.count + 1)
-        for i in 0..<nums.count {
-            prefix[i + 1] = prefix[i] + nums[i]
-        }
+        "swift": `func buildPrefixSum(_ nums: [Int]) -> [Int] {
+    var arr_prefix = Array(repeating: 0, count: nums.count + 1)
+    for i in 0..<nums.count {
+        arr_prefix[i + 1] = arr_prefix[i] + nums[i]
     }
+    return arr_prefix
+}
 
-    func sumRange(_ left: Int, _ right: Int) -> Int {
-        return prefix[right + 1] - prefix[left]
-    }
+func sumRange(_ arr_prefix: [Int], _ left: Int, _ right: Int) -> Int {
+    return arr_prefix[right + 1] - arr_prefix[left]
 }
 
 let nums = [-2, 0, 3, -5, 2, -1]
-let obj = PrefixSum(nums)
-print("Sum [0, 2]: \\(obj.sumRange(0, 2))")
-print("Sum [2, 5]: \\(obj.sumRange(2, 5))")`,
-        "kotlin": `class PrefixSum(nums: IntArray) {
-    private val prefix = IntArray(nums.size + 1)
+let arr_prefix = buildPrefixSum(nums)
 
-    init {
-        for (i in nums.indices) {
-            prefix[i + 1] = prefix[i] + nums[i]
-        }
-    }
+print("Sum [0, 2]: \\(sumRange(arr_prefix, 0, 2))")
+print("Sum [2, 5]: \\(sumRange(arr_prefix, 2, 5))")`,
 
-    fun sumRange(left: Int, right: Int): Int {
-        return prefix[right + 1] - prefix[left]
+        "kotlin": `fun buildPrefixSum(nums: IntArray): IntArray {
+    val arr_prefix = IntArray(nums.size + 1)
+    for (i in nums.indices) {
+        arr_prefix[i + 1] = arr_prefix[i] + nums[i]
     }
+    return arr_prefix
+}
+
+fun sumRange(arr_prefix: IntArray, left: Int, right: Int): Int {
+    return arr_prefix[right + 1] - arr_prefix[left]
 }
 
 fun main() {
     val nums = intArrayOf(-2, 0, 3, -5, 2, -1)
-    val obj = PrefixSum(nums)
-    println("Sum [0, 2]: \${obj.sumRange(0, 2)}")
-    println("Sum [2, 5]: \${obj.sumRange(2, 5)}")
+    val arr_prefix = buildPrefixSum(nums)
+    
+    println("Sum [0, 2]: \${sumRange(arr_prefix, 0, 2)}")
+    println("Sum [2, 5]: \${sumRange(arr_prefix, 2, 5)}")
 }`,
-        "scala": `class PrefixSum(nums: Array[Int]) {
-    private val prefix = new Array[Int](nums.length + 1)
-    for (i <- nums.indices) {
-        prefix(i + 1) = prefix(i) + nums(i)
+
+        "scala": `object Main extends App {
+    def buildPrefixSum(nums: Array[Int]): Array[Int] = {
+        val arr_prefix = new Array[Int](nums.length + 1)
+        for (i <- nums.indices) {
+            arr_prefix(i + 1) = arr_prefix(i) + nums(i)
+        }
+        arr_prefix
     }
 
-    def sumRange(left: Int, right: Int): Int = {
-        prefix(right + 1) - prefix(left)
+    def sumRange(arr_prefix: Array[Int], left: Int, right: Int): Int = {
+        arr_prefix(right + 1) - arr_prefix(left)
     }
-}
 
-object Main extends App {
     val nums = Array(-2, 0, 3, -5, 2, -1)
-    val obj = new PrefixSum(nums)
-    println(s"Sum [0, 2]: \${obj.sumRange(0, 2)}")
-    println(s"Sum [2, 5]: \${obj.sumRange(2, 5)}")
+    val arr_prefix = buildPrefixSum(nums)
+    
+    println(s"Sum [0, 2]: \${sumRange(arr_prefix, 0, 2)}")
+    println(s"Sum [2, 5]: \${sumRange(arr_prefix, 2, 5)}")
 }`,
+
         "go": `package main
 
 import "fmt"
 
-type PrefixSum struct {
-    prefix []int
-}
-
-func Constructor(nums []int) PrefixSum {
-    prefix := make([]int, len(nums)+1)
+func buildPrefixSum(nums []int) []int {
+    arr_prefix := make([]int, len(nums)+1)
     for i := 0; i < len(nums); i++ {
-        prefix[i+1] = prefix[i] + nums[i]
+        arr_prefix[i+1] = arr_prefix[i] + nums[i]
     }
-    return PrefixSum{prefix: prefix}
+    return arr_prefix
 }
 
-func (this *PrefixSum) SumRange(left int, right int) int {
-    return this.prefix[right+1] - this.prefix[left]
+func sumRange(arr_prefix []int, left int, right int) int {
+    return arr_prefix[right+1] - arr_prefix[left]
 }
 
 func main() {
     nums := []int{-2, 0, 3, -5, 2, -1}
-    obj := Constructor(nums)
-    fmt.Printf("Sum [0, 2]: %d\\n", obj.SumRange(0, 2))
-    fmt.Printf("Sum [2, 5]: %d\\n", obj.SumRange(2, 5))
+    arr_prefix := buildPrefixSum(nums)
+    
+    fmt.Printf("Sum [0, 2]: %d\\n", sumRange(arr_prefix, 0, 2))
+    fmt.Printf("Sum [2, 5]: %d\\n", sumRange(arr_prefix, 2, 5))
 }`,
-        "rust": `struct PrefixSum {
-    prefix: Vec<i32>,
+
+        "rust": `fn build_prefix_sum(nums: &[i32]) -> Vec<i32> {
+    let mut arr_prefix = vec![0; nums.len() + 1];
+    for i in 0..nums.len() {
+        arr_prefix[i + 1] = arr_prefix[i] + nums[i];
+    }
+    arr_prefix
 }
 
-impl PrefixSum {
-    fn new(nums: Vec<i32>) -> Self {
-        let mut prefix = vec![0; nums.len() + 1];
-        for i in 0..nums.len() {
-            prefix[i + 1] = prefix[i] + nums[i];
-        }
-        PrefixSum { prefix }
-    }
-
-    fn sum_range(&self, left: i32, right: i32) -> i32 {
-        self.prefix[(right + 1) as usize] - self.prefix[left as usize]
-    }
+fn sum_range(arr_prefix: &[i32], left: usize, right: usize) -> i32 {
+    arr_prefix[right + 1] - arr_prefix[left]
 }
 
 fn main() {
     let nums = vec![-2, 0, 3, -5, 2, -1];
-    let obj = PrefixSum::new(nums);
-    println!("Sum [0, 2]: {}", obj.sum_range(0, 2));
-    println!("Sum [2, 5]: {}", obj.sum_range(2, 5));
+    let arr_prefix = build_prefix_sum(&nums);
+    
+    println!("Sum [0, 2]: {}", sum_range(&arr_prefix, 0, 2));
+    println!("Sum [2, 5]: {}", sum_range(&arr_prefix, 2, 5));
 }`
       }
     },
@@ -1839,43 +1920,53 @@ fn main() {
       about: [
         { tag: "h1", text: "Dutch National Flag Algorithm" },
         { tag: "p", text: "The Dutch National Flag algorithm partitions an array into three contiguous regions — elements less than a pivot, elements equal to the pivot, and elements greater than the pivot — in a single linear pass with O(1) extra space. It was proposed by Edsger Dijkstra, named after the three horizontal bands (red, white, blue) of the Dutch flag, which is exactly the three-way grouping the algorithm produces." },
-        { tag: "p", text: "It uses three pointers: low marks the boundary of the 'less than' region, mid scans the unclassified region, and high marks the boundary of the 'greater than' region. Each element is examined once and placed into its correct region via constant-time swaps." },
-        { tag: "p", text: "In high-throughput microservices, minimizing memory allocations is vital. By sorting or categorizing priority states (e.g., routing urgent, normal, and low priority data packets) strictly in-place, this algorithm prevents garbage collection spikes and minimizes overall application footprint." },
+        { tag: "p", text: "It uses three pointers: left marks the boundary of the 'less than' region, mid scans the unclassified region, and right marks the boundary of the 'greater than' region. Each element is examined once and placed into its correct region via constant-time swaps." },
+        { tag: "p", text: "In right-throughput microservices, minimizing memory allocations is vital. By sorting or categorizing priority states (e.g., routing urgent, normal, and left priority data packets) strictly in-place, this algorithm prevents garbage collection spikes and minimizes overall application footprint." },
         { tag: "h2", text: "When to reach for it" },
         { tag: "ul", items: [
           "The classic application: 'Sort Colors' — sort an array of 0s, 1s, and 2s in place in one pass",
-          "Any 3-way partitioning problem: partition around a pivot for quicksort with many duplicate keys",
+          "Any 3-way partitioning problem: partition around a pivot for quicksort with many duplicate keys (3-way quicksort avoids O(n²) degeneration on arrays with many equal elements)",
           "You need O(n) time and O(1) space, and a full sort (O(n log n)) would be wasteful for only 3 distinct categories"
         ]},
         { tag: "table",
           headers: ["Pointer", "Meaning", "Invariant"],
           rows: [
-            ["low", "Next position to place a 'less than pivot' element", "arr[0 .. low-1] are all < pivot"],
-            ["mid", "Current element being classified", "arr[low .. mid-1] are all == pivot"],
-            ["high", "Next position (from the right) to place a 'greater than pivot' element", "arr[high+1 .. n-1] are all > pivot"]
+            ["left", "Next position to place a 'less than pivot' element", "arr[0 .. left-1] are all < pivot"],
+            ["mid", "Current element being classified", "arr[left .. mid-1] are all == pivot"],
+            ["right", "Next position (from the right) to place a 'greater than pivot' element", "arr[right+1 .. n-1] are all > pivot"]
           ]
         },
-        { tag: "note", variant: "tip", text: "The region arr[mid .. high] is always 'unclassified' — the algorithm's entire job is to shrink that middle region to nothing while maintaining the three sorted bands around it." }
+        { tag: "note", variant: "tip", text: "The region arr[mid .. right] is always 'unclassified' — the algorithm's entire job is to shrink that middle region to nothing while maintaining the three sorted bands around it." }
       ],
 
       timeComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case — O(n)" },
-          { tag: "p", text: "Even if the array is already perfectly partitioned, mid must still scan from 0 to high to confirm every element is correctly classified." }
+          { tag: "p", text: "Even if the array is already perfectly partitioned, mid must still scan from 0 to right to confirm every element is correctly classified — there is no way to verify a 3-way partition without examining every element." },
+          { tag: "ul", items: [
+            "mid scans from index 0 toward right — every position is visited exactly once",
+            "Each visit does O(1) classification work (one comparison, possibly one swap)",
+            "Best case is still Θ(n) because correctness requires inspecting every element at least once"
+          ]}
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n)" },
-          { tag: "p", text: "Unlike a swap-based algorithm where some swaps could 'undo' progress, this algorithm guarantees mid always moves forward except in exactly one case (swap with high)." },
+          { tag: "p", text: "Unlike a swap-based algorithm where some swaps could 'undo' progress, this algorithm guarantees mid always moves forward except in exactly one case (swap with right), so total work stays linear regardless of the distribution of the three values." },
           { tag: "ul", items: [
-            "mid increments after every comparison except when swapping with high",
-            "low only ever increases, high only ever decreases — bounding swaps",
+            "mid increments after every comparison except when swapping with right (in which case mid stays to re-examine the newly swapped-in element)",
+            "left only ever increases, right only ever decreases — together they bound the total number of swaps to at most n",
             "Combined iteration + swap work: O(n)"
           ]}
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n)" },
-          { tag: "p", text: "Even in the worst arrangement the total work is still bounded by n, because every element is moved at most a constant number of times before settling." }
+          { tag: "p", text: "Even in the worst arrangement (e.g. the array sorted in exactly the opposite order needed, like all 2s first, then 1s, then 0s) the total work is still bounded by n, because every element is moved at most a constant number of times before settling into its final region." },
+          { tag: "ul", items: [
+            "mid traverses at most n positions total",
+            "Each element is swapped at most once into its final resting region",
+            "Total operations bounded by a small constant multiple of n → O(n), matching the Ω(n) lower bound"
+          ]}
         ]
       },
 
@@ -1883,16 +1974,26 @@ fn main() {
         notation: "O(1)",
         best: [
           { tag: "h2", text: "Best Case Space — O(1)" },
-          { tag: "p", text: "All partitioning happens in-place via swaps within the original array." },
-          { tag: "ul", items: ["low, mid, high — three O(1) integer pointers"] }
+          { tag: "p", text: "All partitioning happens in-place via swaps within the original array — only three integer pointers are needed." },
+          { tag: "ul", items: [
+            "left, mid, right — three O(1) integer pointers",
+            "one temporary variable used during swap — O(1)"
+          ]}
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(1)" },
-          { tag: "p", text: "Memory usage never grows with n — it is always exactly three pointers and a swap temporary." }
+          { tag: "p", text: "Memory usage never grows with n — it is always exactly three pointers and a swap temporary, regardless of how the 0/1/2 (or pivot-relative) values are distributed." },
+          { tag: "ul", items: [
+            "No auxiliary array is ever allocated, unlike a counting-sort-based 3-way partition which would need O(k) extra space for counts"
+          ]}
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(1)" },
-          { tag: "p", text: "No input increases the auxiliary footprint beyond the fixed three pointers." }
+          { tag: "p", text: "No input increases the auxiliary footprint beyond the fixed three pointers — this holds even for the maximally 'scrambled' input that requires the most swaps." },
+          { tag: "ul", items: [
+            "left, mid, right, temp — 4 scalars total, O(1)",
+            "In-place sorting means the output uses the same memory as the input — no separate result array"
+          ]}
         ]
       },
 
@@ -1901,26 +2002,36 @@ fn main() {
         { tag: "p", text: "Classic 'Sort Colors' formulation: partition an array of 0s, 1s, and 2s in place." },
         { tag: "code", language: "text", text:
 `function sortColors(arr):
-    low  ← 0
+    left  ← 0
     mid  ← 0
-    high ← length(arr) − 1
+    right ← length(arr) − 1
 
-    while mid <= high:
+    while mid <= right:
         if arr[mid] == 0:
-            swap(arr[low], arr[mid])
-            low ← low + 1
+            swap(arr[left], arr[mid])
+            left ← left + 1
             mid ← mid + 1
         else if arr[mid] == 1:
             mid ← mid + 1
         else:                              // arr[mid] == 2
-            swap(arr[mid], arr[high])
-            high ← high − 1
+            swap(arr[mid], arr[right])
+            right ← right − 1
             // mid is NOT incremented here —
             // the newly swapped-in element must still be classified` },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        { tag: "ol", items: [
+          "Initialise left = 0, mid = 0, right = n − 1.",
+          "Loop while mid ≤ right — any elements from mid to right are still unclassified.",
+          "Case arr[mid] == 0: swap arr[left] with arr[mid]. The element now at mid came from the boundary of the classified region and is known to be a 1, so it's safe to advance both left and mid.",
+          "Case arr[mid] == 1: it's already in the correct middle region. Simply advance mid.",
+          "Case arr[mid] == 2: swap arr[mid] with arr[right] and decrement right. Do NOT advance mid — the element just brought from the right end is unknown and must be re-examined next iteration.",
+          "When mid > right, the unclassified region is empty. All three invariants hold simultaneously: the array is fully partitioned into [0s][1s][2s]."
+        ]},
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Three loop invariants are maintained at all times: arr[0..low-1] are all 0, arr[low..mid-1] are all 1, and arr[high+1..n-1] are all 2. The region arr[mid..high] is always unclassified. Every iteration either shrinks the unclassified region from the left or right." }
+        { tag: "p", text: "Three loop invariants are maintained at all times: arr[0..left-1] are all 0, arr[left..mid-1] are all 1, and arr[right+1..n-1] are all 2. The region arr[mid..right] is always unclassified. Every iteration either shrinks the unclassified region from the left (0 or 1 case) or from the right (2 case), and the loop terminates exactly when the unclassified region is empty (mid > right), at which point the three invariants together describe a fully sorted three-way partition." }
       ],
-      codes : {
+
+      codes: {
         "c++": `#include <iostream>
 #include <vector>
 #include <algorithm>
@@ -1928,27 +2039,25 @@ fn main() {
 using namespace std;
 
 void sortColors(vector<int>& nums) {
-    int low = 0;
+    int left = 0;
     int mid = 0;
-    int high = nums.size() - 1;
+    int right = nums.size() - 1;
     
-    while (mid <= high) {
+    while (mid <= right) {
         if (nums[mid] == 0) {
             // Swap 0 to the front and advance both pointers.
-            swap(nums[low], nums[mid]);
-            low++;
+            swap(nums[left], nums[mid]);
+            left++;
             mid++;
-        } 
-        else if (nums[mid] == 1) {
+        } else if (nums[mid] == 1) {
             // 1 is already in the correct middle location.
             mid++;
-        } 
-        else {
+        } else {
             // Swap 2 to the back. Crucially, do NOT advance mid here,
-            // because the element we just pulled from 'high' into 'mid'
+            // because the element we just pulled from 'right' into 'mid'
             // has not been evaluated yet.
-            swap(nums[mid], nums[high]);
-            high--;
+            swap(nums[mid], nums[right]);
+            right--;
         }
     }
 }
@@ -1958,26 +2067,24 @@ int main() {
     sortColors(nums);
     
     cout << "Sorted Array: ";
-    for (int num : nums) {
-        cout << num << " ";
-    }
+    for (int num : nums) cout << num << " ";
     cout << endl;
     
     return 0;
 }`,
         "python": `def sort_colors(nums):
-    low, mid, high = 0, 0, len(nums) - 1
+    left, mid, right = 0, 0, len(nums) - 1
     
-    while mid <= high:
+    while mid <= right:
         if nums[mid] == 0:
-            nums[low], nums[mid] = nums[mid], nums[low]
-            low += 1
+            nums[left], nums[mid] = nums[mid], nums[left]
+            left += 1
             mid += 1
         elif nums[mid] == 1:
             mid += 1
         else:
-            nums[mid], nums[high] = nums[high], nums[mid]
-            high -= 1
+            nums[mid], nums[right] = nums[right], nums[mid]
+            right -= 1
 
 if __name__ == "__main__":
     nums = [2, 0, 2, 1, 1, 0]
@@ -1987,24 +2094,24 @@ if __name__ == "__main__":
 
 public class Main {
     public static void sortColors(int[] nums) {
-        int low = 0;
+        int left = 0;
         int mid = 0;
-        int high = nums.length - 1;
+        int right = nums.length - 1;
         
-        while (mid <= high) {
+        while (mid <= right) {
             if (nums[mid] == 0) {
-                int temp = nums[low];
-                nums[low] = nums[mid];
+                int temp = nums[left];
+                nums[left] = nums[mid];
                 nums[mid] = temp;
-                low++;
+                left++;
                 mid++;
             } else if (nums[mid] == 1) {
                 mid++;
             } else {
                 int temp = nums[mid];
-                nums[mid] = nums[high];
-                nums[high] = temp;
-                high--;
+                nums[mid] = nums[right];
+                nums[right] = temp;
+                right--;
             }
         }
     }
@@ -2016,20 +2123,20 @@ public class Main {
     }
 }`,
         "js": `function sortColors(nums) {
-    let low = 0;
+    let left = 0;
     let mid = 0;
-    let high = nums.length - 1;
+    let right = nums.length - 1;
     
-    while (mid <= high) {
+    while (mid <= right) {
         if (nums[mid] === 0) {
-            [nums[low], nums[mid]] = [nums[mid], nums[low]];
-            low++;
+            [nums[left], nums[mid]] = [nums[mid], nums[left]];
+            left++;
             mid++;
         } else if (nums[mid] === 1) {
             mid++;
         } else {
-            [nums[mid], nums[high]] = [nums[high], nums[mid]];
-            high--;
+            [nums[mid], nums[right]] = [nums[right], nums[mid]];
+            right--;
         }
     }
 }
@@ -2046,20 +2153,20 @@ void swap(int* a, int* b) {
 }
 
 void sortColors(int* nums, int numsSize) {
-    int low = 0;
+    int left = 0;
     int mid = 0;
-    int high = numsSize - 1;
+    int right = numsSize - 1;
     
-    while (mid <= high) {
+    while (mid <= right) {
         if (nums[mid] == 0) {
-            swap(&nums[low], &nums[mid]);
-            low++;
+            swap(&nums[left], &nums[mid]);
+            left++;
             mid++;
         } else if (nums[mid] == 1) {
             mid++;
         } else {
-            swap(&nums[mid], &nums[high]);
-            high--;
+            swap(&nums[mid], &nums[right]);
+            right--;
         }
     }
 }
@@ -2069,9 +2176,7 @@ int main() {
     sortColors(nums, 6);
     
     printf("Sorted Array: ");
-    for(int i = 0; i < 6; i++) {
-        printf("%d ", nums[i]);
-    }
+    for (int i = 0; i < 6; i++) printf("%d ", nums[i]);
     printf("\\n");
     return 0;
 }`,
@@ -2079,24 +2184,24 @@ int main() {
 
 class Program {
     public static void SortColors(int[] nums) {
-        int low = 0;
+        int left = 0;
         int mid = 0;
-        int high = nums.Length - 1;
+        int right = nums.Length - 1;
         
-        while (mid <= high) {
+        while (mid <= right) {
             if (nums[mid] == 0) {
-                int temp = nums[low];
-                nums[low] = nums[mid];
+                int temp = nums[left];
+                nums[left] = nums[mid];
                 nums[mid] = temp;
-                low++;
+                left++;
                 mid++;
             } else if (nums[mid] == 1) {
                 mid++;
             } else {
                 int temp = nums[mid];
-                nums[mid] = nums[high];
-                nums[high] = temp;
-                high--;
+                nums[mid] = nums[right];
+                nums[right] = temp;
+                right--;
             }
         }
     }
@@ -2108,20 +2213,20 @@ class Program {
     }
 }`,
         "swift": `func sortColors(_ nums: inout [Int]) {
-    var low = 0
+    var left = 0
     var mid = 0
-    var high = nums.count - 1
+    var right = nums.count - 1
     
-    while mid <= high {
+    while mid <= right {
         if nums[mid] == 0 {
-            nums.swapAt(low, mid)
-            low += 1
+            nums.swapAt(left, mid)
+            left += 1
             mid += 1
         } else if nums[mid] == 1 {
             mid += 1
         } else {
-            nums.swapAt(mid, high)
-            high -= 1
+            nums.swapAt(mid, right)
+            right -= 1
         }
     }
 }
@@ -2130,27 +2235,25 @@ var nums = [2, 0, 2, 1, 1, 0]
 sortColors(&nums)
 print("Sorted Array: \\(nums)")`,
         "kotlin": `fun sortColors(nums: IntArray) {
-    var low = 0
+    var left = 0
     var mid = 0
-    var high = nums.size - 1
+    var right = nums.size - 1
     
-    while (mid <= high) {
+    while (mid <= right) {
         when (nums[mid]) {
             0 -> {
-                val temp = nums[low]
-                nums[low] = nums[mid]
+                val temp = nums[left]
+                nums[left] = nums[mid]
                 nums[mid] = temp
-                low++
+                left++
                 mid++
             }
-            1 -> {
-                mid++
-            }
+            1 -> mid++
             2 -> {
                 val temp = nums[mid]
-                nums[mid] = nums[high]
-                nums[high] = temp
-                high--
+                nums[mid] = nums[right]
+                nums[right] = temp
+                right--
             }
         }
     }
@@ -2163,24 +2266,24 @@ fun main() {
 }`,
         "scala": `object Main extends App {
     def sortColors(nums: Array[Int]): Unit = {
-        var low = 0
+        var left = 0
         var mid = 0
-        var high = nums.length - 1
+        var right = nums.length - 1
         
-        while (mid <= high) {
+        while (mid <= right) {
             if (nums(mid) == 0) {
-                val temp = nums(low)
-                nums(low) = nums(mid)
+                val temp = nums(left)
+                nums(left) = nums(mid)
                 nums(mid) = temp
-                low += 1
+                left += 1
                 mid += 1
             } else if (nums(mid) == 1) {
                 mid += 1
             } else {
                 val temp = nums(mid)
-                nums(mid) = nums(high)
-                nums(high) = temp
-                high -= 1
+                nums(mid) = nums(right)
+                nums(right) = temp
+                right -= 1
             }
         }
     }
@@ -2194,18 +2297,18 @@ fun main() {
 import "fmt"
 
 func sortColors(nums []int) {
-    low, mid, high := 0, 0, len(nums)-1
+    left, mid, right := 0, 0, len(nums)-1
     
-    for mid <= high {
+    for mid <= right {
         if nums[mid] == 0 {
-            nums[low], nums[mid] = nums[mid], nums[low]
-            low++
+            nums[left], nums[mid] = nums[mid], nums[left]
+            left++
             mid++
         } else if nums[mid] == 1 {
             mid++
         } else {
-            nums[mid], nums[high] = nums[high], nums[mid]
-            high--
+            nums[mid], nums[right] = nums[right], nums[mid]
+            right--
         }
     }
 }
@@ -2216,20 +2319,21 @@ func main() {
     fmt.Printf("Sorted Array: %v\\n", nums)
 }`,
         "rust": `fn sort_colors(nums: &mut Vec<i32>) {
-    let mut low = 0;
-    let mut mid = 0;
-    let mut high = nums.len() as i32 - 1;
+    let mut left = 0usize;
+    let mut mid = 0usize;
+    let mut right = nums.len() - 1;
     
-    while mid as i32 <= high {
+    while mid <= right {
         if nums[mid] == 0 {
-            nums.swap(low, mid);
-            low += 1;
+            nums.swap(left, mid);
+            left += 1;
             mid += 1;
         } else if nums[mid] == 1 {
             mid += 1;
         } else {
-            nums.swap(mid, high as usize);
-            high -= 1;
+            nums.swap(mid, right);
+            if right == 0 { break; }
+            right -= 1;
         }
     }
 }
@@ -2380,18 +2484,256 @@ const SORTING_SECTION = {
         { tag: "p", text: "Invariant: after the i-th outer iteration, the i largest elements are in their correct final positions at the end of the array. Each inner pass guarantees the current maximum of the unsorted region 'bubbles' all the way to the right because every adjacent out-of-order pair it encounters gets swapped. By induction, after n − 1 passes the entire array is sorted." }
       ]
 ,
-      codes : {
-        "c++": ``,
-        "python": ``,
-        "java": ``,
-        "js":``,
-        "c":``,
-        "c#":``,
-        "swift":``,
-        "kotlin":``,
-        "scala":``,
-        "go":``,
-        "rust":``,
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+using namespace std;
+
+void bubbleSort(vector<int>& arr) {
+    int n = arr.size();
+    for (int i = 0; i < n - 1; i++) {
+        bool swapped = false;
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                swap(arr[j], arr[j + 1]);
+                swapped = true;
+            }
+        }
+        if (!swapped) break;
+    }
+}
+
+int main() {
+    vector<int> arr = {64, 34, 25, 12, 22, 11, 90};
+    bubbleSort(arr);
+    cout << "Sorted: ";
+    for (int x : arr) cout << x << " ";
+    cout << endl;
+    return 0;
+}`,
+
+  "python": `def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n - 1):
+        swapped = False
+        for j in range(n - i - 1):
+            if arr[j] > arr[j + 1]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+                swapped = True
+        if not swapped:
+            break
+
+if __name__ == "__main__":
+    arr = [64, 34, 25, 12, 22, 11, 90]
+    bubble_sort(arr)
+    print("Sorted:", arr)`,
+
+  "java": `import java.util.Arrays;
+
+public class Main {
+    public static void bubbleSort(int[] arr) {
+        int n = arr.length;
+        for (int i = 0; i < n - 1; i++) {
+            boolean swapped = false;
+            for (int j = 0; j < n - i - 1; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    int temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                    swapped = true;
+                }
+            }
+            if (!swapped) break;
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {64, 34, 25, 12, 22, 11, 90};
+        bubbleSort(arr);
+        System.out.println("Sorted: " + Arrays.toString(arr));
+    }
+}`,
+
+  "js": `function bubbleSort(arr) {
+    const n = arr.length;
+    for (let i = 0; i < n - 1; i++) {
+        let swapped = false;
+        for (let j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+                swapped = true;
+            }
+        }
+        if (!swapped) break;
+    }
+}
+
+const arr = [64, 34, 25, 12, 22, 11, 90];
+bubbleSort(arr);
+console.log("Sorted:", arr);`,
+
+  "c": `#include <stdio.h>
+
+void bubbleSort(int* arr, int n) {
+    for (int i = 0; i < n - 1; i++) {
+        int swapped = 0;
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+                swapped = 1;
+            }
+        }
+        if (!swapped) break;
+    }
+}
+
+int main() {
+    int arr[] = {64, 34, 25, 12, 22, 11, 90};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    bubbleSort(arr, n);
+    printf("Sorted: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\\n");
+    return 0;
+}`,
+
+  "c#": `using System;
+
+class Program {
+    static void BubbleSort(int[] arr) {
+        int n = arr.Length;
+        for (int i = 0; i < n - 1; i++) {
+            bool swapped = false;
+            for (int j = 0; j < n - i - 1; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    int temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                    swapped = true;
+                }
+            }
+            if (!swapped) break;
+        }
+    }
+
+    static void Main() {
+        int[] arr = {64, 34, 25, 12, 22, 11, 90};
+        BubbleSort(arr);
+        Console.WriteLine("Sorted: " + string.Join(", ", arr));
+    }
+}`,
+
+  "swift": `func bubbleSort(_ arr: inout [Int]) {
+    let n = arr.count
+    for i in 0..<n - 1 {
+        var swapped = false
+        for j in 0..<n - i - 1 {
+            if arr[j] > arr[j + 1] {
+                arr.swapAt(j, j + 1)
+                swapped = true
+            }
+        }
+        if !swapped { break }
+    }
+}
+
+var arr = [64, 34, 25, 12, 22, 11, 90]
+bubbleSort(&arr)
+print("Sorted: \\(arr)")`,
+
+  "kotlin": `fun bubbleSort(arr: IntArray) {
+    val n = arr.size
+    for (i in 0 until n - 1) {
+        var swapped = false
+        for (j in 0 until n - i - 1) {
+            if (arr[j] > arr[j + 1]) {
+                val temp = arr[j]
+                arr[j] = arr[j + 1]
+                arr[j + 1] = temp
+                swapped = true
+            }
+        }
+        if (!swapped) break
+    }
+}
+
+fun main() {
+    val arr = intArrayOf(64, 34, 25, 12, 22, 11, 90)
+    bubbleSort(arr)
+    println("Sorted: \${arr.joinToString(", ")}")
+}`,
+
+  "scala": `object Main extends App {
+    def bubbleSort(arr: Array[Int]): Unit = {
+        val n = arr.length
+        var i = 0
+        while (i < n - 1) {
+            var swapped = false
+            for (j <- 0 until n - i - 1) {
+                if (arr(j) > arr(j + 1)) {
+                    val temp = arr(j)
+                    arr(j) = arr(j + 1)
+                    arr(j + 1) = temp
+                    swapped = true
+                }
+            }
+            if (!swapped) i = n
+            else i += 1
+        }
+    }
+
+    val arr = Array(64, 34, 25, 12, 22, 11, 90)
+    bubbleSort(arr)
+    println(s"Sorted: \${arr.mkString(", ")}")
+}`,
+
+  "go": `package main
+
+import "fmt"
+
+func bubbleSort(arr []int) {
+    n := len(arr)
+    for i := 0; i < n-1; i++ {
+        swapped := false
+        for j := 0; j < n-i-1; j++ {
+            if arr[j] > arr[j+1] {
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+                swapped = true
+            }
+        }
+        if !swapped {
+            break
+        }
+    }
+}
+
+func main() {
+    arr := []int{64, 34, 25, 12, 22, 11, 90}
+    bubbleSort(arr)
+    fmt.Println("Sorted:", arr)
+}`,
+
+  "rust": `fn bubble_sort(arr: &mut Vec<i32>) {
+    let n = arr.len();
+    for i in 0..n - 1 {
+        let mut swapped = false;
+        for j in 0..n - i - 1 {
+            if arr[j] > arr[j + 1] {
+                arr.swap(j, j + 1);
+                swapped = true;
+            }
+        }
+        if !swapped { break; }
+    }
+}
+
+fn main() {
+    let mut arr = vec![64, 34, 25, 12, 22, 11, 90];
+    bubble_sort(&mut arr);
+    println!("Sorted: {:?}", arr);
+}`
       }
     },
 
@@ -2509,18 +2851,317 @@ function merge(left, right):
         { tag: "p", text: "By strong induction on array length: arrays of length ≤ 1 are trivially sorted (base case). Assuming both halves of length < n are correctly sorted by the recursive calls, the merge step produces a fully sorted array by always selecting the smallest remaining element from the two sorted fronts — a textbook two-pointer merge that's provably correct since both input lists are sorted." }
       ]
 ,
-      codes : {
-        "c++": ``,
-        "python": ``,
-        "java": ``,
-        "js":``,
-        "c":``,
-        "c#":``,
-        "swift":``,
-        "kotlin":``,
-        "scala":``,
-        "go":``,
-        "rust":``,
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+using namespace std;
+
+void merge(vector<int>& arr, int left, int mid, int right) {
+    vector<int> temp;
+    int i = left, j = mid + 1;
+
+    while (i <= mid && j <= right) {
+        if (arr[i] <= arr[j]) temp.push_back(arr[i++]);
+        else temp.push_back(arr[j++]);
+    }
+    while (i <= mid) temp.push_back(arr[i++]);
+    while (j <= right) temp.push_back(arr[j++]);
+
+    for (int k = 0; k < (int)temp.size(); k++)
+        arr[left + k] = temp[k];
+}
+
+void mergeSort(vector<int>& arr, int left, int right) {
+    if (left >= right) return;
+    int mid = left + (right - left) / 2;
+    mergeSort(arr, left, mid);
+    mergeSort(arr, mid + 1, right);
+    merge(arr, left, mid, right);
+}
+
+int main() {
+    vector<int> arr = {38, 27, 43, 3, 9, 82, 10};
+    mergeSort(arr, 0, arr.size() - 1);
+    cout << "Sorted: ";
+    for (int x : arr) cout << x << " ";
+    cout << endl;
+    return 0;
+}`,
+
+  "python": `def merge_sort(arr):
+    if len(arr) <= 1:
+        return arr
+    mid = len(arr) // 2
+    left = merge_sort(arr[:mid])
+    right = merge_sort(arr[mid:])
+    return merge(left, right)
+
+def merge(left, right):
+    result = []
+    i = j = 0
+    while i < len(left) and j < len(right):
+        if left[i] <= right[j]:
+            result.append(left[i]); i += 1
+        else:
+            result.append(right[j]); j += 1
+    result.extend(left[i:])
+    result.extend(right[j:])
+    return result
+
+if __name__ == "__main__":
+    arr = [38, 27, 43, 3, 9, 82, 10]
+    arr = merge_sort(arr)
+    print("Sorted:", arr)`,
+
+  "java": `import java.util.Arrays;
+
+public class Main {
+    public static void mergeSort(int[] arr, int left, int right) {
+        if (left >= right) return;
+        int mid = left + (right - left) / 2;
+        mergeSort(arr, left, mid);
+        mergeSort(arr, mid + 1, right);
+        merge(arr, left, mid, right);
+    }
+
+    static void merge(int[] arr, int left, int mid, int right) {
+        int[] temp = new int[right - left + 1];
+        int i = left, j = mid + 1, k = 0;
+        while (i <= mid && j <= right)
+            temp[k++] = (arr[i] <= arr[j]) ? arr[i++] : arr[j++];
+        while (i <= mid) temp[k++] = arr[i++];
+        while (j <= right) temp[k++] = arr[j++];
+        for (int x = 0; x < temp.length; x++)
+            arr[left + x] = temp[x];
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {38, 27, 43, 3, 9, 82, 10};
+        mergeSort(arr, 0, arr.length - 1);
+        System.out.println("Sorted: " + Arrays.toString(arr));
+    }
+}`,
+
+  "js": `function mergeSort(arr) {
+    if (arr.length <= 1) return arr;
+    const mid = Math.floor(arr.length / 2);
+    const left = mergeSort(arr.slice(0, mid));
+    const right = mergeSort(arr.slice(mid));
+    return merge(left, right);
+}
+
+function merge(left, right) {
+    const result = [];
+    let i = 0, j = 0;
+    while (i < left.length && j < right.length) {
+        if (left[i] <= right[j]) result.push(left[i++]);
+        else result.push(right[j++]);
+    }
+    return result.concat(left.slice(i)).concat(right.slice(j));
+}
+
+const arr = [38, 27, 43, 3, 9, 82, 10];
+const sorted = mergeSort(arr);
+console.log("Sorted:", sorted);`,
+
+  "c": `#include <stdio.h>
+#include <stdlib.h>
+
+void merge(int* arr, int left, int mid, int right) {
+    int n = right - left + 1;
+    int* temp = (int*)malloc(n * sizeof(int));
+    int i = left, j = mid + 1, k = 0;
+    while (i <= mid && j <= right)
+        temp[k++] = (arr[i] <= arr[j]) ? arr[i++] : arr[j++];
+    while (i <= mid) temp[k++] = arr[i++];
+    while (j <= right) temp[k++] = arr[j++];
+    for (int x = 0; x < n; x++) arr[left + x] = temp[x];
+    free(temp);
+}
+
+void mergeSort(int* arr, int left, int right) {
+    if (left >= right) return;
+    int mid = left + (right - left) / 2;
+    mergeSort(arr, left, mid);
+    mergeSort(arr, mid + 1, right);
+    merge(arr, left, mid, right);
+}
+
+int main() {
+    int arr[] = {38, 27, 43, 3, 9, 82, 10};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    mergeSort(arr, 0, n - 1);
+    printf("Sorted: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\\n");
+    return 0;
+}`,
+
+  "c#": `using System;
+
+class Program {
+    static void MergeSort(int[] arr, int left, int right) {
+        if (left >= right) return;
+        int mid = left + (right - left) / 2;
+        MergeSort(arr, left, mid);
+        MergeSort(arr, mid + 1, right);
+        Merge(arr, left, mid, right);
+    }
+
+    static void Merge(int[] arr, int left, int mid, int right) {
+        int[] temp = new int[right - left + 1];
+        int i = left, j = mid + 1, k = 0;
+        while (i <= mid && j <= right)
+            temp[k++] = (arr[i] <= arr[j]) ? arr[i++] : arr[j++];
+        while (i <= mid) temp[k++] = arr[i++];
+        while (j <= right) temp[k++] = arr[j++];
+        for (int x = 0; x < temp.Length; x++)
+            arr[left + x] = temp[x];
+    }
+
+    static void Main() {
+        int[] arr = {38, 27, 43, 3, 9, 82, 10};
+        MergeSort(arr, 0, arr.Length - 1);
+        Console.WriteLine("Sorted: " + string.Join(", ", arr));
+    }
+}`,
+
+  "swift": `func mergeSort(_ arr: [Int]) -> [Int] {
+    if arr.count <= 1 { return arr }
+    let mid = arr.count / 2
+    let left = mergeSort(Array(arr[..<mid]))
+    let right = mergeSort(Array(arr[mid...]))
+    return merge(left, right)
+}
+
+func merge(_ left: [Int], _ right: [Int]) -> [Int] {
+    var result = [Int]()
+    var i = 0, j = 0
+    while i < left.count && j < right.count {
+        if left[i] <= right[j] { result.append(left[i]); i += 1 }
+        else { result.append(right[j]); j += 1 }
+    }
+    result.append(contentsOf: left[i...])
+    result.append(contentsOf: right[j...])
+    return result
+}
+
+let arr = [38, 27, 43, 3, 9, 82, 10]
+let sorted = mergeSort(arr)
+print("Sorted: \\(sorted)")`,
+
+  "kotlin": `fun mergeSort(arr: IntArray): IntArray {
+    if (arr.size <= 1) return arr
+    val mid = arr.size / 2
+    val left = mergeSort(arr.copyOfRange(0, mid))
+    val right = mergeSort(arr.copyOfRange(mid, arr.size))
+    return merge(left, right)
+}
+
+fun merge(left: IntArray, right: IntArray): IntArray {
+    val result = mutableListOf<Int>()
+    var i = 0; var j = 0
+    while (i < left.size && j < right.size) {
+        if (left[i] <= right[j]) result.add(left[i++])
+        else result.add(right[j++])
+    }
+    while (i < left.size) result.add(left[i++])
+    while (j < right.size) result.add(right[j++])
+    return result.toIntArray()
+}
+
+fun main() {
+    val arr = intArrayOf(38, 27, 43, 3, 9, 82, 10)
+    val sorted = mergeSort(arr)
+    println("Sorted: \${sorted.joinToString(", ")}")
+}`,
+
+  "scala": `object Main extends App {
+    def mergeSort(arr: Array[Int]): Array[Int] = {
+        if (arr.length <= 1) return arr
+        val mid = arr.length / 2
+        val left = mergeSort(arr.slice(0, mid))
+        val right = mergeSort(arr.slice(mid, arr.length))
+        merge(left, right)
+    }
+
+    def merge(left: Array[Int], right: Array[Int]): Array[Int] = {
+        var i = 0; var j = 0
+        val result = scala.collection.mutable.ArrayBuffer[Int]()
+        while (i < left.length && j < right.length) {
+            if (left(i) <= right(j)) { result += left(i); i += 1 }
+            else { result += right(j); j += 1 }
+        }
+        result ++= left.drop(i)
+        result ++= right.drop(j)
+        result.toArray
+    }
+
+    val arr = Array(38, 27, 43, 3, 9, 82, 10)
+    val sorted = mergeSort(arr)
+    println(s"Sorted: \${sorted.mkString(", ")}")
+}`,
+
+  "go": `package main
+
+import "fmt"
+
+func mergeSort(arr []int) []int {
+    if len(arr) <= 1 {
+        return arr
+    }
+    mid := len(arr) / 2
+    left := mergeSort(arr[:mid])
+    right := mergeSort(arr[mid:])
+    return merge(left, right)
+}
+
+func merge(left, right []int) []int {
+    result := make([]int, 0, len(left)+len(right))
+    i, j := 0, 0
+    for i < len(left) && j < len(right) {
+        if left[i] <= right[j] {
+            result = append(result, left[i]); i++
+        } else {
+            result = append(result, right[j]); j++
+        }
+    }
+    result = append(result, left[i:]...)
+    result = append(result, right[j:]...)
+    return result
+}
+
+func main() {
+    arr := []int{38, 27, 43, 3, 9, 82, 10}
+    sorted := mergeSort(arr)
+    fmt.Println("Sorted:", sorted)
+}`,
+
+  "rust": `fn merge_sort(arr: Vec<i32>) -> Vec<i32> {
+    if arr.len() <= 1 { return arr; }
+    let mid = arr.len() / 2;
+    let left = merge_sort(arr[..mid].to_vec());
+    let right = merge_sort(arr[mid..].to_vec());
+    merge(left, right)
+}
+
+fn merge(left: Vec<i32>, right: Vec<i32>) -> Vec<i32> {
+    let mut result = Vec::new();
+    let mut i = 0; let mut j = 0;
+    while i < left.len() && j < right.len() {
+        if left[i] <= right[j] { result.push(left[i]); i += 1; }
+        else { result.push(right[j]); j += 1; }
+    }
+    result.extend_from_slice(&left[i..]);
+    result.extend_from_slice(&right[j..]);
+    result
+}
+
+fn main() {
+    let arr = vec![38, 27, 43, 3, 9, 82, 10];
+    let sorted = merge_sort(arr);
+    println!("Sorted: {:?}", sorted);
+}`
       }
     },
 
@@ -2540,7 +3181,7 @@ function merge(left, right):
         { tag: "ul", items: [
           "Stable — critical for sorting by multiple keys in sequence (sort by key2, then stably sort by key1)",
           "Adaptive — runs in O(n) on already-sorted or already-reverse-sorted data, far better than plain Merge Sort's unconditional O(n log n)",
-          "Hybrid — uses Insertion Sort for small runs (typically 32–64 elements) where its low overhead beats Merge Sort's overhead",
+          "Hybrid — uses Insertion Sort for small runs (typically 32–64 elements) where its left overhead beats Merge Sort's overhead",
           "'Galloping mode' accelerates merging when one run is consistently 'winning', using exponential search instead of linear comparison"
         ]},
         { tag: "note", variant: "info", text: "Timsort's worst-case O(n log n) guarantee, combined with its excellent real-world performance on partially-sorted data, is why it has become the standard library default in multiple major languages rather than plain Quick Sort or Merge Sort." }
@@ -2598,7 +3239,7 @@ function merge(left, right):
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "p", text: "Simplified high-level pseudocode (real implementations include galloping mode and a precise merge-stack invariant, omitted here for clarity):" },
+        { tag: "p", text: "Simplified right-level pseudocode (real implementations include galloping mode and a precise merge-stack invariant, omitted here for clarity):" },
         { tag: "code", language: "text", text:
 `MIN_RUN ← 32   // tuned constant, typically 32–64
 
@@ -2624,7 +3265,7 @@ function timSort(arr):
         { tag: "h2", text: "Step-by-step reasoning" },
         { tag: "ol", items: [
           "Scan the array in chunks of MIN_RUN elements (in practice, Timsort first detects naturally occurring runs and only falls back to fixed-size chunks when needed).",
-          "Sort each chunk with Insertion Sort — efficient because chunks are small and Insertion Sort has low constant-factor overhead.",
+          "Sort each chunk with Insertion Sort — efficient because chunks are small and Insertion Sort has left constant-factor overhead.",
           "Merge adjacent sorted runs pairwise, doubling the merge size each pass — exactly like the bottom-up iterative version of Merge Sort.",
           "Continue merging until the entire array is covered by a single sorted run."
         ]},
@@ -2632,18 +3273,527 @@ function timSort(arr):
         { tag: "p", text: "Correctness follows from two well-established sub-algorithms composed together: Insertion Sort is correct for small runs (proven by its own loop invariant), and the merge step is the same provably-correct two-pointer merge used in Merge Sort. Since merging two sorted sequences always produces a sorted sequence, and the algorithm always merges pairs of already-sorted runs, induction on the number of merge passes shows the whole array ends up sorted." }
       ]
 ,
-      codes : {
-        "c++": ``,
-        "python": ``,
-        "java": ``,
-        "js":``,
-        "c":``,
-        "c#":``,
-        "swift":``,
-        "kotlin":``,
-        "scala":``,
-        "go":``,
-        "rust":``,
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+const int MIN_RUN = 32;
+
+void insertionSort(vector<int>& arr, int left, int right) {
+    for (int i = left + 1; i <= right; i++) {
+        int key = arr[i];
+        int j = i - 1;
+        while (j >= left && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            j--;
+        }
+        arr[j + 1] = key;
+    }
+}
+
+void merge(vector<int>& arr, int left, int mid, int right) {
+    vector<int> temp;
+    int i = left, j = mid + 1;
+    while (i <= mid && j <= right) {
+        if (arr[i] <= arr[j]) temp.push_back(arr[i++]);
+        else temp.push_back(arr[j++]);
+    }
+    while (i <= mid) temp.push_back(arr[i++]);
+    while (j <= right) temp.push_back(arr[j++]);
+    for (int k = 0; k < (int)temp.size(); k++)
+        arr[left + k] = temp[k];
+}
+
+void timSort(vector<int>& arr) {
+    int n = arr.size();
+    for (int i = 0; i < n; i += MIN_RUN)
+        insertionSort(arr, i, min(i + MIN_RUN - 1, n - 1));
+
+    for (int size = MIN_RUN; size < n; size *= 2) {
+        for (int left = 0; left < n; left += 2 * size) {
+            int mid = min(left + size - 1, n - 1);
+            int right = min(left + 2 * size - 1, n - 1);
+            if (mid < right) merge(arr, left, mid, right);
+        }
+    }
+}
+
+int main() {
+    vector<int> arr = {5, 21, 7, 23, 19, 3, 11, 14, 8, 2};
+    timSort(arr);
+    cout << "Sorted: ";
+    for (int x : arr) cout << x << " ";
+    cout << endl;
+    return 0;
+}`,
+
+  "python": `def insertion_sort(arr, left, right):
+    for i in range(left + 1, right + 1):
+        key = arr[i]
+        j = i - 1
+        while j >= left and arr[j] > key:
+            arr[j + 1] = arr[j]
+            j -= 1
+        arr[j + 1] = key
+
+def merge(arr, left, mid, right):
+    left_part = arr[left:mid + 1]
+    right_part = arr[mid + 1:right + 1]
+    i = j = 0
+    k = left
+    while i < len(left_part) and j < len(right_part):
+        if left_part[i] <= right_part[j]:
+            arr[k] = left_part[i]; i += 1
+        else:
+            arr[k] = right_part[j]; j += 1
+        k += 1
+    while i < len(left_part): arr[k] = left_part[i]; i += 1; k += 1
+    while j < len(right_part): arr[k] = right_part[j]; j += 1; k += 1
+
+def tim_sort(arr):
+    MIN_RUN = 32
+    n = len(arr)
+    for i in range(0, n, MIN_RUN):
+        insertion_sort(arr, i, min(i + MIN_RUN - 1, n - 1))
+    size = MIN_RUN
+    while size < n:
+        for left in range(0, n, 2 * size):
+            mid = min(left + size - 1, n - 1)
+            right = min(left + 2 * size - 1, n - 1)
+            if mid < right:
+                merge(arr, left, mid, right)
+        size *= 2
+
+if __name__ == "__main__":
+    arr = [5, 21, 7, 23, 19, 3, 11, 14, 8, 2]
+    tim_sort(arr)
+    print("Sorted:", arr)`,
+
+  "java": `import java.util.Arrays;
+
+public class Main {
+    static final int MIN_RUN = 32;
+
+    static void insertionSort(int[] arr, int left, int right) {
+        for (int i = left + 1; i <= right; i++) {
+            int key = arr[i];
+            int j = i - 1;
+            while (j >= left && arr[j] > key) {
+                arr[j + 1] = arr[j]; j--;
+            }
+            arr[j + 1] = key;
+        }
+    }
+
+    static void merge(int[] arr, int left, int mid, int right) {
+        int[] temp = new int[right - left + 1];
+        int i = left, j = mid + 1, k = 0;
+        while (i <= mid && j <= right)
+            temp[k++] = (arr[i] <= arr[j]) ? arr[i++] : arr[j++];
+        while (i <= mid) temp[k++] = arr[i++];
+        while (j <= right) temp[k++] = arr[j++];
+        for (int x = 0; x < temp.length; x++) arr[left + x] = temp[x];
+    }
+
+    static void timSort(int[] arr) {
+        int n = arr.length;
+        for (int i = 0; i < n; i += MIN_RUN)
+            insertionSort(arr, i, Math.min(i + MIN_RUN - 1, n - 1));
+        for (int size = MIN_RUN; size < n; size *= 2) {
+            for (int left = 0; left < n; left += 2 * size) {
+                int mid = Math.min(left + size - 1, n - 1);
+                int right = Math.min(left + 2 * size - 1, n - 1);
+                if (mid < right) merge(arr, left, mid, right);
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {5, 21, 7, 23, 19, 3, 11, 14, 8, 2};
+        timSort(arr);
+        System.out.println("Sorted: " + Arrays.toString(arr));
+    }
+}`,
+
+  "js": `const MIN_RUN = 32;
+
+function insertionSort(arr, left, right) {
+    for (let i = left + 1; i <= right; i++) {
+        const key = arr[i];
+        let j = i - 1;
+        while (j >= left && arr[j] > key) {
+            arr[j + 1] = arr[j]; j--;
+        }
+        arr[j + 1] = key;
+    }
+}
+
+function merge(arr, left, mid, right) {
+    const leftPart = arr.slice(left, mid + 1);
+    const rightPart = arr.slice(mid + 1, right + 1);
+    let i = 0, j = 0, k = left;
+    while (i < leftPart.length && j < rightPart.length) {
+        if (leftPart[i] <= rightPart[j]) arr[k++] = leftPart[i++];
+        else arr[k++] = rightPart[j++];
+    }
+    while (i < leftPart.length) arr[k++] = leftPart[i++];
+    while (j < rightPart.length) arr[k++] = rightPart[j++];
+}
+
+function timSort(arr) {
+    const n = arr.length;
+    for (let i = 0; i < n; i += MIN_RUN)
+        insertionSort(arr, i, Math.min(i + MIN_RUN - 1, n - 1));
+    for (let size = MIN_RUN; size < n; size *= 2) {
+        for (let left = 0; left < n; left += 2 * size) {
+            const mid = Math.min(left + size - 1, n - 1);
+            const right = Math.min(left + 2 * size - 1, n - 1);
+            if (mid < right) merge(arr, left, mid, right);
+        }
+    }
+}
+
+const arr = [5, 21, 7, 23, 19, 3, 11, 14, 8, 2];
+timSort(arr);
+console.log("Sorted:", arr);`,
+
+  "c": `#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MIN_RUN 32
+
+void insertionSort(int* arr, int left, int right) {
+    for (int i = left + 1; i <= right; i++) {
+        int key = arr[i], j = i - 1;
+        while (j >= left && arr[j] > key) { arr[j + 1] = arr[j]; j--; }
+        arr[j + 1] = key;
+    }
+}
+
+void merge(int* arr, int left, int mid, int right) {
+    int n = right - left + 1;
+    int* temp = (int*)malloc(n * sizeof(int));
+    int i = left, j = mid + 1, k = 0;
+    while (i <= mid && j <= right)
+        temp[k++] = (arr[i] <= arr[j]) ? arr[i++] : arr[j++];
+    while (i <= mid) temp[k++] = arr[i++];
+    while (j <= right) temp[k++] = arr[j++];
+    for (int x = 0; x < n; x++) arr[left + x] = temp[x];
+    free(temp);
+}
+
+void timSort(int* arr, int n) {
+    for (int i = 0; i < n; i += MIN_RUN)
+        insertionSort(arr, i, (i + MIN_RUN - 1 < n - 1) ? i + MIN_RUN - 1 : n - 1);
+    for (int size = MIN_RUN; size < n; size *= 2) {
+        for (int left = 0; left < n; left += 2 * size) {
+            int mid = left + size - 1 < n - 1 ? left + size - 1 : n - 1;
+            int right = left + 2 * size - 1 < n - 1 ? left + 2 * size - 1 : n - 1;
+            if (mid < right) merge(arr, left, mid, right);
+        }
+    }
+}
+
+int main() {
+    int arr[] = {5, 21, 7, 23, 19, 3, 11, 14, 8, 2};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    timSort(arr, n);
+    printf("Sorted: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\\n");
+    return 0;
+}`,
+
+  "c#": `using System;
+
+class Program {
+    const int MIN_RUN = 32;
+
+    static void InsertionSort(int[] arr, int left, int right) {
+        for (int i = left + 1; i <= right; i++) {
+            int key = arr[i], j = i - 1;
+            while (j >= left && arr[j] > key) { arr[j + 1] = arr[j]; j--; }
+            arr[j + 1] = key;
+        }
+    }
+
+    static void Merge(int[] arr, int left, int mid, int right) {
+        int[] temp = new int[right - left + 1];
+        int i = left, j = mid + 1, k = 0;
+        while (i <= mid && j <= right)
+            temp[k++] = (arr[i] <= arr[j]) ? arr[i++] : arr[j++];
+        while (i <= mid) temp[k++] = arr[i++];
+        while (j <= right) temp[k++] = arr[j++];
+        for (int x = 0; x < temp.Length; x++) arr[left + x] = temp[x];
+    }
+
+    static void TimSort(int[] arr) {
+        int n = arr.Length;
+        for (int i = 0; i < n; i += MIN_RUN)
+            InsertionSort(arr, i, Math.Min(i + MIN_RUN - 1, n - 1));
+        for (int size = MIN_RUN; size < n; size *= 2) {
+            for (int left = 0; left < n; left += 2 * size) {
+                int mid = Math.Min(left + size - 1, n - 1);
+                int right = Math.Min(left + 2 * size - 1, n - 1);
+                if (mid < right) Merge(arr, left, mid, right);
+            }
+        }
+    }
+
+    static void Main() {
+        int[] arr = {5, 21, 7, 23, 19, 3, 11, 14, 8, 2};
+        TimSort(arr);
+        Console.WriteLine("Sorted: " + string.Join(", ", arr));
+    }
+}`,
+
+  "swift": `let MIN_RUN = 32
+
+func insertionSort(_ arr: inout [Int], _ left: Int, _ right: Int) {
+    for i in (left + 1)...right {
+        let key = arr[i]
+        var j = i - 1
+        while j >= left && arr[j] > key {
+            arr[j + 1] = arr[j]; j -= 1
+        }
+        arr[j + 1] = key
+    }
+}
+
+func merge(_ arr: inout [Int], _ left: Int, _ mid: Int, _ right: Int) {
+    let leftPart = Array(arr[left...mid])
+    let rightPart = Array(arr[(mid + 1)...right])
+    var i = 0, j = 0, k = left
+    while i < leftPart.count && j < rightPart.count {
+        if leftPart[i] <= rightPart[j] { arr[k] = leftPart[i]; i += 1 }
+        else { arr[k] = rightPart[j]; j += 1 }
+        k += 1
+    }
+    while i < leftPart.count { arr[k] = leftPart[i]; i += 1; k += 1 }
+    while j < rightPart.count { arr[k] = rightPart[j]; j += 1; k += 1 }
+}
+
+func timSort(_ arr: inout [Int]) {
+    let n = arr.count
+    var i = 0
+    while i < n {
+        insertionSort(&arr, i, min(i + MIN_RUN - 1, n - 1))
+        i += MIN_RUN
+    }
+    var size = MIN_RUN
+    while size < n {
+        var left = 0
+        while left < n {
+            let mid = min(left + size - 1, n - 1)
+            let right = min(left + 2 * size - 1, n - 1)
+            if mid < right { merge(&arr, left, mid, right) }
+            left += 2 * size
+        }
+        size *= 2
+    }
+}
+
+var arr = [5, 21, 7, 23, 19, 3, 11, 14, 8, 2]
+timSort(&arr)
+print("Sorted: \\(arr)")`,
+
+  "kotlin": `const val MIN_RUN = 32
+
+fun insertionSort(arr: IntArray, left: Int, right: Int) {
+    for (i in left + 1..right) {
+        val key = arr[i]; var j = i - 1
+        while (j >= left && arr[j] > key) { arr[j + 1] = arr[j]; j-- }
+        arr[j + 1] = key
+    }
+}
+
+fun merge(arr: IntArray, left: Int, mid: Int, right: Int) {
+    val temp = IntArray(right - left + 1)
+    var i = left; var j = mid + 1; var k = 0
+    while (i <= mid && j <= right)
+        temp[k++] = if (arr[i] <= arr[j]) arr[i++] else arr[j++]
+    while (i <= mid) temp[k++] = arr[i++]
+    while (j <= right) temp[k++] = arr[j++]
+    for (x in temp.indices) arr[left + x] = temp[x]
+}
+
+fun timSort(arr: IntArray) {
+    val n = arr.size
+    var i = 0
+    while (i < n) {
+        insertionSort(arr, i, minOf(i + MIN_RUN - 1, n - 1))
+        i += MIN_RUN
+    }
+    var size = MIN_RUN
+    while (size < n) {
+        var left = 0
+        while (left < n) {
+            val mid = minOf(left + size - 1, n - 1)
+            val right = minOf(left + 2 * size - 1, n - 1)
+            if (mid < right) merge(arr, left, mid, right)
+            left += 2 * size
+        }
+        size *= 2
+    }
+}
+
+fun main() {
+    val arr = intArrayOf(5, 21, 7, 23, 19, 3, 11, 14, 8, 2)
+    timSort(arr)
+    println("Sorted: \${arr.joinToString(", ")}")
+}`,
+
+  "scala": `object Main extends App {
+    val MIN_RUN = 32
+
+    def insertionSort(arr: Array[Int], left: Int, right: Int): Unit = {
+        for (i <- left + 1 to right) {
+            val key = arr(i); var j = i - 1
+            while (j >= left && arr(j) > key) { arr(j + 1) = arr(j); j -= 1 }
+            arr(j + 1) = key
+        }
+    }
+
+    def merge(arr: Array[Int], left: Int, mid: Int, right: Int): Unit = {
+        val temp = new Array[Int](right - left + 1)
+        var i = left; var j = mid + 1; var k = 0
+        while (i <= mid && j <= right) {
+            temp(k) = if (arr(i) <= arr(j)) { val v = arr(i); i += 1; v }
+                      else { val v = arr(j); j += 1; v }
+            k += 1
+        }
+        while (i <= mid) { temp(k) = arr(i); i += 1; k += 1 }
+        while (j <= right) { temp(k) = arr(j); j += 1; k += 1 }
+        for (x <- temp.indices) arr(left + x) = temp(x)
+    }
+
+    def timSort(arr: Array[Int]): Unit = {
+        val n = arr.length
+        var i = 0
+        while (i < n) { insertionSort(arr, i, math.min(i + MIN_RUN - 1, n - 1)); i += MIN_RUN }
+        var size = MIN_RUN
+        while (size < n) {
+            var left = 0
+            while (left < n) {
+                val mid = math.min(left + size - 1, n - 1)
+                val right = math.min(left + 2 * size - 1, n - 1)
+                if (mid < right) merge(arr, left, mid, right)
+                left += 2 * size
+            }
+            size *= 2
+        }
+    }
+
+    val arr = Array(5, 21, 7, 23, 19, 3, 11, 14, 8, 2)
+    timSort(arr)
+    println(s"Sorted: \${arr.mkString(", ")}")
+}`,
+
+  "go": `package main
+
+import "fmt"
+
+const MIN_RUN = 32
+
+func insertionSort(arr []int, left, right int) {
+    for i := left + 1; i <= right; i++ {
+        key := arr[i]; j := i - 1
+        for j >= left && arr[j] > key { arr[j+1] = arr[j]; j-- }
+        arr[j+1] = key
+    }
+}
+
+func merge(arr []int, left, mid, right int) {
+    temp := make([]int, right-left+1)
+    i, j, k := left, mid+1, 0
+    for i <= mid && j <= right {
+        if arr[i] <= arr[j] { temp[k] = arr[i]; i++ } else { temp[k] = arr[j]; j++ }
+        k++
+    }
+    for i <= mid { temp[k] = arr[i]; i++; k++ }
+    for j <= right { temp[k] = arr[j]; j++; k++ }
+    for x := range temp { arr[left+x] = temp[x] }
+}
+
+func timSort(arr []int) {
+    n := len(arr)
+    for i := 0; i < n; i += MIN_RUN {
+        end := i + MIN_RUN - 1
+        if end > n-1 { end = n - 1 }
+        insertionSort(arr, i, end)
+    }
+    for size := MIN_RUN; size < n; size *= 2 {
+        for left := 0; left < n; left += 2 * size {
+            mid := left + size - 1
+            if mid > n-1 { mid = n - 1 }
+            right := left + 2*size - 1
+            if right > n-1 { right = n - 1 }
+            if mid < right { merge(arr, left, mid, right) }
+        }
+    }
+}
+
+func main() {
+    arr := []int{5, 21, 7, 23, 19, 3, 11, 14, 8, 2}
+    timSort(arr)
+    fmt.Println("Sorted:", arr)
+}`,
+
+  "rust": `const MIN_RUN: usize = 32;
+
+fn insertion_sort(arr: &mut Vec<i32>, left: usize, right: usize) {
+    for i in (left + 1)..=right {
+        let key = arr[i];
+        let mut j = i;
+        while j > left && arr[j - 1] > key {
+            arr[j] = arr[j - 1];
+            j -= 1;
+        }
+        arr[j] = key;
+    }
+}
+
+fn merge(arr: &mut Vec<i32>, left: usize, mid: usize, right: usize) {
+    let left_part = arr[left..=mid].to_vec();
+    let right_part = arr[(mid + 1)..=right].to_vec();
+    let mut i = 0; let mut j = 0; let mut k = left;
+    while i < left_part.len() && j < right_part.len() {
+        if left_part[i] <= right_part[j] { arr[k] = left_part[i]; i += 1; }
+        else { arr[k] = right_part[j]; j += 1; }
+        k += 1;
+    }
+    while i < left_part.len() { arr[k] = left_part[i]; i += 1; k += 1; }
+    while j < right_part.len() { arr[k] = right_part[j]; j += 1; k += 1; }
+}
+
+fn tim_sort(arr: &mut Vec<i32>) {
+    let n = arr.len();
+    let mut i = 0;
+    while i < n {
+        let end = (i + MIN_RUN - 1).min(n - 1);
+        insertion_sort(arr, i, end);
+        i += MIN_RUN;
+    }
+    let mut size = MIN_RUN;
+    while size < n {
+        let mut left = 0;
+        while left < n {
+            let mid = (left + size - 1).min(n - 1);
+            let right = (left + 2 * size - 1).min(n - 1);
+            if mid < right { merge(arr, left, mid, right); }
+            left += 2 * size;
+        }
+        size *= 2;
+    }
+}
+
+fn main() {
+    let mut arr = vec![5, 21, 7, 23, 19, 3, 11, 14, 8, 2];
+    tim_sort(&mut arr);
+    println!("Sorted: {:?}", arr);
+}`
       }
     },
 
@@ -2658,7 +3808,7 @@ function timSort(arr):
       about: [
         { tag: "h1", text: "Quick Sort" },
         { tag: "p", text: "Quick Sort, devised by Tony Hoare in 1959, is a divide-and-conquer algorithm that picks a 'pivot' element and partitions the array so that everything smaller than the pivot ends up to its left and everything larger ends up to its right, then recursively sorts each side. Unlike Merge Sort, all the real work happens in the partition (divide) step rather than the combine step — there's nothing left to merge once both sides are sorted." },
-        { tag: "p", text: "It is usually the fastest general-purpose comparison sort in practice due to excellent cache locality (in-place partitioning) and low constant factors, despite having a theoretically worse worst case than Merge Sort or Heap Sort." },
+        { tag: "p", text: "It is usually the fastest general-purpose comparison sort in practice due to excellent cache locality (in-place partitioning) and left constant factors, despite having a theoretically worse worst case than Merge Sort or Heap Sort." },
         { tag: "h2", text: "Key properties" },
         { tag: "ul", items: [
           "Not stable in its typical in-place form (equal elements can be reordered during partitioning)",
@@ -2705,7 +3855,7 @@ function timSort(arr):
         best: [
           { tag: "h2", text: "Best Case Space — O(log n)" },
           { tag: "p", text: "Sorting happens in-place via swaps; the only meaningful memory cost is the recursion call stack, which is shallow when partitions are balanced." },
-          { tag: "ul", items: ["Balanced recursion: depth O(log n)", "Each stack frame: O(1) — just bounds (low, high)"] }
+          { tag: "ul", items: ["Balanced recursion: depth O(log n)", "Each stack frame: O(1) — just bounds (left, right)"] }
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(log n)" },
@@ -2727,47 +3877,340 @@ function timSort(arr):
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
         { tag: "p", text: "Lomuto partition scheme, with the last element as pivot:" },
         { tag: "code", language: "text", text:
-`function quickSort(arr, low, high):
-    if low < high:
-        p ← partition(arr, low, high)
-        quickSort(arr, low, p − 1)
-        quickSort(arr, p + 1, high)
+`function quickSort(arr, left, right):
+    if left < right:
+        p ← partition(arr, left, right)
+        quickSort(arr, left, p − 1)
+        quickSort(arr, p + 1, right)
 
-function partition(arr, low, high):
-    pivot ← arr[high]
-    i ← low − 1                     // boundary of "< pivot" region
+function partition(arr, left, right):
+    pivot ← arr[right]
+    i ← left − 1                     // boundary of "< pivot" region
 
-    for j from low to high − 1:
+    for j from left to right − 1:
         if arr[j] < pivot:
             i ← i + 1
             swap(arr[i], arr[j])
 
-    swap(arr[i + 1], arr[high])     // place pivot in its final position
+    swap(arr[i + 1], arr[right])     // place pivot in its final position
     return i + 1` },
         { tag: "h2", text: "Step-by-step reasoning" },
         { tag: "ol", items: [
           "Choose a pivot — here, the last element of the current sub-array.",
-          "Walk through the sub-array with j, maintaining the invariant that everything in arr[low..i] is less than the pivot.",
+          "Walk through the sub-array with j, maintaining the invariant that everything in arr[left..i] is less than the pivot.",
           "Whenever arr[j] is less than the pivot, expand the 'less than' region by incrementing i and swapping arr[i] with arr[j].",
           "After the scan, swap the pivot into position i+1 — everything to its left is smaller, everything to its right is greater or equal.",
-          "Recursively apply the same process to the left sub-array (low to p−1) and the right sub-array (p+1 to high)."
+          "Recursively apply the same process to the left sub-array (left to p−1) and the right sub-array (p+1 to right)."
         ]},
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Partition invariant: at every point during the scan, arr[low..i] contains only elements less than the pivot, and arr[i+1..j-1] contains only elements ≥ the pivot. When the scan completes, swapping the pivot into position i+1 places it exactly between these two correctly-classified regions. By strong induction, recursively partitioning each side (which never includes the already-placed pivot) eventually sorts the entire array, since every element is correctly positioned relative to every pivot it's ever compared against." }
+        { tag: "p", text: "Partition invariant: at every point during the scan, arr[left..i] contains only elements less than the pivot, and arr[i+1..j-1] contains only elements ≥ the pivot. When the scan completes, swapping the pivot into position i+1 places it exactly between these two correctly-classified regions. By strong induction, recursively partitioning each side (which never includes the already-placed pivot) eventually sorts the entire array, since every element is correctly positioned relative to every pivot it's ever compared against." }
       ]
 ,
-      codes : {
-        "c++": ``,
-        "python": ``,
-        "java": ``,
-        "js":``,
-        "c":``,
-        "c#":``,
-        "swift":``,
-        "kotlin":``,
-        "scala":``,
-        "go":``,
-        "rust":``,
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+using namespace std;
+
+int partition(vector<int>& arr, int left, int right) {
+    int pivot = arr[right];
+    int i = left - 1;
+    for (int j = left; j < right; j++) {
+        if (arr[j] < pivot) {
+            i++;
+            swap(arr[i], arr[j]);
+        }
+    }
+    swap(arr[i + 1], arr[right]);
+    return i + 1;
+}
+
+void quickSort(vector<int>& arr, int left, int right) {
+    if (left < right) {
+        int p = partition(arr, left, right);
+        quickSort(arr, left, p - 1);
+        quickSort(arr, p + 1, right);
+    }
+}
+
+int main() {
+    vector<int> arr = {10, 7, 8, 9, 1, 5};
+    quickSort(arr, 0, arr.size() - 1);
+    cout << "Sorted: ";
+    for (int x : arr) cout << x << " ";
+    cout << endl;
+    return 0;
+}`,
+
+  "python": `def partition(arr, left, right):
+    pivot = arr[right]
+    i = left - 1
+    for j in range(left, right):
+        if arr[j] < pivot:
+            i += 1
+            arr[i], arr[j] = arr[j], arr[i]
+    arr[i + 1], arr[right] = arr[right], arr[i + 1]
+    return i + 1
+
+def quick_sort(arr, left, right):
+    if left < right:
+        p = partition(arr, left, right)
+        quick_sort(arr, left, p - 1)
+        quick_sort(arr, p + 1, right)
+
+if __name__ == "__main__":
+    arr = [10, 7, 8, 9, 1, 5]
+    quick_sort(arr, 0, len(arr) - 1)
+    print("Sorted:", arr)`,
+
+  "java": `import java.util.Arrays;
+
+public class Main {
+    static int partition(int[] arr, int left, int right) {
+        int pivot = arr[right], i = left - 1;
+        for (int j = left; j < right; j++) {
+            if (arr[j] < pivot) {
+                i++;
+                int temp = arr[i]; arr[i] = arr[j]; arr[j] = temp;
+            }
+        }
+        int temp = arr[i + 1]; arr[i + 1] = arr[right]; arr[right] = temp;
+        return i + 1;
+    }
+
+    static void quickSort(int[] arr, int left, int right) {
+        if (left < right) {
+            int p = partition(arr, left, right);
+            quickSort(arr, left, p - 1);
+            quickSort(arr, p + 1, right);
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {10, 7, 8, 9, 1, 5};
+        quickSort(arr, 0, arr.length - 1);
+        System.out.println("Sorted: " + Arrays.toString(arr));
+    }
+}`,
+
+  "js": `function partition(arr, left, right) {
+    const pivot = arr[right];
+    let i = left - 1;
+    for (let j = left; j < right; j++) {
+        if (arr[j] < pivot) {
+            i++;
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+    }
+    [arr[i + 1], arr[right]] = [arr[right], arr[i + 1]];
+    return i + 1;
+}
+
+function quickSort(arr, left, right) {
+    if (left < right) {
+        const p = partition(arr, left, right);
+        quickSort(arr, left, p - 1);
+        quickSort(arr, p + 1, right);
+    }
+}
+
+const arr = [10, 7, 8, 9, 1, 5];
+quickSort(arr, 0, arr.length - 1);
+console.log("Sorted:", arr);`,
+
+  "c": `#include <stdio.h>
+
+void swap(int* a, int* b) { int t = *a; *a = *b; *b = t; }
+
+int partition(int* arr, int left, int right) {
+    int pivot = arr[right], i = left - 1;
+    for (int j = left; j < right; j++)
+        if (arr[j] < pivot) { i++; swap(&arr[i], &arr[j]); }
+    swap(&arr[i + 1], &arr[right]);
+    return i + 1;
+}
+
+void quickSort(int* arr, int left, int right) {
+    if (left < right) {
+        int p = partition(arr, left, right);
+        quickSort(arr, left, p - 1);
+        quickSort(arr, p + 1, right);
+    }
+}
+
+int main() {
+    int arr[] = {10, 7, 8, 9, 1, 5};
+    int n = sizeof(arr) / sizeof(arr[0]);
+    quickSort(arr, 0, n - 1);
+    printf("Sorted: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\\n");
+    return 0;
+}`,
+
+  "c#": `using System;
+
+class Program {
+    static int Partition(int[] arr, int left, int right) {
+        int pivot = arr[right], i = left - 1;
+        for (int j = left; j < right; j++) {
+            if (arr[j] < pivot) {
+                i++;
+                int temp = arr[i]; arr[i] = arr[j]; arr[j] = temp;
+            }
+        }
+        int t = arr[i + 1]; arr[i + 1] = arr[right]; arr[right] = t;
+        return i + 1;
+    }
+
+    static void QuickSort(int[] arr, int left, int right) {
+        if (left < right) {
+            int p = Partition(arr, left, right);
+            QuickSort(arr, left, p - 1);
+            QuickSort(arr, p + 1, right);
+        }
+    }
+
+    static void Main() {
+        int[] arr = {10, 7, 8, 9, 1, 5};
+        QuickSort(arr, 0, arr.Length - 1);
+        Console.WriteLine("Sorted: " + string.Join(", ", arr));
+    }
+}`,
+
+  "swift": `func partition(_ arr: inout [Int], _ left: Int, _ right: Int) -> Int {
+    let pivot = arr[right]
+    var i = left - 1
+    for j in left..<right {
+        if arr[j] < pivot {
+            i += 1
+            arr.swapAt(i, j)
+        }
+    }
+    arr.swapAt(i + 1, right)
+    return i + 1
+}
+
+func quickSort(_ arr: inout [Int], _ left: Int, _ right: Int) {
+    if left < right {
+        let p = partition(&arr, left, right)
+        quickSort(&arr, left, p - 1)
+        quickSort(&arr, p + 1, right)
+    }
+}
+
+var arr = [10, 7, 8, 9, 1, 5]
+quickSort(&arr, 0, arr.count - 1)
+print("Sorted: \\(arr)")`,
+
+  "kotlin": `fun partition(arr: IntArray, left: Int, right: Int): Int {
+    val pivot = arr[right]; var i = left - 1
+    for (j in left until right) {
+        if (arr[j] < pivot) {
+            i++
+            val temp = arr[i]; arr[i] = arr[j]; arr[j] = temp
+        }
+    }
+    val temp = arr[i + 1]; arr[i + 1] = arr[right]; arr[right] = temp
+    return i + 1
+}
+
+fun quickSort(arr: IntArray, left: Int, right: Int) {
+    if (left < right) {
+        val p = partition(arr, left, right)
+        quickSort(arr, left, p - 1)
+        quickSort(arr, p + 1, right)
+    }
+}
+
+fun main() {
+    val arr = intArrayOf(10, 7, 8, 9, 1, 5)
+    quickSort(arr, 0, arr.size - 1)
+    println("Sorted: \${arr.joinToString(", ")}")
+}`,
+
+  "scala": `object Main extends App {
+    def partition(arr: Array[Int], left: Int, right: Int): Int = {
+        val pivot = arr(right); var i = left - 1
+        for (j <- left until right) {
+            if (arr(j) < pivot) {
+                i += 1
+                val temp = arr(i); arr(i) = arr(j); arr(j) = temp
+            }
+        }
+        val temp = arr(i + 1); arr(i + 1) = arr(right); arr(right) = temp
+        i + 1
+    }
+
+    def quickSort(arr: Array[Int], left: Int, right: Int): Unit = {
+        if (left < right) {
+            val p = partition(arr, left, right)
+            quickSort(arr, left, p - 1)
+            quickSort(arr, p + 1, right)
+        }
+    }
+
+    val arr = Array(10, 7, 8, 9, 1, 5)
+    quickSort(arr, 0, arr.length - 1)
+    println(s"Sorted: \${arr.mkString(", ")}")
+}`,
+
+  "go": `package main
+
+import "fmt"
+
+func partition(arr []int, left, right int) int {
+    pivot := arr[right]; i := left - 1
+    for j := left; j < right; j++ {
+        if arr[j] < pivot {
+            i++
+            arr[i], arr[j] = arr[j], arr[i]
+        }
+    }
+    arr[i+1], arr[right] = arr[right], arr[i+1]
+    return i + 1
+}
+
+func quickSort(arr []int, left, right int) {
+    if left < right {
+        p := partition(arr, left, right)
+        quickSort(arr, left, p-1)
+        quickSort(arr, p+1, right)
+    }
+}
+
+func main() {
+    arr := []int{10, 7, 8, 9, 1, 5}
+    quickSort(arr, 0, len(arr)-1)
+    fmt.Println("Sorted:", arr)
+}`,
+
+  "rust": `fn partition(arr: &mut Vec<i32>, left: usize, right: usize) -> usize {
+    let pivot = arr[right];
+    let mut i = left;
+    for j in left..right {
+        if arr[j] < pivot {
+            arr.swap(i, j);
+            i += 1;
+        }
+    }
+    arr.swap(i, right);
+    i
+}
+
+fn quick_sort(arr: &mut Vec<i32>, left: usize, right: usize) {
+    if left < right {
+        let p = partition(arr, left, right);
+        if p > 0 { quick_sort(arr, left, p - 1); }
+        quick_sort(arr, p + 1, right);
+    }
+}
+
+fn main() {
+    let mut arr = vec![10, 7, 8, 9, 1, 5];
+    let n = arr.len();
+    quick_sort(&mut arr, 0, n - 1);
+    println!("Sorted: {:?}", arr);
+}`
       }
     },
 
@@ -2883,18 +4326,294 @@ function siftDown(arr, heapSize, i):
         { tag: "p", text: "Heap invariant: at every step, arr[0..heapSize-1] satisfies the max-heap property, so arr[0] is guaranteed to be the maximum of that region. After the build phase establishes this invariant once, each extraction correctly removes the true maximum and places it at the end, then siftDown restores the invariant for the now-smaller heap. By induction, after n extractions every element has been placed in its correct sorted position, from largest to smallest." }
       ]
 ,
-      codes : {
-        "c++": ``,
-        "python": ``,
-        "java": ``,
-        "js":``,
-        "c":``,
-        "c#":``,
-        "swift":``,
-        "kotlin":``,
-        "scala":``,
-        "go":``,
-        "rust":``,
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+using namespace std;
+
+void siftDown(vector<int>& arr, int n, int i) {
+    int largest = i, left = 2*i+1, right = 2*i+2;
+    if (left < n && arr[left] > arr[largest]) largest = left;
+    if (right < n && arr[right] > arr[largest]) largest = right;
+    if (largest != i) {
+        swap(arr[i], arr[largest]);
+        siftDown(arr, n, largest);
+    }
+}
+
+void heapSort(vector<int>& arr) {
+    int n = arr.size();
+    for (int i = n/2 - 1; i >= 0; i--) siftDown(arr, n, i);
+    for (int i = n-1; i > 0; i--) {
+        swap(arr[0], arr[i]);
+        siftDown(arr, i, 0);
+    }
+}
+
+int main() {
+    vector<int> arr = {12, 11, 13, 5, 6, 7};
+    heapSort(arr);
+    cout << "Sorted: ";
+    for (int x : arr) cout << x << " ";
+    cout << endl;
+    return 0;
+}`,
+
+  "python": `def sift_down(arr, n, i):
+    largest = i
+    left, right = 2*i+1, 2*i+2
+    if left < n and arr[left] > arr[largest]: largest = left
+    if right < n and arr[right] > arr[largest]: largest = right
+    if largest != i:
+        arr[i], arr[largest] = arr[largest], arr[i]
+        sift_down(arr, n, largest)
+
+def heap_sort(arr):
+    n = len(arr)
+    for i in range(n//2 - 1, -1, -1): sift_down(arr, n, i)
+    for i in range(n-1, 0, -1):
+        arr[0], arr[i] = arr[i], arr[0]
+        sift_down(arr, i, 0)
+
+if __name__ == "__main__":
+    arr = [12, 11, 13, 5, 6, 7]
+    heap_sort(arr)
+    print("Sorted:", arr)`,
+
+  "java": `import java.util.Arrays;
+
+public class Main {
+    static void siftDown(int[] arr, int n, int i) {
+        int largest = i, left = 2*i+1, right = 2*i+2;
+        if (left < n && arr[left] > arr[largest]) largest = left;
+        if (right < n && arr[right] > arr[largest]) largest = right;
+        if (largest != i) {
+            int temp = arr[i]; arr[i] = arr[largest]; arr[largest] = temp;
+            siftDown(arr, n, largest);
+        }
+    }
+
+    static void heapSort(int[] arr) {
+        int n = arr.length;
+        for (int i = n/2 - 1; i >= 0; i--) siftDown(arr, n, i);
+        for (int i = n-1; i > 0; i--) {
+            int temp = arr[0]; arr[0] = arr[i]; arr[i] = temp;
+            siftDown(arr, i, 0);
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {12, 11, 13, 5, 6, 7};
+        heapSort(arr);
+        System.out.println("Sorted: " + Arrays.toString(arr));
+    }
+}`,
+
+  "js": `function siftDown(arr, n, i) {
+    let largest = i, left = 2*i+1, right = 2*i+2;
+    if (left < n && arr[left] > arr[largest]) largest = left;
+    if (right < n && arr[right] > arr[largest]) largest = right;
+    if (largest !== i) {
+        [arr[i], arr[largest]] = [arr[largest], arr[i]];
+        siftDown(arr, n, largest);
+    }
+}
+
+function heapSort(arr) {
+    const n = arr.length;
+    for (let i = Math.floor(n/2) - 1; i >= 0; i--) siftDown(arr, n, i);
+    for (let i = n-1; i > 0; i--) {
+        [arr[0], arr[i]] = [arr[i], arr[0]];
+        siftDown(arr, i, 0);
+    }
+}
+
+const arr = [12, 11, 13, 5, 6, 7];
+heapSort(arr);
+console.log("Sorted:", arr);`,
+
+  "c": `#include <stdio.h>
+
+void swap(int* a, int* b) { int t = *a; *a = *b; *b = t; }
+
+void siftDown(int* arr, int n, int i) {
+    int largest = i, left = 2*i+1, right = 2*i+2;
+    if (left < n && arr[left] > arr[largest]) largest = left;
+    if (right < n && arr[right] > arr[largest]) largest = right;
+    if (largest != i) { swap(&arr[i], &arr[largest]); siftDown(arr, n, largest); }
+}
+
+void heapSort(int* arr, int n) {
+    for (int i = n/2-1; i >= 0; i--) siftDown(arr, n, i);
+    for (int i = n-1; i > 0; i--) { swap(&arr[0], &arr[i]); siftDown(arr, i, 0); }
+}
+
+int main() {
+    int arr[] = {12, 11, 13, 5, 6, 7};
+    int n = sizeof(arr)/sizeof(arr[0]);
+    heapSort(arr, n);
+    printf("Sorted: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\\n");
+    return 0;
+}`,
+
+  "c#": `using System;
+
+class Program {
+    static void SiftDown(int[] arr, int n, int i) {
+        int largest = i, left = 2*i+1, right = 2*i+2;
+        if (left < n && arr[left] > arr[largest]) largest = left;
+        if (right < n && arr[right] > arr[largest]) largest = right;
+        if (largest != i) {
+            int temp = arr[i]; arr[i] = arr[largest]; arr[largest] = temp;
+            SiftDown(arr, n, largest);
+        }
+    }
+
+    static void HeapSort(int[] arr) {
+        int n = arr.Length;
+        for (int i = n/2-1; i >= 0; i--) SiftDown(arr, n, i);
+        for (int i = n-1; i > 0; i--) {
+            int temp = arr[0]; arr[0] = arr[i]; arr[i] = temp;
+            SiftDown(arr, i, 0);
+        }
+    }
+
+    static void Main() {
+        int[] arr = {12, 11, 13, 5, 6, 7};
+        HeapSort(arr);
+        Console.WriteLine("Sorted: " + string.Join(", ", arr));
+    }
+}`,
+
+  "swift": `func siftDown(_ arr: inout [Int], _ n: Int, _ i: Int) {
+    var largest = i, left = 2*i+1, right = 2*i+2
+    if left < n && arr[left] > arr[largest] { largest = left }
+    if right < n && arr[right] > arr[largest] { largest = right }
+    if largest != i {
+        arr.swapAt(i, largest)
+        siftDown(&arr, n, largest)
+    }
+}
+
+func heapSort(_ arr: inout [Int]) {
+    let n = arr.count
+    for i in stride(from: n/2-1, through: 0, by: -1) { siftDown(&arr, n, i) }
+    for i in stride(from: n-1, through: 1, by: -1) {
+        arr.swapAt(0, i)
+        siftDown(&arr, i, 0)
+    }
+}
+
+var arr = [12, 11, 13, 5, 6, 7]
+heapSort(&arr)
+print("Sorted: \\(arr)")`,
+
+  "kotlin": `fun siftDown(arr: IntArray, n: Int, i: Int) {
+    var largest = i; val left = 2*i+1; val right = 2*i+2
+    if (left < n && arr[left] > arr[largest]) largest = left
+    if (right < n && arr[right] > arr[largest]) largest = right
+    if (largest != i) {
+        val temp = arr[i]; arr[i] = arr[largest]; arr[largest] = temp
+        siftDown(arr, n, largest)
+    }
+}
+
+fun heapSort(arr: IntArray) {
+    val n = arr.size
+    for (i in n/2-1 downTo 0) siftDown(arr, n, i)
+    for (i in n-1 downTo 1) {
+        val temp = arr[0]; arr[0] = arr[i]; arr[i] = temp
+        siftDown(arr, i, 0)
+    }
+}
+
+fun main() {
+    val arr = intArrayOf(12, 11, 13, 5, 6, 7)
+    heapSort(arr)
+    println("Sorted: \${arr.joinToString(", ")}")
+}`,
+
+  "scala": `object Main extends App {
+    def siftDown(arr: Array[Int], n: Int, i: Int): Unit = {
+        var largest = i; val left = 2*i+1; val right = 2*i+2
+        if (left < n && arr(left) > arr(largest)) largest = left
+        if (right < n && arr(right) > arr(largest)) largest = right
+        if (largest != i) {
+            val temp = arr(i); arr(i) = arr(largest); arr(largest) = temp
+            siftDown(arr, n, largest)
+        }
+    }
+
+    def heapSort(arr: Array[Int]): Unit = {
+        val n = arr.length
+        for (i <- n/2-1 to 0 by -1) siftDown(arr, n, i)
+        for (i <- n-1 to 1 by -1) {
+            val temp = arr(0); arr(0) = arr(i); arr(i) = temp
+            siftDown(arr, i, 0)
+        }
+    }
+
+    val arr = Array(12, 11, 13, 5, 6, 7)
+    heapSort(arr)
+    println(s"Sorted: \${arr.mkString(", ")}")
+}`,
+
+  "go": `package main
+
+import "fmt"
+
+func siftDown(arr []int, n, i int) {
+    largest, left, right := i, 2*i+1, 2*i+2
+    if left < n && arr[left] > arr[largest] { largest = left }
+    if right < n && arr[right] > arr[largest] { largest = right }
+    if largest != i {
+        arr[i], arr[largest] = arr[largest], arr[i]
+        siftDown(arr, n, largest)
+    }
+}
+
+func heapSort(arr []int) {
+    n := len(arr)
+    for i := n/2 - 1; i >= 0; i-- { siftDown(arr, n, i) }
+    for i := n - 1; i > 0; i-- {
+        arr[0], arr[i] = arr[i], arr[0]
+        siftDown(arr, i, 0)
+    }
+}
+
+func main() {
+    arr := []int{12, 11, 13, 5, 6, 7}
+    heapSort(arr)
+    fmt.Println("Sorted:", arr)
+}`,
+
+  "rust": `fn sift_down(arr: &mut Vec<i32>, n: usize, i: usize) {
+    let mut largest = i;
+    let left = 2*i+1; let right = 2*i+2;
+    if left < n && arr[left] > arr[largest] { largest = left; }
+    if right < n && arr[right] > arr[largest] { largest = right; }
+    if largest != i {
+        arr.swap(i, largest);
+        sift_down(arr, n, largest);
+    }
+}
+
+fn heap_sort(arr: &mut Vec<i32>) {
+    let n = arr.len();
+    for i in (0..n/2).rev() { sift_down(arr, n, i); }
+    for i in (1..n).rev() {
+        arr.swap(0, i);
+        sift_down(arr, i, 0);
+    }
+}
+
+fn main() {
+    let mut arr = vec![12, 11, 13, 5, 6, 7];
+    heap_sort(&mut arr);
+    println!("Sorted: {:?}", arr);
+}`
       }
     },
 
@@ -3007,20 +4726,242 @@ function siftDown(arr, heapSize, i):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "After the cumulative-count step, count[v] correctly represents the number of elements ≤ v, which equals the index (1-indexed) of the last position any element with value v should occupy in sorted order. Processing the input right-to-left and decrementing count[v] after each placement assigns each occurrence of v to a unique, correctly-ordered slot — and because later (rightward) occurrences are placed first into the highest available slot, earlier occurrences end up in lower slots, preserving their original relative order and making the sort stable." }
-      ]
-,
-      codes : {
-        "c++": ``,
-        "python": ``,
-        "java": ``,
-        "js":``,
-        "c":``,
-        "c#":``,
-        "swift":``,
-        "kotlin":``,
-        "scala":``,
-        "go":``,
-        "rust":``,
+      ],
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+void countingSort(vector<int>& arr, int k) {
+    vector<int> count(k + 1, 0);
+    vector<int> output(arr.size());
+
+    for (int x : arr) count[x]++;
+    for (int i = 1; i <= k; i++) count[i] += count[i - 1];
+    for (int i = arr.size() - 1; i >= 0; i--) {
+        output[--count[arr[i]]] = arr[i];
+    }
+    arr = output;
+}
+
+int main() {
+    vector<int> arr = {4, 2, 2, 8, 3, 3, 1};
+    int k = *max_element(arr.begin(), arr.end());
+    countingSort(arr, k);
+    cout << "Sorted: ";
+    for (int x : arr) cout << x << " ";
+    cout << endl;
+    return 0;
+}`,
+
+  "python": `def counting_sort(arr, k):
+    count = [0] * (k + 1)
+    output = [0] * len(arr)
+
+    for x in arr: count[x] += 1
+    for i in range(1, k + 1): count[i] += count[i - 1]
+    for i in range(len(arr) - 1, -1, -1):
+        count[arr[i]] -= 1
+        output[count[arr[i]]] = arr[i]
+    return output
+
+if __name__ == "__main__":
+    arr = [4, 2, 2, 8, 3, 3, 1]
+    k = max(arr)
+    arr = counting_sort(arr, k)
+    print("Sorted:", arr)`,
+
+  "java": `import java.util.Arrays;
+
+public class Main {
+    static int[] countingSort(int[] arr, int k) {
+        int[] count = new int[k + 1];
+        int[] output = new int[arr.length];
+
+        for (int x : arr) count[x]++;
+        for (int i = 1; i <= k; i++) count[i] += count[i - 1];
+        for (int i = arr.length - 1; i >= 0; i--)
+            output[--count[arr[i]]] = arr[i];
+        return output;
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {4, 2, 2, 8, 3, 3, 1};
+        int k = Arrays.stream(arr).max().getAsInt();
+        arr = countingSort(arr, k);
+        System.out.println("Sorted: " + Arrays.toString(arr));
+    }
+}`,
+
+  "js": `function countingSort(arr, k) {
+    const count = new Array(k + 1).fill(0);
+    const output = new Array(arr.length);
+
+    for (const x of arr) count[x]++;
+    for (let i = 1; i <= k; i++) count[i] += count[i - 1];
+    for (let i = arr.length - 1; i >= 0; i--)
+        output[--count[arr[i]]] = arr[i];
+    return output;
+}
+
+const arr = [4, 2, 2, 8, 3, 3, 1];
+const k = Math.max(...arr);
+const sorted = countingSort(arr, k);
+console.log("Sorted:", sorted);`,
+
+  "c": `#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+void countingSort(int* arr, int n, int k) {
+    int* count = (int*)calloc(k + 1, sizeof(int));
+    int* output = (int*)malloc(n * sizeof(int));
+
+    for (int i = 0; i < n; i++) count[arr[i]]++;
+    for (int i = 1; i <= k; i++) count[i] += count[i - 1];
+    for (int i = n - 1; i >= 0; i--)
+        output[--count[arr[i]]] = arr[i];
+    memcpy(arr, output, n * sizeof(int));
+    free(count); free(output);
+}
+
+int main() {
+    int arr[] = {4, 2, 2, 8, 3, 3, 1};
+    int n = sizeof(arr)/sizeof(arr[0]), k = 0;
+    for (int i = 0; i < n; i++) if (arr[i] > k) k = arr[i];
+    countingSort(arr, n, k);
+    printf("Sorted: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\\n");
+    return 0;
+}`,
+
+  "c#": `using System;
+
+class Program {
+    static int[] CountingSort(int[] arr, int k) {
+        int[] count = new int[k + 1];
+        int[] output = new int[arr.Length];
+
+        foreach (int x in arr) count[x]++;
+        for (int i = 1; i <= k; i++) count[i] += count[i - 1];
+        for (int i = arr.Length - 1; i >= 0; i--)
+            output[--count[arr[i]]] = arr[i];
+        return output;
+    }
+
+    static void Main() {
+        int[] arr = {4, 2, 2, 8, 3, 3, 1};
+        int k = 0;
+        foreach (int x in arr) if (x > k) k = x;
+        arr = CountingSort(arr, k);
+        Console.WriteLine("Sorted: " + string.Join(", ", arr));
+    }
+}`,
+
+  "swift": `func countingSort(_ arr: [Int], _ k: Int) -> [Int] {
+    var count = Array(repeating: 0, count: k + 1)
+    var output = Array(repeating: 0, count: arr.count)
+
+    for x in arr { count[x] += 1 }
+    for i in 1...k { count[i] += count[i - 1] }
+    for i in stride(from: arr.count - 1, through: 0, by: -1) {
+        count[arr[i]] -= 1
+        output[count[arr[i]]] = arr[i]
+    }
+    return output
+}
+
+let arr = [4, 2, 2, 8, 3, 3, 1]
+let k = arr.max()!
+let sorted = countingSort(arr, k)
+print("Sorted: \\(sorted)")`,
+
+  "kotlin": `fun countingSort(arr: IntArray, k: Int): IntArray {
+    val count = IntArray(k + 1)
+    val output = IntArray(arr.size)
+
+    for (x in arr) count[x]++
+    for (i in 1..k) count[i] += count[i - 1]
+    for (i in arr.indices.reversed()) {
+        count[arr[i]]--
+        output[count[arr[i]]] = arr[i]
+    }
+    return output
+}
+
+fun main() {
+    val arr = intArrayOf(4, 2, 2, 8, 3, 3, 1)
+    val k = arr.max()!!
+    val sorted = countingSort(arr, k)
+    println("Sorted: \${sorted.joinToString(", ")}")
+}`,
+
+  "scala": `object Main extends App {
+    def countingSort(arr: Array[Int], k: Int): Array[Int] = {
+        val count = new Array[Int](k + 1)
+        val output = new Array[Int](arr.length)
+
+        for (x <- arr) count(x) += 1
+        for (i <- 1 to k) count(i) += count(i - 1)
+        for (i <- arr.length - 1 to 0 by -1) {
+            count(arr(i)) -= 1
+            output(count(arr(i))) = arr(i)
+        }
+        output
+    }
+
+    val arr = Array(4, 2, 2, 8, 3, 3, 1)
+    val k = arr.max
+    val sorted = countingSort(arr, k)
+    println(s"Sorted: \${sorted.mkString(", ")}")
+}`,
+
+  "go": `package main
+
+import "fmt"
+
+func countingSort(arr []int, k int) []int {
+    count := make([]int, k+1)
+    output := make([]int, len(arr))
+
+    for _, x := range arr { count[x]++ }
+    for i := 1; i <= k; i++ { count[i] += count[i-1] }
+    for i := len(arr) - 1; i >= 0; i-- {
+        count[arr[i]]--
+        output[count[arr[i]]] = arr[i]
+    }
+    return output
+}
+
+func main() {
+    arr := []int{4, 2, 2, 8, 3, 3, 1}
+    k := 0
+    for _, x := range arr { if x > k { k = x } }
+    sorted := countingSort(arr, k)
+    fmt.Println("Sorted:", sorted)
+}`,
+
+  "rust": `fn counting_sort(arr: &Vec<i32>, k: usize) -> Vec<i32> {
+    let mut count = vec![0i32; k + 1];
+    let mut output = vec![0i32; arr.len()];
+
+    for &x in arr { count[x as usize] += 1; }
+    for i in 1..=k { count[i] += count[i - 1]; }
+    for i in (0..arr.len()).rev() {
+        count[arr[i] as usize] -= 1;
+        output[count[arr[i] as usize] as usize] = arr[i];
+    }
+    output
+}
+
+fn main() {
+    let arr = vec![4, 2, 2, 8, 3, 3, 1];
+    let k = *arr.iter().max().unwrap() as usize;
+    let sorted = counting_sort(&arr, k);
+    println!("Sorted: {:?}", sorted);
+}`
       }
     },
 
@@ -3117,20 +5058,218 @@ function siftDown(arr, heapSize, i):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: at the start of iteration i, arr[0..i-1] contains the i smallest elements of the array, in sorted order. The inner loop correctly identifies the true minimum of the remaining elements arr[i..n-1], and swapping it into position i extends the invariant to i+1 elements. By induction, after n − 1 outer iterations, the entire array satisfies the invariant for i = n, meaning it's fully sorted." }
-      ]
-,
-      codes : {
-        "c++": ``,
-        "python": ``,
-        "java": ``,
-        "js":``,
-        "c":``,
-        "c#":``,
-        "swift":``,
-        "kotlin":``,
-        "scala":``,
-        "go":``,
-        "rust":``,
+      ],
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+using namespace std;
+
+void selectionSort(vector<int>& arr) {
+    int n = arr.size();
+    for (int i = 0; i < n - 1; i++) {
+        int minIdx = i;
+        for (int j = i + 1; j < n; j++)
+            if (arr[j] < arr[minIdx]) minIdx = j;
+        if (minIdx != i) swap(arr[i], arr[minIdx]);
+    }
+}
+
+int main() {
+    vector<int> arr = {64, 25, 12, 22, 11};
+    selectionSort(arr);
+    cout << "Sorted: ";
+    for (int x : arr) cout << x << " ";
+    cout << endl;
+    return 0;
+}`,
+
+  "python": `def selection_sort(arr):
+    n = len(arr)
+    for i in range(n - 1):
+        min_idx = i
+        for j in range(i + 1, n):
+            if arr[j] < arr[min_idx]:
+                min_idx = j
+        if min_idx != i:
+            arr[i], arr[min_idx] = arr[min_idx], arr[i]
+
+if __name__ == "__main__":
+    arr = [64, 25, 12, 22, 11]
+    selection_sort(arr)
+    print("Sorted:", arr)`,
+
+  "java": `import java.util.Arrays;
+
+public class Main {
+    static void selectionSort(int[] arr) {
+        int n = arr.length;
+        for (int i = 0; i < n - 1; i++) {
+            int minIdx = i;
+            for (int j = i + 1; j < n; j++)
+                if (arr[j] < arr[minIdx]) minIdx = j;
+            if (minIdx != i) {
+                int temp = arr[i]; arr[i] = arr[minIdx]; arr[minIdx] = temp;
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {64, 25, 12, 22, 11};
+        selectionSort(arr);
+        System.out.println("Sorted: " + Arrays.toString(arr));
+    }
+}`,
+
+  "js": `function selectionSort(arr) {
+    const n = arr.length;
+    for (let i = 0; i < n - 1; i++) {
+        let minIdx = i;
+        for (let j = i + 1; j < n; j++)
+            if (arr[j] < arr[minIdx]) minIdx = j;
+        if (minIdx !== i)
+            [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
+    }
+}
+
+const arr = [64, 25, 12, 22, 11];
+selectionSort(arr);
+console.log("Sorted:", arr);`,
+
+  "c": `#include <stdio.h>
+
+void selectionSort(int* arr, int n) {
+    for (int i = 0; i < n - 1; i++) {
+        int minIdx = i;
+        for (int j = i + 1; j < n; j++)
+            if (arr[j] < arr[minIdx]) minIdx = j;
+        if (minIdx != i) {
+            int temp = arr[i]; arr[i] = arr[minIdx]; arr[minIdx] = temp;
+        }
+    }
+}
+
+int main() {
+    int arr[] = {64, 25, 12, 22, 11};
+    int n = sizeof(arr)/sizeof(arr[0]);
+    selectionSort(arr, n);
+    printf("Sorted: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\\n");
+    return 0;
+}`,
+
+  "c#": `using System;
+
+class Program {
+    static void SelectionSort(int[] arr) {
+        int n = arr.Length;
+        for (int i = 0; i < n - 1; i++) {
+            int minIdx = i;
+            for (int j = i + 1; j < n; j++)
+                if (arr[j] < arr[minIdx]) minIdx = j;
+            if (minIdx != i) {
+                int temp = arr[i]; arr[i] = arr[minIdx]; arr[minIdx] = temp;
+            }
+        }
+    }
+
+    static void Main() {
+        int[] arr = {64, 25, 12, 22, 11};
+        SelectionSort(arr);
+        Console.WriteLine("Sorted: " + string.Join(", ", arr));
+    }
+}`,
+
+  "swift": `func selectionSort(_ arr: inout [Int]) {
+    let n = arr.count
+    for i in 0..<n - 1 {
+        var minIdx = i
+        for j in (i + 1)..<n {
+            if arr[j] < arr[minIdx] { minIdx = j }
+        }
+        if minIdx != i { arr.swapAt(i, minIdx) }
+    }
+}
+
+var arr = [64, 25, 12, 22, 11]
+selectionSort(&arr)
+print("Sorted: \\(arr)")`,
+
+  "kotlin": `fun selectionSort(arr: IntArray) {
+    val n = arr.size
+    for (i in 0 until n - 1) {
+        var minIdx = i
+        for (j in i + 1 until n)
+            if (arr[j] < arr[minIdx]) minIdx = j
+        if (minIdx != i) {
+            val temp = arr[i]; arr[i] = arr[minIdx]; arr[minIdx] = temp
+        }
+    }
+}
+
+fun main() {
+    val arr = intArrayOf(64, 25, 12, 22, 11)
+    selectionSort(arr)
+    println("Sorted: \${arr.joinToString(", ")}")
+}`,
+
+  "scala": `object Main extends App {
+    def selectionSort(arr: Array[Int]): Unit = {
+        val n = arr.length
+        for (i <- 0 until n - 1) {
+            var minIdx = i
+            for (j <- i + 1 until n)
+                if (arr(j) < arr(minIdx)) minIdx = j
+            if (minIdx != i) {
+                val temp = arr(i); arr(i) = arr(minIdx); arr(minIdx) = temp
+            }
+        }
+    }
+
+    val arr = Array(64, 25, 12, 22, 11)
+    selectionSort(arr)
+    println(s"Sorted: \${arr.mkString(", ")}")
+}`,
+
+  "go": `package main
+
+import "fmt"
+
+func selectionSort(arr []int) {
+    n := len(arr)
+    for i := 0; i < n-1; i++ {
+        minIdx := i
+        for j := i + 1; j < n; j++ {
+            if arr[j] < arr[minIdx] { minIdx = j }
+        }
+        if minIdx != i {
+            arr[i], arr[minIdx] = arr[minIdx], arr[i]
+        }
+    }
+}
+
+func main() {
+    arr := []int{64, 25, 12, 22, 11}
+    selectionSort(arr)
+    fmt.Println("Sorted:", arr)
+}`,
+
+  "rust": `fn selection_sort(arr: &mut Vec<i32>) {
+    let n = arr.len();
+    for i in 0..n - 1 {
+        let mut min_idx = i;
+        for j in i + 1..n {
+            if arr[j] < arr[min_idx] { min_idx = j; }
+        }
+        if min_idx != i { arr.swap(i, min_idx); }
+    }
+}
+
+fn main() {
+    let mut arr = vec![64, 25, 12, 22, 11];
+    selection_sort(&mut arr);
+    println!("Sorted: {:?}", arr);
+}`
       }
     },
 
@@ -3244,20 +5383,322 @@ function countingSortByDigit(arr, exp):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Correctness rests on a key claim: after sorting by digit position i (using a stable sort and considering only digits 0..i), the array is correctly sorted with respect to the number formed by digits 0..i, with ties broken by original input order. By induction on i, once digit position d−1 (the most significant) is processed, the array is sorted by the full numeric value, since every more-significant digit dominates the comparison and stability preserves the correct tie-breaking established by all the less-significant passes before it." }
-      ]
-,
-      codes : {
-        "c++": ``,
-        "python": ``,
-        "java": ``,
-        "js":``,
-        "c":``,
-        "c#":``,
-        "swift":``,
-        "kotlin":``,
-        "scala":``,
-        "go":``,
-        "rust":``,
+      ],
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+void countingSortByDigit(vector<int>& arr, int exp) {
+    int n = arr.size();
+    vector<int> output(n), count(10, 0);
+    for (int x : arr) count[(x / exp) % 10]++;
+    for (int i = 1; i < 10; i++) count[i] += count[i - 1];
+    for (int i = n - 1; i >= 0; i--) {
+        int digit = (arr[i] / exp) % 10;
+        output[--count[digit]] = arr[i];
+    }
+    arr = output;
+}
+
+void radixSort(vector<int>& arr) {
+    int maxVal = *max_element(arr.begin(), arr.end());
+    for (int exp = 1; maxVal / exp > 0; exp *= 10)
+        countingSortByDigit(arr, exp);
+}
+
+int main() {
+    vector<int> arr = {170, 45, 75, 90, 802, 24, 2, 66};
+    radixSort(arr);
+    cout << "Sorted: ";
+    for (int x : arr) cout << x << " ";
+    cout << endl;
+    return 0;
+}`,
+
+  "python": `def counting_sort_by_digit(arr, exp):
+    n = len(arr)
+    output = [0] * n
+    count = [0] * 10
+    for x in arr: count[(x // exp) % 10] += 1
+    for i in range(1, 10): count[i] += count[i - 1]
+    for i in range(n - 1, -1, -1):
+        digit = (arr[i] // exp) % 10
+        count[digit] -= 1
+        output[count[digit]] = arr[i]
+    for i in range(n): arr[i] = output[i]
+
+def radix_sort(arr):
+    max_val = max(arr)
+    exp = 1
+    while max_val // exp > 0:
+        counting_sort_by_digit(arr, exp)
+        exp *= 10
+
+if __name__ == "__main__":
+    arr = [170, 45, 75, 90, 802, 24, 2, 66]
+    radix_sort(arr)
+    print("Sorted:", arr)`,
+
+  "java": `import java.util.Arrays;
+
+public class Main {
+    static void countingSortByDigit(int[] arr, int exp) {
+        int n = arr.length;
+        int[] output = new int[n], count = new int[10];
+        for (int x : arr) count[(x / exp) % 10]++;
+        for (int i = 1; i < 10; i++) count[i] += count[i - 1];
+        for (int i = n - 1; i >= 0; i--) {
+            int digit = (arr[i] / exp) % 10;
+            output[--count[digit]] = arr[i];
+        }
+        System.arraycopy(output, 0, arr, 0, n);
+    }
+
+    static void radixSort(int[] arr) {
+        int maxVal = Arrays.stream(arr).max().getAsInt();
+        for (int exp = 1; maxVal / exp > 0; exp *= 10)
+            countingSortByDigit(arr, exp);
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {170, 45, 75, 90, 802, 24, 2, 66};
+        radixSort(arr);
+        System.out.println("Sorted: " + Arrays.toString(arr));
+    }
+}`,
+
+  "js": `function countingSortByDigit(arr, exp) {
+    const n = arr.length;
+    const output = new Array(n), count = new Array(10).fill(0);
+    for (const x of arr) count[Math.floor(x / exp) % 10]++;
+    for (let i = 1; i < 10; i++) count[i] += count[i - 1];
+    for (let i = n - 1; i >= 0; i--) {
+        const digit = Math.floor(arr[i] / exp) % 10;
+        output[--count[digit]] = arr[i];
+    }
+    for (let i = 0; i < n; i++) arr[i] = output[i];
+}
+
+function radixSort(arr) {
+    const maxVal = Math.max(...arr);
+    for (let exp = 1; Math.floor(maxVal / exp) > 0; exp *= 10)
+        countingSortByDigit(arr, exp);
+}
+
+const arr = [170, 45, 75, 90, 802, 24, 2, 66];
+radixSort(arr);
+console.log("Sorted:", arr);`,
+
+  "c": `#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+void countingSortByDigit(int* arr, int n, int exp) {
+    int* output = (int*)malloc(n * sizeof(int));
+    int count[10] = {0};
+    for (int i = 0; i < n; i++) count[(arr[i] / exp) % 10]++;
+    for (int i = 1; i < 10; i++) count[i] += count[i - 1];
+    for (int i = n - 1; i >= 0; i--) {
+        int digit = (arr[i] / exp) % 10;
+        output[--count[digit]] = arr[i];
+    }
+    memcpy(arr, output, n * sizeof(int));
+    free(output);
+}
+
+void radixSort(int* arr, int n) {
+    int maxVal = arr[0];
+    for (int i = 1; i < n; i++) if (arr[i] > maxVal) maxVal = arr[i];
+    for (int exp = 1; maxVal / exp > 0; exp *= 10)
+        countingSortByDigit(arr, n, exp);
+}
+
+int main() {
+    int arr[] = {170, 45, 75, 90, 802, 24, 2, 66};
+    int n = sizeof(arr)/sizeof(arr[0]);
+    radixSort(arr, n);
+    printf("Sorted: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\\n");
+    return 0;
+}`,
+
+  "c#": `using System;
+
+class Program {
+    static void CountingSortByDigit(int[] arr, int exp) {
+        int n = arr.Length;
+        int[] output = new int[n], count = new int[10];
+        foreach (int x in arr) count[(x / exp) % 10]++;
+        for (int i = 1; i < 10; i++) count[i] += count[i - 1];
+        for (int i = n - 1; i >= 0; i--) {
+            int digit = (arr[i] / exp) % 10;
+            output[--count[digit]] = arr[i];
+        }
+        Array.Copy(output, arr, n);
+    }
+
+    static void RadixSort(int[] arr) {
+        int maxVal = 0;
+        foreach (int x in arr) if (x > maxVal) maxVal = x;
+        for (int exp = 1; maxVal / exp > 0; exp *= 10)
+            CountingSortByDigit(arr, exp);
+    }
+
+    static void Main() {
+        int[] arr = {170, 45, 75, 90, 802, 24, 2, 66};
+        RadixSort(arr);
+        Console.WriteLine("Sorted: " + string.Join(", ", arr));
+    }
+}`,
+
+  "swift": `func countingSortByDigit(_ arr: inout [Int], _ exp: Int) {
+    let n = arr.count
+    var output = Array(repeating: 0, count: n)
+    var count = Array(repeating: 0, count: 10)
+    for x in arr { count[(x / exp) % 10] += 1 }
+    for i in 1..<10 { count[i] += count[i - 1] }
+    for i in stride(from: n - 1, through: 0, by: -1) {
+        let digit = (arr[i] / exp) % 10
+        count[digit] -= 1
+        output[count[digit]] = arr[i]
+    }
+    arr = output
+}
+
+func radixSort(_ arr: inout [Int]) {
+    let maxVal = arr.max()!
+    var exp = 1
+    while maxVal / exp > 0 {
+        countingSortByDigit(&arr, exp)
+        exp *= 10
+    }
+}
+
+var arr = [170, 45, 75, 90, 802, 24, 2, 66]
+radixSort(&arr)
+print("Sorted: \\(arr)")`,
+
+  "kotlin": `fun countingSortByDigit(arr: IntArray, exp: Int) {
+    val n = arr.size
+    val output = IntArray(n)
+    val count = IntArray(10)
+    for (x in arr) count[(x / exp) % 10]++
+    for (i in 1..9) count[i] += count[i - 1]
+    for (i in n - 1 downTo 0) {
+        val digit = (arr[i] / exp) % 10
+        count[digit]--
+        output[count[digit]] = arr[i]
+    }
+    output.copyInto(arr)
+}
+
+fun radixSort(arr: IntArray) {
+    val maxVal = arr.max()!!
+    var exp = 1
+    while (maxVal / exp > 0) {
+        countingSortByDigit(arr, exp)
+        exp *= 10
+    }
+}
+
+fun main() {
+    val arr = intArrayOf(170, 45, 75, 90, 802, 24, 2, 66)
+    radixSort(arr)
+    println("Sorted: \${arr.joinToString(", ")}")
+}`,
+
+  "scala": `object Main extends App {
+    def countingSortByDigit(arr: Array[Int], exp: Int): Unit = {
+        val n = arr.length
+        val output = new Array[Int](n)
+        val count = new Array[Int](10)
+        for (x <- arr) count((x / exp) % 10) += 1
+        for (i <- 1 until 10) count(i) += count(i - 1)
+        for (i <- n - 1 to 0 by -1) {
+            val digit = (arr(i) / exp) % 10
+            count(digit) -= 1
+            output(count(digit)) = arr(i)
+        }
+        output.copyToArray(arr)
+    }
+
+    def radixSort(arr: Array[Int]): Unit = {
+        val maxVal = arr.max
+        var exp = 1
+        while (maxVal / exp > 0) {
+            countingSortByDigit(arr, exp)
+            exp *= 10
+        }
+    }
+
+    val arr = Array(170, 45, 75, 90, 802, 24, 2, 66)
+    radixSort(arr)
+    println(s"Sorted: \${arr.mkString(", ")}")
+}`,
+
+  "go": `package main
+
+import "fmt"
+
+func countingSortByDigit(arr []int, exp int) {
+    n := len(arr)
+    output := make([]int, n)
+    count := make([]int, 10)
+    for _, x := range arr { count[(x/exp)%10]++ }
+    for i := 1; i < 10; i++ { count[i] += count[i-1] }
+    for i := n - 1; i >= 0; i-- {
+        digit := (arr[i] / exp) % 10
+        count[digit]--
+        output[count[digit]] = arr[i]
+    }
+    copy(arr, output)
+}
+
+func radixSort(arr []int) {
+    maxVal := arr[0]
+    for _, x := range arr { if x > maxVal { maxVal = x } }
+    for exp := 1; maxVal/exp > 0; exp *= 10 {
+        countingSortByDigit(arr, exp)
+    }
+}
+
+func main() {
+    arr := []int{170, 45, 75, 90, 802, 24, 2, 66}
+    radixSort(arr)
+    fmt.Println("Sorted:", arr)
+}`,
+
+  "rust": `fn counting_sort_by_digit(arr: &mut Vec<i32>, exp: i32) {
+    let n = arr.len();
+    let mut output = vec![0i32; n];
+    let mut count = vec![0usize; 10];
+    for &x in arr.iter() { count[((x / exp) % 10) as usize] += 1; }
+    for i in 1..10 { count[i] += count[i - 1]; }
+    for i in (0..n).rev() {
+        let digit = ((arr[i] / exp) % 10) as usize;
+        count[digit] -= 1;
+        output[count[digit]] = arr[i];
+    }
+    arr.clone_from_slice(&output);
+}
+
+fn radix_sort(arr: &mut Vec<i32>) {
+    let max_val = *arr.iter().max().unwrap();
+    let mut exp = 1;
+    while max_val / exp > 0 {
+        counting_sort_by_digit(arr, exp);
+        exp *= 10;
+    }
+}
+
+fn main() {
+    let mut arr = vec![170, 45, 75, 90, 802, 24, 2, 66];
+    radix_sort(&mut arr);
+    println!("Sorted: {:?}", arr);
+}`
       }
     },
 
@@ -3272,7 +5713,7 @@ function countingSortByDigit(arr, exp):
       about: [
         { tag: "h1", text: "Insertion Sort" },
         { tag: "p", text: "Insertion Sort builds the sorted array one element at a time, exactly the way most people sort a hand of playing cards: take the next unsorted card and insert it into its correct position among the already-sorted cards to its left, shifting larger cards rightward to make room." },
-        { tag: "p", text: "Despite its O(n²) worst case, it has the best real-world performance of any simple sort on small or nearly-sorted arrays, which is precisely why Timsort and Introsort both fall back to Insertion Sort for small sub-arrays — its low constant factors and adaptiveness beat the overhead of recursive divide-and-conquer algorithms below a certain size threshold." },
+        { tag: "p", text: "Despite its O(n²) worst case, it has the best real-world performance of any simple sort on small or nearly-sorted arrays, which is precisely why Timsort and Introsort both fall back to Insertion Sort for small sub-arrays — its left constant factors and adaptiveness beat the overhead of recursive divide-and-conquer algorithms below a certain size threshold." },
         { tag: "h2", text: "Key properties" },
         { tag: "ul", items: [
           "Stable — equal elements are never moved past each other, since shifting only happens for strictly-greater elements",
@@ -3356,20 +5797,208 @@ function countingSortByDigit(arr, exp):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: at the start of outer-loop iteration i, arr[0..i-1] is sorted. The inner while-loop finds the correct insertion point for arr[i] within that sorted prefix by shifting all elements greater than key one step to the right, then places key into the gap. This extends the sorted prefix to arr[0..i] while preserving sorted order, so by induction the entire array is sorted once the outer loop completes." }
-      ]
-,
-      codes : {
-        "c++": ``,
-        "python": ``,
-        "java": ``,
-        "js":``,
-        "c":``,
-        "c#":``,
-        "swift":``,
-        "kotlin":``,
-        "scala":``,
-        "go":``,
-        "rust":``,
+      ],
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+using namespace std;
+
+void insertionSort(vector<int>& arr) {
+    int n = arr.size();
+    for (int i = 1; i < n; i++) {
+        int key = arr[i], j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            j--;
+        }
+        arr[j + 1] = key;
+    }
+}
+
+int main() {
+    vector<int> arr = {12, 11, 13, 5, 6};
+    insertionSort(arr);
+    cout << "Sorted: ";
+    for (int x : arr) cout << x << " ";
+    cout << endl;
+    return 0;
+}`,
+
+  "python": `def insertion_sort(arr):
+    for i in range(1, len(arr)):
+        key = arr[i]
+        j = i - 1
+        while j >= 0 and arr[j] > key:
+            arr[j + 1] = arr[j]
+            j -= 1
+        arr[j + 1] = key
+
+if __name__ == "__main__":
+    arr = [12, 11, 13, 5, 6]
+    insertion_sort(arr)
+    print("Sorted:", arr)`,
+
+  "java": `import java.util.Arrays;
+
+public class Main {
+    static void insertionSort(int[] arr) {
+        for (int i = 1; i < arr.length; i++) {
+            int key = arr[i], j = i - 1;
+            while (j >= 0 && arr[j] > key) {
+                arr[j + 1] = arr[j]; j--;
+            }
+            arr[j + 1] = key;
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {12, 11, 13, 5, 6};
+        insertionSort(arr);
+        System.out.println("Sorted: " + Arrays.toString(arr));
+    }
+}`,
+
+  "js": `function insertionSort(arr) {
+    for (let i = 1; i < arr.length; i++) {
+        const key = arr[i];
+        let j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j]; j--;
+        }
+        arr[j + 1] = key;
+    }
+}
+
+const arr = [12, 11, 13, 5, 6];
+insertionSort(arr);
+console.log("Sorted:", arr);`,
+
+  "c": `#include <stdio.h>
+
+void insertionSort(int* arr, int n) {
+    for (int i = 1; i < n; i++) {
+        int key = arr[i], j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j]; j--;
+        }
+        arr[j + 1] = key;
+    }
+}
+
+int main() {
+    int arr[] = {12, 11, 13, 5, 6};
+    int n = sizeof(arr)/sizeof(arr[0]);
+    insertionSort(arr, n);
+    printf("Sorted: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\\n");
+    return 0;
+}`,
+
+  "c#": `using System;
+
+class Program {
+    static void InsertionSort(int[] arr) {
+        for (int i = 1; i < arr.Length; i++) {
+            int key = arr[i], j = i - 1;
+            while (j >= 0 && arr[j] > key) {
+                arr[j + 1] = arr[j]; j--;
+            }
+            arr[j + 1] = key;
+        }
+    }
+
+    static void Main() {
+        int[] arr = {12, 11, 13, 5, 6};
+        InsertionSort(arr);
+        Console.WriteLine("Sorted: " + string.Join(", ", arr));
+    }
+}`,
+
+  "swift": `func insertionSort(_ arr: inout [Int]) {
+    for i in 1..<arr.count {
+        let key = arr[i]
+        var j = i - 1
+        while j >= 0 && arr[j] > key {
+            arr[j + 1] = arr[j]; j -= 1
+        }
+        arr[j + 1] = key
+    }
+}
+
+var arr = [12, 11, 13, 5, 6]
+insertionSort(&arr)
+print("Sorted: \\(arr)")`,
+
+  "kotlin": `fun insertionSort(arr: IntArray) {
+    for (i in 1 until arr.size) {
+        val key = arr[i]; var j = i - 1
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j]; j--
+        }
+        arr[j + 1] = key
+    }
+}
+
+fun main() {
+    val arr = intArrayOf(12, 11, 13, 5, 6)
+    insertionSort(arr)
+    println("Sorted: \${arr.joinToString(", ")}")
+}`,
+
+  "scala": `object Main extends App {
+    def insertionSort(arr: Array[Int]): Unit = {
+        for (i <- 1 until arr.length) {
+            val key = arr(i); var j = i - 1
+            while (j >= 0 && arr(j) > key) {
+                arr(j + 1) = arr(j); j -= 1
+            }
+            arr(j + 1) = key
+        }
+    }
+
+    val arr = Array(12, 11, 13, 5, 6)
+    insertionSort(arr)
+    println(s"Sorted: \${arr.mkString(", ")}")
+}`,
+
+  "go": `package main
+
+import "fmt"
+
+func insertionSort(arr []int) {
+    for i := 1; i < len(arr); i++ {
+        key := arr[i]; j := i - 1
+        for j >= 0 && arr[j] > key {
+            arr[j+1] = arr[j]; j--
+        }
+        arr[j+1] = key
+    }
+}
+
+func main() {
+    arr := []int{12, 11, 13, 5, 6}
+    insertionSort(arr)
+    fmt.Println("Sorted:", arr)
+}`,
+
+  "rust": `fn insertion_sort(arr: &mut Vec<i32>) {
+    for i in 1..arr.len() {
+        let key = arr[i];
+        let mut j = i;
+        while j > 0 && arr[j - 1] > key {
+            arr[j] = arr[j - 1];
+            j -= 1;
+        }
+        arr[j] = key;
+    }
+}
+
+fn main() {
+    let mut arr = vec![12, 11, 13, 5, 6];
+    insertion_sort(&mut arr);
+    println!("Sorted: {:?}", arr);
+}`
       }
     },
 
@@ -3479,18 +6108,249 @@ function countingSortByDigit(arr, exp):
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Correctness depends on two facts: first, the bucket-index function must be monotonic — if x < y then x's bucket index is ≤ y's bucket index, ensuring no element in an earlier bucket is ever greater than an element in a later bucket. Second, each bucket is independently sorted before concatenation. Together, these guarantee that concatenating the buckets in order produces a fully sorted array, since within-bucket order is correct (by the bucket's own sort) and across-bucket order is correct (by the monotonic mapping)." }
       ],
-      codes : {
-        "c++": ``,
-        "python": ``,
-        "java": ``,
-        "js":``,
-        "c":``,
-        "c#":``,
-        "swift":``,
-        "kotlin":``,
-        "scala":``,
-        "go":``,
-        "rust":``,
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+void bucketSort(vector<float>& arr) {
+    int n = arr.size();
+    vector<vector<float>> buckets(n);
+
+    for (float x : arr)
+        buckets[(int)(x * n)].push_back(x);
+
+    for (auto& bucket : buckets)
+        sort(bucket.begin(), bucket.end());
+
+    int idx = 0;
+    for (auto& bucket : buckets)
+        for (float x : bucket)
+            arr[idx++] = x;
+}
+
+int main() {
+    vector<float> arr = {0.897f, 0.565f, 0.656f, 0.1234f, 0.665f, 0.3434f};
+    bucketSort(arr);
+    cout << "Sorted: ";
+    for (float x : arr) cout << x << " ";
+    cout << endl;
+    return 0;
+}`,
+
+  "python": `def insertion_sort_bucket(bucket):
+    for i in range(1, len(bucket)):
+        key = bucket[i]; j = i - 1
+        while j >= 0 and bucket[j] > key:
+            bucket[j + 1] = bucket[j]; j -= 1
+        bucket[j + 1] = key
+
+def bucket_sort(arr):
+    n = len(arr)
+    buckets = [[] for _ in range(n)]
+    for x in arr:
+        buckets[int(x * n)].append(x)
+    for bucket in buckets:
+        insertion_sort_bucket(bucket)
+    result = []
+    for bucket in buckets:
+        result.extend(bucket)
+    return result
+
+if __name__ == "__main__":
+    arr = [0.897, 0.565, 0.656, 0.1234, 0.665, 0.3434]
+    arr = bucket_sort(arr)
+    print("Sorted:", arr)`,
+
+  "java": `import java.util.*;
+
+public class Main {
+    static void bucketSort(float[] arr) {
+        int n = arr.length;
+        List<List<Float>> buckets = new ArrayList<>();
+        for (int i = 0; i < n; i++) buckets.add(new ArrayList<>());
+
+        for (float x : arr) buckets.get((int)(x * n)).add(x);
+        for (List<Float> bucket : buckets) Collections.sort(bucket);
+
+        int idx = 0;
+        for (List<Float> bucket : buckets)
+            for (float x : bucket) arr[idx++] = x;
+    }
+
+    public static void main(String[] args) {
+        float[] arr = {0.897f, 0.565f, 0.656f, 0.1234f, 0.665f, 0.3434f};
+        bucketSort(arr);
+        System.out.print("Sorted: ");
+        for (float x : arr) System.out.print(x + " ");
+        System.out.println();
+    }
+}`,
+
+  "js": `function bucketSort(arr) {
+    const n = arr.length;
+    const buckets = Array.from({length: n}, () => []);
+
+    for (const x of arr) buckets[Math.floor(x * n)].push(x);
+    for (const bucket of buckets) bucket.sort((a, b) => a - b);
+
+    return buckets.flat();
+}
+
+const arr = [0.897, 0.565, 0.656, 0.1234, 0.665, 0.3434];
+const sorted = bucketSort(arr);
+console.log("Sorted:", sorted);`,
+
+  "c": `#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct Node { float val; struct Node* next; } Node;
+
+void insertSorted(Node** head, float val) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->val = val; newNode->next = NULL;
+    if (!*head || (*head)->val >= val) { newNode->next = *head; *head = newNode; return; }
+    Node* curr = *head;
+    while (curr->next && curr->next->val < val) curr = curr->next;
+    newNode->next = curr->next; curr->next = newNode;
+}
+
+void bucketSort(float* arr, int n) {
+    Node** buckets = (Node**)calloc(n, sizeof(Node*));
+    for (int i = 0; i < n; i++) insertSorted(&buckets[(int)(arr[i] * n)], arr[i]);
+    int idx = 0;
+    for (int i = 0; i < n; i++) {
+        Node* curr = buckets[i];
+        while (curr) { arr[idx++] = curr->val; Node* tmp = curr; curr = curr->next; free(tmp); }
+    }
+    free(buckets);
+}
+
+int main() {
+    float arr[] = {0.897f, 0.565f, 0.656f, 0.1234f, 0.665f, 0.3434f};
+    int n = sizeof(arr)/sizeof(arr[0]);
+    bucketSort(arr, n);
+    printf("Sorted: ");
+    for (int i = 0; i < n; i++) printf("%.4f ", arr[i]);
+    printf("\\n");
+    return 0;
+}`,
+
+  "c#": `using System;
+using System.Collections.Generic;
+
+class Program {
+    static float[] BucketSort(float[] arr) {
+        int n = arr.Length;
+        var buckets = new List<float>[n];
+        for (int i = 0; i < n; i++) buckets[i] = new List<float>();
+
+        foreach (float x in arr) buckets[(int)(x * n)].Add(x);
+        foreach (var bucket in buckets) bucket.Sort();
+
+        var result = new List<float>();
+        foreach (var bucket in buckets) result.AddRange(bucket);
+        return result.ToArray();
+    }
+
+    static void Main() {
+        float[] arr = {0.897f, 0.565f, 0.656f, 0.1234f, 0.665f, 0.3434f};
+        arr = BucketSort(arr);
+        Console.WriteLine("Sorted: " + string.Join(", ", arr));
+    }
+}`,
+
+  "swift": `func bucketSort(_ arr: [Double]) -> [Double] {
+    let n = arr.count
+    var buckets = Array(repeating: [Double](), count: n)
+
+    for x in arr { buckets[Int(x * Double(n))].append(x) }
+    for i in 0..<n { buckets[i].sort() }
+
+    return buckets.flatMap { $0 }
+}
+
+let arr = [0.897, 0.565, 0.656, 0.1234, 0.665, 0.3434]
+let sorted = bucketSort(arr)
+print("Sorted: \\(sorted)")`,
+
+  "kotlin": `fun bucketSort(arr: FloatArray): FloatArray {
+    val n = arr.size
+    val buckets = Array(n) { mutableListOf<Float>() }
+
+    for (x in arr) buckets[(x * n).toInt()].add(x)
+    for (bucket in buckets) bucket.sort()
+
+    return buckets.flatMap { it }.toFloatArray()
+}
+
+fun main() {
+    val arr = floatArrayOf(0.897f, 0.565f, 0.656f, 0.1234f, 0.665f, 0.3434f)
+    val sorted = bucketSort(arr)
+    println("Sorted: \${sorted.joinToString(", ")}")
+}`,
+
+  "scala": `object Main extends App {
+    def bucketSort(arr: Array[Double]): Array[Double] = {
+        val n = arr.length
+        val buckets = Array.fill(n)(scala.collection.mutable.ArrayBuffer[Double]())
+        for (x <- arr) buckets((x * n).toInt) += x
+        for (b <- buckets) b.sortInPlace()
+        buckets.flatMap(identity)
+    }
+
+    val arr = Array(0.897, 0.565, 0.656, 0.1234, 0.665, 0.3434)
+    val sorted = bucketSort(arr)
+    println(s"Sorted: \${sorted.mkString(", ")}")
+}`,
+
+  "go": `package main
+
+import (
+    "fmt"
+    "sort"
+)
+
+func bucketSort(arr []float64) []float64 {
+    n := len(arr)
+    buckets := make([][]float64, n)
+    for i := range buckets { buckets[i] = []float64{} }
+
+    for _, x := range arr { idx := int(x * float64(n)); buckets[idx] = append(buckets[idx], x) }
+    for i := range buckets { sort.Float64s(buckets[i]) }
+
+    result := []float64{}
+    for _, b := range buckets { result = append(result, b...) }
+    return result
+}
+
+func main() {
+    arr := []float64{0.897, 0.565, 0.656, 0.1234, 0.665, 0.3434}
+    sorted := bucketSort(arr)
+    fmt.Println("Sorted:", sorted)
+}`,
+
+  "rust": `fn bucket_sort(arr: Vec<f64>) -> Vec<f64> {
+    let n = arr.len();
+    let mut buckets: Vec<Vec<f64>> = vec![vec![]; n];
+
+    for &x in &arr {
+        let idx = (x * n as f64) as usize;
+        let idx = idx.min(n - 1);
+        buckets[idx].push(x);
+    }
+    for bucket in &mut buckets { bucket.sort_by(|a, b| a.partial_cmp(b).unwrap()); }
+
+    buckets.into_iter().flatten().collect()
+}
+
+fn main() {
+    let arr = vec![0.897, 0.565, 0.656, 0.1234, 0.665, 0.3434];
+    let sorted = bucket_sort(arr);
+    println!("Sorted: {:?}", sorted);
+}`
       }
     },
 
@@ -3510,7 +6370,7 @@ function countingSortByDigit(arr, exp):
         { tag: "ul", items: [
           "Not stable — elements can be compared and swapped across different gap-sequence sub-arrays, potentially reordering equal elements",
           "In-place — O(1) auxiliary space",
-          "Performance is highly dependent on the chosen gap sequence — the original Shell sequence (n/2, n/4, ..., 1) gives O(n²) worst case, but better sequences (Hibbard, Sedgewick, Knuth) achieve as low as O(n^(4/3)) or O(n log² n)",
+          "Performance is highly dependent on the chosen gap sequence — the original Shell sequence (n/2, n/4, ..., 1) gives O(n²) worst case, but better sequences (Hibbard, Sedgewick, Knuth) achieve as left as O(n^(4/3)) or O(n log² n)",
           "A genuinely practical middle ground between simple O(n²) sorts and complex O(n log n) sorts for medium-sized arrays"
         ]},
         { tag: "note", variant: "info", text: "Shell Sort's exact complexity is one of the few sorting algorithms whose tight worst-case bound is still an open or sequence-dependent question — the bound quoted depends entirely on which gap sequence is used." }
@@ -3597,18 +6457,241 @@ function countingSortByDigit(arr, exp):
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Each gapped pass is, by construction, an ordinary Insertion Sort applied independently to 'gap' separate interleaved sub-sequences of the array (indices 0, gap, 2*gap, ...; indices 1, gap+1, 2*gap+1, ...; and so on) — and Insertion Sort is already proven correct for sorting any single sequence. Crucially, the final pass always uses gap = 1, which is a complete, ordinary Insertion Sort over the entire array — and a correct algorithm applied last always produces a correct final result, regardless of how 'pre-sorted' the input already is from earlier passes." }
       ],
-      codes : {
-        "c++": ``,
-        "python": ``,
-        "java": ``,
-        "js":``,
-        "c":``,
-        "c#":``,
-        "swift":``,
-        "kotlin":``,
-        "scala":``,
-        "go":``,
-        "rust":``,
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+using namespace std;
+
+void shellSort(vector<int>& arr) {
+    int n = arr.size();
+    for (int gap = n / 2; gap > 0; gap /= 2) {
+        for (int i = gap; i < n; i++) {
+            int temp = arr[i], j = i;
+            while (j >= gap && arr[j - gap] > temp) {
+                arr[j] = arr[j - gap];
+                j -= gap;
+            }
+            arr[j] = temp;
+        }
+    }
+}
+
+int main() {
+    vector<int> arr = {12, 34, 54, 2, 3};
+    shellSort(arr);
+    cout << "Sorted: ";
+    for (int x : arr) cout << x << " ";
+    cout << endl;
+    return 0;
+}`,
+
+  "python": `def shell_sort(arr):
+    n = len(arr)
+    gap = n // 2
+    while gap > 0:
+        for i in range(gap, n):
+            temp = arr[i]; j = i
+            while j >= gap and arr[j - gap] > temp:
+                arr[j] = arr[j - gap]; j -= gap
+            arr[j] = temp
+        gap //= 2
+
+if __name__ == "__main__":
+    arr = [12, 34, 54, 2, 3]
+    shell_sort(arr)
+    print("Sorted:", arr)`,
+
+  "java": `import java.util.Arrays;
+
+public class Main {
+    static void shellSort(int[] arr) {
+        int n = arr.length;
+        for (int gap = n / 2; gap > 0; gap /= 2) {
+            for (int i = gap; i < n; i++) {
+                int temp = arr[i], j = i;
+                while (j >= gap && arr[j - gap] > temp) {
+                    arr[j] = arr[j - gap]; j -= gap;
+                }
+                arr[j] = temp;
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {12, 34, 54, 2, 3};
+        shellSort(arr);
+        System.out.println("Sorted: " + Arrays.toString(arr));
+    }
+}`,
+
+  "js": `function shellSort(arr) {
+    const n = arr.length;
+    for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
+        for (let i = gap; i < n; i++) {
+            const temp = arr[i]; let j = i;
+            while (j >= gap && arr[j - gap] > temp) {
+                arr[j] = arr[j - gap]; j -= gap;
+            }
+            arr[j] = temp;
+        }
+    }
+}
+
+const arr = [12, 34, 54, 2, 3];
+shellSort(arr);
+console.log("Sorted:", arr);`,
+
+  "c": `#include <stdio.h>
+
+void shellSort(int* arr, int n) {
+    for (int gap = n / 2; gap > 0; gap /= 2) {
+        for (int i = gap; i < n; i++) {
+            int temp = arr[i], j = i;
+            while (j >= gap && arr[j - gap] > temp) {
+                arr[j] = arr[j - gap]; j -= gap;
+            }
+            arr[j] = temp;
+        }
+    }
+}
+
+int main() {
+    int arr[] = {12, 34, 54, 2, 3};
+    int n = sizeof(arr)/sizeof(arr[0]);
+    shellSort(arr, n);
+    printf("Sorted: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\\n");
+    return 0;
+}`,
+
+  "c#": `using System;
+
+class Program {
+    static void ShellSort(int[] arr) {
+        int n = arr.Length;
+        for (int gap = n / 2; gap > 0; gap /= 2) {
+            for (int i = gap; i < n; i++) {
+                int temp = arr[i], j = i;
+                while (j >= gap && arr[j - gap] > temp) {
+                    arr[j] = arr[j - gap]; j -= gap;
+                }
+                arr[j] = temp;
+            }
+        }
+    }
+
+    static void Main() {
+        int[] arr = {12, 34, 54, 2, 3};
+        ShellSort(arr);
+        Console.WriteLine("Sorted: " + string.Join(", ", arr));
+    }
+}`,
+
+  "swift": `func shellSort(_ arr: inout [Int]) {
+    let n = arr.count
+    var gap = n / 2
+    while gap > 0 {
+        for i in gap..<n {
+            let temp = arr[i]; var j = i
+            while j >= gap && arr[j - gap] > temp {
+                arr[j] = arr[j - gap]; j -= gap
+            }
+            arr[j] = temp
+        }
+        gap /= 2
+    }
+}
+
+var arr = [12, 34, 54, 2, 3]
+shellSort(&arr)
+print("Sorted: \\(arr)")`,
+
+  "kotlin": `fun shellSort(arr: IntArray) {
+    val n = arr.size
+    var gap = n / 2
+    while (gap > 0) {
+        for (i in gap until n) {
+            val temp = arr[i]; var j = i
+            while (j >= gap && arr[j - gap] > temp) {
+                arr[j] = arr[j - gap]; j -= gap
+            }
+            arr[j] = temp
+        }
+        gap /= 2
+    }
+}
+
+fun main() {
+    val arr = intArrayOf(12, 34, 54, 2, 3)
+    shellSort(arr)
+    println("Sorted: \${arr.joinToString(", ")}")
+}`,
+
+  "scala": `object Main extends App {
+    def shellSort(arr: Array[Int]): Unit = {
+        val n = arr.length
+        var gap = n / 2
+        while (gap > 0) {
+            for (i <- gap until n) {
+                val temp = arr(i); var j = i
+                while (j >= gap && arr(j - gap) > temp) {
+                    arr(j) = arr(j - gap); j -= gap
+                }
+                arr(j) = temp
+            }
+            gap /= 2
+        }
+    }
+
+    val arr = Array(12, 34, 54, 2, 3)
+    shellSort(arr)
+    println(s"Sorted: \${arr.mkString(", ")}")
+}`,
+
+  "go": `package main
+
+import "fmt"
+
+func shellSort(arr []int) {
+    n := len(arr)
+    for gap := n / 2; gap > 0; gap /= 2 {
+        for i := gap; i < n; i++ {
+            temp := arr[i]; j := i
+            for j >= gap && arr[j-gap] > temp {
+                arr[j] = arr[j-gap]; j -= gap
+            }
+            arr[j] = temp
+        }
+    }
+}
+
+func main() {
+    arr := []int{12, 34, 54, 2, 3}
+    shellSort(arr)
+    fmt.Println("Sorted:", arr)
+}`,
+
+  "rust": `fn shell_sort(arr: &mut Vec<i32>) {
+    let n = arr.len();
+    let mut gap = n / 2;
+    while gap > 0 {
+        for i in gap..n {
+            let temp = arr[i]; let mut j = i;
+            while j >= gap && arr[j - gap] > temp {
+                arr[j] = arr[j - gap]; j -= gap;
+            }
+            arr[j] = temp;
+        }
+        gap /= 2;
+    }
+}
+
+fn main() {
+    let mut arr = vec![12, 34, 54, 2, 3];
+    shell_sort(&mut arr);
+    println!("Sorted: {:?}", arr);
+}`
       }
     },
 
@@ -3623,7 +6706,7 @@ function countingSortByDigit(arr, exp):
       about: [
         { tag: "h1", text: "Introsort" },
         { tag: "p", text: "Introsort ('introspective sort'), designed by David Musser in 1997, is a hybrid algorithm that begins as Quick Sort but monitors its own recursion depth, switching to Heap Sort if the depth exceeds a threshold (typically 2·log₂ n) to guarantee O(n log n) worst-case time — directly solving Quick Sort's biggest weakness without sacrificing its excellent average-case speed." },
-        { tag: "p", text: "It also falls back to Insertion Sort for small sub-arrays (typically below ~16 elements), exactly like Timsort does, since Insertion Sort's low overhead beats recursive divide-and-conquer at small sizes. This three-way hybrid (Quick Sort + Heap Sort + Insertion Sort) is the algorithm behind C++'s std::sort and .NET's Array.Sort, making it arguably the most widely deployed general-purpose comparison sort in production systems today." },
+        { tag: "p", text: "It also falls back to Insertion Sort for small sub-arrays (typically below ~16 elements), exactly like Timsort does, since Insertion Sort's left overhead beats recursive divide-and-conquer at small sizes. This three-way hybrid (Quick Sort + Heap Sort + Insertion Sort) is the algorithm behind C++'s std::sort and .NET's Array.Sort, making it arguably the most widely deployed general-purpose comparison sort in production systems today." },
         { tag: "h2", text: "Key properties" },
         { tag: "ul", items: [
           "Not stable — inherits Quick Sort's in-place partitioning, which doesn't preserve relative order of equal elements",
@@ -3694,20 +6777,20 @@ function countingSortByDigit(arr, exp):
     maxDepth ← 2 * floor(log2(length(arr)))
     introsortHelper(arr, 0, length(arr) − 1, maxDepth)
 
-function introsortHelper(arr, low, high, depthLimit):
-    size ← high − low + 1
+function introsortHelper(arr, left, right, depthLimit):
+    size ← right − left + 1
 
     if size < INSERTION_THRESHOLD:        // e.g. 16
-        insertionSort(arr, low, high)
+        insertionSort(arr, left, right)
         return
 
     if depthLimit == 0:
-        heapSort(arr, low, high)          // depth exceeded — bail out to safe O(n log n)
+        heapSort(arr, left, right)          // depth exceeded — bail out to safe O(n log n)
         return
 
-    pivotIndex ← partition(arr, low, high)   // Quick Sort partition (e.g. median-of-three pivot)
-    introsortHelper(arr, low, pivotIndex − 1, depthLimit − 1)
-    introsortHelper(arr, pivotIndex + 1, high, depthLimit − 1)` },
+    pivotIndex ← partition(arr, left, right)   // Quick Sort partition (e.g. median-of-three pivot)
+    introsortHelper(arr, left, pivotIndex − 1, depthLimit − 1)
+    introsortHelper(arr, pivotIndex + 1, right, depthLimit − 1)` },
         { tag: "h2", text: "Step-by-step reasoning" },
         { tag: "ol", items: [
           "Compute a depth limit up front, typically 2·⌊log₂ n⌋ — generous enough to allow normal Quick-Sort-style recursion, but tight enough to catch pathological cases before they spiral into O(n²).",
@@ -3717,7 +6800,656 @@ function introsortHelper(arr, low, high, depthLimit):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Each of the three sub-algorithms (Insertion Sort, Quick Sort's partition-and-recurse, Heap Sort) is independently proven correct for sorting any sub-array passed to it. Introsort's correctness follows immediately because every code path leads to one of these three correct sorting procedures being applied to every sub-array — the depth-limit switch only changes WHICH correct algorithm finishes the job, never whether the result ends up sorted. The worst-case time guarantee follows because the depth limit caps how much 'wasted' unbalanced partitioning work Quick Sort can do before control is handed to the provably-bounded Heap Sort." }
-      ]
+      ],
+      codes: {
+  "c++": `#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+using namespace std;
+
+const int INSERTION_THRESHOLD = 16;
+
+void insertionSort(vector<int>& arr, int left, int right) {
+    for (int i = left + 1; i <= right; i++) {
+        int key = arr[i], j = i - 1;
+        while (j >= left && arr[j] > key) { arr[j + 1] = arr[j]; j--; }
+        arr[j + 1] = key;
+    }
+}
+
+void siftDown(vector<int>& arr, int n, int i, int offset) {
+    int largest = i, l = 2*i+1, r = 2*i+2;
+    if (l < n && arr[offset+l] > arr[offset+largest]) largest = l;
+    if (r < n && arr[offset+r] > arr[offset+largest]) largest = r;
+    if (largest != i) {
+        swap(arr[offset+i], arr[offset+largest]);
+        siftDown(arr, n, largest, offset);
+    }
+}
+
+void heapSort(vector<int>& arr, int left, int right) {
+    int n = right - left + 1;
+    for (int i = n/2-1; i >= 0; i--) siftDown(arr, n, i, left);
+    for (int i = n-1; i > 0; i--) {
+        swap(arr[left], arr[left+i]);
+        siftDown(arr, i, 0, left);
+    }
+}
+
+int partition(vector<int>& arr, int left, int right) {
+    int pivot = arr[right], i = left - 1;
+    for (int j = left; j < right; j++)
+        if (arr[j] < pivot) { i++; swap(arr[i], arr[j]); }
+    swap(arr[i+1], arr[right]);
+    return i + 1;
+}
+
+void introsortHelper(vector<int>& arr, int left, int right, int depthLimit) {
+    int size = right - left + 1;
+    if (size < INSERTION_THRESHOLD) { insertionSort(arr, left, right); return; }
+    if (depthLimit == 0) { heapSort(arr, left, right); return; }
+    int p = partition(arr, left, right);
+    introsortHelper(arr, left, p - 1, depthLimit - 1);
+    introsortHelper(arr, p + 1, right, depthLimit - 1);
+}
+
+void introsort(vector<int>& arr) {
+    int maxDepth = 2 * (int)log2(arr.size());
+    introsortHelper(arr, 0, arr.size() - 1, maxDepth);
+}
+
+int main() {
+    vector<int> arr = {3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5};
+    introsort(arr);
+    cout << "Sorted: ";
+    for (int x : arr) cout << x << " ";
+    cout << endl;
+    return 0;
+}`,
+
+  "python": `import math
+
+INSERTION_THRESHOLD = 16
+
+def insertion_sort(arr, left, right):
+    for i in range(left + 1, right + 1):
+        key = arr[i]; j = i - 1
+        while j >= left and arr[j] > key:
+            arr[j + 1] = arr[j]; j -= 1
+        arr[j + 1] = key
+
+def sift_down(arr, n, i, offset):
+    largest = i; l = 2*i+1; r = 2*i+2
+    if l < n and arr[offset+l] > arr[offset+largest]: largest = l
+    if r < n and arr[offset+r] > arr[offset+largest]: largest = r
+    if largest != i:
+        arr[offset+i], arr[offset+largest] = arr[offset+largest], arr[offset+i]
+        sift_down(arr, n, largest, offset)
+
+def heap_sort(arr, left, right):
+    n = right - left + 1
+    for i in range(n//2-1, -1, -1): sift_down(arr, n, i, left)
+    for i in range(n-1, 0, -1):
+        arr[left], arr[left+i] = arr[left+i], arr[left]
+        sift_down(arr, i, 0, left)
+
+def partition(arr, left, right):
+    pivot = arr[right]; i = left - 1
+    for j in range(left, right):
+        if arr[j] < pivot:
+            i += 1; arr[i], arr[j] = arr[j], arr[i]
+    arr[i+1], arr[right] = arr[right], arr[i+1]
+    return i + 1
+
+def introsort_helper(arr, left, right, depth_limit):
+    size = right - left + 1
+    if size < INSERTION_THRESHOLD: insertion_sort(arr, left, right); return
+    if depth_limit == 0: heap_sort(arr, left, right); return
+    p = partition(arr, left, right)
+    introsort_helper(arr, left, p - 1, depth_limit - 1)
+    introsort_helper(arr, p + 1, right, depth_limit - 1)
+
+def introsort(arr):
+    max_depth = 2 * int(math.log2(len(arr)))
+    introsort_helper(arr, 0, len(arr) - 1, max_depth)
+
+if __name__ == "__main__":
+    arr = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5]
+    introsort(arr)
+    print("Sorted:", arr)`,
+
+  "java": `import java.util.Arrays;
+
+public class Main {
+    static final int INSERTION_THRESHOLD = 16;
+
+    static void insertionSort(int[] arr, int left, int right) {
+        for (int i = left + 1; i <= right; i++) {
+            int key = arr[i], j = i - 1;
+            while (j >= left && arr[j] > key) { arr[j+1] = arr[j]; j--; }
+            arr[j+1] = key;
+        }
+    }
+
+    static void siftDown(int[] arr, int n, int i, int offset) {
+        int largest = i, l = 2*i+1, r = 2*i+2;
+        if (l < n && arr[offset+l] > arr[offset+largest]) largest = l;
+        if (r < n && arr[offset+r] > arr[offset+largest]) largest = r;
+        if (largest != i) {
+            int temp = arr[offset+i]; arr[offset+i] = arr[offset+largest]; arr[offset+largest] = temp;
+            siftDown(arr, n, largest, offset);
+        }
+    }
+
+    static void heapSort(int[] arr, int left, int right) {
+        int n = right - left + 1;
+        for (int i = n/2-1; i >= 0; i--) siftDown(arr, n, i, left);
+        for (int i = n-1; i > 0; i--) {
+            int temp = arr[left]; arr[left] = arr[left+i]; arr[left+i] = temp;
+            siftDown(arr, i, 0, left);
+        }
+    }
+
+    static int partition(int[] arr, int left, int right) {
+        int pivot = arr[right], i = left - 1;
+        for (int j = left; j < right; j++)
+            if (arr[j] < pivot) { i++; int t = arr[i]; arr[i] = arr[j]; arr[j] = t; }
+        int t = arr[i+1]; arr[i+1] = arr[right]; arr[right] = t;
+        return i + 1;
+    }
+
+    static void introsortHelper(int[] arr, int left, int right, int depthLimit) {
+        int size = right - left + 1;
+        if (size < INSERTION_THRESHOLD) { insertionSort(arr, left, right); return; }
+        if (depthLimit == 0) { heapSort(arr, left, right); return; }
+        int p = partition(arr, left, right);
+        introsortHelper(arr, left, p - 1, depthLimit - 1);
+        introsortHelper(arr, p + 1, right, depthLimit - 1);
+    }
+
+    static void introsort(int[] arr) {
+        int maxDepth = 2 * (int)(Math.log(arr.length) / Math.log(2));
+        introsortHelper(arr, 0, arr.length - 1, maxDepth);
+    }
+
+    public static void main(String[] args) {
+        int[] arr = {3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5};
+        introsort(arr);
+        System.out.println("Sorted: " + Arrays.toString(arr));
+    }
+}`,
+
+  "js": `const INSERTION_THRESHOLD = 16;
+
+function insertionSort(arr, left, right) {
+    for (let i = left + 1; i <= right; i++) {
+        const key = arr[i]; let j = i - 1;
+        while (j >= left && arr[j] > key) { arr[j+1] = arr[j]; j--; }
+        arr[j+1] = key;
+    }
+}
+
+function siftDown(arr, n, i, offset) {
+    let largest = i, l = 2*i+1, r = 2*i+2;
+    if (l < n && arr[offset+l] > arr[offset+largest]) largest = l;
+    if (r < n && arr[offset+r] > arr[offset+largest]) largest = r;
+    if (largest !== i) {
+        [arr[offset+i], arr[offset+largest]] = [arr[offset+largest], arr[offset+i]];
+        siftDown(arr, n, largest, offset);
+    }
+}
+
+function heapSort(arr, left, right) {
+    const n = right - left + 1;
+    for (let i = Math.floor(n/2)-1; i >= 0; i--) siftDown(arr, n, i, left);
+    for (let i = n-1; i > 0; i--) {
+        [arr[left], arr[left+i]] = [arr[left+i], arr[left]];
+        siftDown(arr, i, 0, left);
+    }
+}
+
+function partition(arr, left, right) {
+    const pivot = arr[right]; let i = left - 1;
+    for (let j = left; j < right; j++)
+        if (arr[j] < pivot) { i++; [arr[i], arr[j]] = [arr[j], arr[i]]; }
+    [arr[i+1], arr[right]] = [arr[right], arr[i+1]];
+    return i + 1;
+}
+
+function introsortHelper(arr, left, right, depthLimit) {
+    const size = right - left + 1;
+    if (size < INSERTION_THRESHOLD) { insertionSort(arr, left, right); return; }
+    if (depthLimit === 0) { heapSort(arr, left, right); return; }
+    const p = partition(arr, left, right);
+    introsortHelper(arr, left, p - 1, depthLimit - 1);
+    introsortHelper(arr, p + 1, right, depthLimit - 1);
+}
+
+function introsort(arr) {
+    const maxDepth = 2 * Math.floor(Math.log2(arr.length));
+    introsortHelper(arr, 0, arr.length - 1, maxDepth);
+}
+
+const arr = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
+introsort(arr);
+console.log("Sorted:", arr);`,
+
+  "c": `#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#define INSERTION_THRESHOLD 16
+
+void insertionSort(int* arr, int left, int right) {
+    for (int i = left + 1; i <= right; i++) {
+        int key = arr[i], j = i - 1;
+        while (j >= left && arr[j] > key) { arr[j+1] = arr[j]; j--; }
+        arr[j+1] = key;
+    }
+}
+
+void siftDown(int* arr, int n, int i, int offset) {
+    int largest = i, l = 2*i+1, r = 2*i+2;
+    if (l < n && arr[offset+l] > arr[offset+largest]) largest = l;
+    if (r < n && arr[offset+r] > arr[offset+largest]) largest = r;
+    if (largest != i) {
+        int tmp = arr[offset+i]; arr[offset+i] = arr[offset+largest]; arr[offset+largest] = tmp;
+        siftDown(arr, n, largest, offset);
+    }
+}
+
+void heapSort(int* arr, int left, int right) {
+    int n = right - left + 1;
+    for (int i = n/2-1; i >= 0; i--) siftDown(arr, n, i, left);
+    for (int i = n-1; i > 0; i--) {
+        int tmp = arr[left]; arr[left] = arr[left+i]; arr[left+i] = tmp;
+        siftDown(arr, i, 0, left);
+    }
+}
+
+int partition(int* arr, int left, int right) {
+    int pivot = arr[right], i = left - 1;
+    for (int j = left; j < right; j++)
+        if (arr[j] < pivot) { i++; int t = arr[i]; arr[i] = arr[j]; arr[j] = t; }
+    int t = arr[i+1]; arr[i+1] = arr[right]; arr[right] = t;
+    return i + 1;
+}
+
+void introsortHelper(int* arr, int left, int right, int depthLimit) {
+    int size = right - left + 1;
+    if (size < INSERTION_THRESHOLD) { insertionSort(arr, left, right); return; }
+    if (depthLimit == 0) { heapSort(arr, left, right); return; }
+    int p = partition(arr, left, right);
+    introsortHelper(arr, left, p - 1, depthLimit - 1);
+    introsortHelper(arr, p + 1, right, depthLimit - 1);
+}
+
+void introsort(int* arr, int n) {
+    int maxDepth = 2 * (int)(log2(n));
+    introsortHelper(arr, 0, n - 1, maxDepth);
+}
+
+int main() {
+    int arr[] = {3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5};
+    int n = sizeof(arr)/sizeof(arr[0]);
+    introsort(arr, n);
+    printf("Sorted: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\\n");
+    return 0;
+}`,
+
+  "c#": `using System;
+
+class Program {
+    const int INSERTION_THRESHOLD = 16;
+
+    static void InsertionSort(int[] arr, int left, int right) {
+        for (int i = left + 1; i <= right; i++) {
+            int key = arr[i], j = i - 1;
+            while (j >= left && arr[j] > key) { arr[j+1] = arr[j]; j--; }
+            arr[j+1] = key;
+        }
+    }
+
+    static void SiftDown(int[] arr, int n, int i, int offset) {
+        int largest = i, l = 2*i+1, r = 2*i+2;
+        if (l < n && arr[offset+l] > arr[offset+largest]) largest = l;
+        if (r < n && arr[offset+r] > arr[offset+largest]) largest = r;
+        if (largest != i) {
+            int tmp = arr[offset+i]; arr[offset+i] = arr[offset+largest]; arr[offset+largest] = tmp;
+            SiftDown(arr, n, largest, offset);
+        }
+    }
+
+    static void HeapSort(int[] arr, int left, int right) {
+        int n = right - left + 1;
+        for (int i = n/2-1; i >= 0; i--) SiftDown(arr, n, i, left);
+        for (int i = n-1; i > 0; i--) {
+            int tmp = arr[left]; arr[left] = arr[left+i]; arr[left+i] = tmp;
+            SiftDown(arr, i, 0, left);
+        }
+    }
+
+    static int Partition(int[] arr, int left, int right) {
+        int pivot = arr[right], i = left - 1;
+        for (int j = left; j < right; j++)
+            if (arr[j] < pivot) { i++; int t = arr[i]; arr[i] = arr[j]; arr[j] = t; }
+        int tmp2 = arr[i+1]; arr[i+1] = arr[right]; arr[right] = tmp2;
+        return i + 1;
+    }
+
+    static void IntrosortHelper(int[] arr, int left, int right, int depthLimit) {
+        int size = right - left + 1;
+        if (size < INSERTION_THRESHOLD) { InsertionSort(arr, left, right); return; }
+        if (depthLimit == 0) { HeapSort(arr, left, right); return; }
+        int p = Partition(arr, left, right);
+        IntrosortHelper(arr, left, p - 1, depthLimit - 1);
+        IntrosortHelper(arr, p + 1, right, depthLimit - 1);
+    }
+
+    static void Introsort(int[] arr) {
+        int maxDepth = 2 * (int)Math.Log(arr.Length, 2);
+        IntrosortHelper(arr, 0, arr.Length - 1, maxDepth);
+    }
+
+    static void Main() {
+        int[] arr = {3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5};
+        Introsort(arr);
+        Console.WriteLine("Sorted: " + string.Join(", ", arr));
+    }
+}`,
+
+  "swift": `let INSERTION_THRESHOLD = 16
+
+func insertionSort(_ arr: inout [Int], _ left: Int, _ right: Int) {
+    for i in (left + 1)...right {
+        let key = arr[i]; var j = i - 1
+        while j >= left && arr[j] > key { arr[j+1] = arr[j]; j -= 1 }
+        arr[j+1] = key
+    }
+}
+
+func siftDown(_ arr: inout [Int], _ n: Int, _ i: Int, _ offset: Int) {
+    var largest = i; let l = 2*i+1; let r = 2*i+2
+    if l < n && arr[offset+l] > arr[offset+largest] { largest = l }
+    if r < n && arr[offset+r] > arr[offset+largest] { largest = r }
+    if largest != i {
+        arr.swapAt(offset+i, offset+largest)
+        siftDown(&arr, n, largest, offset)
+    }
+}
+
+func heapSort(_ arr: inout [Int], _ left: Int, _ right: Int) {
+    let n = right - left + 1
+    for i in stride(from: n/2-1, through: 0, by: -1) { siftDown(&arr, n, i, left) }
+    for i in stride(from: n-1, through: 1, by: -1) {
+        arr.swapAt(left, left+i)
+        siftDown(&arr, i, 0, left)
+    }
+}
+
+func partition(_ arr: inout [Int], _ left: Int, _ right: Int) -> Int {
+    let pivot = arr[right]; var i = left - 1
+    for j in left..<right { if arr[j] < pivot { i += 1; arr.swapAt(i, j) } }
+    arr.swapAt(i+1, right); return i + 1
+}
+
+func introsortHelper(_ arr: inout [Int], _ left: Int, _ right: Int, _ depthLimit: Int) {
+    let size = right - left + 1
+    if size < INSERTION_THRESHOLD { insertionSort(&arr, left, right); return }
+    if depthLimit == 0 { heapSort(&arr, left, right); return }
+    let p = partition(&arr, left, right)
+    introsortHelper(&arr, left, p - 1, depthLimit - 1)
+    introsortHelper(&arr, p + 1, right, depthLimit - 1)
+}
+
+func introsort(_ arr: inout [Int]) {
+    let maxDepth = 2 * Int(log2(Double(arr.count)))
+    introsortHelper(&arr, 0, arr.count - 1, maxDepth)
+}
+
+var arr = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5]
+introsort(&arr)
+print("Sorted: \\(arr)")`,
+
+  "kotlin": `import kotlin.math.log2
+
+const val INSERTION_THRESHOLD = 16
+
+fun insertionSort(arr: IntArray, left: Int, right: Int) {
+    for (i in left + 1..right) {
+        val key = arr[i]; var j = i - 1
+        while (j >= left && arr[j] > key) { arr[j+1] = arr[j]; j-- }
+        arr[j+1] = key
+    }
+}
+
+fun siftDown(arr: IntArray, n: Int, i: Int, offset: Int) {
+    var largest = i; val l = 2*i+1; val r = 2*i+2
+    if (l < n && arr[offset+l] > arr[offset+largest]) largest = l
+    if (r < n && arr[offset+r] > arr[offset+largest]) largest = r
+    if (largest != i) {
+        val tmp = arr[offset+i]; arr[offset+i] = arr[offset+largest]; arr[offset+largest] = tmp
+        siftDown(arr, n, largest, offset)
+    }
+}
+
+fun heapSort(arr: IntArray, left: Int, right: Int) {
+    val n = right - left + 1
+    for (i in n/2-1 downTo 0) siftDown(arr, n, i, left)
+    for (i in n-1 downTo 1) {
+        val tmp = arr[left]; arr[left] = arr[left+i]; arr[left+i] = tmp
+        siftDown(arr, i, 0, left)
+    }
+}
+
+fun partition(arr: IntArray, left: Int, right: Int): Int {
+    val pivot = arr[right]; var i = left - 1
+    for (j in left until right)
+        if (arr[j] < pivot) { i++; val t = arr[i]; arr[i] = arr[j]; arr[j] = t }
+    val t = arr[i+1]; arr[i+1] = arr[right]; arr[right] = t
+    return i + 1
+}
+
+fun introsortHelper(arr: IntArray, left: Int, right: Int, depthLimit: Int) {
+    val size = right - left + 1
+    if (size < INSERTION_THRESHOLD) { insertionSort(arr, left, right); return }
+    if (depthLimit == 0) { heapSort(arr, left, right); return }
+    val p = partition(arr, left, right)
+    introsortHelper(arr, left, p - 1, depthLimit - 1)
+    introsortHelper(arr, p + 1, right, depthLimit - 1)
+}
+
+fun introsort(arr: IntArray) {
+    val maxDepth = (2 * log2(arr.size.toDouble())).toInt()
+    introsortHelper(arr, 0, arr.size - 1, maxDepth)
+}
+
+fun main() {
+    val arr = intArrayOf(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)
+    introsort(arr)
+    println("Sorted: \${arr.joinToString(", ")}")
+}`,
+
+  "scala": `import scala.math.log
+
+object Main extends App {
+    val INSERTION_THRESHOLD = 16
+
+    def insertionSort(arr: Array[Int], left: Int, right: Int): Unit = {
+        for (i <- left + 1 to right) {
+            val key = arr(i); var j = i - 1
+            while (j >= left && arr(j) > key) { arr(j+1) = arr(j); j -= 1 }
+            arr(j+1) = key
+        }
+    }
+
+    def siftDown(arr: Array[Int], n: Int, i: Int, offset: Int): Unit = {
+        var largest = i; val l = 2*i+1; val r = 2*i+2
+        if (l < n && arr(offset+l) > arr(offset+largest)) largest = l
+        if (r < n && arr(offset+r) > arr(offset+largest)) largest = r
+        if (largest != i) {
+            val tmp = arr(offset+i); arr(offset+i) = arr(offset+largest); arr(offset+largest) = tmp
+            siftDown(arr, n, largest, offset)
+        }
+    }
+
+    def heapSort(arr: Array[Int], left: Int, right: Int): Unit = {
+        val n = right - left + 1
+        for (i <- n/2-1 to 0 by -1) siftDown(arr, n, i, left)
+        for (i <- n-1 to 1 by -1) {
+            val tmp = arr(left); arr(left) = arr(left+i); arr(left+i) = tmp
+            siftDown(arr, i, 0, left)
+        }
+    }
+
+    def partition(arr: Array[Int], left: Int, right: Int): Int = {
+        val pivot = arr(right); var i = left - 1
+        for (j <- left until right)
+            if (arr(j) < pivot) { i += 1; val t = arr(i); arr(i) = arr(j); arr(j) = t }
+        val t = arr(i+1); arr(i+1) = arr(right); arr(right) = t
+        i + 1
+    }
+
+    def introsortHelper(arr: Array[Int], left: Int, right: Int, depthLimit: Int): Unit = {
+        val size = right - left + 1
+        if (size < INSERTION_THRESHOLD) { insertionSort(arr, left, right); return }
+        if (depthLimit == 0) { heapSort(arr, left, right); return }
+        val p = partition(arr, left, right)
+        introsortHelper(arr, left, p - 1, depthLimit - 1)
+        introsortHelper(arr, p + 1, right, depthLimit - 1)
+    }
+
+    def introsort(arr: Array[Int]): Unit = {
+        val maxDepth = (2 * log(arr.length) / log(2)).toInt
+        introsortHelper(arr, 0, arr.length - 1, maxDepth)
+    }
+
+    val arr = Array(3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5)
+    introsort(arr)
+    println(s"Sorted: \${arr.mkString(", ")}")
+}`,
+
+  "go": `package main
+
+import (
+    "fmt"
+    "math"
+)
+
+const INSERTION_THRESHOLD = 16
+
+func insertionSort(arr []int, left, right int) {
+    for i := left + 1; i <= right; i++ {
+        key := arr[i]; j := i - 1
+        for j >= left && arr[j] > key { arr[j+1] = arr[j]; j-- }
+        arr[j+1] = key
+    }
+}
+
+func siftDown(arr []int, n, i, offset int) {
+    largest, l, r := i, 2*i+1, 2*i+2
+    if l < n && arr[offset+l] > arr[offset+largest] { largest = l }
+    if r < n && arr[offset+r] > arr[offset+largest] { largest = r }
+    if largest != i {
+        arr[offset+i], arr[offset+largest] = arr[offset+largest], arr[offset+i]
+        siftDown(arr, n, largest, offset)
+    }
+}
+
+func heapSort(arr []int, left, right int) {
+    n := right - left + 1
+    for i := n/2 - 1; i >= 0; i-- { siftDown(arr, n, i, left) }
+    for i := n - 1; i > 0; i-- {
+        arr[left], arr[left+i] = arr[left+i], arr[left]
+        siftDown(arr, i, 0, left)
+    }
+}
+
+func partition(arr []int, left, right int) int {
+    pivot := arr[right]; i := left - 1
+    for j := left; j < right; j++ {
+        if arr[j] < pivot { i++; arr[i], arr[j] = arr[j], arr[i] }
+    }
+    arr[i+1], arr[right] = arr[right], arr[i+1]
+    return i + 1
+}
+
+func introsortHelper(arr []int, left, right, depthLimit int) {
+    size := right - left + 1
+    if size < INSERTION_THRESHOLD { insertionSort(arr, left, right); return }
+    if depthLimit == 0 { heapSort(arr, left, right); return }
+    p := partition(arr, left, right)
+    introsortHelper(arr, left, p-1, depthLimit-1)
+    introsortHelper(arr, p+1, right, depthLimit-1)
+}
+
+func introsort(arr []int) {
+    maxDepth := 2 * int(math.Log2(float64(len(arr))))
+    introsortHelper(arr, 0, len(arr)-1, maxDepth)
+}
+
+func main() {
+    arr := []int{3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5}
+    introsort(arr)
+    fmt.Println("Sorted:", arr)
+}`,
+
+  "rust": `fn insertion_sort(arr: &mut Vec<i32>, left: usize, right: usize) {
+    for i in (left + 1)..=right {
+        let key = arr[i]; let mut j = i;
+        while j > left && arr[j - 1] > key { arr[j] = arr[j - 1]; j -= 1; }
+        arr[j] = key;
+    }
+}
+
+fn sift_down(arr: &mut Vec<i32>, n: usize, i: usize, offset: usize) {
+    let mut largest = i; let l = 2*i+1; let r = 2*i+2;
+    if l < n && arr[offset+l] > arr[offset+largest] { largest = l; }
+    if r < n && arr[offset+r] > arr[offset+largest] { largest = r; }
+    if largest != i {
+        arr.swap(offset+i, offset+largest);
+        sift_down(arr, n, largest, offset);
+    }
+}
+
+fn heap_sort(arr: &mut Vec<i32>, left: usize, right: usize) {
+    let n = right - left + 1;
+    for i in (0..n/2).rev() { sift_down(arr, n, i, left); }
+    for i in (1..n).rev() {
+        arr.swap(left, left+i);
+        sift_down(arr, i, 0, left);
+    }
+}
+
+fn partition(arr: &mut Vec<i32>, left: usize, right: usize) -> usize {
+    let pivot = arr[right]; let mut i = left;
+    for j in left..right { if arr[j] < pivot { arr.swap(i, j); i += 1; } }
+    arr.swap(i, right); i
+}
+
+fn introsort_helper(arr: &mut Vec<i32>, left: usize, right: usize, depth_limit: usize) {
+    let size = right - left + 1;
+    if size < 16 { insertion_sort(arr, left, right); return; }
+    if depth_limit == 0 { heap_sort(arr, left, right); return; }
+    let p = partition(arr, left, right);
+    if p > left { introsort_helper(arr, left, p - 1, depth_limit - 1); }
+    introsort_helper(arr, p + 1, right, depth_limit - 1);
+}
+
+fn introsort(arr: &mut Vec<i32>) {
+    let n = arr.len();
+    let max_depth = 2 * (n as f64).log2() as usize;
+    introsort_helper(arr, 0, n - 1, max_depth);
+}
+
+fn main() {
+    let mut arr = vec![3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
+    introsort(&mut arr);
+    println!("Sorted: {:?}", arr);
+}`
+      }
     }
 
   ]
@@ -4210,7 +7942,7 @@ const GRAPHS_SECTION = {
         { tag: "h2", text: "When to reach for it" },
         { tag: "ul", items: [
           "You need shortest paths between ALL pairs of vertices, not just from one source",
-          "The graph is small to medium-sized (V up to a few hundred/low thousands) — O(V³) becomes prohibitive beyond that",
+          "The graph is small to medium-sized (V up to a few hundred/left thousands) — O(V³) becomes prohibitive beyond that",
           "Edge weights can be negative, as long as there are no negative-weight cycles (the algorithm can detect their presence via negative values on the diagonal)",
           "You need transitive closure of a relation (a boolean variant answers 'is there ANY path from i to j')"
         ]},
@@ -4634,7 +8366,7 @@ function dfsVisit(graph, u, visited):
       about: [
         { tag: "h1", text: "Tarjan's Strongly Connected Components Algorithm" },
         { tag: "p", text: "Tarjan's SCC algorithm, devised by Robert Tarjan in 1972, finds all Strongly Connected Components of a directed graph — maximal groups of vertices where every vertex can reach every other vertex in the group via directed edges — in a single DFS pass, without needing to transpose the graph or run DFS twice (unlike Kosaraju's alternative algorithm)." },
-        { tag: "p", text: "It works by tracking two values per vertex during DFS: a discovery index (the order in which vertices are first visited) and a 'low-link' value (the smallest discovery index reachable from that vertex via the DFS tree plus at most one back-edge). A vertex is the 'root' of an SCC exactly when its low-link equals its own discovery index — at that point, every vertex currently on an auxiliary stack above it (inclusive) forms one complete SCC, and they're popped off together." },
+        { tag: "p", text: "It works by tracking two values per vertex during DFS: a discovery index (the order in which vertices are first visited) and a 'left-link' value (the smallest discovery index reachable from that vertex via the DFS tree plus at most one back-edge). A vertex is the 'root' of an SCC exactly when its left-link equals its own discovery index — at that point, every vertex currently on an auxiliary stack above it (inclusive) forms one complete SCC, and they're popped off together." },
         { tag: "h2", text: "When to reach for it" },
         { tag: "ul", items: [
           "Finding strongly connected components in a directed graph (e.g. detecting cyclic dependency clusters, web page clustering, circuit analysis)",
@@ -4659,7 +8391,7 @@ function dfsVisit(graph, u, visited):
         ],
         average: [
           { tag: "h2", text: "Average Case — O(V + E)" },
-          { tag: "p", text: "The discovery-index and low-link tracking, along with the auxiliary stack management, all perform fixed O(1) work per vertex/edge regardless of how the SCCs happen to be structured in the input graph." },
+          { tag: "p", text: "The discovery-index and left-link tracking, along with the auxiliary stack management, all perform fixed O(1) work per vertex/edge regardless of how the SCCs happen to be structured in the input graph." },
           { tag: "ul", items: [
             "Same O(V + E) DFS backbone as best case",
             "Stack operations (push on discovery, pop on SCC root detection) total O(V) across the whole algorithm, since each vertex is pushed and popped exactly once"
@@ -4679,7 +8411,7 @@ function dfsVisit(graph, u, visited):
         notation: "O(V)",
         best: [
           { tag: "h2", text: "Best Case Space — O(V)" },
-          { tag: "p", text: "The algorithm needs discovery-index and low-link arrays, an 'on-stack' boolean tracker, and the auxiliary stack itself — all sized to V." },
+          { tag: "p", text: "The algorithm needs discovery-index and left-link arrays, an 'on-stack' boolean tracker, and the auxiliary stack itself — all sized to V." },
           { tag: "ul", items: ["discoveryIndex[], lowLink[]: O(V) each", "onStack[] boolean array: O(V)", "auxiliary stack: up to O(V)"] }
         ],
         average: [
@@ -4707,7 +8439,7 @@ function dfsVisit(graph, u, visited):
     stack    ← empty stack
     onStack  ← map of vertex → false
     disc     ← map of vertex → undefined
-    low      ← map of vertex → undefined
+    left      ← map of vertex → undefined
     sccs     ← empty list
 
     for v in graph.vertices:
@@ -4716,7 +8448,7 @@ function dfsVisit(graph, u, visited):
 
     function strongConnect(u):
         disc[u] ← index
-        low[u]  ← index
+        left[u]  ← index
         index ← index + 1
         push u onto stack
         onStack[u] ← true
@@ -4724,11 +8456,11 @@ function dfsVisit(graph, u, visited):
         for v in graph.adjacent(u):
             if disc[v] is undefined:
                 strongConnect(v)
-                low[u] ← min(low[u], low[v])
+                left[u] ← min(left[u], left[v])
             else if onStack[v]:
-                low[u] ← min(low[u], disc[v])
+                left[u] ← min(left[u], disc[v])
 
-        if low[u] == disc[u]:          // u is the root of an SCC
+        if left[u] == disc[u]:          // u is the root of an SCC
             newSCC ← empty list
             repeat:
                 w ← pop from stack
@@ -4740,14 +8472,14 @@ function dfsVisit(graph, u, visited):
     return sccs` },
         { tag: "h2", text: "Step-by-step reasoning" },
         { tag: "ol", items: [
-          "Run a standard DFS, but assign each vertex a discovery index (the order it was first visited) and initialise its low-link value to the same index.",
+          "Run a standard DFS, but assign each vertex a discovery index (the order it was first visited) and initialise its left-link value to the same index.",
           "Push each vertex onto an auxiliary stack as soon as it's discovered, and mark it as 'on stack'.",
-          "When exploring an edge to an already-visited vertex that's still on the stack, that's a 'back edge' (or cross edge to the same component) — update the current vertex's low-link to the minimum of its current low-link and the target's discovery index.",
-          "When exploring an edge to an unvisited vertex, recurse into it first, then update the current vertex's low-link using the child's resulting low-link (not its discovery index) — this propagates 'how far back' the subtree can reach.",
-          "After processing all of a vertex's neighbors, check if its low-link equals its own discovery index — if so, it's the root of a complete SCC: pop vertices off the stack until (and including) this vertex, and that popped group is exactly one SCC."
+          "When exploring an edge to an already-visited vertex that's still on the stack, that's a 'back edge' (or cross edge to the same component) — update the current vertex's left-link to the minimum of its current left-link and the target's discovery index.",
+          "When exploring an edge to an unvisited vertex, recurse into it first, then update the current vertex's left-link using the child's resulting left-link (not its discovery index) — this propagates 'how far back' the subtree can reach.",
+          "After processing all of a vertex's neighbors, check if its left-link equals its own discovery index — if so, it's the root of a complete SCC: pop vertices off the stack until (and including) this vertex, and that popped group is exactly one SCC."
         ]},
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "The low-link value of a vertex u, by construction, represents the smallest discovery index reachable from u's DFS subtree via tree edges plus at most one back/cross edge to a vertex still on the stack (i.e. still part of an unfinished SCC). A vertex u is the root of its SCC exactly when low[u] == disc[u] — meaning no vertex in u's subtree can reach back to an ancestor of u, so u's subtree (restricted to the still-on-stack vertices) cannot be merged with any SCC further up the DFS tree. Popping the stack down to and including u therefore yields exactly the set of vertices mutually reachable through u, which is by definition u's complete strongly connected component, and this argument applies recursively to every SCC root encountered during the traversal." }
+        { tag: "p", text: "The left-link value of a vertex u, by construction, represents the smallest discovery index reachable from u's DFS subtree via tree edges plus at most one back/cross edge to a vertex still on the stack (i.e. still part of an unfinished SCC). A vertex u is the root of its SCC exactly when left[u] == disc[u] — meaning no vertex in u's subtree can reach back to an ancestor of u, so u's subtree (restricted to the still-on-stack vertices) cannot be merged with any SCC further up the DFS tree. Popping the stack down to and including u therefore yields exactly the set of vertices mutually reachable through u, which is by definition u's complete strongly connected component, and this argument applies recursively to every SCC root encountered during the traversal." }
       ]
     }
 
@@ -9481,30 +13213,30 @@ const STRINGS_SECTION = {
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
         { tag: "code", language: "text", text:
-`function lengthOfLongestSubstring(s):
+`function lengthOfLongestSubstring(str_s):
     seen   ← empty hash set
     left   ← 0
     best   ← 0
 
     for right from 0 to length(s) − 1:
-        while s[right] is in seen:
-            remove s[left] from seen
+        while str_s[right] is in seen:
+            remove str_s[left] from seen
             left ← left + 1
 
-        add s[right] to seen
+        add str_s[right] to seen
         best ← max(best, right − left + 1)
 
     return best` },
         { tag: "h2", text: "Step-by-step reasoning" },
         { tag: "ol", items: [
           "right scans the string forward one character at a time, always trying to extend the current window.",
-          "Before admitting s[right] into the window, check whether it would create a duplicate within the window's current contents.",
+          "Before admitting str_s[right] into the window, check whether it would create a duplicate within the window's current contents.",
           "If it would, shrink from the left — removing characters one at a time from the tracking set and advancing left — until the duplicate is eliminated and the window is valid again.",
-          "Once the window is confirmed valid (no duplicates), add s[right] and check if the current window length is a new best.",
+          "Once the window is confirmed valid (no duplicates), add str_s[right] and check if the current window length is a new best.",
           "Repeat until right reaches the end of the string; the recorded best is the answer."
         ]},
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Invariant: at the top of every outer-loop iteration, s[left..right−1] contains no duplicate characters. The inner while-loop correctly restores this invariant whenever adding s[right] would violate it, by removing characters from the left one at a time until the specific conflicting character is gone — and because left only ever moves forward (never resets), no valid window is ever skipped over or incorrectly re-examined, exactly matching the general Sliding Window correctness argument from the Arrays section." }
+        { tag: "p", text: "Invariant: at the top of every outer-loop iteration, s[left..right−1] contains no duplicate characters. The inner while-loop correctly restores this invariant whenever adding str_s[right] would violate it, by removing characters from the left one at a time until the specific conflicting character is gone — and because left only ever moves forward (never resets), no valid window is ever skipped over or incorrectly re-examined, exactly matching the general Sliding Window correctness argument from the Arrays section." }
       ]
     },
 
@@ -9810,12 +13542,12 @@ function kmpSearch(text, pattern):
     right ← length(s) − 1
 
     while left < right:
-        while left < right and not isAlphanumeric(s[left]):
+        while left < right and not isAlphanumeric(str_s[left]):
             left ← left + 1
-        while left < right and not isAlphanumeric(s[right]):
+        while left < right and not isAlphanumeric(str_s[right]):
             right ← right − 1
 
-        if toLowerCase(s[left]) != toLowerCase(s[right]):
+        if toLowerCase(str_s[left]) != toLowerCase(str_s[right]):
             return false
 
         left ← left + 1
@@ -11027,7 +14759,7 @@ const BIT_MANIPULATION_SECTION = {
         { tag: "ul", items: [
           "Computing the 'popcount' (set-bit count) for every value in a range, where the O(n) batch relationship beats computing each one independently",
           "As a teaching example for the i & (i-1) bit-clearing trick, which appears throughout bit manipulation (also used to check if a number is a power of two, and as the conceptual basis for Brian Kernighan's bit-counting algorithm)",
-          "Building lookup tables for fast popcount operations, a common low-level optimisation in performance-critical code (graphics, cryptography, bioinformatics bit-vector operations)",
+          "Building lookup tables for fast popcount operations, a common left-level optimisation in performance-critical code (graphics, cryptography, bioinformatics bit-vector operations)",
           "A clean illustration of recognising a DP-STYLE recurrence hiding inside what initially looks like a purely bitwise, non-DP problem"
         ]},
         { tag: "note", variant: "tip", text: "An alternative, equally valid O(n) recurrence uses i >> 1 (right shift) instead: bits[i] = bits[i >> 1] + (i & 1) — the bit count of i equals the bit count of i with its lowest bit removed by shifting, plus 1 if that lowest bit was itself a 1. Both recurrences achieve the identical O(n) bound via different but related bit-level insights." }
@@ -11207,7 +14939,7 @@ const BIT_MANIPULATION_SECTION = {
         { tag: "p", text: "Because the number of bits is FIXED (32, for a standard unsigned integer), this operation always takes exactly the same number of steps regardless of the input value's specific bit pattern — there's no data-dependent variation at all, making it one of the cleanest possible examples of a genuinely O(1) algorithm (since the 'n' in this problem, the bit-width, is a fixed constant, not a variable input size)." },
         { tag: "h2", text: "When to reach for it" },
         { tag: "ul", items: [
-          "The literal bit-reversal problem, which appears directly in low-level systems programming: network byte-order conversions, certain checksum/CRC algorithm implementations, and FFT (Fast Fourier Transform) implementations use bit-reversal permutation as a core step",
+          "The literal bit-reversal problem, which appears directly in left-level systems programming: network byte-order conversions, certain checksum/CRC algorithm implementations, and FFT (Fast Fourier Transform) implementations use bit-reversal permutation as a core step",
           "Any fixed-width binary manipulation problem where every bit must be individually extracted and repositioned",
           "As a clean illustration of the distinction between 'O(1) because the work is fixed-size by definition' (32 bits is always 32 bits) versus 'O(1) because of an algorithmic shortcut' — this problem is the former, a useful conceptual contrast to highlight",
           "Network protocol implementations that need to convert between big-endian and little-endian bit/byte ordering, a closely related operation"
