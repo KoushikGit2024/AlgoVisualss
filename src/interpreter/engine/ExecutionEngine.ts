@@ -725,7 +725,7 @@ export class ExecutionEngine {
     }
 
     // Process arguments: handle pass-by-reference and default parameters
-    func.parameters.forEach((param, index) => {
+    func.parameters.forEach((param: any, index: number) => {
       let paramType = param.type as CppType;
       if (paramType.includes("[]") || paramType.includes("*")) paramType = "array" as any; 
       

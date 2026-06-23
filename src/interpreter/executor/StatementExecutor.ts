@@ -155,7 +155,7 @@ export class StatementExecutor {
         // e.g. pair or struct objects { first: 0, second: 1 }
         const keys = Object.keys(value);
         parts.forEach((p, idx) => {
-          if (p) this.scopeManager.defineVariable(p, node.variableType, value[keys[idx]]);
+          if (p) this.scopeManager.defineVariable(p, node.variableType, (value as any)[keys[idx]]);
         });
       } else {
         // Fallback for primitives
