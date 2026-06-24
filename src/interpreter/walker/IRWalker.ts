@@ -8,7 +8,7 @@ import type {
   IRForRangeStatement,
   IRSwitchStatement
 } from "../ir/IRNode";
-import { BreakSignal, ContinueSignal } from "../utils/helpers";
+import { BreakSignal, ContinueSignal, safeLog } from "../utils/helpers";
 import { ScopeManager } from "../runtime/ScopeManager";
 import { EventEmitter } from "../events/EventEmitter";
 import { ExpressionEvaluator } from "../evaluator/ExpressionEvaluator";
@@ -51,6 +51,7 @@ export class IRWalker {
    * Routes an IR statement node to its designated execution logic.
    */
   public walkStatement(stmt: IRNode): void {
+    safeLog(`[IRWalker] Executing Statement Object at line ${stmt.line || "?"}:`, stmt);
     switch (stmt.kind) {
       case "VariableDeclaration":
         this.executor.executeVariableDeclaration(stmt);

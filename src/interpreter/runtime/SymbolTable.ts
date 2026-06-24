@@ -26,6 +26,7 @@ export class SymbolTable {
    * @throws {Error} If the variable is already declared in this exact scope.
    */
   public define(name: string, type: CppType, value: CppValue): void {
+    // console.log(`[SymbolTable] -> define: '${name}' of type '${type}' =`, value);
     if (this.symbols.has(name)) {
       throw new Error(`Compiler Error: Variable '${name}' is already defined in this scope.`);
     }
@@ -36,6 +37,7 @@ export class SymbolTable {
    * Mutates an existing variable in the current memory block.
    */
   public assign(name: string, value: CppValue): void {
+    // console.log(`[SymbolTable] -> assign: '${name}' =`, value);
     const symbol = this.symbols.get(name);
     if (!symbol) {
       throw new Error(`Memory Access Violation: Variable '${name}' is not defined.`);
@@ -47,6 +49,7 @@ export class SymbolTable {
    * Retrieves the full Symbol object for a given identifier.
    */
   public get(name: string): Symbol {
+    // console.log(`[SymbolTable] <- get: '${name}'`);
     const symbol = this.symbols.get(name);
     if (!symbol) {
       throw new Error(`Memory Access Violation: Variable '${name}' is not defined.`);

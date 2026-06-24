@@ -48,6 +48,9 @@ codeVisualizer/
     ├── Stack.tsx                  // Vertical LIFO renderer
     ├── Queue.tsx                  // Horizontal FIFO renderer
     ├── MapVisualizer.tsx          // Key-Value Dictionary renderer
+    ├── StringVisualizer.tsx       // String renderer with text styling
+    ├── BitsetVisualizer.tsx       // Bitmask and flags renderer
+    ├── ScalarVisualizer.tsx       // Standalone value dashboard
     └── VisualizerNamingConventions.tsx // Help modal
 ```
 

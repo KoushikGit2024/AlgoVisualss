@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from "react";
+import { Copy, Check } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import type { OnMount } from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
@@ -24,6 +25,13 @@ const CodeEditor = ({
       : "custom-light";
 
   const [editorTheme, setEditorTheme] = useState(getTheme);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -136,7 +144,7 @@ const CodeEditor = ({
     return () => observer.disconnect();
   }, []);
   return (
-    <div className="flex-1 h-full w-full relative">
+    <div className="flex-1 h-full w-full relative group">
       <style>{`
         .active-line-highlight {
           background: var(--glow-soft);
@@ -148,6 +156,14 @@ const CodeEditor = ({
           margin-left: 3px;
         }
       `}</style>
+
+      <button
+        onClick={handleCopy}
+        className="absolute top-3 right-4 z-10 p-1.5 bg-surface/80 hover:bg-surface border border-border rounded text-muted hover:text-text opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm"
+        title="Copy Code"
+      >
+        {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+      </button>
 
       <Editor
         height="100%"
@@ -162,8 +178,8 @@ const CodeEditor = ({
           fontFamily: "var(--font-mono)",
           smoothScrolling: true,
           scrollBeyondLastLine: false,
-          padding: { top: 16 },
-
+          padding: { top: 16, bottom: 76 },
+          
           automaticLayout: true,
 
           scrollbar: {

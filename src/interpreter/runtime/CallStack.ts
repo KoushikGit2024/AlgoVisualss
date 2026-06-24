@@ -1,4 +1,5 @@
 import { ScopeManager } from "./ScopeManager";
+import { safeLog } from "../utils/helpers";
 
 /**
  * Represents a single execution frame within the call stack.
@@ -33,6 +34,7 @@ export class CallStack {
    */
   public push(functionName: string): StackFrame {
     const frame = new StackFrame(functionName);
+    safeLog(`[CallStack] \u2193 push frame Object:`, frame);
     this.frames.push(frame);
     return frame;
   }
@@ -45,13 +47,16 @@ export class CallStack {
     if (this.isEmpty()) {
       throw new Error("Fatal: Call stack underflow. Attempted to return from a non-existent function context.");
     }
-    return this.frames.pop() as StackFrame;
+    const popped = this.frames.pop() as StackFrame;
+    safeLog(`[CallStack] \u2191 pop frame Object:`, popped);
+    return popped;
   }
 
   /**
    * Returns the currently active execution frame without popping it.
    */
   public peek(): StackFrame {
+    // console.log(`[CallStack] \u2194 peek frame`);
     if (this.isEmpty()) {
       throw new Error("Fatal: Call stack is empty. No active execution frame.");
     }

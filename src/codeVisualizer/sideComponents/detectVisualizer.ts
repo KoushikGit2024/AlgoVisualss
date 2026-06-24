@@ -11,7 +11,7 @@
 
 // ─── TYPES ──────────────────────────────────────────────────────────────────
 
-export type VisualizerType = 'graph' | 'matrix' | 'array' | 'linkedlist' | 'queue' | 'stack' | 'tree' | 'map' | 'none';
+export type VisualizerType = 'graph' | 'matrix' | 'array' | 'linkedlist' | 'queue' | 'stack' | 'tree' | 'map' | 'string' | 'bitset' | 'scalar' | 'none';
 
 export interface CanvasState {
   id: string;
@@ -118,8 +118,11 @@ const MATRIX_PREFIXES  = ['mat', 'grid', 'board', 'dp', 'table', 'matrix'];
 const LL_PREFIXES      = ['ll_', 'list_node', 'linked_list'];
 const STACK_PREFIXES   = ['st_', 'stack', 'stk'];
 const QUEUE_PREFIXES   = ['q_', 'queue', 'deque', 'buffer_q'];
-const ARRAY_PREFIXES   = ['arr', 'vec', 'nums', 'seq', 'list', 'buffer', 'cache', 'res', 'str', 'text', 'word', 'chars'];
+const ARRAY_PREFIXES   = ['arr', 'vec', 'nums', 'seq', 'list', 'buffer', 'cache', 'res'];
 const MAP_PREFIXES     = ['map', 'dict', 'freq', 'count', 'hash', 'cache_map', 'memo', 'set', 'seen', 'visited'];
+const STRING_PREFIXES  = ['str', 'text', 'word', 'chars', 'msg', 'string', 'sentence', 'paragraph', 's', 't', 'pattern', 'substring', 'sub'];
+const BITSET_PREFIXES  = ['mask', 'bits', 'flags', 'bitset', 'state_mask', 'b'];
+const SCALAR_PREFIXES  = ['ans', 'sum', 'count', 'total', 'result', 'max_val', 'min_val', 'cnt', 'res_val', 'diff'];
 
 function matchesPrefix(name: string, prefixes: string[]): boolean {
   const lower = name.toLowerCase();
@@ -194,10 +197,41 @@ function collectNodePointers(keys: string[], vars: VarMap, patterns: string[]): 
 
 // ─── MAIN DETECTOR ──────────────────────────────────────────────────────────
 
-export function detectVisualizer(vars: VarMap): CanvasState[] {
-  const keys = Object.keys(vars);
-  const states: CanvasState[] = [];
+export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[] {
+  const visualizers: CanvasState[] = [];
   const consumedKeys = new Set<string>();
+
+  // Helper to extract read/write for arrays and matrices
+  const extractEventIndices = (targetName: string, is2D: boolean = false) => {
+    const reads: any[] = [];
+    const writes: any[] = [];
+    
+    if (currentEvent && currentEvent.payload?.variable) {
+      const varName = String(currentEvent.payload.variable);
+      
+      if (!is2D) {
+        // Match 1D array: "arr[2]"
+        const match = varName.match(new RegExp(`^${targetName}\\[(\\d+)\\]$`));
+        if (match) {
+          const idx = parseInt(match[1], 10);
+          if (currentEvent.type === 'READ') reads.push(idx);
+          if (currentEvent.type === 'ASSIGNMENT' || currentEvent.type === 'ASSIGN') writes.push(idx);
+        }
+      } else {
+        // Match 2D array: "matrix[1][2]"
+        const match = varName.match(new RegExp(`^${targetName}\\[(\\d+)\\]\\[(\\d+)\\]$`));
+        if (match) {
+          const r = parseInt(match[1], 10);
+          const c = parseInt(match[2], 10);
+          if (currentEvent.type === 'READ') reads.push({ row: r, col: c });
+          if (currentEvent.type === 'ASSIGNMENT' || currentEvent.type === 'ASSIGN') writes.push({ row: r, col: c });
+        }
+      }
+    }
+    return { reads, writes };
+  };
+
+  const keys = Object.keys(vars);
 
   // 1. GRAPH DETECTION
   keys.filter(k => matchesPrefix(k, GRAPH_PREFIXES)).forEach(graphKey => {
@@ -208,7 +242,6 @@ export function detectVisualizer(vars: VarMap): CanvasState[] {
     
     let edgeKey = keys.find(k => k !== graphKey && k.toLowerCase().includes('edge') && !consumedKeys.has(k));
     
-    // If graphKey itself is the edge list, treat it as such and calculate nodes from edges
     if (isEdgeList) {
       edgeKey = graphKey;
       rawVal = []; 
@@ -245,7 +278,7 @@ export function detectVisualizer(vars: VarMap): CanvasState[] {
 
         const edges = Array.isArray(rawEdges) ? rawEdges.filter((e: any) => Array.isArray(e) && e.length >= 2).map((e: any[]) => ({ id: `${e[0]}-${e[1]}`, source: String(e[0]), target: String(e[1]) })) : [];
 
-        states.push({
+        visualizers.push({
           id: !isEdgeList ? graphKey : (edgeKey as string), type: 'graph', usedKeys,
           props: {
             nodes, edges, pointers,
@@ -265,7 +298,8 @@ export function detectVisualizer(vars: VarMap): CanvasState[] {
       const { pointers, usedKeys: ptrKeys } = collectNodePointers(keys, vars, ['root', 'curr', 'parent', 'left', 'right', 'temp']);
       const usedKeys = [treeKey, ...ptrKeys];
       usedKeys.forEach(k => consumedKeys.add(k));
-      states.push({ id: treeKey, type: 'tree', usedKeys, props: { nodes: normalizedNodes, pointers } });
+      usedKeys.forEach(k => consumedKeys.add(k));
+      visualizers.push({ id: treeKey, type: 'tree', usedKeys, props: { nodes: normalizedNodes, pointers } });
     }
   });
 
@@ -283,8 +317,9 @@ export function detectVisualizer(vars: VarMap): CanvasState[] {
         pointers.push({ name: `${rowKey},${colKey}`, row: vars[rowKey].value, col: vars[colKey].value });
         usedKeys.push(rowKey, colKey);
       }
+      const { reads, writes } = extractEventIndices(matrixKey, true);
       usedKeys.forEach(k => consumedKeys.add(k));
-      states.push({ id: matrixKey, type: 'matrix', usedKeys, props: { value: rawGrid, pointers } });
+      visualizers.push({ id: matrixKey, type: 'matrix', usedKeys, props: { value: rawGrid, pointers, readIndices: reads, writeIndices: writes } });
     }
   });
 
@@ -296,7 +331,8 @@ export function detectVisualizer(vars: VarMap): CanvasState[] {
       const { pointers, usedKeys: ptrKeys } = collectNodePointers(keys, vars, ['head', 'tail', 'curr', 'prev', 'next', 'slow', 'fast']);
       const usedKeys = [llKey, ...ptrKeys];
       usedKeys.forEach(k => consumedKeys.add(k));
-      states.push({ id: llKey, type: 'linkedlist', usedKeys, props: { nodes: llData, pointers } });
+      usedKeys.forEach(k => consumedKeys.add(k));
+      visualizers.push({ id: llKey, type: 'linkedlist', usedKeys, props: { nodes: llData, pointers } });
     }
   });
 
@@ -308,7 +344,8 @@ export function detectVisualizer(vars: VarMap): CanvasState[] {
       const { pointers, usedKeys: ptrKeys } = collectIndexPointers(keys, vars, ['top', 'peek', 'curr']);
       const usedKeys = [stackKey, ...ptrKeys];
       usedKeys.forEach(k => consumedKeys.add(k));
-      states.push({ id: stackKey, type: 'stack', usedKeys, props: { value: stackVal, pointers } });
+      usedKeys.forEach(k => consumedKeys.add(k));
+      visualizers.push({ id: stackKey, type: 'stack', usedKeys, props: { value: stackVal, pointers } });
     }
   });
 
@@ -320,7 +357,8 @@ export function detectVisualizer(vars: VarMap): CanvasState[] {
       const { pointers, usedKeys: ptrKeys } = collectIndexPointers(keys, vars, ['front', 'back', 'rear', 'head', 'tail', 'curr']);
       const usedKeys = [queueKey, ...ptrKeys];
       usedKeys.forEach(k => consumedKeys.add(k));
-      states.push({ id: queueKey, type: 'queue', usedKeys, props: { value: queueVal, pointers } });
+      usedKeys.forEach(k => consumedKeys.add(k));
+      visualizers.push({ id: queueKey, type: 'queue', usedKeys, props: { value: queueVal, pointers } });
     }
   });
 
@@ -331,8 +369,9 @@ export function detectVisualizer(vars: VarMap): CanvasState[] {
     if (isFlatArray(arrayVal)) {
       const { pointers, usedKeys: ptrKeys } = collectIndexPointers(keys, vars, ['i', 'j', 'k', 'left', 'right', 'mid', 'curr', 'ptr']);
       const usedKeys = [arrayKey, ...ptrKeys];
+      const { reads, writes } = extractEventIndices(arrayKey, false);
       usedKeys.forEach(k => consumedKeys.add(k));
-      states.push({ id: arrayKey, type: 'array', usedKeys, props: { value: arrayVal, pointers } });
+      visualizers.push({ id: arrayKey, type: 'array', usedKeys, props: { value: arrayVal, pointers, readIndices: reads, writeIndices: writes } });
     }
   });
 
@@ -342,9 +381,49 @@ export function detectVisualizer(vars: VarMap): CanvasState[] {
     const mapVal = deepUnwrap(vars[mapKey]?.value);
     if (mapVal && typeof mapVal === 'object' && mapVal.__type === 'map' && Array.isArray(mapVal.entries)) {
       consumedKeys.add(mapKey);
-      states.push({ id: mapKey, type: 'map', usedKeys: [mapKey], props: { entries: mapVal.entries } });
+      consumedKeys.add(mapKey);
+      visualizers.push({ id: mapKey, type: 'map', usedKeys: [mapKey], props: { entries: mapVal.entries } });
     }
   });
 
-  return states;
+  // 9. STRING DETECTION
+  keys.filter(k => matchesPrefix(k, STRING_PREFIXES)).forEach(stringKey => {
+    if (consumedKeys.has(stringKey)) return;
+    const stringVal = deepUnwrap(vars[stringKey]?.value);
+    
+    // Check if it's an actual Javascript string or a 1D array of characters/numbers
+    if (typeof stringVal === 'string' || isFlatArray(stringVal)) {
+      const { pointers, usedKeys: ptrKeys } = collectIndexPointers(keys, vars, ['i', 'j', 'k', 'left', 'right', 'mid', 'curr', 'ptr']);
+      const usedKeys = [stringKey, ...ptrKeys];
+      const { reads, writes } = extractEventIndices(stringKey, false);
+      usedKeys.forEach(k => consumedKeys.add(k));
+      visualizers.push({ id: stringKey, type: 'string', usedKeys, props: { value: stringVal, pointers, readIndices: reads, writeIndices: writes } });
+    }
+  });
+
+  // 10. BITSET DETECTION
+  keys.filter(k => matchesPrefix(k, BITSET_PREFIXES)).forEach(bitKey => {
+    if (consumedKeys.has(bitKey)) return;
+    const bitVal = deepUnwrap(vars[bitKey]?.value);
+    
+    if (typeof bitVal === 'number' || (isFlatArray(bitVal) && bitVal.every(v => typeof v === 'boolean' || v === 0 || v === 1))) {
+      consumedKeys.add(bitKey);
+      consumedKeys.add(bitKey);
+      visualizers.push({ id: bitKey, type: 'bitset', usedKeys: [bitKey], props: { value: bitVal } });
+    }
+  });
+
+  // 11. SCALAR DETECTION
+  keys.filter(k => matchesPrefix(k, SCALAR_PREFIXES)).forEach(scalarKey => {
+    if (consumedKeys.has(scalarKey)) return;
+    const scalarVal = deepUnwrap(vars[scalarKey]?.value);
+    
+    if (typeof scalarVal === 'number' || typeof scalarVal === 'string' || typeof scalarVal === 'boolean') {
+      consumedKeys.add(scalarKey);
+      consumedKeys.add(scalarKey);
+      visualizers.push({ id: scalarKey, type: 'scalar', usedKeys: [scalarKey], props: { value: scalarVal, name: scalarKey } });
+    }
+  });
+
+  return visualizers;
 }

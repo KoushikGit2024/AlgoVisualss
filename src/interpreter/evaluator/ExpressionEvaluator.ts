@@ -13,6 +13,7 @@ import { ScopeManager } from "../runtime/ScopeManager";
 import { EventEmitter } from "../events/EventEmitter";
 import { EventType } from "../types";
 import type { CppValue } from "../types";
+import { safeLog } from "../utils/helpers";
 
 /**
  * The `ExpressionEvaluator` handles the resolution of abstract syntax trees into concrete runtime values.
@@ -30,6 +31,12 @@ export class ExpressionEvaluator {
    * @returns The resolved JavaScript primitive or object reference.
    */
   public evaluate(expr: IRExpression): CppValue {
+    const result = this._evaluateInternal(expr);
+    safeLog(`[ExpressionEvaluator] Evaluated Object:`, expr, result);
+    return result;
+  }
+
+  private _evaluateInternal(expr: IRExpression): CppValue {
     switch (expr.kind) {
       case "Literal":
         return expr.value;

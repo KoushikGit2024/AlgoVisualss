@@ -10,7 +10,10 @@ import {
   Zap,
   Info,
   ListOrdered,
-  Database
+  Database,
+  Type,
+  Binary,
+  Hash
 } from "lucide-react";
 
 const DATA_STRUCTURES = [
@@ -85,7 +88,6 @@ const DATA_STRUCTURES = [
       { prefix: "seq", example: "vector<float> seq" },
       { prefix: "list", example: "vector<int> list_items" },
       { prefix: "buffer", example: "char buffer[256]" },
-      { prefix: "str", example: "string str_val" },
       { prefix: "res", example: "vector<int> res_out" }
     ],
     shape: "Value must be a flat array of primitives (numbers, strings, booleans).",
@@ -148,6 +150,32 @@ const DATA_STRUCTURES = [
     ]
   },
   {
+    title: "Strings \u2014 <StringVisualizer />",
+    icon: <Type className="text-emerald-500" size={18} />,
+    color: "border-emerald-500/30 bg-emerald-500/5",
+    textColor: "text-emerald-500",
+    description: "Renders characters continuously with distinct text-specific styling.",
+    prefixes: [
+      { prefix: "str", example: "string str_val" },
+      { prefix: "text", example: "string text_data" },
+      { prefix: "word", example: "string word" },
+      { prefix: "chars", example: "vector<char> chars" },
+      { prefix: "msg", example: "string msg" },
+      { prefix: "string", example: "string string_data" },
+      { prefix: "sentence", example: "string sentence" },
+      { prefix: "paragraph", example: "string paragraph" },
+      { prefix: "s", example: "string s" },
+      { prefix: "t", example: "string t" },
+      { prefix: "pattern", example: "string pattern" },
+      { prefix: "substring", example: "string substring" },
+      { prefix: "sub", example: "string sub" }
+    ],
+    shape: "Value must be a Javascript primitive string or an array of characters.",
+    auxiliary: [
+      { role: "Indexers", trigger: "`i`, `j`, `k`, `left`, `right`, `mid`, `curr`, `ptr`", notes: "" }
+    ]
+  },
+  {
     title: "Maps & Sets — <MapVisualizer />",
     icon: <Database className="text-success" size={18} />,
     color: "border-success/30 bg-success/5",
@@ -164,6 +192,44 @@ const DATA_STRUCTURES = [
       { prefix: "memo", example: "unordered_map<int, int> memo" }
     ],
     shape: "Value must be a map or set object internally emitted by the engine.",
+    auxiliary: []
+  },
+  {
+    title: "Bitsets & Masks \u2014 <BitsetVisualizer />",
+    icon: <Binary className="text-cyan-400" size={18} />,
+    color: "border-cyan-400/30 bg-cyan-400/5",
+    textColor: "text-cyan-400",
+    description: "Renders an integer or boolean array as a strip of glowing bits.",
+    prefixes: [
+      { prefix: "mask", example: "int mask = 5" },
+      { prefix: "bits", example: "vector<bool> bits" },
+      { prefix: "flags", example: "int flags" },
+      { prefix: "bitset", example: "bitset<32> b" },
+      { prefix: "state_mask", example: "int state_mask" },
+      { prefix: "b", example: "int b" }
+    ],
+    shape: "Value must be a Javascript primitive number or an array of booleans.",
+    auxiliary: []
+  },
+  {
+    title: "Standalone Scalars \u2014 <ScalarVisualizer />",
+    icon: <Hash className="text-purple-400" size={18} />,
+    color: "border-purple-400/30 bg-purple-400/5",
+    textColor: "text-purple-400",
+    description: "Renders a large, prominent dashboard counter for crucial tracking variables.",
+    prefixes: [
+      { prefix: "ans", example: "int ans = 0" },
+      { prefix: "sum", example: "long long sum = 0" },
+      { prefix: "count", example: "int count" },
+      { prefix: "total", example: "int total" },
+      { prefix: "result", example: "int result" },
+      { prefix: "max_val", example: "int max_val" },
+      { prefix: "min_val", example: "int min_val" },
+      { prefix: "cnt", example: "int cnt" },
+      { prefix: "res_val", example: "int res_val" },
+      { prefix: "diff", example: "int diff" }
+    ],
+    shape: "Value must be a primitive number, string, or boolean.",
     auxiliary: []
   }
 ];
@@ -219,7 +285,10 @@ export default function VisualizerNamingConventions() {
                 { p: 4, c: "<LinkedList />", w: "Requires `ll_`/`head` + node objects" },
                 { p: 5, c: "<Stack />", w: "Flat array with LIFO semantics" },
                 { p: 6, c: "<Queue />", w: "Flat array with FIFO semantics" },
-                { p: 7, c: "<D1Array />", w: "Generic flat array fallback" }
+                { p: 7, c: "<D1Array />", w: "Generic flat array fallback" },
+                { p: 8, c: "<StringVisualizer />", w: "Specific text/string matching" },
+                { p: 9, c: "<BitsetVisualizer />", w: "Bitmask matching" },
+                { p: 10, c: "<ScalarVisualizer />", w: "Scalar matching" }
               ].map((row, i) => (
                 <tr key={i} className="border-b border-border last:border-b-0 even:bg-surface-2/30 hover:bg-surface-3 transition-colors">
                   <td className="px-4 py-2.5 border-r border-border text-muted font-mono">{row.p}</td>
@@ -307,10 +376,12 @@ export default function VisualizerNamingConventions() {
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {[
-            { v: "n", why: "Common loop counter / size variable" },
-            { v: "maxVal, minVal", why: "Computed results" },
-            { v: "result, ans", why: "Return values" },
-            { v: "temp", why: "When scalar, only consumed by Tree detector when holding a node ID" }
+            { v: "n, m", why: "Common loop bounds or sizes" },
+            { v: "x, y, z", why: "Generic math or coordinate variables" },
+            { v: "tmp, _", why: "Placeholders (Note: 'temp' animates in Trees!)" },
+            { v: "val, value", why: "Storage for extracted values" },
+            { v: "idx, index", why: "Iterators (Note: 'i', 'j', 'k' animate in Arrays!)" },
+            { v: "len, size", why: "Length trackers" }
           ].map((item, i) => (
             <div key={i} className="flex items-center gap-3 bg-surface p-3 rounded-lg border border-border">
               <code className="text-failure font-mono text-[12.5px] bg-failure/10 px-2 py-0.5 rounded shrink-0">{item.v}</code>
@@ -341,11 +412,14 @@ export default function VisualizerNamingConventions() {
                 { c: "<Graph />", p: "adj, graph, network", s: "2D array", a: "*edge*, *visit*, node/curr/u/v" },
                 { c: "<Tree />", p: "tree_, bst_, trie_, root_, heap_, forest_", s: "Array of {id, value}", a: "root, curr, parent, temp, left, right" },
                 { c: "<D2Array />", p: "mat, grid, board, dp, table, matrix", s: "2D array", a: "r/row/r_*, c/col/c_* (both req)" },
-                { c: "<D1Array />", p: "arr, vec, nums, seq, list, buffer, cache, res, str, text, word, chars", s: "Flat array", a: "i, j, k, left, right, mid, curr, ptr" },
+                { c: "<D1Array />", p: "arr, vec, nums, seq, list, buffer, cache, res", s: "Flat array", a: "i, j, k, left, right, mid, curr, ptr" },
                 { c: "<LinkedList />", p: "ll_, head, list_node, linked_list", s: "Array of {id, value}", a: "head, tail, curr, prev, next, slow, fast" },
                 { c: "<Queue />", p: "q_, queue, deque, buffer_q", s: "Flat array", a: "front, back, rear, head, tail, curr" },
                 { c: "<Stack />", p: "st_, stack, stk", s: "Flat array", a: "top, peek" },
-                { c: "<MapVisualizer />", p: "map, dict, freq, count, hash, cache_map, memo, set, seen, visited", s: "Map/Set Object", a: "None" }
+                { c: "<MapVisualizer />", p: "map, dict, freq, count, hash, cache_map, memo, set, seen, visited", s: "Map/Set Object", a: "None" },
+                { c: "<StringVisualizer />", p: "str, text, word, chars, msg, string, sentence, paragraph, s, t, pattern, substring, sub", s: "String / Char Array", a: "i, j, k, left, right, mid, curr, ptr" },
+                { c: "<BitsetVisualizer />", p: "mask, bits, flags, bitset, state_mask, b", s: "Number / Bool Array", a: "None" },
+                { c: "<ScalarVisualizer />", p: "ans, sum, count, total, result, max_val, min_val, cnt, res_val, diff", s: "Primitive", a: "None" }
               ].map((row, i) => (
                 <tr key={i} className="border-b border-border last:border-b-0 hover:bg-surface-2 transition-colors">
                   <td className="px-3 py-2 border-r border-border text-text font-mono whitespace-nowrap">{row.c}</td>

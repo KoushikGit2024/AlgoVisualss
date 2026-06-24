@@ -177,3 +177,33 @@ export class ContinueSignal extends Error {
     Object.setPrototypeOf(this, ContinueSignal.prototype);
   }
 }
+
+export function safeLog(label: string, obj: any, obj2?: any): void {
+  // try {
+  //   const seen = new WeakSet();
+  //   const safeStr = JSON.stringify(obj, (key, value) => {
+  //     if (typeof value === "object" && value !== null) {
+  //       if (seen.has(value)) return "[Circular]";
+  //       seen.add(value);
+  //     }
+  //     return value;
+  //   }, 2);
+
+  //   if (obj2 !== undefined) {
+  //      const seen2 = new WeakSet();
+  //      const safeStr2 = JSON.stringify(obj2, (k, v) => {
+  //        if (typeof v === "object" && v !== null) {
+  //          if (seen2.has(v)) return "[Circular]";
+  //          seen2.add(v);
+  //        }
+  //        return v;
+  //      }, 2);
+  //      console.log(`${label}\n${safeStr}\n${safeStr2}`);
+  //   } else {
+  //      console.log(`${label}\n${safeStr}`);
+  //   }
+  // } catch (e) {
+  //   console.log(label, obj, obj2);
+  // }
+  label&&obj&&obj2;
+}

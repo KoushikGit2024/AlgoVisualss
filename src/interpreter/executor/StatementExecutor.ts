@@ -15,7 +15,7 @@ import { EventEmitter } from "../events/EventEmitter";
 import { ExpressionEvaluator } from "../evaluator/ExpressionEvaluator";
 import { EventType } from "../types";
 import type { CppValue } from "../types";
-import { ReturnSignal } from "../utils/helpers";
+import { ReturnSignal, safeLog } from "../utils/helpers";
 
 /**
  * The `StatementExecutor` is the mutation engine of the interpreter.
@@ -38,6 +38,7 @@ export class StatementExecutor {
    * 3. Default initialization by type
    */
   public executeVariableDeclaration(node: IRVariableDeclaration): void {
+    safeLog(`[StatementExecutor] executeVariableDeclaration Input Object:`, node);
     let value: CppValue | undefined = undefined;
     const typeLower = node.variableType.toLowerCase();
 
@@ -264,6 +265,7 @@ export class StatementExecutor {
    * Supports compound operators (+=, -=, *=, /=, %=, &=, |=, ^=, <<=, >>=).
    */
   public executeAssignment(stmt: IRAssignment): void {
+    safeLog(`[StatementExecutor] executeAssignment Input Object:`, stmt);
     const newValue = this.evaluator.evaluate(stmt.value);
 
     // CASE 1: Standard variable assignment (e.g., x = 5 or x += 5)
@@ -409,6 +411,7 @@ export class StatementExecutor {
    * Executes a standalone expression that yields no assignment (e.g., `bubbleSort(nums, 5);`).
    */
   public executeExpressionStatement(stmt: IRExpressionStatement): void {
+    safeLog(`[StatementExecutor] executeExpressionStatement Input Object:`, stmt);
     this.evaluator.evaluate(stmt.expression);
   }
 
@@ -432,6 +435,7 @@ export class StatementExecutor {
    * @throws {ReturnSignal} Always throws to bubble the return value to the ExecutionEngine.
    */
   public executeReturn(stmt: IRReturnStatement): never {
+    safeLog(`[StatementExecutor] executeReturn Input Object:`, stmt);
     const value = stmt.argument ? this.evaluator.evaluate(stmt.argument) : undefined;
     throw new ReturnSignal(value);
   }

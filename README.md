@@ -194,7 +194,7 @@ You MUST adhere to these naming conventions in your C++ code.
 - **Auxiliary Pointers:** `r`, `row`, `c`, `col`.
 
 ### 4. 1D Arrays (`<D1Array />`)
-- **Prefixes:** `arr`, `vec`, `nums`, `seq`, `str`, `res`, `buffer`, `list`
+- **Prefixes:** `arr`, `vec`, `nums`, `seq`, `list`, `buffer`, `cache`, `res`
 - **Shape:** Flat array of primitives.
 - **Auxiliary Pointers:** `i`, `j`, `k`, `left`, `right`, `mid`, `curr`, `ptr`. (These render as floating badges pointing at the array index).
 
@@ -210,7 +210,17 @@ You MUST adhere to these naming conventions in your C++ code.
 ### 7. Maps & Sets
 - **Prefixes:** `map`, `dict`, `freq`, `count`, `seen`, `visited`, `memo`
 
-*Note: Variables named `n`, `maxVal`, `minVal`, `result`, `ans`, and `temp` are reserved scalar values. They will be displayed in the Variables panel but will not trigger complex visual components.*
+### 8. Strings (`<StringVisualizer />`)
+- **Prefixes:** `str`, `text`, `word`, `msg`, `string`, `s`, `t`, `pattern`, `sub`
+- **Auxiliary Pointers:** `i`, `j`, `k`, `left`, `right`, `mid`, `curr`, `ptr`.
+
+### 9. Bitsets (`<BitsetVisualizer />`)
+- **Prefixes:** `mask`, `bits`, `flags`, `bitset`, `state_mask`, `b`
+
+### 10. Scalars (`<ScalarVisualizer />`)
+- **Prefixes:** `ans`, `sum`, `count`, `total`, `result`, `max_val`, `min_val`, `diff`
+
+*Note: Variables named `n`, `m`, `x`, `y`, `z`, `idx`, `index`, `len`, `size`, `tmp`, `_`, and `val` are strictly **Free Variables**. They will be displayed in the Variables panel but will never trigger complex visual components or pointers.*
 
 ---
 

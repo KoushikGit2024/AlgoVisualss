@@ -25,10 +25,11 @@ self.onmessage = async (e) => {
     // 3. Convert AST to IR
     const builder = new IRBuilder();
     const irProgram = builder.build(tree.rootNode as any); 
-
+    // console.log(irProgram)
     // 4. Load and Execute headlessly
     const engine = new ExecutionEngine();
     engine.loadProgram(irProgram);
+    // console.log(engine.run)
     const snapshots = engine.run("main");
     // console.log(snapshots)
     // 5. Send the massive snapshot array back to React

@@ -44,6 +44,7 @@ export class ScopeManager {
    * @param value - The underlying duck-typed JS value representing the C++ data.
    */
   public defineVariable(name: string, type: CppType, value: CppValue): void {
+    // console.log(`[ScopeManager] Defining '${name}' of type '${type}' =`, value);
     const currentScope = this.scopes[this.scopes.length - 1];
     currentScope.define(name, type, value);
   }
@@ -55,6 +56,7 @@ export class ScopeManager {
    * @throws {Error} If the variable is not found in any active scope.
    */
   public assignVariable(name: string, value: CppValue): void {
+    // console.log(`[ScopeManager] Assigning '${name}' =`, value);
     for (let i = this.scopes.length - 1; i >= 0; i--) {
       if (this.scopes[i].has(name)) {
         this.scopes[i].assign(name, value);

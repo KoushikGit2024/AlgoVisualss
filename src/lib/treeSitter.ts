@@ -25,14 +25,14 @@ async function getFlowData(sourceCode: string) {
   // 4. Convert AST to your decoupled IR
   const builder = new IRBuilder();
   const irProgram = builder.build(tree.rootNode as any); 
-
+  console.log(irProgram)
   // 5. Load and Execute
   const engine = new ExecutionEngine();
   engine.loadProgram(irProgram);
   
   // 6. Extract the Flow Data (Snapshots)
   const snapshots = engine.run("main");
-  console.log(snapshots);
+  console.log(snapshots.length);
   
   return snapshots;
 }
