@@ -1,208 +1,753 @@
-import type { IRProgram, IRFunctionDeclaration, IRFunctionCall, IRMethodCall, IRNewExpression, IRLambdaExpression, IRStructDeclaration, IRExpression, IRVariableDeclaration } from "../ir/IRNode";
-import { CallStack } from "../runtime/CallStack";
-import { EventEmitter } from "../events/EventEmitter";
-import { ExpressionEvaluator } from "../evaluator/ExpressionEvaluator";
-import { StatementExecutor } from "../executor/StatementExecutor";
-import { IRWalker } from "../walker/IRWalker";
-import { EventType } from "../types";
-import type { RuntimeSnapshot, CppValue, CppType } from "../types";
-import { createSnapshot, ReturnSignal } from "../utils/helpers";
+// ============================================================================
+// ExecutionEngine.ts — Master orchestrator of the C++ interpreter runtime.
+//
+// The engine owns the complete execution lifecycle for one program run:
+//
+//   loadProgram()  — Registers functions, structs, enums, and type aliases
+//                    from the parsed IRProgram into lookup tables.
+//
+//   run()          — Initialises all per-run state, evaluates globals, calls
+//                    main(), and returns the complete RuntimeSnapshot array.
+//
+//   invokeFunction()     — Pushes a call stack frame, binds parameters, runs
+//                          the function body, mirrors static variables back,
+//                          and pops the frame.
+//
+//   invokeFunctionCall() — Intercepts stdlib polyfills before forwarding to
+//                          invokeFunction() for user-defined functions.
+//
+//   invokeMethodCall()   — Handles all STL container method calls by
+//                          dispatching on the backing JS type.
+//
+//   attachEvaluationInterceptor() — Monkey-patches ExpressionEvaluator.evaluate()
+//                                   to redirect FunctionCall / MethodCall /
+//                                   NewExpression / LambdaExpression nodes to
+//                                   the engine before they reach the evaluator.
+//
+// Owned state (persists across runs until loadProgram() is called again):
+//   functions        — Map<name, IRFunctionDeclaration>
+//   classBlueprints  — Map<name, IRStructDeclaration>
+//   enumBlueprints   — Map<name, IREnumDeclaration>      v2
+//   typeAliases      — Map<alias, target>                v2
+//   resolvedEnumValues — Map<memberName, number>         v2
+//
+// Per-run state (reset at the start of every run()):
+//   callStack, eventEmitter (step counter), snapshots, globalVariables,
+//   staticStorage, accumulatedOutput, inputQueue
+//
+// Extension history:
+//   v1 — Initial: loadProgram, run, invokeFunction, invokeFunctionCall,
+//        invokeMethodCall, attachEvaluationInterceptor.
+//   v2 — Added: enumBlueprints / typeAliases registration in loadProgram();
+//               resolvedEnumValues injection into every frame;
+//               staticStorage map + mirroring in invokeFunction();
+//               inputQueue + setInputValues() / provideInput() for cin;
+//               breakpoint management + BreakpointSignal catch in run();
+//               setEventFilter() / clearEventFilter() delegating to EventEmitter;
+//               setMaxDepth() delegating to CallStack;
+//               accumulatedOutput for full stdout in snapshots;
+//               extended STL intercepts: find_if, all_of, any_of, none_of,
+//               for_each, iota, rotate, copy, partition, transform, remove_if,
+//               multiset/multimap stubs;
+//               getSnapshots() / getOutput() public accessors.
+// ============================================================================
 
-/**
- * The `ExecutionEngine` is the master orchestrator of the runtime environment.
- * It initializes the global memory space, resolves function definitions, and 
- * drives the execution of the Intermediate Representation (IR) tree.
- * Crucially, it manages the `EventEmitter` subscription that generates chronological 
- * `RuntimeSnapshot` objects for the React visualization frontend.
- */
+import type {
+  IRProgram,
+  IRFunctionDeclaration,
+  IRFunctionCall,
+  IRMethodCall,
+  IRNewExpression,
+  IRLambdaExpression,
+  IRStructDeclaration,
+  IREnumDeclaration,
+  // IRTypeAlias,
+  IRExpression,
+  IRVariableDeclaration,
+} from "../ir/IRNode";
+import { CallStack }             from "../runtime/CallStack";
+import { EventEmitter }          from "../events/EventEmitter";
+import { ExpressionEvaluator }   from "../evaluator/ExpressionEvaluator";
+import { StatementExecutor }     from "../executor/StatementExecutor";
+import { IRWalker }              from "../walker/IRWalker";
+import { EventType }             from "../types";
+import type {
+  RuntimeSnapshot,
+  CppValue,
+  CppType,
+  EventFilter,
+  Breakpoint,
+  StaticStorageKey,
+} from "../types";
+import {
+  createSnapshot,
+  ReturnSignal,
+  ThrowSignal,
+  BreakpointSignal,
+  cloneRuntimeValue,
+} from "../utils/helpers";
+
+
+// ─── ExecutionEngine ──────────────────────────────────────────────────────────
+
 export class ExecutionEngine {
-  private callStack: CallStack;
-  private eventEmitter: EventEmitter;
-  private functions: Map<string, IRFunctionDeclaration>;
-  public classBlueprints: Map<string, IRStructDeclaration>;
-  private snapshots: RuntimeSnapshot[];
-  private globalDeclarations: IRVariableDeclaration[] = [];
-  private globalVariables: Map<string, { type: CppType; value: CppValue }> = new Map();
+
+  // ── Persistent registries (survive across runs) ───────────────────────────
+
+  /** All parsed function declarations, keyed by function name. */
+  private functions:          Map<string, IRFunctionDeclaration>;
+
+  /** All parsed struct / class blueprints, keyed by type name. */
+  public  classBlueprints:    Map<string, IRStructDeclaration>;
+
+  /** v2: All parsed enum / enum-class blueprints, keyed by enum name. */
+  private enumBlueprints:     Map<string, IREnumDeclaration>;
+
+  /**
+   * v2: Flattened enum member → integer value map.
+   * Pre-computed from enumBlueprints at loadProgram() time so that per-frame
+   * injection is a simple Map iteration rather than re-evaluating expressions.
+   * Includes both unqualified names (`NORTH`) and qualified names (`Direction::NORTH`).
+   */
+  private resolvedEnumValues: Map<string, number>;
+
+  /** v2: Type alias expansions, keyed by alias name. */
+  private typeAliases:        Map<string, string>;
+
+  // ── Per-run state ─────────────────────────────────────────────────────────
+
+  private callStack:           CallStack;
+  private eventEmitter:        EventEmitter;
+  private snapshots:           RuntimeSnapshot[];
+  private globalDeclarations:  IRVariableDeclaration[];
+  private globalVariables:     Map<string, { type: CppType; value: CppValue }>;
+
+  /**
+   * v2: Persistent storage for static local variables.
+   * Key format: "functionName::variableName" (StaticStorageKey branded string).
+   * Populated from ScopeManager.getStaticSymbols() in invokeFunction()'s finally.
+   * Passed to StatementExecutor so it can detect "already initialised" statics.
+   * Reset only when run() is called with resetStatics: true (default: false).
+   */
+  private staticStorage:       Map<StaticStorageKey, CppValue>;
+
+  /**
+   * v2: Queue of pre-supplied stdin tokens for `cin >>` interception.
+   * Populated by setInputValues(); consumed one token at a time by the
+   * inputProvider closure passed to ExpressionEvaluator.setInputProvider().
+   */
+  private inputQueue:          CppValue[];
+
+  /**
+   * v2: Accumulated stdout string across the entire run.
+   * Appended to on every WRITE event and included in every snapshot so the
+   * React terminal panel can show the full output at any step without
+   * replaying all prior WRITE events.
+   */
+  private accumulatedOutput:   string;
+
+  /**
+   * v2: Registered breakpoints. Passed to each IRWalker instance so the
+   * walker can throw BreakpointSignal when a matching line is reached.
+   */
+  private breakpoints:         Breakpoint[];
+
+  /**
+   * v2: Snapshots captured up to the most recent breakpoint pause.
+   * Cleared at the start of each run(); populated incrementally if run()
+   * is called in stepped mode (future: step() method).
+   */
+  private pausedAtStep:        number | null;
+
 
   constructor() {
-    this.callStack = new CallStack();
-    this.eventEmitter = new EventEmitter();
-    this.functions = new Map<string, IRFunctionDeclaration>();
-    this.classBlueprints = new Map<string, IRStructDeclaration>();
-    this.snapshots = [];
+    this.callStack          = new CallStack();
+    this.eventEmitter       = new EventEmitter();
+    this.functions          = new Map();
+    this.classBlueprints    = new Map();
+    this.enumBlueprints     = new Map();
+    this.resolvedEnumValues = new Map();
+    this.typeAliases        = new Map();
+    this.snapshots          = [];
+    this.globalDeclarations = [];
+    this.globalVariables    = new Map();
+    this.staticStorage      = new Map();
+    this.inputQueue         = [];
+    this.accumulatedOutput  = "";
+    this.breakpoints        = [];
+    this.pausedAtStep       = null;
 
-    // State Capture Hook: Generates a distinct memory snapshot upon any milestone event
+    // ── Snapshot capture hook ─────────────────────────────────────────────
+    // Registered once in the constructor and preserved across runs.
+    // Accumulates stdout and builds a full RuntimeSnapshot on every event.
     this.eventEmitter.subscribe((event) => {
-      const activeFrame = this.callStack.peek();
-      this.snapshots.push(createSnapshot(event, this.callStack, activeFrame.scopeManager));
+      // Accumulate stdout for the terminal panel.
+      if (
+        event.type === EventType.WRITE &&
+        typeof event.payload.output === "string"
+      ) {
+        this.accumulatedOutput += event.payload.output as string;
+      }
+
+      const activeFrame = this.callStack.isEmpty()
+        ? null
+        : this.callStack.peek();
+
+      if (activeFrame) {
+        this.snapshots.push(
+          createSnapshot(
+            event,
+            this.callStack,
+            activeFrame.scopeManager,
+            this.accumulatedOutput,
+          )
+        );
+      }
     });
   }
 
+
+  // ==========================================================================
+  // SECTION 1 — Program loading
+  // ==========================================================================
+
   /**
-   * Loads a parsed Intermediate Representation program into the engine's global registry.
+   * Registers all top-level declarations from a parsed IRProgram into the
+   * engine's global lookup tables. Must be called before run().
+   *
+   * Clears all previous registrations so the same engine instance can be
+   * reused across multiple programs without state contamination.
+   *
+   * v2: Also registers enum blueprints, resolves enum member values, and
+   * registers type aliases. Enum resolution uses a simple sequential pass:
+   * each member's value is either its explicit initialiser or the previous
+   * member's value + 1, matching C++ auto-increment semantics.
    */
   public loadProgram(program: IRProgram): void {
+    // ── Functions ─────────────────────────────────────────────────────────
     this.functions.clear();
     for (const func of program.functions) {
       this.functions.set(func.name, func);
     }
+
+    // ── Struct / class blueprints ─────────────────────────────────────────
     this.classBlueprints.clear();
-    if (program.structs) {
-      for (const structDecl of program.structs) {
-        this.classBlueprints.set(structDecl.name, structDecl);
+    for (const struct of program.structs ?? []) {
+      this.classBlueprints.set(struct.name, struct);
+    }
+
+    // ── Enum blueprints + value resolution (v2) ───────────────────────────
+    this.enumBlueprints.clear();
+    this.resolvedEnumValues.clear();
+
+    for (const enumDecl of program.enums ?? []) {
+      this.enumBlueprints.set(enumDecl.name, enumDecl);
+
+      let nextValue = 0;
+      for (const member of enumDecl.members) {
+        let memberValue = nextValue;
+
+        if (member.value) {
+          // Evaluate the explicit initialiser using a temporary lightweight
+          // evaluator that only handles literals and simple arithmetic.
+          // Full expression evaluation requires a ScopeManager frame which
+          // we cannot push during loadProgram() — so only literals are
+          // supported for now. Complex enum initialisers (referencing other
+          // enum members) may not resolve correctly.
+          try {
+            memberValue = this.evaluateEnumConstant(member.value);
+          } catch {
+            // Debug note: If this fires, the enum member's value uses a
+            // non-literal expression (e.g. NORTH = OTHER_ENUM + 1). It will
+            // default to the auto-incremented value. Full expression support
+            // would require deferring resolution to runtime.
+            console.warn(
+              `[ExecutionEngine.loadProgram] Could not resolve enum member ` +
+              `'${enumDecl.name}::${member.name}' — using auto-increment value ${nextValue}.`
+            );
+            memberValue = nextValue;
+          }
+        }
+
+        nextValue = memberValue + 1;
+
+        // Register both unqualified and qualified names.
+        this.resolvedEnumValues.set(member.name, memberValue);
+        this.resolvedEnumValues.set(`${enumDecl.name}::${member.name}`, memberValue);
       }
     }
-    // Store global variable declarations for evaluation at runtime
-    this.globalDeclarations = program.globals || [];
+
+    // ── Type aliases (v2) ─────────────────────────────────────────────────
+    this.typeAliases.clear();
+    for (const alias of program.aliases ?? []) {
+      this.typeAliases.set(alias.alias, alias.target);
+    }
+
+    // ── Global variable declarations ──────────────────────────────────────
+    this.globalDeclarations = program.globals ?? [];
   }
 
   /**
-   * Initiates the execution sequence from a specified entry point.
-   * @param entryPoint - The designated starting function (defaults to "main").
-   * @returns The complete array of chronological memory snapshots.
+   * Lightweight enum constant evaluator for use during loadProgram().
+   * Supports only numeric literals — sufficient for the vast majority of
+   * enum declarations in competitive programming.
+   *
+   * @param expr - The IRExpression from an IREnumMember's value field.
+   * @returns      The integer value of the constant.
+   * @throws       If the expression is not a supported literal.
    */
-  public run(entryPoint: string = "main"): RuntimeSnapshot[] {
-    this.snapshots = [];
+  private evaluateEnumConstant(expr: IRExpression): number {
+    if (expr.kind === "Literal" && typeof (expr as any).value === "number") {
+      return (expr as any).value as number;
+    }
+    if (expr.kind === "UnaryExpression" && (expr as any).operator === "-") {
+      return -this.evaluateEnumConstant((expr as any).argument);
+    }
+    if (expr.kind === "BinaryExpression") {
+      const l = this.evaluateEnumConstant((expr as any).left);
+      const r = this.evaluateEnumConstant((expr as any).right);
+      switch ((expr as any).operator) {
+        case "+": return l + r;
+        case "-": return l - r;
+        case "*": return l * r;
+        case "/": return Math.trunc(l / r);
+        case "<<": return l << r;
+        case ">>": return l >> r;
+        case "|": return l | r;
+        case "&": return l & r;
+      }
+    }
+    throw new Error("Non-literal enum constant — cannot resolve at load time.");
+  }
+
+
+  // ==========================================================================
+  // SECTION 2 — Runtime configuration
+  // ==========================================================================
+
+  /**
+   * Pre-loads stdin tokens that `cin >>` extractions will consume.
+   *
+   * Each string in `inputs` is treated as a whitespace-delimited token.
+   * Type coercion (string → int / double / char) is handled by
+   * ExpressionEvaluator.coerceCinToken() based on the target variable's
+   * declared type.
+   *
+   * Call this before run() for programs that read from stdin.
+   *
+   * @param inputs - Array of raw string tokens in the order they should
+   *   be consumed. May be pre-split: `["5", "3"]` for `cin >> a >> b`.
+   *
+   * @example
+   * engine.setInputValues(["10", "3.14", "hello"]);
+   * engine.run("main");
+   */
+  public setInputValues(inputs: string[]): void {
+    // Store as CppValue[] (strings) so the provider can return them directly.
+    // ExpressionEvaluator.coerceCinToken() handles conversion to the right type.
+    this.inputQueue = [...inputs];
+  }
+
+  /**
+   * Pops and returns the next input token from the queue.
+   * Called by the inputProvider closure installed in run().
+   * Returns undefined when the queue is exhausted.
+   */
+  private provideInput(): CppValue | undefined {
+    return this.inputQueue.length > 0 ? this.inputQueue.shift()! : undefined;
+  }
+
+  /**
+   * Registers breakpoints for the next run. Replaces any previously
+   * registered breakpoints.
+   *
+   * Disabled breakpoints (enabled: false) are filtered out here so the
+   * walker never sees them.
+   *
+   * @param breakpoints - Array of Breakpoint descriptors.
+   */
+  public setBreakpoints(breakpoints: Breakpoint[]): void {
+    this.breakpoints = breakpoints.filter(bp => bp.enabled !== false);
+  }
+
+  /**
+   * Clears all registered breakpoints.
+   */
+  public clearBreakpoints(): void {
+    this.breakpoints = [];
+  }
+
+  /**
+   * Installs an EventFilter on the EventEmitter.
+   * Suppresses high-frequency event categories to reduce snapshot count.
+   * Takes effect on the next emit() call.
+   *
+   * @param filter - See EventFilter interface in types.ts for full options.
+   */
+  public setEventFilter(filter: EventFilter): void {
+    this.eventEmitter.setFilter(filter);
+  }
+
+  /**
+   * Removes the active EventFilter, restoring full event emission.
+   */
+  public clearEventFilter(): void {
+    this.eventEmitter.clearFilter();
+  }
+
+  /**
+   * Updates the maximum recursion depth on the CallStack.
+   * Default is 10,000 frames. Lower values are useful for catching
+   * infinite recursion faster in testing; higher values allow genuinely
+   * deep recursive algorithms.
+   *
+   * @param depth - New maximum frame count. Must be >= 1.
+   */
+  public setMaxDepth(depth: number): void {
+    this.callStack.setMaxDepth(depth);
+  }
+
+
+  // ==========================================================================
+  // SECTION 3 — Run
+  // ==========================================================================
+
+  /**
+   * Executes the program from the specified entry point and returns all
+   * RuntimeSnapshots generated during execution.
+   *
+   * Execution sequence:
+   *   1. Reset all per-run state.
+   *   2. Install input provider on evaluators (for cin >>).
+   *   3. Evaluate global variable declarations in a synthetic frame.
+   *   4. Call the entry point function.
+   *   5. Return all snapshots.
+   *
+   * BreakpointSignal handling:
+   *   If a BreakpointSignal propagates out of invokeFunction(), it is caught
+   *   here, the current snapshot count is recorded, and the snapshots array
+   *   up to that point is returned. The paused step is exposed via
+   *   getPausedAtStep(). Future: a step() method will resume from this point.
+   *
+   * @param entryPoint     - The function name to call (default: "main").
+   * @param resetStatics   - If true, clear staticStorage before running.
+   *                         Default: false (static locals persist across runs).
+   * @returns                Array of chronological RuntimeSnapshots.
+   *
+   * @throws {Error} If the entry point function is not registered.
+   */
+  public run(
+    entryPoint:   string  = "main",
+    resetStatics: boolean = false,
+  ): RuntimeSnapshot[] {
+
+    // ── Reset per-run state ───────────────────────────────────────────────
+    this.snapshots         = [];
+    this.accumulatedOutput = "";
+    this.pausedAtStep      = null;
+    this.callStack.reset();
     this.eventEmitter.reset();
-    this.globalVariables.clear();
-    
+    if (resetStatics) this.staticStorage.clear();
+
     if (!this.functions.has(entryPoint)) {
-      throw new Error(`Linker Error: Entry point '${entryPoint}' not found in the parsed translation unit.`);
+      throw new Error(
+        `Linker Error: Entry point '${entryPoint}' not found. ` +
+        `Ensure the function is defined and loadProgram() was called with the correct IRProgram.`
+      );
     }
 
-    // ─── GLOBAL VARIABLE INITIALIZATION ──────────────────────────────────
-    // Evaluate all global declarations before any function runs.
-    // Uses a temporary frame to evaluate initializers, then stores results.
+    // ── Evaluate global variables ─────────────────────────────────────────
     if (this.globalDeclarations.length > 0) {
-      const tempFrame = this.callStack.push("__global_init__");
-      const tempEvaluator = new ExpressionEvaluator(tempFrame.scopeManager, this.eventEmitter);
-      const tempExecutor = new StatementExecutor(tempFrame.scopeManager, tempEvaluator, this.eventEmitter, this.classBlueprints);
+      const globalFrame    = this.callStack.push("__global_init__");
+      const globalEval     = new ExpressionEvaluator(globalFrame.scopeManager, this.eventEmitter);
+      this.attachEvaluationInterceptor(globalEval);
+      globalEval.setInputProvider(() => this.provideInput());
 
-      for (const globalDecl of this.globalDeclarations) {
+      const globalExecutor = new StatementExecutor(
+        globalFrame.scopeManager,
+        globalEval,
+        this.eventEmitter,
+        this.classBlueprints,
+        this.enumBlueprints,
+        this.typeAliases,
+        this.staticStorage,
+        "__global_init__",
+      );
+
+      for (const decl of this.globalDeclarations) {
         try {
-          tempExecutor.executeVariableDeclaration(globalDecl);
-          const symbol = tempFrame.scopeManager.getVariable(globalDecl.name);
-          this.globalVariables.set(globalDecl.name, {
-            type: symbol.type as CppType,
-            value: symbol.value
-          });
+          globalExecutor.executeVariableDeclaration(decl);
+          const sym = globalFrame.scopeManager.getVariable(decl.name);
+          this.globalVariables.set(decl.name, { type: sym.type as CppType, value: sym.value });
         } catch (e) {
-          console.warn(`[Engine] Failed to initialize global '${globalDecl.name}': ${(e as Error).message}`);
+          console.warn(
+            `[ExecutionEngine.run] Failed to initialise global '${decl.name}': ` +
+            `${(e as Error).message}`
+          );
         }
       }
-      this.callStack.pop(); // Remove temporary frame
+      this.callStack.pop();
     }
 
-    this.invokeFunction(entryPoint, []);
+    // ── Execute entry point ───────────────────────────────────────────────
+    try {
+      this.invokeFunction(entryPoint, []);
+    } catch (e: any) {
+      if (e instanceof BreakpointSignal || e?.name === "BreakpointSignal") {
+        // Record where we paused and return snapshots up to this point.
+        // The call stack is left intact for a future step() / resume() call.
+        this.pausedAtStep = e.line;
+        return this.snapshots;
+      }
+      if (e instanceof ThrowSignal || e?.name === "ThrowSignal") {
+        // Uncaught C++ exception — surface as a descriptive runtime error.
+        throw new Error(
+          `Uncaught Exception at line ${(e as ThrowSignal).payload.typeName ?? "unknown"}: ` +
+          `Thrown value: ${JSON.stringify((e as ThrowSignal).payload.value)}. ` +
+          `Add a try/catch block or ensure all throw paths are handled.`
+        );
+      }
+      throw e;
+    }
+
     return this.snapshots;
   }
 
+
+  // ==========================================================================
+  // SECTION 4 — Public accessors
+  // ==========================================================================
+
+  /** Returns the complete snapshot array from the last run. */
+  public getSnapshots(): RuntimeSnapshot[] { return this.snapshots; }
+
+  /** Returns the full stdout string accumulated during the last run. */
+  public getOutput(): string { return this.accumulatedOutput; }
+
   /**
-   * Resolves function calls, including native interception for C++ STL utilities.
-   * Supports passing function pointers and comparators dynamically.
+   * Returns the source line at which execution was paused by a breakpoint,
+   * or null if the last run completed without hitting a breakpoint.
    */
-  public invokeFunctionCall(callNode: IRFunctionCall, currentEvaluator: ExpressionEvaluator): CppValue {
-    const functionName = callNode.callee;
+  public getPausedAtStep(): number | null { return this.pausedAtStep; }
 
-    // ─── NATIVE C++ STD LIBRARY INTERCEPTS ──────────────────────────────
-    // Handle std::swap natively to enforce pass-by-reference semantics in JS
-    if (functionName === "swap" && callNode.arguments.length === 2) {
-      const arg1 = callNode.arguments[0];
-      const arg2 = callNode.arguments[1];
-
-      if (arg1.kind === "SubscriptExpression" && arg2.kind === "SubscriptExpression") {
-        const arr1 = currentEvaluator.evaluate((arg1 as any).object);
-        const idx1 = currentEvaluator.evaluate((arg1 as any).index) as number;
-        const arr2 = currentEvaluator.evaluate((arg2 as any).object);
-        const idx2 = currentEvaluator.evaluate((arg2 as any).index) as number;
-
-        const target1 = Array.isArray(arr1) ? arr1 : (arr1 as Record<string, any>).data;
-        const target2 = Array.isArray(arr2) ? arr2 : (arr2 as Record<string, any>).data;
-
-        const temp = target1[idx1];
-        target1[idx1] = target2[idx2];
-        target2[idx2] = temp;
-
-        this.eventEmitter.emit(callNode.line, EventType.FUNCTION_CALL, { function: "swap", args: [target1[idx1], target2[idx2]] });
-        this.eventEmitter.emit(callNode.line, EventType.FUNCTION_RETURN, { function: "swap", returnValue: undefined });
-        return undefined;
-      }
-
-      if (arg1.kind === "Identifier" && arg2.kind === "Identifier") {
-        const val1 = currentEvaluator.evaluate(arg1);
-        const val2 = currentEvaluator.evaluate(arg2);
-        const activeScope = this.callStack.peek().scopeManager;
-        
-        try { activeScope.assignVariable((arg1 as any).name, val2); } 
-        catch { activeScope.defineVariable((arg1 as any).name, "auto", val2); }
-
-        try { activeScope.assignVariable((arg2 as any).name, val1); } 
-        catch { activeScope.defineVariable((arg2 as any).name, "auto", val1); }
-        
-        return undefined;
-      }
-    }
-
-    // Handle STL Algorithm utilities natively
-    if (["reverse", "max_element", "min_element", "accumulate"].includes(functionName)) {
-      const arg1 = callNode.arguments[0];
-      if (arg1 && arg1.kind === "MethodCall") {
-        const targetObj = currentEvaluator.evaluate((arg1 as any).object);
-        const targetArray = Array.isArray(targetObj) ? targetObj : (targetObj as Record<string, any>).data;
-
-        if (functionName === "reverse") {
-          targetArray.reverse();
-          this.eventEmitter.emit(callNode.line, EventType.FUNCTION_CALL, { function: "reverse", args: [] });
-          this.eventEmitter.emit(callNode.line, EventType.FUNCTION_RETURN, { function: "reverse", returnValue: undefined });
-          return undefined;
-        }
-        if (functionName === "max_element") return Math.max(...targetArray);
-        if (functionName === "min_element") return Math.min(...targetArray);
-        if (functionName === "accumulate") {
-          const initial = currentEvaluator.evaluate(callNode.arguments[2]) as number;
-          return targetArray.reduce((acc: number, val: number) => acc + val, initial);
-        }
-      }
-    }
-
-    // Handle standard C++ math utilities
-    if (functionName === "max" || functionName === "min" || functionName === "abs") {
-      const args = callNode.arguments.map(arg => currentEvaluator.evaluate(arg));
-      if (functionName === "max") return Math.max(...(args as number[]));
-      if (functionName === "min") return Math.min(...(args as number[]));
-      if (functionName === "abs") return Math.abs(args[0] as number);
-    }
-
-    // ─── EXTENDED C++ STANDARD LIBRARY INTERCEPTS ──────────────────────────────
-
-    // MATH LIBRARY (<cmath>)
-    const MATH_FUNS: Record<string, (...a: number[]) => number> = {
-      sqrt:  Math.sqrt,   cbrt:  Math.cbrt,
-      pow:   Math.pow,    exp:   Math.exp,
-      log:   Math.log,    log2:  Math.log2,    log10: Math.log10,
-      floor: Math.floor,  ceil:  Math.ceil,    round: Math.round, trunc: Math.trunc,
-      sin:   Math.sin,    cos:   Math.cos,     tan:   Math.tan,
-      asin:  Math.asin,   acos:  Math.acos,    atan:  Math.atan,  atan2: Math.atan2,
-      sinh:  Math.sinh,   cosh:  Math.cosh,    tanh:  Math.tanh,
-      fabs:  Math.abs,    fabsf: Math.abs,     fmod:  (a, b) => a % b,
-      hypot: Math.hypot,  ldexp: (x, e) => x * Math.pow(2, e),
+  /** Returns telemetry from the EventEmitter for the last run. */
+  public getTelemetry(): { emitted: number; suppressed: number; maxDepth: number } {
+    return {
+      emitted:   this.eventEmitter.getTotalEmitted(),
+      suppressed: this.eventEmitter.getSuppressedCount(),
+      maxDepth:  this.callStack.getMaxReachedDepth(),
     };
-    if (Object.prototype.hasOwnProperty.call(MATH_FUNS, functionName)) {
-      const args = callNode.arguments.map(a => currentEvaluator.evaluate(a) as number);
-      const result = MATH_FUNS[functionName](...args);
-      this.eventEmitter.emit(callNode.line, EventType.FUNCTION_CALL, { function: functionName, args });
-      this.eventEmitter.emit(callNode.line, EventType.FUNCTION_RETURN, { function: functionName, returnValue: result });
+  }
+
+
+  // ==========================================================================
+  // SECTION 5 — Function invocation
+  // ==========================================================================
+
+  /**
+   * Intercepts function calls: applies stdlib polyfills first, then falls
+   * through to user-defined function invocation.
+   *
+   * The polyfill section is ordered from most-specific to most-general:
+   *   1. std::swap (requires raw argument inspection for by-ref swap)
+   *   2. STL algorithm functions (sort, reverse, find_if, all_of, …)
+   *   3. Math functions (<cmath>)
+   *   4. Numeric utilities (gcd, lcm)
+   *   5. Comparator functors (greater<>, less<>)
+   *   6. String utilities (to_string, stoi, …)
+   *   7. Character utilities (<cctype>)
+   *   8. I/O (printf, fprintf)
+   *   9. Assertions
+   *   10. User-defined functions / lambdas
+   */
+  public invokeFunctionCall(
+    callNode:         IRFunctionCall,
+    currentEvaluator: ExpressionEvaluator,
+  ): CppValue {
+    const fn = callNode.callee;
+
+    // ── 1. std::swap ──────────────────────────────────────────────────────
+    if (fn === "swap" && callNode.arguments.length === 2) {
+      return this.nativeSwap(callNode, currentEvaluator);
+    }
+
+    // ── 1.5 User-defined functions / lambdas ──────────────────────────────
+    // Prefer user-defined functions or local lambdas over STL polyfills to
+    // prevent shadowing bugs (e.g. user defining 'partition' or 'count').
+    let localFuncRef: any = undefined;
+    try {
+      if (!this.callStack.isEmpty()) {
+        const activeScope = this.callStack.peek().scopeManager;
+        localFuncRef = activeScope.getVariable(fn)?.value;
+      }
+    } catch { /* Not a local variable */ }
+
+    if (localFuncRef || this.functions.has(fn)) {
+      const args = callNode.arguments.map(arg => currentEvaluator.evaluate(arg));
+      if (localFuncRef) {
+        if (typeof localFuncRef === "function") return localFuncRef(...args);
+        if (typeof localFuncRef === "string")   return this.invokeFunction(localFuncRef, args, callNode.arguments, currentEvaluator);
+        if (localFuncRef.kind === "LambdaExpression") return this.invokeFunction(localFuncRef, args, callNode.arguments, currentEvaluator);
+      }
+      return this.invokeFunction(fn, args, callNode.arguments, currentEvaluator);
+    }
+
+    // ── 1.8 Container Constructors (e.g. vector<int>(n, INF)) ─────────────
+    if (fn.startsWith("vector") || fn.startsWith("list") || fn.startsWith("deque") || fn.startsWith("array")) {
+      const args = callNode.arguments.map(arg => currentEvaluator.evaluate(arg));
+      let size = -1;
+      let fill = 0;
+      if (args.length >= 1 && typeof args[0] === "number") size = args[0];
+      if (args.length >= 2) fill = args[1] as any;
+      if (size >= 0) {
+        const container = {
+          data: new Array(size).fill(fill) as any[],
+          size: () => container.data.length,
+          empty: () => container.data.length === 0,
+          push_back: (val: any) => { container.data.push(val); },
+          pop_back: () => { container.data.pop(); },
+          clear: () => { container.data = []; },
+          insert: (pos: number, val: any) => { container.data.splice(pos, 0, val); },
+          erase: (pos: number) => { container.data.splice(pos, 1); },
+          begin: () => 0,
+          end: () => container.data.length,
+          front: () => container.data[0],
+          back: () => container.data[container.data.length - 1],
+          __type: fn,
+          __isContainer: true
+        };
+        return container;
+      } else {
+        const container = {
+          data: [] as any[],
+          size: () => container.data.length,
+          empty: () => container.data.length === 0,
+          push_back: (val: any) => { container.data.push(val); },
+          pop_back: () => { container.data.pop(); },
+          clear: () => { container.data = []; },
+          insert: (pos: number, val: any) => { container.data.splice(pos, 0, val); },
+          erase: (pos: number) => { container.data.splice(pos, 1); },
+          begin: () => 0,
+          end: () => container.data.length,
+          front: () => container.data[0],
+          back: () => container.data[container.data.length - 1],
+          __type: fn,
+          __isContainer: true
+        };
+        return container;
+      }
+    }
+
+    // ── 2. STL algorithms ─────────────────────────────────────────────────
+
+    // Algorithms that operate on a begin-iterator argument (MethodCall on container).
+    if (["reverse", "max_element", "min_element", "accumulate"].includes(fn)) {
+      return this.nativeContainerAlgorithm(fn, callNode, currentEvaluator);
+    }
+
+    if (fn === "sort" || fn === "stable_sort") {
+      return this.nativeSort(fn, callNode, currentEvaluator);
+    }
+
+    if (fn === "fill" || fn === "fill_n") {
+      return this.nativeFill(fn, callNode, currentEvaluator);
+    }
+
+    if (fn === "count" || fn === "count_if") {
+      return this.nativeCount(fn, callNode, currentEvaluator);
+    }
+
+    if (fn === "find") {
+      return this.nativeFind(false, callNode, currentEvaluator);
+    }
+
+    if (fn === "find_if") {                                        // v2
+      return this.nativeFind(true, callNode, currentEvaluator);
+    }
+
+    if (fn === "all_of") {                                         // v2
+      return this.nativeQuantifier("all",  callNode, currentEvaluator);
+    }
+    if (fn === "any_of") {                                         // v2
+      return this.nativeQuantifier("any",  callNode, currentEvaluator);
+    }
+    if (fn === "none_of") {                                        // v2
+      return this.nativeQuantifier("none", callNode, currentEvaluator);
+    }
+
+    if (fn === "for_each") {                                       // v2
+      return this.nativeForEach(callNode, currentEvaluator);
+    }
+
+    if (fn === "transform") {                                      // v2
+      return this.nativeTransform(callNode, currentEvaluator);
+    }
+
+    if (fn === "remove_if") {                                      // v2
+      return this.nativeRemoveIf(callNode, currentEvaluator);
+    }
+
+    if (fn === "iota") {                                           // v2
+      return this.nativeIota(callNode, currentEvaluator);
+    }
+
+    if (fn === "rotate") {                                         // v2
+      return this.nativeRotate(callNode, currentEvaluator);
+    }
+
+    if (fn === "copy") {                                           // v2
+      return this.nativeCopy(callNode, currentEvaluator);
+    }
+
+    if (fn === "partition") {                                      // v2
+      return this.nativePartition(callNode, currentEvaluator);
+    }
+
+    if (fn === "unique") {
+      return this.nativeUnique(callNode, currentEvaluator);
+    }
+
+    if (fn === "next_permutation" || fn === "prev_permutation") {
+      return this.nativePermutation(fn, callNode, currentEvaluator);
+    }
+
+    if (fn === "lower_bound" || fn === "upper_bound") {
+      return this.nativeBinaryBound(fn, callNode, currentEvaluator);
+    }
+
+    if (fn === "binary_search") {
+      return this.nativeBinarySearch(callNode, currentEvaluator);
+    }
+
+    // ── 3. Math functions ─────────────────────────────────────────────────
+    const MATH_FUNS: Record<string, (...a: number[]) => number> = {
+      sqrt:  Math.sqrt,   cbrt:   Math.cbrt,
+      pow:   Math.pow,    exp:    Math.exp,
+      log:   Math.log,    log2:   Math.log2,   log10: Math.log10,
+      floor: Math.floor,  ceil:   Math.ceil,   round: Math.round,  trunc: Math.trunc,
+      sin:   Math.sin,    cos:    Math.cos,    tan:   Math.tan,
+      asin:  Math.asin,   acos:   Math.acos,   atan:  Math.atan,   atan2: Math.atan2,
+      sinh:  Math.sinh,   cosh:   Math.cosh,   tanh:  Math.tanh,
+      fabs:  Math.abs,    fabsf:  Math.abs,    fmod:  (a, b) => a % b,
+      hypot: Math.hypot,  ldexp:  (x, e) => x * 2 ** e,
+      max:   Math.max,    min:    Math.min,    abs:   Math.abs,
+    };
+    if (Object.prototype.hasOwnProperty.call(MATH_FUNS, fn)) {
+      const args   = callNode.arguments.map(a => currentEvaluator.evaluate(a) as number);
+      const result = MATH_FUNS[fn](...args);
+      this.eventEmitter.emit(callNode.line, EventType.FUNCTION_CALL,   { function: fn, args });
+      this.eventEmitter.emit(callNode.line, EventType.FUNCTION_RETURN, { function: fn, returnValue: result });
       return result;
     }
 
-    // GCD & LCM (<numeric>)
-    if (functionName === "__gcd" || functionName === "gcd") {
+    // ── 4. Numeric utilities ──────────────────────────────────────────────
+    if (fn === "__gcd" || fn === "gcd") {
       let a = Math.abs(currentEvaluator.evaluate(callNode.arguments[0]) as number);
       let b = Math.abs(currentEvaluator.evaluate(callNode.arguments[1]) as number);
       while (b) { [a, b] = [b, a % b]; }
       return a;
     }
-    if (functionName === "lcm") {
+    if (fn === "lcm") {
       let a = Math.abs(currentEvaluator.evaluate(callNode.arguments[0]) as number);
       let b = Math.abs(currentEvaluator.evaluate(callNode.arguments[1]) as number);
       if (a === 0 || b === 0) return 0;
@@ -211,646 +756,876 @@ export class ExecutionEngine {
       return (a / pa) * b;
     }
 
-    // COMPARATOR FUNCTORS — greater<>() / less<>() / greater_equal<>() / less_equal<>()
-    // These are callable objects used as sort comparators. Return a JS comparator function.
-    if (functionName.startsWith("greater") || functionName === "greater") {
-      return ((a: number, b: number) => (a > b ? -1 : a < b ? 1 : 0)) as unknown as CppValue;
-    }
-    if (functionName.startsWith("less") || functionName === "less") {
-      return ((a: number, b: number) => (a < b ? -1 : a > b ? 1 : 0)) as unknown as CppValue;
-    }
-    if (functionName.startsWith("greater_equal")) {
-      return ((a: number, b: number) => (a >= b ? -1 : 1)) as unknown as CppValue;
-    }
-    if (functionName.startsWith("less_equal")) {
-      return ((a: number, b: number) => (a <= b ? -1 : 1)) as unknown as CppValue;
-    }
+    // ── 5. Comparator functors ────────────────────────────────────────────
+    if (fn.startsWith("greater"))      return ((a: number, b: number) => a > b ? -1 : a < b ? 1 : 0)  as unknown as CppValue;
+    if (fn.startsWith("less_equal"))   return ((a: number, b: number) => a <= b ? -1 : 1)              as unknown as CppValue;
+    if (fn.startsWith("greater_equal"))return ((a: number, b: number) => a >= b ? -1 : 1)              as unknown as CppValue;
+    if (fn.startsWith("less"))         return ((a: number, b: number) => a < b ? -1 : a > b ? 1 : 0)  as unknown as CppValue;
 
-    // STL SORT with optional comparator (<algorithm>)
-    // Handles: sort(v.begin(), v.end()) and sort(v.begin(), v.end(), greater<int>())
-    if (functionName === "sort" || functionName === "stable_sort") {
-      const arg1 = callNode.arguments[0];
-      if (arg1 && arg1.kind === "MethodCall") {
-        const targetObj = currentEvaluator.evaluate((arg1 as any).object);
-        const arr = Array.isArray(targetObj) ? targetObj : (targetObj as any)?.data;
-        if (arr && Array.isArray(arr)) {
-          if (callNode.arguments.length >= 3) {
-            const cmpVal = currentEvaluator.evaluate(callNode.arguments[2]);
-            if (typeof cmpVal === "function") {
-              arr.sort((a: any, b: any) => {
-                const r = (cmpVal as Function)(a, b);
-                return typeof r === "boolean" ? (r ? -1 : 1) : (r as number);
-              });
-            } else {
-              arr.sort((a: any, b: any) => a - b);
-            }
-          } else {
-            arr.sort((a: any, b: any) => a - b);
-          }
-          this.eventEmitter.emit(callNode.line, EventType.FUNCTION_CALL, { function: functionName, args: [] });
-          this.eventEmitter.emit(callNode.line, EventType.FUNCTION_RETURN, { function: functionName, returnValue: undefined });
-        }
-      }
-      return undefined;
-    }
-
-    // FILL / FILL_N (<algorithm>)
-    if (functionName === "fill" || functionName === "fill_n") {
-      const arg1 = callNode.arguments[0];
-      if (arg1 && arg1.kind === "MethodCall") {
-        const targetObj = currentEvaluator.evaluate((arg1 as any).object);
-        const arr = Array.isArray(targetObj) ? targetObj : (targetObj as any)?.data;
-        if (arr && Array.isArray(arr)) {
-          const fillVal = currentEvaluator.evaluate(
-            functionName === "fill_n" ? callNode.arguments[2] : callNode.arguments[2]
-          );
-          if (functionName === "fill_n") {
-            const n = currentEvaluator.evaluate(callNode.arguments[1]) as number;
-            for (let i = 0; i < n && i < arr.length; i++) arr[i] = fillVal;
-          } else {
-            arr.fill(fillVal);
-          }
-        }
-      }
-      return undefined;
-    }
-
-    // COUNT / COUNT_IF (<algorithm>)
-    if (functionName === "count" || functionName === "count_if") {
-      const arg1 = callNode.arguments[0];
-      if (arg1 && arg1.kind === "MethodCall") {
-        const targetObj = currentEvaluator.evaluate((arg1 as any).object);
-        const arr = Array.isArray(targetObj) ? targetObj : (targetObj as any)?.data;
-        if (arr && Array.isArray(arr)) {
-          if (functionName === "count") {
-            const val = currentEvaluator.evaluate(callNode.arguments[2]);
-            return arr.filter((x: any) => x === val).length;
-          } else {
-            const pred = currentEvaluator.evaluate(callNode.arguments[2]);
-            if (typeof pred === "function") {
-              return arr.filter((x: any) => (pred as Function)(x)).length;
-            }
-          }
-        }
-      }
-      return 0;
-    }
-
-    // UNIQUE (<algorithm>) — removes consecutive duplicates in-place
-    if (functionName === "unique") {
-      const arg1 = callNode.arguments[0];
-      if (arg1 && arg1.kind === "MethodCall") {
-        const targetObj = currentEvaluator.evaluate((arg1 as any).object);
-        const arr = Array.isArray(targetObj) ? targetObj : (targetObj as any)?.data;
-        if (arr && Array.isArray(arr)) {
-          const filtered = arr.filter((v: any, i: number) => i === 0 || v !== arr[i - 1]);
-          arr.splice(0, arr.length, ...filtered);
-          return arr.length; // C++ unique returns iterator to new end
-        }
-      }
-      return 0;
-    }
-
-    // NEXT_PERMUTATION / PREV_PERMUTATION (<algorithm>)
-    if (functionName === "next_permutation" || functionName === "prev_permutation") {
-      const arg1 = callNode.arguments[0];
-      if (arg1 && arg1.kind === "MethodCall") {
-        const targetObj = currentEvaluator.evaluate((arg1 as any).object);
-        const arr = Array.isArray(targetObj) ? targetObj : (targetObj as any)?.data;
-        if (arr && Array.isArray(arr)) {
-          const n = arr.length;
-          let i = n - 2;
-          if (functionName === "next_permutation") {
-            while (i >= 0 && arr[i] >= arr[i + 1]) i--;
-            if (i < 0) { arr.reverse(); return false; }
-            let j = n - 1;
-            while (arr[j] <= arr[i]) j--;
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-            arr.splice(i + 1, n - i - 1, ...arr.slice(i + 1).reverse());
-          } else {
-            while (i >= 0 && arr[i] <= arr[i + 1]) i--;
-            if (i < 0) { arr.reverse(); return false; }
-            let j = n - 1;
-            while (arr[j] >= arr[i]) j--;
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-            arr.splice(i + 1, n - i - 1, ...arr.slice(i + 1).reverse());
-          }
-          return true;
-        }
-      }
-      return false;
-    }
-
-    // BINARY SEARCH — lower_bound / upper_bound (<algorithm>)
-    if (functionName === "lower_bound" || functionName === "upper_bound") {
-      const arg1 = callNode.arguments[0];
-      if (arg1 && arg1.kind === "MethodCall") {
-        const targetObj = currentEvaluator.evaluate((arg1 as any).object);
-        const arr = (Array.isArray(targetObj) ? targetObj : (targetObj as any)?.data) as number[];
-        const val = currentEvaluator.evaluate(callNode.arguments[2]) as number;
-        if (arr && Array.isArray(arr)) {
-          let lo = 0, hi = arr.length;
-          while (lo < hi) {
-            const mid = (lo + hi) >>> 1;
-            const shouldAdvance = functionName === "lower_bound"
-              ? arr[mid] < val
-              : arr[mid] <= val;
-            if (shouldAdvance) lo = mid + 1; else hi = mid;
-          }
-          return lo;
-        }
-      }
-      return 0;
-    }
-
-    // BINARY_SEARCH (<algorithm>) — returns bool
-    if (functionName === "binary_search") {
-      const arg1 = callNode.arguments[0];
-      if (arg1 && arg1.kind === "MethodCall") {
-        const targetObj = currentEvaluator.evaluate((arg1 as any).object);
-        const arr = (Array.isArray(targetObj) ? targetObj : (targetObj as any)?.data) as any[];
-        const val = currentEvaluator.evaluate(callNode.arguments[2])!;
-        if (arr && Array.isArray(arr)) {
-          let lo = 0, hi = arr.length;
-          while (lo < hi) {
-            const mid = (lo + hi) >>> 1;
-            if (arr[mid] < val) lo = mid + 1;
-            else if (arr[mid] > val) hi = mid;
-            else return true;
-          }
-          return false;
-        }
-      }
-      return false;
-    }
-
-    // MAKE_PAIR / MAKE_TUPLE
-    if (functionName === "make_pair" || functionName === "pair") {
+    // ── 6. make_pair / make_tuple / pair ──────────────────────────────────
+    if (fn === "make_pair" || fn === "pair") {
       const a0 = currentEvaluator.evaluate(callNode.arguments[0]);
-      const a1 = callNode.arguments.length > 1 ? currentEvaluator.evaluate(callNode.arguments[1]) : undefined;
-      return [a0, a1 !== undefined ? a1 : 0];
+      const a1 = callNode.arguments.length > 1 ? currentEvaluator.evaluate(callNode.arguments[1]) : 0;
+      return [a0, a1];
     }
-    if (functionName === "make_tuple") {
+    if (fn === "make_tuple") {
       return callNode.arguments.map(a => currentEvaluator.evaluate(a));
     }
 
-    // STRING UTILITIES (<string>, <sstream>)
-    if (functionName === "to_string") {
-      const v = currentEvaluator.evaluate(callNode.arguments[0]);
-      return String(v ?? "");
-    }
-    if (functionName === "stoi" || functionName === "stol" || functionName === "stoll") {
-      const s = currentEvaluator.evaluate(callNode.arguments[0]) as string;
-      return parseInt(String(s), 10);
-    }
-    if (functionName === "stod" || functionName === "stof" || functionName === "stold") {
-      const s = currentEvaluator.evaluate(callNode.arguments[0]) as string;
-      return parseFloat(String(s));
-    }
-    if (functionName === "atoi") {
-      const s = currentEvaluator.evaluate(callNode.arguments[0]) as string;
-      return parseInt(String(s), 10);
-    }
-    if (functionName === "atof") {
-      const s = currentEvaluator.evaluate(callNode.arguments[0]) as string;
-      return parseFloat(String(s));
-    }
-    // toupper / tolower for char arithmetic
-    if (functionName === "toupper" || functionName === "tolower") {
-      const c = currentEvaluator.evaluate(callNode.arguments[0]);
+    // ── 7. String utilities ───────────────────────────────────────────────
+    if (fn === "to_string")  return String(currentEvaluator.evaluate(callNode.arguments[0]) ?? "");
+    if (fn === "stoi"  || fn === "stol"  || fn === "stoll") return parseInt(String(currentEvaluator.evaluate(callNode.arguments[0])), 10);
+    if (fn === "stod"  || fn === "stof"  || fn === "stold") return parseFloat(String(currentEvaluator.evaluate(callNode.arguments[0])));
+    if (fn === "atoi") return parseInt(String(currentEvaluator.evaluate(callNode.arguments[0])), 10);
+    if (fn === "atof") return parseFloat(String(currentEvaluator.evaluate(callNode.arguments[0])));
+
+    // ── 8. Character utilities ────────────────────────────────────────────
+    const charFns: Record<string, (ch: string) => CppValue> = {
+      toupper:  ch => ch.toUpperCase().charCodeAt(0),
+      tolower:  ch => ch.toLowerCase().charCodeAt(0),
+      isdigit:  ch => /\d/.test(ch) ? 1 : 0,
+      isalpha:  ch => /[a-zA-Z]/.test(ch) ? 1 : 0,
+      isalnum:  ch => /[a-zA-Z0-9]/.test(ch) ? 1 : 0,
+      islower:  ch => /[a-z]/.test(ch) ? 1 : 0,
+      isupper:  ch => /[A-Z]/.test(ch) ? 1 : 0,
+      isspace:  ch => /\s/.test(ch) ? 1 : 0,
+      ispunct:  ch => /[^\w\s]/.test(ch) ? 1 : 0,
+      isprint:  ch => ch.charCodeAt(0) >= 32 && ch.charCodeAt(0) < 127 ? 1 : 0,
+    };
+    if (Object.prototype.hasOwnProperty.call(charFns, fn)) {
+      const c  = currentEvaluator.evaluate(callNode.arguments[0]);
       const ch = typeof c === "string" ? c : String.fromCharCode(c as number);
-      const out = functionName === "toupper" ? ch.toUpperCase() : ch.toLowerCase();
-      return out.charCodeAt(0);
-    }
-    if (functionName === "isdigit") {
-      const c = currentEvaluator.evaluate(callNode.arguments[0]);
-      const ch = typeof c === "string" ? c : String.fromCharCode(c as number);
-      return /\d/.test(ch) ? 1 : 0;
-    }
-    if (functionName === "isalpha") {
-      const c = currentEvaluator.evaluate(callNode.arguments[0]);
-      const ch = typeof c === "string" ? c : String.fromCharCode(c as number);
-      return /[a-zA-Z]/.test(ch) ? 1 : 0;
-    }
-    if (functionName === "isalnum") {
-      const c = currentEvaluator.evaluate(callNode.arguments[0]);
-      const ch = typeof c === "string" ? c : String.fromCharCode(c as number);
-      return /[a-zA-Z0-9]/.test(ch) ? 1 : 0;
-    }
-    if (functionName === "islower") {
-      const c = currentEvaluator.evaluate(callNode.arguments[0]);
-      const ch = typeof c === "string" ? c : String.fromCharCode(c as number);
-      return /[a-z]/.test(ch) ? 1 : 0;
-    }
-    if (functionName === "isupper") {
-      const c = currentEvaluator.evaluate(callNode.arguments[0]);
-      const ch = typeof c === "string" ? c : String.fromCharCode(c as number);
-      return /[A-Z]/.test(ch) ? 1 : 0;
-    }
-    if (functionName === "isspace") {
-      const c = currentEvaluator.evaluate(callNode.arguments[0]);
-      const ch = typeof c === "string" ? c : String.fromCharCode(c as number);
-      return /\s/.test(ch) ? 1 : 0;
+      return charFns[fn](ch);
     }
 
-    // PRINTF (<cstdio>) — emits formatted output to the visualizer
-    if (functionName === "printf" || functionName === "fprintf") {
+    // ── 9. printf / fprintf ───────────────────────────────────────────────
+    if (fn === "printf" || fn === "fprintf") {
       const rawArgs = callNode.arguments.map(a => currentEvaluator.evaluate(a));
-      const fmtStr = String(rawArgs[0] ?? "");
-      let argIdx = 1;
-      const formatted = fmtStr.replace(/%[-+0 #]*\d*(?:\.\d+)?[diouxXeEfgGscpn%lh]/g, (match) => {
-        if (match === "%%") return "%";
-        return String(rawArgs[argIdx++] ?? "");
-      });
+      const fmtStr  = String(rawArgs[0] ?? "");
+      let   argIdx  = 1;
+      const formatted = fmtStr.replace(
+        /%[-+0 #]*\d*(?:\.\d+)?[diouxXeEfgGscpn%lh]/g,
+        match => match === "%%" ? "%" : String(rawArgs[argIdx++] ?? "")
+      );
       this.eventEmitter.emit(callNode.line, EventType.WRITE, { output: formatted });
       return 0;
     }
 
-    // ASSERT — throw on false assertion
-    if (functionName === "assert") {
+    // ── 10. assert ────────────────────────────────────────────────────────
+    if (fn === "assert") {
       const v = currentEvaluator.evaluate(callNode.arguments[0]);
-      if (!v) throw new Error(`Assertion Failed at line ${callNode.line}: assert(${callNode.arguments[0] ? "expr" : ""}) evaluated to false.`);
+      if (!v) throw new Error(`Assertion Failed at line ${callNode.line}: assert() evaluated to false.`);
       return undefined;
     }
 
-    // ─── STANDARD FUNCTION INVOCATION ───────────────────────────────────
+    // ── 11. Fallback for unrecognized functions ───────────────────────────
+    // If we reach here, the function was not an STL polyfill and not defined
+    // by the user. We attempt to invoke it anyway, which will throw a linker
+    // error inside invokeFunction if it truly doesn't exist.
     const args = callNode.arguments.map(arg => currentEvaluator.evaluate(arg));
-    let targetCallee: string | any = callNode.callee;
-    let localFuncRef: any = undefined;
-    try { 
-      const activeScope = this.callStack.peek().scopeManager;
-      localFuncRef = activeScope.getVariable(functionName)?.value;
-    } catch (e) { /* Fallback to global registry */ }
-    
-    if (typeof localFuncRef === "function") {
-        return localFuncRef(...args);
-    }
-    
-    if (typeof localFuncRef === "string") targetCallee = localFuncRef; 
-    else if (localFuncRef && typeof localFuncRef === "object" && (localFuncRef as any).kind === "LambdaExpression") {
-        targetCallee = localFuncRef;
-    }
-
-    return this.invokeFunction(targetCallee, args, callNode.arguments, currentEvaluator);
+    return this.invokeFunction(fn, args, callNode.arguments, currentEvaluator);
   }
 
+
+  // ==========================================================================
+  // SECTION 6 — STL Algorithm Implementations
+  // ==========================================================================
+
+  /** Resolves a begin-iterator MethodCall argument to the backing JS array. */
+  private resolveContainerArray(
+    callNode:         IRFunctionCall,
+    currentEvaluator: ExpressionEvaluator,
+    argIndex:         number = 0,
+  ): any[] | null {
+    const arg = callNode.arguments[argIndex];
+    if (!arg || arg.kind !== "MethodCall") return null;
+    const obj = currentEvaluator.evaluate((arg as any).object);
+    return Array.isArray(obj) ? obj : (obj as any)?.data ?? null;
+  }
+
+  private nativeSwap(callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const [arg1, arg2] = callNode.arguments;
+
+    if (arg1.kind === "SubscriptExpression" && arg2.kind === "SubscriptExpression") {
+      const arr1Obj = (arg1 as any).object;
+      const arr2Obj = (arg2 as any).object;
+      const arr1 = ev.evaluate(arr1Obj);
+      const idx1 = ev.evaluate((arg1 as any).index) as number;
+      const arr2 = ev.evaluate(arr2Obj);
+      const idx2 = ev.evaluate((arg2 as any).index) as number;
+      const t1   = Array.isArray(arr1) ? arr1 : (arr1 as any).data;
+      const t2   = Array.isArray(arr2) ? arr2 : (arr2 as any).data;
+      const tmp  = t1[idx1]; t1[idx1] = t2[idx2]; t2[idx2] = tmp;
+
+      const name1 = arr1Obj.kind === "Identifier" ? arr1Obj.name : "array";
+      const name2 = arr2Obj.kind === "Identifier" ? arr2Obj.name : "array";
+      this.eventEmitter.emit(callNode.line, EventType.ASSIGNMENT, { variable: `${name1}[${idx1}]`, value: t1[idx1] });
+      this.eventEmitter.emit(callNode.line, EventType.ASSIGNMENT, { variable: `${name2}[${idx2}]`, value: t2[idx2] });
+    } else if (arg1.kind === "Identifier" && arg2.kind === "Identifier") {
+      const v1 = ev.evaluate(arg1);
+      const v2 = ev.evaluate(arg2);
+      const scope = this.callStack.peek().scopeManager;
+      const name1 = (arg1 as any).name;
+      const name2 = (arg2 as any).name;
+      try { scope.assignVariable(name1, v2); } catch { scope.defineVariable(name1, "auto", v2); }
+      try { scope.assignVariable(name2, v1); } catch { scope.defineVariable(name2, "auto", v1); }
+
+      this.eventEmitter.emit(callNode.line, EventType.ASSIGNMENT, { variable: name1, value: v2 });
+      this.eventEmitter.emit(callNode.line, EventType.ASSIGNMENT, { variable: name2, value: v1 });
+    }
+    return undefined;
+  }
+
+  private nativeContainerAlgorithm(fn: string, callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const arr = this.resolveContainerArray(callNode, ev);
+    if (!arr) return undefined;
+    if (fn === "reverse")     { arr.reverse(); return undefined; }
+    if (fn === "max_element") return Math.max(...arr);
+    if (fn === "min_element") return Math.min(...arr);
+    if (fn === "accumulate")  {
+      const init = ev.evaluate(callNode.arguments[2]) as number;
+      return arr.reduce((acc: number, val: number) => acc + val, init);
+    }
+    return undefined;
+  }
+
+  private nativeSort(fn: string, callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const arr = this.resolveContainerArray(callNode, ev);
+    if (!arr) return undefined;
+    if (callNode.arguments.length >= 3) {
+      const cmp = ev.evaluate(callNode.arguments[2]);
+      if (typeof cmp === "function") {
+        arr.sort((a, b) => {
+          const r = (cmp as Function)(a, b);
+          return typeof r === "boolean" ? (r ? -1 : 1) : r as number;
+        });
+      } else {
+        arr.sort((a, b) => a - b);
+      }
+    } else {
+      arr.sort((a, b) => {
+        // Lexicographic sort for arrays (pairs/tuples), numeric for primitives.
+        if (Array.isArray(a) && Array.isArray(b)) {
+          for (let i = 0; i < Math.min(a.length, b.length); i++) {
+            if (a[i] !== b[i]) return a[i] - b[i];
+          }
+          return a.length - b.length;
+        }
+        return a - b;
+      });
+    }
+    this.eventEmitter.emit(callNode.line, EventType.FUNCTION_CALL,   { function: fn, args: [] });
+    this.eventEmitter.emit(callNode.line, EventType.FUNCTION_RETURN, { function: fn, returnValue: undefined });
+    return undefined;
+  }
+
+  private nativeFill(fn: string, callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const arr = this.resolveContainerArray(callNode, ev);
+    if (!arr) return undefined;
+    const fillVal = ev.evaluate(callNode.arguments[2]);
+    if (fn === "fill_n") {
+      const n = ev.evaluate(callNode.arguments[1]) as number;
+      for (let i = 0; i < n && i < arr.length; i++) arr[i] = fillVal;
+    } else {
+      arr.fill(fillVal);
+    }
+    return undefined;
+  }
+
+  private nativeCount(fn: string, callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const arr = this.resolveContainerArray(callNode, ev);
+    if (!arr) return 0;
+    if (fn === "count") {
+      const val = ev.evaluate(callNode.arguments[2]);
+      return arr.filter((x: any) => x === val).length;
+    }
+    const pred = ev.evaluate(callNode.arguments[2]);
+    return typeof pred === "function" ? arr.filter((x: any) => (pred as Function)(x)).length : 0;
+  }
+
+  /** v2: find and find_if. Returns the 0-based index of the match, or -1. */
+  private nativeFind(byPredicate: boolean, callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const arr = this.resolveContainerArray(callNode, ev);
+    if (!arr) return -1;
+    const needle = ev.evaluate(callNode.arguments[2]);
+    if (byPredicate) {
+      return typeof needle === "function"
+        ? arr.findIndex((x: any) => (needle as Function)(x))
+        : -1;
+    }
+    return arr.indexOf(needle);
+  }
+
+  /** v2: all_of / any_of / none_of. */
+  private nativeQuantifier(
+    kind:     "all" | "any" | "none",
+    callNode: IRFunctionCall,
+    ev:       ExpressionEvaluator,
+  ): CppValue {
+    const arr  = this.resolveContainerArray(callNode, ev);
+    if (!arr) return kind === "all" || kind === "none";
+    const pred = ev.evaluate(callNode.arguments[2]);
+    if (typeof pred !== "function") return false;
+    const fn   = pred as Function;
+    if (kind === "all")  return arr.every((x: any)  =>  fn(x));
+    if (kind === "any")  return arr.some((x: any)   =>  fn(x));
+                         return arr.every((x: any)  => !fn(x));
+  }
+
+  /** v2: for_each — applies a function to every element. */
+  private nativeForEach(callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const arr  = this.resolveContainerArray(callNode, ev);
+    const func = ev.evaluate(callNode.arguments[2]);
+    if (arr && typeof func === "function") arr.forEach((x: any) => (func as Function)(x));
+    return undefined;
+  }
+
+  /** v2: transform — maps each element through a function. */
+  private nativeTransform(callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const src  = this.resolveContainerArray(callNode, ev, 0);
+    const func = ev.evaluate(callNode.arguments[callNode.arguments.length - 1]);
+    if (!src || typeof func !== "function") return undefined;
+    const mapped = src.map((x: any) => (func as Function)(x));
+    // Write back into source array (in-place transform is the most common usage).
+    mapped.forEach((v: any, i: number) => { src[i] = v; });
+    return undefined;
+  }
+
+  /** v2: remove_if — removes elements matching a predicate (in-place). */
+  private nativeRemoveIf(callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const arr  = this.resolveContainerArray(callNode, ev);
+    const pred = ev.evaluate(callNode.arguments[2]);
+    if (!arr || typeof pred !== "function") return arr?.length ?? 0;
+    const filtered = arr.filter((x: any) => !(pred as Function)(x));
+    arr.splice(0, arr.length, ...filtered);
+    return arr.length;
+  }
+
+  /** v2: iota — fills range with incrementing values starting at `value`. */
+  private nativeIota(callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const arr  = this.resolveContainerArray(callNode, ev);
+    const init = ev.evaluate(callNode.arguments[2]) as number;
+    if (arr) arr.forEach((_: any, i: number) => { arr[i] = init + i; });
+    return undefined;
+  }
+
+  /** v2: rotate — left-rotates so middle becomes the new first element. */
+  private nativeRotate(callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const arr = this.resolveContainerArray(callNode, ev);
+    // middle is the second argument (a number index or iterator value).
+    const midVal = callNode.arguments[1];
+    if (!arr || !midVal) return undefined;
+    let mid: number;
+    // If the argument is a MethodCall (e.g. v.begin() + k), extract the value.
+    if (midVal.kind === "BinaryExpression") {
+      mid = ev.evaluate(midVal) as number;
+    } else {
+      mid = ev.evaluate(midVal) as number;
+    }
+    if (mid > 0 && mid < arr.length) {
+      arr.push(...arr.splice(0, mid));
+    }
+    return undefined;
+  }
+
+  /** v2: copy — copies elements from source range to destination. */
+  private nativeCopy(callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const src  = this.resolveContainerArray(callNode, ev, 0);
+    const dest = callNode.arguments[2];
+    if (!src || !dest) return undefined;
+    const destObj = dest.kind === "MethodCall"
+      ? ev.evaluate((dest as any).object)
+      : ev.evaluate(dest);
+    const destArr = Array.isArray(destObj) ? destObj : (destObj as any)?.data;
+    if (destArr) src.forEach((v: any, i: number) => { destArr[i] = v; });
+    return undefined;
+  }
+
+  /** v2: partition — reorders so predicate-true elements precede false ones. */
+  private nativePartition(callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const arr  = this.resolveContainerArray(callNode, ev);
+    const pred = ev.evaluate(callNode.arguments[2]);
+    if (!arr || typeof pred !== "function") return arr?.length ?? 0;
+    const trueGroup  = arr.filter((x: any) =>  (pred as Function)(x));
+    const falseGroup = arr.filter((x: any) => !(pred as Function)(x));
+    trueGroup.push(...falseGroup);
+    arr.splice(0, arr.length, ...trueGroup);
+    return trueGroup.length; // Returns the partition point index.
+  }
+
+  private nativeUnique(callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const arr = this.resolveContainerArray(callNode, ev);
+    if (!arr) return 0;
+    const filtered = arr.filter((v: any, i: number) => i === 0 || v !== arr[i - 1]);
+    arr.splice(0, arr.length, ...filtered);
+    return arr.length;
+  }
+
+  private nativePermutation(fn: string, callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const arr = this.resolveContainerArray(callNode, ev);
+    if (!arr) return false;
+    const n  = arr.length;
+    let   i  = n - 2;
+    const isNext = fn === "next_permutation";
+    while (i >= 0 && (isNext ? arr[i] >= arr[i+1] : arr[i] <= arr[i+1])) i--;
+    if (i < 0) { arr.reverse(); return false; }
+    let j = n - 1;
+    while (isNext ? arr[j] <= arr[i] : arr[j] >= arr[i]) j--;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    arr.splice(i + 1, n - i - 1, ...arr.slice(i + 1).reverse());
+    return true;
+  }
+
+  private nativeBinaryBound(fn: string, callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const arr = this.resolveContainerArray(callNode, ev) as number[];
+    const val = ev.evaluate(callNode.arguments[2]) as number;
+    if (!arr) return 0;
+    let lo = 0, hi = arr.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1;
+      (fn === "lower_bound" ? arr[mid] < val : arr[mid] <= val) ? lo = mid + 1 : hi = mid;
+    }
+    return lo;
+  }
+
+  private nativeBinarySearch(callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const arr = this.resolveContainerArray(callNode, ev) as any[];
+    const val = ev.evaluate(callNode.arguments[2])!;
+    if (!arr) return false;
+    let lo = 0, hi = arr.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1;
+      if      (arr[mid] < val) lo = mid + 1;
+      else if (arr[mid] > val) hi = mid;
+      else return true;
+    }
+    return false;
+  }
+
+
+  // ==========================================================================
+  // SECTION 7 — Method call dispatch
+  // ==========================================================================
+
   /**
-   * 
-   * Resolves object-oriented method calls (e.g., container.push_back(), str.substr()).
+   * Dispatches STL container method calls by inspecting the backing JS type.
+   *
+   * Type detection order:
+   *   1. Auto-recovery: undefined object → try to create or locate it.
+   *   2. JS `Set` / `Map` → dedicated polyfill branch.
+   *   3. `string` → string polyfill branch.
+   *   4. Array or mock container → array polyfill branch.
+   *   5. Direct JS method: if the object has the method as a function, call it.
    */
-  public invokeMethodCall(methodNode: IRMethodCall, currentEvaluator: ExpressionEvaluator): CppValue {
-    // Evaluate the object instance. Wrapped in try-catch so that if the object's
-    // variable wasn't declared (e.g., due to a constructor-syntax parsing failure),
-    // the auto-recovery block below can still attempt to create it rather than crashing.
+  public invokeMethodCall(
+    methodNode:       IRMethodCall,
+    currentEvaluator: ExpressionEvaluator,
+  ): CppValue {
     let objInstance: CppValue;
     try {
       objInstance = currentEvaluator.evaluate(methodNode.object);
-    } catch (e) {
+    } catch {
       objInstance = undefined as any;
     }
 
-    // ─── UNIVERSAL OBJECT AUTO-RECOVERY ───────────────────────────────────
+    // ── Auto-recovery: undeclared / uninitialized object ─────────────────
     if (!objInstance) {
-      // 1. Recover uninitialized standard identifiers (e.g., queue<int> q;)
       if (methodNode.object.kind === "Identifier") {
         const varName = (methodNode.object as any).name;
-        objInstance = []; 
-        const activeScope = this.callStack.peek().scopeManager;
-        
-        try {
-          activeScope.assignVariable(varName, objInstance);
-        } catch (e) {
-          activeScope.defineVariable(varName, "auto", objInstance);
-        }
-      }
-      // 2. Recover uninitialized 2D nested structures (e.g., adj[0].push_back(1))
-      else if (methodNode.object.kind === "SubscriptExpression") {
-        const subExpr = methodNode.object as any;
+        objInstance   = [];
+        const scope   = this.callStack.peek().scopeManager;
+        try { scope.assignVariable(varName, objInstance); }
+        catch { scope.defineVariable(varName, "auto", objInstance); }
+      } else if (methodNode.object.kind === "SubscriptExpression") {
+        const subExpr  = methodNode.object as any;
         const parentObj = currentEvaluator.evaluate(subExpr.object);
-        const index = currentEvaluator.evaluate(subExpr.index) as string | number;
-        
+        const index     = currentEvaluator.evaluate(subExpr.index) as string | number;
         if (parentObj) {
-          objInstance = []; 
-          if (parentObj instanceof Map) {
-              parentObj.set(index, objInstance); 
-          } else if (Array.isArray(parentObj)) {
-              parentObj[index as number] = objInstance;
-          } else if ((parentObj as Record<string, any>).data && Array.isArray((parentObj as Record<string, any>).data)) {
-              (parentObj as Record<string, any>).data[index as number] = objInstance;
-          } else {
-              (parentObj as Record<string, any>)[index] = objInstance;
-          }
+          objInstance = [];
+          if (parentObj instanceof Map) (parentObj as Map<any,any>).set(index, objInstance);
+          else if (Array.isArray(parentObj)) (parentObj as any[])[index as number] = objInstance;
+          else if ((parentObj as any)?.data) (parentObj as any).data[index as number] = objInstance;
+          else (parentObj as any)[index] = objInstance;
         }
       }
     }
-    // ──────────────────────────────────────────────────────────────────────
-
-    const args = methodNode.arguments.map(arg => currentEvaluator.evaluate(arg));
 
     if (objInstance === undefined || objInstance === null) {
-      throw new Error(`Memory Access Violation at line ${methodNode.line}: Attempted to call method '${methodNode.method}' on a null or undefined reference.`);
+      throw new Error(
+        `Memory Access Violation at line ${methodNode.line}: ` +
+        `Attempted to call method '${methodNode.method}' on a null reference.`
+      );
     }
 
-    const methodName = methodNode.method;
+    const args      = methodNode.arguments.map(arg => currentEvaluator.evaluate(arg));
+    const method    = methodNode.method;
+    const isSet     = objInstance instanceof Set;
+    const isMap     = objInstance instanceof Map;
+    const isString  = typeof objInstance === "string";
+    const isMock    = !isSet && !isMap && !isString &&
+                      typeof objInstance === "object" &&
+                      "data" in (objInstance as any) &&
+                      Array.isArray((objInstance as any).data);
+    const isArr     = Array.isArray(objInstance);
+    const targetArr = isArr ? objInstance as any[] : (isMock ? (objInstance as any).data : null);
 
-    const isPlainArray = Array.isArray(objInstance);
-    const isMockContainer = objInstance && typeof objInstance === "object" && "data" in objInstance && Array.isArray((objInstance as Record<string, any>).data);
-    const isSet = objInstance instanceof Set;
-    const isMap = objInstance instanceof Map;
-    const isString = typeof objInstance === "string"; 
-    const targetArray = isPlainArray ? (objInstance as any[]) : (isMockContainer ? (objInstance as Record<string, any>).data : null);
-
-    this.eventEmitter.emit(methodNode.line, EventType.FUNCTION_CALL, { function: `${methodName}`, args });
-
+    this.eventEmitter.emit(methodNode.line, EventType.FUNCTION_CALL, { function: method, args });
     let result: any = undefined;
-    let handled = false;
+    let handled     = false;
 
-    // Direct Javascript Method Execution
-    if (!isSet && !isMap && !isString && typeof (objInstance as Record<string, any>)[methodName] === "function") {
-      result = (objInstance as Record<string, any>)[methodName](...args);
+    // ── Set polyfill ───────────────────────────────────────────────────────
+    if (isSet) {
       handled = true;
-    } 
-    // Set & Map STL Polyfills
-    else if (isSet || isMap) {
-      handled = true;
-      const targetSet = objInstance as unknown as Set<any>;
-      const targetMap = objInstance as unknown as Map<any, any>;
-
-      switch (methodName) {
-        case "insert":
-          if (isSet) { targetSet.add(args[0]); result = args[0]; }
-          else if (isMap && Array.isArray(args[0])) targetMap.set(args[0][0], args[0][1]);
-          break;
-        case "erase":
-        case "remove": result = isSet ? targetSet.delete(args[0]) : targetMap.delete(args[0]); break;
-        case "count":
-        case "contains":
-        case "find": result = isSet ? (targetSet.has(args[0]) ? 1 : 0) : (targetMap.has(args[0]) ? 1 : 0); break;
-        case "size":
-        case "length": result = isSet ? targetSet.size : targetMap.size; break;
-        case "empty": result = isSet ? targetSet.size === 0 : targetMap.size === 0; break;
-        case "clear": isSet ? targetSet.clear() : targetMap.clear(); break;
+      const s = objInstance as Set<any>;
+      switch (method) {
+        case "insert":                  s.add(args[0]); result = args[0]; break;
+        case "erase": case "remove":    result = s.delete(args[0]); break;
+        case "count": case "find":
+        case "contains":                result = s.has(args[0]) ? 1 : 0; break;
+        case "size": case "length":     result = s.size; break;
+        case "empty":                   result = s.size === 0; break;
+        case "clear":                   s.clear(); break;
+        case "begin": case "end":       result = s.size; break;
         default: handled = false;
       }
     }
-    // String STL Polyfills
+
+    // ── Map polyfill ───────────────────────────────────────────────────────
+    else if (isMap) {
+      handled = true;
+      const m = objInstance as Map<any, any>;
+      switch (method) {
+        case "insert":
+          if (Array.isArray(args[0])) m.set(args[0][0], args[0][1]);
+          else if (args.length >= 2)  m.set(args[0], args[1]);
+          break;
+        case "emplace":                 m.set(args[0], args[1]); break;
+        case "erase": case "remove":    result = m.delete(args[0]); break;
+        case "count": case "find":
+        case "contains":                result = m.has(args[0]) ? 1 : 0; break;
+        case "at":                      result = m.get(args[0]); break;
+        case "size": case "length":     result = m.size; break;
+        case "empty":                   result = m.size === 0; break;
+        case "clear":                   m.clear(); break;
+        case "begin": case "end":       result = m.size; break;
+        default: handled = false;
+      }
+    }
+
+    // ── String polyfill ────────────────────────────────────────────────────
     else if (isString) {
       handled = true;
       const s = objInstance as string;
-      switch (methodName) {
-        case "substr": {
-          const start = (args[0] as number) ?? 0;
-          const len = args[1] as number;
-          result = len !== undefined ? s.substring(start, start + len) : s.substring(start);
+      let   newStr: string | undefined;
+
+      switch (method) {
+        case "size": case "length":                    result = s.length; break;
+        case "empty":                                  result = s.length === 0; break;
+        case "at":                                     result = s[args[0] as number] ?? ""; break;
+        case "front":                                  result = s[0] ?? ""; break;
+        case "back":                                   result = s[s.length - 1] ?? ""; break;
+        case "c_str":                                  result = s; break;
+        case "substr":
+          result = args[1] !== undefined
+            ? s.substring(args[0] as number, (args[0] as number) + (args[1] as number))
+            : s.substring(args[0] as number);
           break;
-        }
-        case "size":
-        case "length": result = s.length; break;
-        case "empty": result = s.length === 0; break;
-        case "at":    result = s[args[0] as number] ?? ""; break;
-        case "front": result = s[0] ?? ""; break;
-        case "back":  result = s[s.length - 1] ?? ""; break;
-        case "c_str": result = s; break;
-        case "find":  result = s.indexOf(String(args[0] ?? ""), args[1] as number ?? 0); break;
-        case "rfind": result = s.lastIndexOf(String(args[0] ?? ""), args[1] as number ?? s.length); break;
-        case "compare": result = s === String(args[0] ?? "") ? 0 : s < String(args[0] ?? "") ? -1 : 1; break;
-        case "starts_with": result = s.startsWith(String(args[0] ?? "")); break;
-        case "ends_with":   result = s.endsWith(String(args[0] ?? "")); break;
-        case "contains":    result = s.includes(String(args[0] ?? "")); break;
-        case "count":       result = (s.match(new RegExp(String(args[0] ?? ""), "g")) || []).length; break;
-        case "to_string":   result = s; break;
-        case "begin":       result = 0; break;
-        case "end":         result = s.length; break;
-        // Note: append/insert/erase/replace return a new string — must update variable via assignment
-        // These return the result; the calling code must handle write-back if needed.
-        case "append":    result = s + String(args[0] ?? ""); break;
-        case "push_back": result = s + String(args[0] ?? ""); break;
-        case "insert":    result = s.slice(0, args[0] as number) + String(args[1] ?? "") + s.slice(args[0] as number); break;
+        case "find":                                   result = s.indexOf(String(args[0] ?? ""), (args[1] as number) ?? 0); break;
+        case "rfind":                                  result = s.lastIndexOf(String(args[0] ?? "")); break;
+        case "compare":                                result = s === String(args[0] ?? "") ? 0 : s < String(args[0] ?? "") ? -1 : 1; break;
+        case "starts_with":                            result = s.startsWith(String(args[0] ?? "")); break;
+        case "ends_with":                              result = s.endsWith(String(args[0] ?? "")); break;
+        case "contains":                               result = s.includes(String(args[0] ?? "")); break;
+        case "count":                                  result = (s.match(new RegExp(String(args[0] ?? ""), "g")) || []).length; break;
+        case "begin":                                  result = 0; break;
+        case "end":                                    result = s.length; break;
+        // Mutating methods — return new string; write-back to variable.
+        case "append": case "push_back":               newStr = s + String(args[0] ?? ""); break;
+        case "insert":                                 newStr = s.slice(0, args[0] as number) + String(args[1] ?? "") + s.slice(args[0] as number); break;
         case "erase": {
           const pos = (args[0] as number) ?? 0;
-          const n = (args[1] as number) ?? (s.length - pos);
-          result = s.slice(0, pos) + s.slice(pos + n);
+          const n   = (args[1] as number) ?? (s.length - pos);
+          newStr = s.slice(0, pos) + s.slice(pos + n);
           break;
         }
         case "replace": {
-          const rpos = (args[0] as number) ?? 0;
-          const rlen = (args[1] as number) ?? 0;
-          result = s.slice(0, rpos) + String(args[2] ?? "") + s.slice(rpos + rlen);
+          const rp = (args[0] as number) ?? 0;
+          const rn = (args[1] as number) ?? 0;
+          newStr = s.slice(0, rp) + String(args[2] ?? "") + s.slice(rp + rn);
           break;
         }
-        case "clear": result = ""; break;
-        case "tolower":
-        case "lower":  result = s.toLowerCase(); break;
-        case "toupper":
-        case "upper":  result = s.toUpperCase(); break;
+        case "clear":                                  newStr = ""; break;
+        case "resize":                                 newStr = s.substring(0, args[0] as number).padEnd(args[0] as number, String(args[1] ?? "\0")); break;
+        case "tolower": case "lower":                  newStr = s.toLowerCase(); break;
+        case "toupper": case "upper":                  newStr = s.toUpperCase(); break;
+        case "to_string":                              result = s; break;
         default: handled = false;
       }
+
+      // Write-back mutated string to the variable in scope.
+      if (newStr !== undefined) {
+        result = newStr;
+        if (methodNode.object.kind === "Identifier") {
+          const varName = (methodNode.object as any).name;
+          try {
+            this.callStack.peek().scopeManager.assignVariable(varName, newStr);
+          } catch { /* Variable may have been defined in a parent frame — benign. */ }
+        }
+      }
     }
-    // Array & Vector STL Polyfills
-    else if (targetArray) {
+
+    // ── Mock Container Method ─────────────────────────────────────────────
+    else if (isMock && typeof (objInstance as any)[method] === "function") {
+      result = (objInstance as any)[method](...args);
       handled = true;
-      switch (methodName) {
-        case "size":
-        case "length": result = targetArray.length; break;
-        case "empty": result = targetArray.length === 0; break;
-        case "push_back":
-        case "push": targetArray.push(args[0]); result = args[0]; break;
-        case "push_front": targetArray.unshift(args[0]); result = args[0]; break;
+    }
+
+    // ── Array / mock container polyfill fallback ──────────────────────────
+    else if (targetArr !== null) {
+      handled = true;
+      switch (method) {
+        case "size": case "length":     result = targetArr.length; break;
+        case "empty":                   result = targetArr.length === 0; break;
+        case "push_back": case "push":  targetArr.push(args[0]); result = args[0]; break;
+        case "push_front":              targetArr.unshift(args[0]); result = args[0]; break;
+        case "pop_back": case "pop":    result = targetArr.pop(); break;
+        case "pop_front":               result = targetArr.shift(); break;
+        case "front":                   result = targetArr[0]; break;
+        case "back": case "top":        result = targetArr[targetArr.length - 1]; break;
+        case "at":                      result = targetArr[args[0] as number]; break;
+        case "find": case "search":     result = targetArr.indexOf(args[0]); break;
+        case "contains":                result = targetArr.includes(args[0]); break;
+        case "begin":                   result = 0; break;
+        case "end":                     result = targetArr.length; break;
         case "insert":
-          if (args.length === 1) targetArray.push(args[0]);
-          else if (args.length === 2 && typeof args[0] === "number") targetArray.splice(args[0], 0, args[1]);
+          if (args.length === 1) targetArr.push(args[0]);
+          else if (typeof args[0] === "number") targetArr.splice(args[0] as number, 0, args[1]);
           break;
-        case "remove":
         case "erase": {
-          const findIdx = (typeof args[0] === "number" && methodName === "erase") ? args[0] : targetArray.indexOf(args[0]);
-          if (findIdx !== -1 && findIdx >= 0 && findIdx < targetArray.length) { targetArray.splice(findIdx, 1); result = true; } 
+          const idx = typeof args[0] === "number" ? args[0] as number : targetArr.indexOf(args[0]);
+          if (idx >= 0 && idx < targetArr.length) { targetArr.splice(idx, 1); result = true; }
           else result = false;
           break;
         }
-        case "pop_back":
-        case "pop": result = targetArray.pop(); break;
-        case "pop_front": result = targetArray.shift(); break;
-        case "front": result = targetArray[0]; break;
-        case "back":
-        case "top": result = targetArray[targetArray.length - 1]; break;
-        case "at": result = targetArray[args[0] as number]; break;
-        case "search":
-        case "find": result = targetArray.indexOf(args[0]); break;
-        case "contains": result = targetArray.includes(args[0]); break;
-        case "begin": result = 0; break;
-        case "end": result = targetArray.length; break;
-        case "clear":
-          if (isPlainArray) (objInstance as any[]).length = 0;
-          else (objInstance as Record<string, any>).data = [];
+        case "remove": {
+          const ri = targetArr.indexOf(args[0]);
+          if (ri !== -1) { targetArr.splice(ri, 1); result = true; } else result = false;
           break;
-        case "print": result = `[${targetArray.join(" -> ")}]`; console.log(result); break;
+        }
+        case "clear":
+          if (isArr) (objInstance as any[]).length = 0;
+          else (objInstance as any).data = [];
+          break;
+        case "resize": {
+          const newSize = args[0] as number;
+          const fill    = args[1] ?? 0;
+          while (targetArr.length < newSize) targetArr.push(fill);
+          while (targetArr.length > newSize) targetArr.pop();
+          break;
+        }
+        case "assign":                  targetArr.fill(args[1], 0, args[0] as number); break;
+        case "swap": {
+          const other = Array.isArray(args[0]) ? args[0] : (args[0] as any)?.data;
+          if (other) {
+            const tmp = [...targetArr];
+            targetArr.splice(0, targetArr.length, ...other);
+            other.splice(0, other.length, ...tmp);
+          }
+          break;
+        }
+        case "print":
+          result = `[${targetArr.join(" -> ")}]`;
+          console.log(result);
+          break;
         default: handled = false;
       }
     }
 
-    if (!handled) throw new Error(`Linker Error: Method '${methodName}' is not defined on this object structure.`);
-    this.eventEmitter.emit(methodNode.line, EventType.FUNCTION_RETURN, { function: `${methodName}`, returnValue: result });
+    // ── Direct JS method fallback ─────────────────────────────────────────
+    if (!handled && !isSet && !isMap && !isString) {
+      const methodFn = (objInstance as Record<string, any>)[method];
+      if (typeof methodFn === "function") {
+        result  = methodFn.call(objInstance, ...args);
+        handled = true;
+      }
+    }
+
+    if (!handled) {
+      throw new Error(
+        `Linker Error at line ${methodNode.line}: ` +
+        `Method '${method}' is not defined on this object type.`
+      );
+    }
+
+    this.eventEmitter.emit(methodNode.line, EventType.FUNCTION_RETURN, {
+      function:    method,
+      returnValue: result,
+    });
     return result;
   }
 
+
+  // ==========================================================================
+  // SECTION 8 — Frame invocation
+  // ==========================================================================
+
   /**
-   * Pushes a new execution frame onto the call stack and executes the targeted function block.
+   * Pushes a new execution frame, binds parameters, runs the function body,
+   * mirrors static variables back to staticStorage, and pops the frame.
+   *
+   * v2 additions:
+   *   - Enum member constants are injected into every frame's base scope so
+   *     user code can reference `NORTH`, `RED`, etc. without qualification.
+   *   - Static variables are re-injected from staticStorage on each call and
+   *     mirrored back in the `finally` block.
+   *   - The input provider is installed on every new ExpressionEvaluator.
+   *   - StatementExecutor receives typeAliases, enumBlueprints, staticStorage,
+   *     and currentFunction so it can resolve aliases and handle statics.
    */
-  private invokeFunction(target: string | any, args: CppValue[], rawArgs?: IRExpression[], callerEvaluator?: ExpressionEvaluator): CppValue {
-    const isLambda = typeof target === "object" && target.kind === "LambdaExpression";
-    const name = isLambda ? "<lambda>" : target;
-    const func = isLambda ? target : this.functions.get(name);
-    
-    // ─── CONSTRUCTOR AUTO-RECOVERY ──────────────────────────────────────────
+  private invokeFunction(
+    target:          string | any,
+    args:            CppValue[],
+    rawArgs?:        IRExpression[],
+    callerEvaluator?: ExpressionEvaluator,
+  ): CppValue {
+    const isLambda = typeof target === "object" && target?.kind === "LambdaExpression";
+    const name     = isLambda ? "<lambda>" : (target as string);
+    const func     = isLambda ? target : this.functions.get(name);
+
+    // ── Constructor auto-recovery for unknown types ────────────────────────
     if (!func) {
       if (args.length === 1 && typeof args[0] === "number") return new Array(args[0]).fill(0);
       if (args.length === 2 && typeof args[0] === "number") return new Array(args[0]).fill(args[1]);
-      
       throw new Error(`Linker Error: Undefined reference to function '${name}'.`);
     }
 
     if (args.length > func.parameters.length) {
-      throw new Error(`Parameter Mismatch: Function '${name}' expects ${func.parameters.length} arguments, but received ${args.length}.`);
+      throw new Error(
+        `Parameter Mismatch: '${name}' expects ${func.parameters.length} ` +
+        `argument(s) but received ${args.length}.`
+      );
     }
 
     const callerScope = this.callStack.isEmpty() ? null : this.callStack.peek().scopeManager;
-    const frame = this.callStack.push(name);
+    const frame       = this.callStack.push(name);
+
     this.eventEmitter.emit(func.line, EventType.FUNCTION_CALL, { function: name, args });
 
-    // ─── INJECT GLOBAL VARIABLES ──────────────────────────────────────────
-    // Global variables must be accessible from every function's scope.
-    // Define them in the base scope of each new frame before parameters.
+    // ── Inject global variables ───────────────────────────────────────────
     for (const [gName, gData] of this.globalVariables) {
-      try { frame.scopeManager.defineVariable(gName, gData.type, gData.value); } catch { /* already defined */ }
+      try { frame.scopeManager.injectIntoBase(gName, gData.type, gData.value); } catch { /* already present */ }
     }
 
-    // Process arguments: handle pass-by-reference and default parameters
+    // ── Inject enum member constants (v2) ─────────────────────────────────
+    // All enum members are visible in every function scope without qualification.
+    for (const [memberName, memberValue] of this.resolvedEnumValues) {
+      try { frame.scopeManager.injectIntoBase(memberName, "int", memberValue, true, false); } catch { /* already present */ }
+    }
+
+    // ── Re-inject static local variables from persistent storage (v2) ─────
+    for (const [key, value] of this.staticStorage) {
+      const [funcName, varName] = (key as string).split("::");
+      if (funcName === name) {
+        try { frame.scopeManager.injectIntoBase(varName, "auto", value, false, true); } catch { /* ok */ }
+      }
+    }
+
+    // ── Bind parameters ───────────────────────────────────────────────────
     func.parameters.forEach((param: any, index: number) => {
       let paramType = param.type as CppType;
-      if (paramType.includes("[]") || paramType.includes("*")) paramType = "array" as any; 
-      
-      let argValue = index < args.length ? args[index] : undefined;
+      if (paramType.includes("[]") || paramType.includes("*")) paramType = "array" as any;
+      let argValue  = index < args.length ? args[index] : undefined;
 
-      // Feature 1: Pass-by-Reference
-      // If parameter is a reference, and we received a raw identifier, pass a special __ref object
-      if (param.isReference && rawArgs && index < rawArgs.length && rawArgs[index].kind === "Identifier") {
+      // Pass-by-reference: inject a proxy object instead of the value.
+      if (
+        param.isReference &&
+        rawArgs && index < rawArgs.length &&
+        rawArgs[index].kind === "Identifier"
+      ) {
         argValue = { __ref: (rawArgs[index] as any).name, __callerScope: callerScope };
-      } 
-      // Feature 5: Default Function Parameters
-      // Evaluate default value if argument is missing
+      }
+      // Default parameter value.
       else if (argValue === undefined && param.defaultValue && callerEvaluator) {
         argValue = callerEvaluator.evaluate(param.defaultValue);
+      }
+
+      // C++ pass-by-value deep clones all passed structures (maps, vectors, etc).
+      if (!param.isReference && argValue !== undefined) {
+        argValue = cloneRuntimeValue(argValue);
       }
 
       frame.scopeManager.defineVariable(param.name, paramType, argValue);
     });
 
+    // ── Set up evaluator, executor, and walker ────────────────────────────
     const evaluator = new ExpressionEvaluator(frame.scopeManager, this.eventEmitter);
+    evaluator.setInputProvider(() => this.provideInput());   // v2: cin support
     this.attachEvaluationInterceptor(evaluator);
-    // ────────────────────────────────────────────────────────────────────────
 
-    const executor = new StatementExecutor(frame.scopeManager, evaluator, this.eventEmitter);
+    const executor = new StatementExecutor(
+      frame.scopeManager,
+      evaluator,
+      this.eventEmitter,
+      this.classBlueprints,
+      this.enumBlueprints,    // v2
+      this.typeAliases,       // v2
+      this.staticStorage,     // v2
+      name,                   // v2: current function name for static storage keys
+    );
+
     const walker = new IRWalker(frame.scopeManager, evaluator, executor, this.eventEmitter);
+    walker.setBreakpoints(this.breakpoints);                 // v2: debugger
 
+    // ── Execute function body ─────────────────────────────────────────────
     let returnValue: CppValue = undefined;
-    try { 
-      walker.walkBlock(func.body); 
-    } catch (e) { 
-      if (e instanceof ReturnSignal) returnValue = e.value; 
-      else throw e; 
+    try {
+      walker.walkBlock(func.body);
+    } catch (e) {
+      if (e instanceof ReturnSignal)    returnValue = e.value;
+      else if (e instanceof BreakpointSignal) throw e;   // Let run() catch it.
+      else throw e;
     } finally {
-      this.eventEmitter.emit(func.line, EventType.FUNCTION_RETURN, { function: name, returnValue });
+      // v2: Mirror static variable values back to persistent storage.
+      if (name !== "<lambda>" && name !== "__global_init__") {
+        const statics = frame.scopeManager.getStaticSymbols();
+        for (const [varName, value] of Object.entries(statics)) {
+          const key = `${name}::${varName}` as StaticStorageKey;
+          this.staticStorage.set(key, value);
+        }
+      }
+
+      this.eventEmitter.emit(func.line, EventType.FUNCTION_RETURN, {
+        function:    name,
+        returnValue,
+      });
       this.callStack.pop();
     }
-    
+
     return returnValue;
   }
 
-  private attachEvaluationInterceptor(evaluator: ExpressionEvaluator) {
+
+  // ==========================================================================
+  // SECTION 9 — Evaluator interceptor
+  // ==========================================================================
+
+  /**
+   * Patches ExpressionEvaluator.evaluate() to redirect the node kinds that
+   * require engine-level handling before the evaluator sees them.
+   *
+   * Intercepted kinds:
+   *   FunctionCall    → invokeFunctionCall()
+   *   MethodCall      → invokeMethodCall()
+   *   NewExpression   → struct/array instantiation
+   *   LambdaExpression → closure creation with captured scope
+   *   UnaryExpression(*) → pointer dereference no-op
+   *   Identifier(endl / nullptr) → sentinel values
+   *
+   * v2: Also handles SizeofExpression when the operand's type is not in
+   * scope (falls back to the type-size table in ExpressionEvaluator).
+   */
+  private attachEvaluationInterceptor(evaluator: ExpressionEvaluator): void {
     const originalEvaluate = evaluator.evaluate.bind(evaluator);
-    
-    evaluator.evaluate = (expr) => {
-      if (expr.kind === "FunctionCall") return this.invokeFunctionCall(expr as IRFunctionCall, evaluator);
-      if (expr.kind === "MethodCall") return this.invokeMethodCall(expr as IRMethodCall, evaluator);
-      
+
+    evaluator.evaluate = (expr): CppValue => {
+
+      if (expr.kind === "FunctionCall") {
+        return this.invokeFunctionCall(expr as IRFunctionCall, evaluator);
+      }
+
+      if (expr.kind === "MethodCall") {
+        return this.invokeMethodCall(expr as IRMethodCall, evaluator);
+      }
+
+      // Pointer dereference is a no-op in the duck-typed JS runtime.
       if (expr.kind === "UnaryExpression" && (expr as any).operator === "*") {
         return evaluator.evaluate((expr as any).argument);
       }
 
       if (expr.kind === "NewExpression") {
-        const newExpr = expr as IRNewExpression;
+        const newExpr      = expr as IRNewExpression;
         const evaluatedArgs = newExpr.arguments.map(arg => evaluator.evaluate(arg));
 
+        // `new T[n]` → array of n zeros.
         if (newExpr.typeName.includes("[")) {
           const size = evaluatedArgs[0] as number;
           return typeof size === "number" ? new Array(size).fill(0) : [];
         }
-        
-        if (this.classBlueprints && this.classBlueprints.has(newExpr.typeName)) {
-           const blueprint = this.classBlueprints.get(newExpr.typeName)!;
-           const instance: Record<string, any> = {};
-           for (const field of blueprint.fields) {
-             instance[field.name] = field.defaultValue ? evaluator.evaluate(field.defaultValue) : 0;
-           }
-           for (let i = 0; i < evaluatedArgs.length && i < blueprint.fields.length; i++) {
-             instance[blueprint.fields[i].name] = evaluatedArgs[i];
-           }
-           return instance;
+
+        // Known struct blueprint.
+        if (this.classBlueprints.has(newExpr.typeName)) {
+          const blueprint = this.classBlueprints.get(newExpr.typeName)!;
+          const instance: Record<string, any> = {};
+          for (const field of blueprint.fields) {
+            instance[field.name] = field.defaultValue
+              ? evaluator.evaluate(field.defaultValue)
+              : 0;
+          }
+          evaluatedArgs.forEach((v, i) => {
+            if (i < blueprint.fields.length) instance[blueprint.fields[i].name] = v;
+          });
+          return instance;
         }
-        
-        const newObj: Record<string, any> = {};
-        if (evaluatedArgs.length > 0) {
-          newObj.val = evaluatedArgs[0];
-          newObj.value = evaluatedArgs[0];
-          newObj.data = evaluatedArgs[0];
-          newObj.next = null;
-          newObj.left = null;
-          newObj.right = null;
-        }
-        if (evaluatedArgs.length > 1) { 
-          newObj.next = evaluatedArgs[1]; 
-          newObj.left = evaluatedArgs[1]; 
-        }
-        if (evaluatedArgs.length > 2) { 
-          newObj.right = evaluatedArgs[2]; 
-        }
+
+        // Generic node heuristic (linked list / tree node).
+        const newObj: Record<string, any> = {
+          val:   evaluatedArgs[0] ?? 0,
+          value: evaluatedArgs[0] ?? 0,
+          data:  evaluatedArgs[0] ?? 0,
+          next:  evaluatedArgs[1] ?? null,
+          left:  evaluatedArgs[1] ?? null,
+          right: evaluatedArgs[2] ?? null,
+        };
         return newObj;
       }
-      
+
       if (expr.kind === "LambdaExpression") {
-        const lambdaExpr = expr as IRLambdaExpression;
+        const lambdaExpr    = expr as IRLambdaExpression;
         const definitionScope = this.callStack.peek().scopeManager;
-        
-        return (...args: any[]) => {
-          const lambdaFrame = this.callStack.push("lambda");
-          
-          const capturedState = definitionScope.captureState();
-          for (const [vName, vSymbol] of Object.entries(capturedState)) {
-             lambdaFrame.scopeManager.defineVariable(vName, (vSymbol as any).type || "auto", (vSymbol as any).value);
+
+        return ((...args: any[]) => {
+          const lambdaFrame = this.callStack.push("<lambda>");
+
+          // Capture all variables visible at definition time (capture-by-value).
+          const captured = definitionScope.captureState();
+          for (const [vName, vSym] of Object.entries(captured)) {
+            lambdaFrame.scopeManager.defineVariable(vName, (vSym as any).type ?? "auto", (vSym as any).value);
           }
-          
-          lambdaExpr.parameters.forEach((param, index) => {
-            lambdaFrame.scopeManager.defineVariable(param.name, param.type, args[index]);
+
+          // Bind lambda parameters.
+          lambdaExpr.parameters.forEach((param, i) => {
+            lambdaFrame.scopeManager.defineVariable(param.name, param.type, args[i]);
           });
-          const localEvaluator = new ExpressionEvaluator(lambdaFrame.scopeManager, this.eventEmitter);
-          this.attachEvaluationInterceptor(localEvaluator);
-          const localExecutor = new StatementExecutor(lambdaFrame.scopeManager, localEvaluator, this.eventEmitter);
-          const localWalker = new IRWalker(lambdaFrame.scopeManager, localEvaluator, localExecutor, this.eventEmitter);
-          
+
+          const localEval = new ExpressionEvaluator(lambdaFrame.scopeManager, this.eventEmitter);
+          localEval.setInputProvider(() => this.provideInput());
+          this.attachEvaluationInterceptor(localEval);
+
+          const localExec = new StatementExecutor(
+            lambdaFrame.scopeManager, localEval, this.eventEmitter,
+            this.classBlueprints, this.enumBlueprints, this.typeAliases,
+            this.staticStorage, "<lambda>",
+          );
+          const localWalker = new IRWalker(
+            lambdaFrame.scopeManager, localEval, localExec, this.eventEmitter
+          );
+          localWalker.setBreakpoints(this.breakpoints);
+
           let retVal: any = undefined;
-          try { localWalker.walkBlock(lambdaExpr.body); } 
-          catch (e) { if (e instanceof ReturnSignal) retVal = e.value; else throw e; } 
-          finally { this.callStack.pop(); }
-          
+          try { localWalker.walkBlock(lambdaExpr.body); }
+          catch (e) { if (e instanceof ReturnSignal) retVal = e.value; else throw e; }
+          finally   { this.callStack.pop(); }
           return retVal;
-        };
+        }) as unknown as CppValue;
       }
-      
+
+      // Sentinel identifier overrides (belt-and-suspenders — ExpressionEvaluator
+      // also handles these, but the interceptor catches them first).
       if (expr.kind === "Identifier") {
-        if ((expr as any).name === "endl") return "\n";
+        if ((expr as any).name === "endl")    return "\n";
         if ((expr as any).name === "nullptr" || (expr as any).name === "NULL") return null;
       }
-      
+
       return originalEvaluate(expr);
     };
   }

@@ -115,6 +115,7 @@ const VisualGround = ({
     worker.onmessage = (e) => {
       const { success, snapshots, error } = e.data;
       if (success) {
+        console.log(snapshots)
         setSnapshots(snapshots);
         setCurrentStep(0);
       } else {
@@ -301,12 +302,19 @@ const VisualGround = ({
         keys.forEach((key, idx) => {
           z += 1;
           if (keys.length === 1) {
-            next[key] = { isMinimized: false, isMaximized: true, snap: 'none', zIndex: z };
+            // Scalars stay small in the corner even when alone
+            if (key === 'scalar') {
+              next[key] = { isMinimized: false, isMaximized: false, snap: 'none', zIndex: z };
+            } else {
+              next[key] = { isMinimized: false, isMaximized: true, snap: 'none', zIndex: z };
+            }
+
           } else if (keys.length === 2) {
             next[key] = {
               isMinimized: false,
               isMaximized: false,
-              snap: idx === 0 ? 'left' : 'right',
+              // If one of the two is a scalar, give it corner treatment
+              snap: key === 'scalar' ? 'none' : (idx === 0 ? 'left' : 'right'),
               zIndex: z,
             };
           } else {
@@ -446,7 +454,7 @@ const VisualGround = ({
           {/* Layout Area — this is the DraggableWindow parent */}
           <div
             ref={layoutAreaRef}
-            className="flex-1 overflow-auto styled-scrollbar relative p-2"
+            className="flex-1 overflow-auto styled-scrollbar relative p-0"
             style={{ perspective: '1000px' }}
           >
             {Object.keys(groupedStates).length === 0 && (
@@ -468,19 +476,26 @@ const VisualGround = ({
               // the previous one, capped at 4 positions with modulo.
               const defaultX = (idx % 4) * 40 + 20;
               const defaultY = (idx % 4) * 40 + 20;
+              // Scalars: pin to bottom-right corner, tiny footprint (~10% width)
+              const isScalar    = type === 'scalar';
+              // const initX       = isScalar ? undefined : defaultX;  // let DraggableWindow use its own default
+              // const initY       = isScalar ? undefined : defaultY;
+              // const cornerAnchor = isScalar ? 'bottom-right' : undefined; // pass as new prop (see step 3)
 
               return (
                 <DraggableWindow
                   key={type}
                   id={type}
                   title={`${type}s`}
-                  defaultPosition={{ x: defaultX, y: defaultY }}
+                  defaultPosition={{ x: isScalar ? 0 : defaultX, y: isScalar ? 0 : defaultY }}
+                  defaultSize={isScalar ? { width: '10%', minWidth: 40, height: '10%', minHeight: 40 } : undefined}
+                  cornerAnchor={isScalar ? 'bottom-right' : undefined}
                   windowState={ws}
                   updateWindow={(partial) => updateWindow(type, partial)}
                   bringToFront={() => bringToFront(type)}
                   parentRef={layoutAreaRef}
                 >
-                  <div className="flex flex-wrap gap-4 items-center justify-center p-2 min-w-[250px] min-h-[150px]">
+                  <div className={`flex flex-wrap gap-4 items-center justify-center p-2 ${isScalar ? '' : 'min-w-[40px] min-h-[150px]'}`}>
                     {states.map((state) => (
                       <div
                         key={state.id}
@@ -621,7 +636,7 @@ const VisualGround = ({
                 </h4>
               </div>
               <div className="flex-1 overflow-y-auto styled-scrollbar p-1">
-                <div className="flex flex-col gap-px">
+                <div className="flex flex-col-reverse gap-px">
                   {overviewVars.length === 0 && (
                     <span className="text-[9px] text-muted font-mono p-1">No locals.</span>
                   )}

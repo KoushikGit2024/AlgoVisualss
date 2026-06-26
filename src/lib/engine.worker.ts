@@ -31,7 +31,7 @@ self.onmessage = async (e) => {
     engine.loadProgram(irProgram);
     // console.log(engine.run)
     const snapshots = engine.run("main");
-    // console.log(snapshots)
+    console.log(snapshots)
     // 5. Send the massive snapshot array back to React
     self.postMessage({ success: true, snapshots });
 

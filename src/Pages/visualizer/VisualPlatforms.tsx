@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { PLATFORMS } from "./data/platforms";
+import PLATFORMDATA from "./data/PlatformData";
 import "./VisualPlatforms.css";
 /* ─── Component ─────────────────────────────────────────────────────────────── */
 export default function VisualPlatforms() {
@@ -50,7 +50,7 @@ export default function VisualPlatforms() {
 
         {/* ── Grid ── */}
         <div className="grid grid-cols-1 md:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-3 md:gap-4">
-          {PLATFORMS.map((platform, i) => (
+          {PLATFORMDATA.map((platform, i) => (
             <PlatformCard 
               key={platform.href} 
               platform={platform} 

@@ -28,11 +28,12 @@ const DATA_STRUCTURES = [
       { prefix: "graph", example: "unordered_map<int, vector<int>> graph_map" },
       { prefix: "network", example: "vector<vector<int>> network_nodes" }
     ],
-    shape: "Value must be a 2D array (adjacency list) or a non-empty array.",
+    shape: "Value must be a 2D array (adjacency list). Inherently renders as directed edges.",
     auxiliary: [
       { role: "Edge list", trigger: "Any variable containing `edge` (e.g., `graph_edges`)", notes: "Expected format: `[[u, v], [x, y]]`" },
       { role: "Visited state", trigger: "Any variable containing `visit`", notes: "Elements set to `1` pulse with the highlight color" },
-      { role: "Pointer badges", trigger: "`node`, `curr`, `u`, `v`, or `ptr_n*` prefix", notes: "All matching variables render as floating badges simultaneously" }
+      { role: "Pointer badges", trigger: "`node`, `curr`, `u`, `v`, or `ptr_n*` prefix", notes: "All matching variables render as floating badges simultaneously" },
+      { role: "Active node", trigger: "A variable exactly named `current`", notes: "Highlights the node as actively being processed (e.g., in BFS/DFS)" }
     ]
   },
   {
@@ -67,7 +68,12 @@ const DATA_STRUCTURES = [
       { prefix: "board", example: "char board[8][8]" },
       { prefix: "dp", example: "vector<vector<int>> dp_table" },
       { prefix: "table", example: "int table[5][5]" },
-      { prefix: "matrix", example: "vector<vector<int>> matrix_data" }
+      { prefix: "matrix", example: "vector<vector<int>> matrix_data" },
+      { prefix: "vec2d", example: "vector<vector<int>> vec2d_arr" },
+      { prefix: "array2d", example: "vector<vector<int>> array2d_nums" },
+      { prefix: "grid2d", example: "vector<vector<int>> grid2d_board" },
+      { prefix: "matrix2d", example: "vector<vector<int>> matrix2d_dp" },
+      { prefix: "table2d", example: "int table2d[10][10]" }
     ],
     shape: "Value must be a 2D array (array of arrays).",
     auxiliary: [
@@ -88,7 +94,14 @@ const DATA_STRUCTURES = [
       { prefix: "seq", example: "vector<float> seq" },
       { prefix: "list", example: "vector<int> list_items" },
       { prefix: "buffer", example: "char buffer[256]" },
-      { prefix: "res", example: "vector<int> res_out" }
+      { prefix: "cache", example: "vector<int> cache_arr" },
+      { prefix: "res", example: "vector<int> res_out" },
+      { prefix: "array", example: "array<int, 5> array_data" },
+      { prefix: "tuple", example: "vector<int> tuple_vals" },
+      { prefix: "valarray", example: "valarray<int> valarray_nums" },
+      { prefix: "collection", example: "vector<int> collection_list" },
+      { prefix: "items", example: "vector<int> items" },
+      { prefix: "elements", example: "vector<int> elements" }
     ],
     shape: "Value must be a flat array of primitives (numbers, strings, booleans).",
     auxiliary: [
@@ -146,7 +159,7 @@ const DATA_STRUCTURES = [
     ],
     shape: "Value must be a flat array of primitives.",
     auxiliary: [
-      { role: "Stack pointers", trigger: "`top`, `peek`", notes: "Pointer badges attach to the right side of the element." }
+      { role: "Stack pointers", trigger: "`top`, `peek`, `curr`", notes: "Pointer badges attach to the right side of the element." }
     ]
   },
   {
@@ -189,7 +202,9 @@ const DATA_STRUCTURES = [
       { prefix: "hash", example: "unordered_set<int> hash_set" },
       { prefix: "seen", example: "unordered_set<int> seen" },
       { prefix: "visited", example: "unordered_set<int> visited_nodes" },
-      { prefix: "memo", example: "unordered_map<int, int> memo" }
+      { prefix: "memo", example: "unordered_map<int, int> memo" },
+      { prefix: "set", example: "unordered_set<int> set_data" },
+      { prefix: "cache_map", example: "unordered_map<int, int> cache_map" }
     ],
     shape: "Value must be a map or set object internally emitted by the engine.",
     auxiliary: []

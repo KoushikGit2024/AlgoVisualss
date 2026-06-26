@@ -114,11 +114,11 @@ function normalizeNodeArray(val: any[]): any[] {
 
 const GRAPH_PREFIXES   = ['adj', 'graph', 'network'];
 const TREE_PREFIXES    = ['tree_', 'bst_', 'trie_', 'root_', 'heap_', 'forest_'];
-const MATRIX_PREFIXES  = ['mat', 'grid', 'board', 'dp', 'table', 'matrix'];
+const MATRIX_PREFIXES  = ['mat', 'grid', 'board', 'dp', 'table', 'matrix', 'vec2d', 'array2d', 'grid2d', 'matrix2d', 'table2d'];
 const LL_PREFIXES      = ['ll_', 'list_node', 'linked_list'];
 const STACK_PREFIXES   = ['st_', 'stack', 'stk'];
 const QUEUE_PREFIXES   = ['q_', 'queue', 'deque', 'buffer_q'];
-const ARRAY_PREFIXES   = ['arr', 'vec', 'nums', 'seq', 'list', 'buffer', 'cache', 'res'];
+const ARRAY_PREFIXES   = ['arr', 'vec', 'nums', 'seq', 'list', 'buffer', 'cache', 'res', 'array', 'tuple', 'valarray', 'collection', 'items', 'elements'];
 const MAP_PREFIXES     = ['map', 'dict', 'freq', 'count', 'hash', 'cache_map', 'memo', 'set', 'seen', 'visited'];
 const STRING_PREFIXES  = ['str', 'text', 'word', 'chars', 'msg', 'string', 'sentence', 'paragraph', 's', 't', 'pattern', 'substring', 'sub'];
 const BITSET_PREFIXES  = ['mask', 'bits', 'flags', 'bitset', 'state_mask', 'b'];
@@ -197,6 +197,130 @@ function collectNodePointers(keys: string[], vars: VarMap, patterns: string[]): 
 
 // ─── MAIN DETECTOR ──────────────────────────────────────────────────────────
 
+interface GraphNode {
+  id: string;
+  label?: string | number;
+  x: number;
+  y: number;
+}
+
+interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  weight?: string | number;
+  isDirected?: boolean;
+}
+
+function tryDetectAdjacencyGraph(
+  name: string,
+  data: any,
+  type: string,
+  currentEvent: any,
+  vars: VarMap,
+  keys: string[],
+  consumedKeys: Set<string>
+): CanvasState | null {
+  const isAdjList =
+    (name.includes('_adj') || name.includes('adj_') || name.includes('graph')) &&
+    type.includes('vector') &&
+    Array.isArray(data);
+
+  if (!isAdjList) return null;
+
+  // data is the unwrapped outer array: data[i] is either 0 (uninitialized) or an array of neighbors
+  const nodes: GraphNode[] = [];
+  const edges: GraphEdge[] = [];
+  const seenEdges = new Set<string>();
+
+  data.forEach((neighbors: any, i: number) => {
+    nodes.push({ id: String(i), label: i, x: 50, y: 50 });
+
+    if (!Array.isArray(neighbors)) return; // not yet initialized
+
+    neighbors.forEach((j: number) => {
+      // Treat every entry in the adjacency list as a directed edge
+      const key = `${i}-${j}`;
+      if (!seenEdges.has(key)) {
+        seenEdges.add(key);
+        edges.push({
+          id: key,
+          source: String(i),
+          target: String(j),
+          isDirected: true,
+        });
+      }
+    });
+  });
+
+  if (nodes.length === 0) return null;
+
+  // Highlight the currently active node from BFS (look for "current" variable)
+  let activeNodes: string[] = [];
+  const readNodes: string[] = [];
+  const highLightEdges: string[] = [];
+  const readEdges: string[] = [];
+
+  if (currentEvent?.payload?.variable === 'current') {
+    const cur = currentEvent.payload.value;
+    if (cur !== undefined) readNodes.push(String(cur));
+  } else if (vars['current']) {
+    const cur = vars['current'].value;
+    if (cur !== undefined) readNodes.push(String(cur));
+  }
+
+  // Extract visited array for node highlighting
+  const visitedKey = keys.find(k => k.toLowerCase().includes('visit') && !consumedKeys.has(k));
+  if (visitedKey) {
+    const visited = deepUnwrap(vars[visitedKey]?.value) || [];
+    if (Array.isArray(visited)) {
+      activeNodes = visited.map((v: number, i: number) => v === 1 ? String(i) : null).filter(Boolean) as string[];
+    }
+  }
+
+  // Extract parent array for edge highlighting
+  const parentKey = keys.find(k => k.toLowerCase().includes('parent') && !consumedKeys.has(k));
+  if (parentKey) {
+    const parent = deepUnwrap(vars[parentKey]?.value) || [];
+    if (Array.isArray(parent)) {
+      parent.forEach((p: number, i: number) => {
+        if (p !== -1 && p !== undefined && p !== null) {
+          highLightEdges.push(`${p}-${i}`);
+        }
+      });
+    }
+  }
+
+  // Read current exploring edge
+  if (vars['current'] && vars['v']) {
+    const cur = vars['current'].value;
+    const nbr = vars['v'].value;
+    if (cur !== undefined && nbr !== undefined) {
+      readEdges.push(`${cur}-${nbr}`);
+    }
+  }
+
+  // Extract pointer badges
+  const { pointers, usedKeys: ptrKeys } = collectGraphPointers(keys, vars);
+
+  const usedKeys = [name, 'current', 'v', visitedKey, parentKey, ...ptrKeys].filter(k => k && vars[k as string]) as string[];
+
+  return {
+    id: name,
+    type: 'graph',
+    usedKeys,
+    props: {
+      nodes,
+      edges,
+      pointers,
+      highLightNodes: activeNodes,
+      readNodes,
+      highLightEdges,
+      readEdges,
+    }
+  };
+}
+
 export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[] {
   const visualizers: CanvasState[] = [];
   const consumedKeys = new Set<string>();
@@ -232,6 +356,26 @@ export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[
   };
 
   const keys = Object.keys(vars);
+
+  // 0. ADJACENCY LIST GRAPH DETECTION
+  for (const name of keys) {
+    if (consumedKeys.has(name)) continue;
+    const type = vars[name]?.type ?? '';
+    const val = deepUnwrap(vars[name]?.value);
+
+    if (
+      type.includes('vector') &&
+      type.includes('vector') && // vector<vector<...>>
+      (name.includes('adj') || name.includes('graph'))
+    ) {
+      const graphState = tryDetectAdjacencyGraph(name, val, type, currentEvent, vars, keys, consumedKeys);
+      if (graphState) {
+        // Mark the keys used by this graph as consumed
+        graphState.usedKeys.forEach(k => consumedKeys.add(k));
+        visualizers.push(graphState);
+      }
+    }
+  }
 
   // 1. GRAPH DETECTION
   keys.filter(k => matchesPrefix(k, GRAPH_PREFIXES)).forEach(graphKey => {

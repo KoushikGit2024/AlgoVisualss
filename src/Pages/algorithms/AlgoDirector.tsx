@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
-import { ALGORITHMSNAV } from "./data/categories/AlgoCategories";
+import ALGODATA from "./data/categories/AlgoData";
 import "./AlgoDirector.css";
+
 /* ─── Complexity filter config ──────────────────────────────────────────────── */
-type Algorithm = (typeof ALGORITHMSNAV)[number];
+type Algorithm = (typeof ALGODATA)[number];
 const FILTERS = [
   { label: "All",         test: () => true },
-  { label: "O(1)",        test: (a:Algorithm) => a.complexity.startsWith("O(1)") },
-  { label: "O(log n)",    test: (a:Algorithm) => a.complexity === "O(log n)" || a.complexity === "O(m)" },
-  { label: "O(n)",        test: (a:Algorithm) => ["O(n)", "O(n + m)", "O(V + E)"].includes(a.complexity) },
-  { label: "O(n log n)",  test: (a:Algorithm) => a.complexity === "O(n log n)" },
-  { label: "Complex",     test: (a:Algorithm) => a.complexity === "O(n²)" || a.complexity === "O(2ⁿ)" },
+  { label: "O(1)",        test: (a: Algorithm) => a.complexity && a.complexity.startsWith("O(1)") },
+  { label: "O(log n)",    test: (a: Algorithm) => a.complexity === "O(log n)" || a.complexity === "O(m)" },
+  { label: "O(n)",        test: (a: Algorithm) => a.complexity && ["O(n)", "O(n + m)", "O(V + E)"].includes(a.complexity) },
+  { label: "O(n log n)",  test: (a: Algorithm) => a.complexity === "O(n log n)" },
+  { label: "Complex",     test: (a: Algorithm) => a.complexity === "O(n²)" || a.complexity === "O(2ⁿ)" },
 ];
 
 /* ─── Component ─────────────────────────────────────────────────────────────── */
@@ -25,16 +26,16 @@ export default function AlgoDirector() {
 
   const currentFilter = FILTERS.find((f) => f.label === activeFilter) ?? FILTERS[0];
 
-  const filtered = ALGORITHMSNAV.filter((a) => {
+  const filtered = ALGODATA.filter((a) => {
     const matchSearch =
       !query ||
       a.name.toLowerCase().includes(query.toLowerCase()) ||
-      a.desc.toLowerCase().includes(query.toLowerCase());
+      (a.desc && a.desc.toLowerCase().includes(query.toLowerCase()));
     return matchSearch && currentFilter.test(a);
   });
 
-  const totalPatterns  = ALGORITHMSNAV.reduce((s, a) => s + a.count, 0);
-  const filteredPatt   = filtered.reduce((s, a) => s + a.count, 0);
+  const totalPatterns  = ALGODATA.reduce((s, a) => s + (a.items?.length || 0), 0);
+  const filteredPatt   = filtered.reduce((s, a) => s + (a.items?.length || 0), 0);
 
   return (
     <div className="min-h-screen bg-[var(--bg,#0D0B14)] text-[var(--text,#EDE9FF)] font-['Syne',system-ui,sans-serif] relative overflow-x-hidden">
@@ -67,7 +68,7 @@ export default function AlgoDirector() {
           
           <div className="flex items-center gap-0 flex-wrap" style={{ animation: "adFade 0.5s ease 0.25s both" }}>
             <div className="font-['JetBrains_Mono','Fira_Code',monospace] text-[11px] sm:text-[12px] text-[var(--muted,#6B6487)] px-[12px] sm:px-[18px] border-r border-[var(--border,#2A2445)] first:pl-0">
-              <strong className="text-[var(--text,#EDE9FF)] font-medium">{ALGORITHMSNAV.length}</strong> topics
+              <strong className="text-[var(--text,#EDE9FF)] font-medium">{ALGODATA.length}</strong> topics
             </div>
             <div className="font-['JetBrains_Mono','Fira_Code',monospace] text-[11px] sm:text-[12px] text-[var(--muted,#6B6487)] px-[12px] sm:px-[18px] border-r border-[var(--border,#2A2445)]">
               <strong className="text-[var(--text,#EDE9FF)] font-medium">{totalPatterns}</strong> patterns
@@ -89,7 +90,7 @@ export default function AlgoDirector() {
               placeholder="search topics and patterns…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              aria-label="Search ALGORITHMSNAV"
+              aria-label="Search Algorithms"
             />
           </div>
 
@@ -127,7 +128,7 @@ export default function AlgoDirector() {
           {filtered.length === 0 ? (
             <div className="col-span-full py-[90px] text-center text-[rgba(107,100,135,0.4)]">
               <span className="text-[38px] block mb-3.5 opacity-40" aria-hidden="true">◌</span>
-              <p className="font-['JetBrains_Mono','Fira_Code',monospace] text-xs tracking-[0.06em]">no ALGORITHMSNAV match your query</p>
+              <p className="font-['JetBrains_Mono','Fira_Code',monospace] text-xs tracking-[0.06em]">no algorithms match your query</p>
             </div>
           ) : (
             filtered.map((algo, i) => (
@@ -148,7 +149,9 @@ type AlgoCardProps = {
   mounted: boolean;
 };
 
-function AlgoCard({ algo, index, mounted }:AlgoCardProps) {
+function AlgoCard({ algo, index, mounted }: AlgoCardProps) {
+  const patternCount = algo.items?.length || 0;
+
   return (
     <a
       href={algo.href}
@@ -164,9 +167,9 @@ function AlgoCard({ algo, index, mounted }:AlgoCardProps) {
       {/* Left hover accent bar */}
       <div className="absolute left-0 top-[24%] bottom-[24%] w-[2px] bg-[var(--accent,#818CF8)] rounded-r-[2px] opacity-0 transition-all duration-[0.22s] ease-in-out group-hover:opacity-100 group-hover:top-[16%] group-hover:bottom-[16%]" />
 
-      {/* Background Number (converted from ::after pseudo-element) */}
+      {/* Background Number */}
       <span className="absolute -bottom-[6px] right-[10px] font-['Syne',system-ui,sans-serif] font-extrabold text-[72px] text-[rgba(129,140,248,0.04)] leading-none pointer-events-none select-none transition-colors duration-[0.22s] ease-in-out group-hover:text-[rgba(129,140,248,0.065)]" aria-hidden="true">
-        {algo.count}
+        {patternCount}
       </span>
 
       <span className="absolute top-[18px] right-[18px] font-['JetBrains_Mono','Fira_Code',monospace] text-[10px] text-[var(--border,#2A2445)] tracking-[0.06em] transition-colors duration-[0.22s] ease-in-out group-hover:text-[rgba(129,140,248,0.35)]" aria-hidden="true">
@@ -209,7 +212,7 @@ function AlgoCard({ algo, index, mounted }:AlgoCardProps) {
         </code>
         <span className="font-['JetBrains_Mono','Fira_Code',monospace] text-[11px] text-[rgba(107,100,135,0.55)] flex items-center gap-[6px] transition-colors duration-[0.22s] ease-in-out group-hover:text-[var(--muted,#6B6487)]">
           <span className="w-[3px] h-[3px] rounded-full bg-[var(--border,#2A2445)] transition-colors duration-[0.22s] ease-in-out group-hover:bg-[var(--accent,#818CF8)]" aria-hidden="true" />
-          {algo.count} patterns
+          {patternCount} patterns
         </span>
       </div>
     </a>

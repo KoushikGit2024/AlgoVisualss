@@ -1,6 +1,4 @@
-
-/* ─── Data ──────────────────────────────────────────────────────────────────── */
-const PLATFORMS = [
+const PLATFORMDATA = [
   {
     name: "LeetCode",
     href: "/visualizer/leetcode",
@@ -17,6 +15,12 @@ const PLATFORMS = [
     ),
     desc: "Track your submission stats, acceptance rates, and problem-solving heatmap.",
     stats: ["Daily streaks", "Acceptance rate", "Difficulty breakdown"],
+    items: [
+      { name: "1. Two Sum", href: "/visualizer/leetcode/1", type: "Easy" },
+      { name: "15. 3Sum", href: "/visualizer/leetcode/15", type: "Medium" },
+      { name: "42. Trapping Rain Water", href: "/visualizer/leetcode/42", type: "Hard" },
+      { name: "206. Reverse Linked List", href: "/visualizer/leetcode/206", type: "Easy" },
+    ]
   },
   {
     name: "Codeforces",
@@ -36,6 +40,11 @@ const PLATFORMS = [
     ),
     desc: "Visualize your rating progression, contest history, and tag-level performance.",
     stats: ["Rating graph", "Contest history", "Tag analysis"],
+    items: [
+      { name: "4A. Watermelon", href: "/visualizer/codeforces/4A", type: "Easy" },
+      { name: "158A. Next Round", href: "/visualizer/codeforces/158A", type: "Easy" },
+      { name: "71A. Way Too Long Words", href: "/visualizer/codeforces/71A", type: "Easy" },
+    ]
   },
   {
     name: "CodeChef",
@@ -53,7 +62,11 @@ const PLATFORMS = [
     ),
     desc: "Monitor your long and short contest rankings with visual performance charts.",
     stats: ["Star rating", "Contest rank", "Division tracking"],
+    items: [
+      { name: "1068. Weird Algorithm", href: "/visualizer/codechef/1068", type: "Easy" },
+      { name: "1083. Missing Number", href: "/visualizer/codechef/1083", type: "Easy" },
+    ]
   },
 ];
 
-export { PLATFORMS }
+export default PLATFORMDATA;

@@ -57,7 +57,7 @@ const D1Array = ({
   }
 
   return (
-    <div className="w-full flex flex-col items-start overflow-x-auto styled-scrollbar pb-8 pt-2 px-2">
+    <div className="w-full flex flex-col items-start overflow-x-auto styled-scrollbar pb-12 pt-2 px-6">
       <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex items-start gap-1.5 relative w-full">
         <AnimatePresence mode="popLayout">
           {/* CRITICAL: Mapping over safeValue, never value */}
@@ -140,23 +140,30 @@ const D1Array = ({
                 </motion.div>
 
                 {/* Bottom Pointers */}
-                <div className="absolute top-full mt-1.5 flex flex-col items-center gap-1 w-full">
+                <div className="absolute top-full mt-1 flex flex-col items-center w-full z-30 pointer-events-none">
                   <AnimatePresence>
-                    {cellPointers.map((ptr) => (
+                    {cellPointers.length > 0 && (
                       <motion.div
-                        key={ptr.name} layoutId={`pointer-${ptr.name}`}
-                        initial={{ opacity: 0, y: 5, scale: 0.8 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -5, scale: 0.8 }}
-                        transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
-                        className="flex flex-col items-center text-accent-3 z-30"
+                        key={`ptr-group-${idx}`}
+                        initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
+                        className="flex flex-col items-center text-accent-3"
                       >
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mb-0.5 opacity-80">
                           <path d="M12 19V5M5 12l7-7 7 7" />
                         </svg>
-                        <span className="text-[9px] font-mono font-bold bg-surface-2 text-accent-3 px-1 rounded border border-accent-3/30 truncate max-w-full">
-                          {ptr.name}
-                        </span>
+                        <div className="flex flex-row flex-wrap justify-center gap-1 w-max max-w-[8rem]">
+                          {cellPointers.map((ptr) => (
+                            <motion.span
+                              key={ptr.name} layoutId={`pointer-${ptr.name}`}
+                              transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
+                              className="text-[9px] font-mono font-bold bg-surface-2 text-accent-3 px-1 rounded border border-accent-3/30 whitespace-nowrap"
+                            >
+                              {ptr.name}
+                            </motion.span>
+                          ))}
+                        </div>
                       </motion.div>
-                    ))}
+                    )}
                   </AnimatePresence>
                 </div>
               </motion.div>

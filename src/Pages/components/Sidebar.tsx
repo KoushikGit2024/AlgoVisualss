@@ -3,52 +3,19 @@ import { Link, useLocation, useMatch } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Variants } from "framer-motion";
 import { Search, X, ChevronRight, AlertCircle, Code, Database, Activity, Box, Cpu, FileText, MonitorPlay, BadgeInfo } from "lucide-react";
-import { ALGORITHMSNAV } from "../algorithms/data/categories/AlgoCategories";
+import ALGODATA from "../algorithms/data/categories/AlgoData";
+import PLATFORMDATA from "../visualizer/data/PlatformData";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type NavItem = {
   id: string;
   label: string;
   url?: string;
-  icon?: React.ReactNode; 
-  hoverIcon?: React.ReactNode;
+  icon?: any;
+  hoverIcon?: any;
   badge?: string;
   children?: NavItem[];
 };
-
-// ─── Mock Data for Visualizer ─────────────────────────────────────────────────
-const VISUALIZER_NAV: NavItem[] = [
-  {
-    id: "leetcode",
-    label: "LeetCode",
-    icon: <Code className="w-4 h-4" />,
-    children: [
-      { id: "lc-1", label: "1. Two Sum", url: "/visualizer/leetcode/1", badge: "Easy" },
-      { id: "lc-15", label: "15. 3Sum", url: "/visualizer/leetcode/15", badge: "Medium" },
-      { id: "lc-42", label: "42. Trapping Rain Water", url: "/visualizer/leetcode/42", badge: "Hard" },
-      { id: "lc-206", label: "206. Reverse Linked List", url: "/visualizer/leetcode/206", badge: "Easy" },
-    ]
-  },
-  {
-    id: "codeforces",
-    label: "Codeforces",
-    icon: <Activity className="w-4 h-4" />,
-    children: [
-      { id: "cf-4a", label: "4A. Watermelon", url: "/visualizer/codeforces/4A", badge: "Easy" },
-      { id: "cf-158a", label: "158A. Next Round", url: "/visualizer/codeforces/158A", badge: "Easy" },
-      { id: "cf-71a", label: "71A. Way Too Long Words", url: "/visualizer/codeforces/71A", badge: "Easy" },
-    ]
-  },
-  {
-    id: "cses",
-    label: "CSES Problem Set",
-    icon: <Database className="w-4 h-4" />,
-    children: [
-      { id: "cses-1068", label: "1068. Weird Algorithm", url: "/visualizer/cses/1068", badge: "Easy" },
-      { id: "cses-1083", label: "1083. Missing Number", url: "/visualizer/cses/1083", badge: "Easy" },
-    ]
-  }
-];
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 function getTopicHeroIcon(topicName: string | null) {
@@ -163,7 +130,6 @@ function RecursiveNavNode({
   return (
     <div className="flex flex-col">
       <div
-        // to={item.url || "#"}
         onClick={handleClick}
         className={`group relative w-full flex items-center py-2 rounded-[4px] cursor-pointer transition-all duration-200 ease-out outline-none my-[2px]
           ${collapsed ? "justify-center px-0" : "pr-3"}
@@ -355,26 +321,61 @@ export default function Sidebar() {
     setLoading(true);
     setError(false);
 
+    // ─── PLATFORMDATA Mapping Logic ────────────────────────────────────
     if (isVis) {
+      const normalizedPlatform = platform?.toLowerCase().replace(/_/g, ' ');
+
+      // Filter to specific platform if applicable, otherwise load everything
+      const targetPlatforms = (normalizedPlatform && normalizedPlatform !== 'visualizer')
+        ? PLATFORMDATA.filter((p) => p.name.toLowerCase() === normalizedPlatform)
+        : PLATFORMDATA;
+        
+      const dataToMapVis = targetPlatforms.length > 0 ? targetPlatforms : PLATFORMDATA;
+
+      // Map PLATFORMDATA structure strictly to NavItem type
+      const visNavItems: NavItem[] = dataToMapVis.map((p: any) => ({
+        id: p.name.toLowerCase().replace(/\s+/g, '-'),
+        label: p.name,
+        url: p.href,
+        icon: p.icon,
+        hoverIcon: p.hoverIcon,
+        // Optional mapping in case PLATFORMDATA eventually includes nested `items`
+        children: p.items?.map((sub: any) => ({
+          id: sub.name.toLowerCase().replace(/\s+/g, '-'),
+          label: sub.name,
+          url: sub.href,
+          badge: sub.type
+        }))
+      }));
+
       if (isMounted) {
-        setData(VISUALIZER_NAV);
+        setData(visNavItems);
         setLoading(false);
       }
       return;
     }
 
+    // ─── ALGODATA Mapping Logic ────────────────────────────────────
     if (isAlgo) {
-      const targetAlgos = algoTopic
-        ? ALGORITHMSNAV.filter((algo) => algo.name.toLowerCase() === (algoTopic.toLowerCase()).replace('_',' '))
-        : ALGORITHMSNAV;
+      // Normalize parameter (e.g. 'bit_manipulation' to 'bit manipulation')
+      const normalizedTopic = algoTopic?.toLowerCase().replace(/_/g, ' ');
 
-      const algoNavItems: NavItem[] = targetAlgos.map(algo => ({
+      // Filter to specific topic if applicable, otherwise load everything
+      const targetAlgos = (normalizedTopic && normalizedTopic !== 'algorithms')
+        ? ALGODATA.filter((algo) => algo.name.toLowerCase() === normalizedTopic)
+        : ALGODATA;
+        
+      // Fallback in case a user enters an invalid route so sidebar doesn't blank out
+      const dataToMap = targetAlgos.length > 0 ? targetAlgos : ALGODATA;
+
+      // Map ALGODATA structure strictly to NavItem type
+      const algoNavItems: NavItem[] = dataToMap.map(algo => ({
         id: algo.name.toLowerCase().replace(/\s+/g, '-'),
         label: algo.name,
         url: algo.href,
         icon: algo.icon,
         hoverIcon: algo.hoverIcon,
-        children: algo.items?.map(sub => ({
+        children: algo.items?.map((sub: any) => ({
           id: sub.name.toLowerCase().replace(/\s+/g, '-'),
           label: sub.name,
           url: sub.href,
@@ -424,7 +425,7 @@ export default function Sidebar() {
             </div>
             <div className="flex flex-col min-w-0">
               <h2 className="text-[15px] font-bold text-[var(--text)] tracking-tight capitalize truncate">
-                {currentTopic} Index
+                {currentTopic.replace(/_/g, ' ')} Index
               </h2>
             </div>
           </motion.div>
@@ -491,7 +492,7 @@ export default function Sidebar() {
       <div className="flex-1 overflow-y-auto px-3 py-2 pb-16 styled-scrollbar">
         {loading ? (
           <SidebarSkeleton />
-        ) : isVis && !query && !collapsed ? (
+        ) : isVis && !query && !collapsed && data?.length === 0 ? ( // Updated conditional since mock problem IDs are removed
           /* Visualizer Empty Search State */
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center h-48 text-[var(--muted)] text-center p-6 text-[13px]">
             <Search size={28} className="mb-3 opacity-40 text-[var(--accent)]" />

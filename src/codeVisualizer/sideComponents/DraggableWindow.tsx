@@ -14,6 +14,8 @@ interface DraggableWindowProps {
   title: string;
   children: React.ReactNode;
   defaultPosition?: { x: number; y: number };
+  defaultSize?:     { width: string | number; minWidth?: number; height?: string | number; minHeight?: number };
+  cornerAnchor?:    'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
   windowState: WindowState;
   updateWindow: (partial: Partial<WindowState>) => void;
   bringToFront: () => void;
@@ -25,6 +27,8 @@ export function DraggableWindow({
   title,
   children,
   defaultPosition = { x: 0, y: 0 },
+  defaultSize,
+  cornerAnchor,
   windowState,
   updateWindow,
   bringToFront,
@@ -74,9 +78,12 @@ export function DraggableWindow({
   const animateProps: any = {
     opacity: windowState.isMinimized ? 0 : 1,
     scale:   windowState.isMinimized ? 0.8 : 1,
-    width:   windowState.isMaximized || windowState.snap !== 'none' ? (windowState.isMaximized ? '100%' : '50%') : 'auto',
-    height:  windowState.isMaximized || windowState.snap !== 'none' ? '100%' : 'auto',
   };
+
+  if (windowState.isMaximized || windowState.snap !== 'none') {
+    animateProps.width = windowState.isMaximized ? '100%' : '50%';
+    animateProps.height = '100%';
+  }
 
   if (windowState.isMaximized || windowState.snap === 'left') {
     animateProps.x = 0;
@@ -94,7 +101,7 @@ export function DraggableWindow({
   // drag prevents Framer Motion from registering stale drag-start events
   // that fire once the window re-appears.
   const isDraggable = !windowState.isMaximized && !windowState.isMinimized;
-
+// {console.log(cornerAnchor)}
   return (
     <motion.div
       // FIX 4 ─ id must be bound so Framer Motion can track instances
@@ -116,10 +123,22 @@ export function DraggableWindow({
       animate={animateProps}
       transition={{ type: 'spring', bounce: 0.05, duration: 0.3 }}
       className={`absolute flex flex-col bg-bg/95 border border-border rounded-md shadow-xl overflow-hidden ${
-        windowState.isMaximized ? 'inset-0' : 'min-w-[200px]'
+        windowState.isMaximized ? 'inset-0' : 'min-w-[60px]'
       }`}
       style={{
         zIndex: windowState.zIndex,
+        // Corner anchor: use CSS right/bottom instead of Framer's x/y
+        ...(cornerAnchor === 'bottom-right' && {
+          right:  8,
+          bottom: 8,
+          left:   'unset',
+          top:    'unset',
+          width:  defaultSize?.width ?? '10%',
+          minWidth: defaultSize?.minWidth ?? 40,
+          height:  defaultSize?.height ?? '10%',
+          minHeight: defaultSize?.minHeight ?? 40,
+          transform: 'none',   // neutralise Framer's translate
+        }),
         // Only allow CSS resize when the window is free-floating
         resize:
           !windowState.isMinimized &&
@@ -166,9 +185,10 @@ export function DraggableWindow({
       </div>
 
       {/* ─── Content Body ─── */}
-      <div className="flex-1 overflow-auto styled-scrollbar p-2 relative flex flex-col min-h-[100px]">
+      <div className={`flex-1 overflow-auto styled-scrollbar p-2 relative flex flex-col ${!cornerAnchor && 'min-h-[100px]'}`}>
         {/* m-auto centers when content fits; collapses to 0 when content overflows,
             left-aligning it so the left edge is never clipped */}
+            
         <div className="m-auto">
           {children}
         </div>

@@ -32,3 +32,5 @@ dist-ssr
 .roo*
 .gemini*
 .aider*
+test.cpp
+test.exe
