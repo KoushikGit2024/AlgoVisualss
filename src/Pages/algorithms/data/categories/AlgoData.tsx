@@ -10147,29 +10147,60 @@ fn main() {
 #include <algorithm>
 using namespace std;
 
-struct UnionFind {
-    vector<int> parent, rank;
-    UnionFind(int n) : parent(n), rank(n, 0) { iota(parent.begin(), parent.end(), 0); }
-    int find(int x) { return parent[x] == x ? x : parent[x] = find(parent[x]); }
-    bool unite(int x, int y) {
-        x = find(x); y = find(y);
-        if (x == y) return false;
-        if (rank[x] < rank[y]) swap(x, y);
-        parent[y] = x;
-        if (rank[x] == rank[y]) rank[x]++;
-        return true;
+vector<int> parent_arr;
+vector<int> rank_arr;
+
+void uf_init(int n) {
+    for (int i = 0; i < n; i++) {
+        parent_arr.push_back(i);
+        rank_arr.push_back(0);
     }
-};
+}
 
-struct Edge { int u, v, w; };
+int uf_find(int x) {
+    if (parent_arr[x] == x) return x;
+    parent_arr[x] = uf_find(parent_arr[x]);
+    return parent_arr[x];
+}
 
-vector<Edge> kruskal(int n, vector<Edge>& graph_edges) {
-    sort(graph_edges.begin(), graph_edges.end(), [](auto& a, auto& b){ return a.w < b.w; });
-    UnionFind uf(n);
-    vector<Edge> mst;
+bool uf_unite(int x, int y) {
+    x = uf_find(x); 
+    y = uf_find(y);
+    if (x == y) return false;
+    
+    if (rank_arr[x] < rank_arr[y]) swap(x, y);
+    
+    parent_arr[y] = x;
+    if (rank_arr[x] == rank_arr[y]) rank_arr[x]++;
+    return true;
+}
+
+// 2. Use 2D arrays instead of Structs for edges!
+// Visualizer strict requirement: the edge list MUST be an array of arrays.
+vector<vector<int>> graph_edges;
+
+void addEdge(int u, int v, int w) {
+    // We create a vector to represent the edge: {u, v, weight}
+    vector<int> e;
+    e.push_back(u);
+    e.push_back(v);
+    e.push_back(w);
+    graph_edges.push_back(e);
+}
+
+vector<vector<int>> kruskal(int n) {
+    // Sort based on weight (the 3rd element at index 2)
+    sort(graph_edges.begin(), graph_edges.end(), [](auto& a, auto& b){ return a[2] < b[2]; });
+    
+    uf_init(n);
+    vector<vector<int>> mst;
 
     for (auto& e : graph_edges) {
-        if (uf.unite(e.u, e.v)) {
+        // Expose 'current' and 'v' so the visualizer highlights the active edge!
+        int current = e[0];
+        int v = e[1];
+        
+        if (uf_unite(current, v)) {
             mst.push_back(e);
             if ((int)mst.size() == n - 1) break;
         }
@@ -10179,17 +10210,27 @@ vector<Edge> kruskal(int n, vector<Edge>& graph_edges) {
 
 int main() {
     int n = 4;
-    vector<Edge> graph_edges = {{0,1,10},{0,2,6},{0,3,5},{1,3,15},{2,3,4}};
-    auto mst = kruskal(n, graph_edges);
+    
+    // Build edges (this builds an array of arrays)
+    addEdge(0, 1, 10);
+    addEdge(0, 2, 6);
+    addEdge(0, 3, 5);
+    addEdge(1, 3, 15);
+    addEdge(2, 3, 4);
+
+    auto mst = kruskal(n);
     int total = 0;
+    
     cout << "MST edges:\\n";
     for (auto& e : mst) {
-        cout << "  " << e.u << " -- " << e.v << " (weight " << e.w << ")\\n";
-        total += e.w;
+        cout << "  " << e[0] << " -- " << e[1] << " (weight " << e[2] << ")\\n";
+        total += e[2];
     }
     cout << "Total MST weight: " << total << "\\n";
+    
     return 0;
-}`,
+}
+`,
 
   "python": `def find(parent, x):
     if parent[x] != x:
@@ -11606,67 +11647,88 @@ fn main() {
 #include <algorithm>
 using namespace std;
 
-struct Tarjan {
-    int n, timer = 0;
-    vector<vector<int>>& graph_adj;
-    vector<int> disc, low;
-    vector<bool> onStack;
-    stack<int> stk;
-    vector<vector<int>> sccs;
+// 1. Box primitive global variables inside vectors to bypass 
+// the interpreter's primitive pass-by-value bug across function frames.
+vector<int> timer_box;
+vector<vector<int>> graph_adj;
+vector<int> disc;
+vector<int> low;
+vector<bool> onStack;
+stack<int> stk;
+vector<vector<int>> sccs;
 
-    Tarjan(vector<vector<int>>& g, int n) : n(n), graph_adj(g),
-        disc(n,-1), low(n,0), onStack(n,false) {}
+void strongConnect(int u) {
+    // 2. Use the boxed timer value
+    disc[u] = timer_box[0];
+    low[u] = timer_box[0];
+    timer_box[0]++;
+    
+    stk.push(u); 
+    onStack[u] = true;
 
-    void strongConnect(int u) {
-        disc[u] = low[u] = timer++;
-        stk.push(u); onStack[u] = true;
-
-        for (int v : graph_adj[u]) {
-            if (disc[v] == -1) {
-                strongConnect(v);
-                low[u] = min(low[u], low[v]);
-            } else if (onStack[v]) {
-                low[u] = min(low[u], disc[v]);
-            }
-        }
-
-        if (low[u] == disc[u]) {
-            vector<int> scc;
-            while (true) {
-                int w = stk.top(); stk.pop();
-                onStack[w] = false;
-                scc.push_back(w);
-                if (w == u) break;
-            }
-            sccs.push_back(scc);
+    for (int v : graph_adj[u]) {
+        if (disc[v] == -1) {
+            strongConnect(v);
+            low[u] = min(low[u], low[v]);
+        } else if (onStack[v]) {
+            low[u] = min(low[u], disc[v]);
         }
     }
 
-    vector<vector<int>> run() {
-        for (int i = 0; i < n; i++)
-            if (disc[i] == -1) strongConnect(i);
-        return sccs;
+    if (low[u] == disc[u]) {
+        vector<int> scc;
+        while (true) {
+            int w = stk.top(); 
+            stk.pop();
+            onStack[w] = false;
+            scc.push_back(w);
+            if (w == u) break;
+        }
+        sccs.push_back(scc);
     }
-};
+}
 
 int main() {
     int n = 8;
-    vector<vector<int>> graph_adj(n);
-    auto addEdge = [&](int u, int v) { graph_adj[u].push_back(v); };
-    addEdge(0,1); addEdge(1,2); addEdge(2,0); addEdge(1,3);
-    addEdge(3,4); addEdge(4,5); addEdge(5,3); addEdge(4,6);
-    addEdge(6,7); addEdge(7,6);
+    // Initialize our boxed timer
+    timer_box.push_back(0); 
+    
+    // Dynamically initialize the global vectors 
+    for (int i = 0; i < n; i++) {
+        vector<int> row;
+        graph_adj.push_back(row);
+        disc.push_back(-1);
+        low.push_back(0);
+        onStack.push_back(false);
+    }
+    
+    // Add edges
+    graph_adj[0].push_back(1);
+    graph_adj[1].push_back(2);
+    graph_adj[2].push_back(0);
+    graph_adj[1].push_back(3);
+    graph_adj[3].push_back(4);
+    graph_adj[4].push_back(5);
+    graph_adj[5].push_back(3);
+    graph_adj[4].push_back(6);
+    graph_adj[6].push_back(7);
+    graph_adj[7].push_back(6);
 
-    Tarjan t(graph_adj, n);
-    auto sccs = t.run();
-    cout << "Strongly Connected Components:\\n";
+    for (int i = 0; i < n; i++) {
+        if (disc[i] == -1) {
+            strongConnect(i);
+        }
+    }
+
+    cout << "Strongly Connected Components:\n";
     for (auto& scc : sccs) {
         cout << "  { ";
         for (int v : scc) cout << v << " ";
-        cout << "}\\n";
+        cout << "}\n";
     }
     return 0;
-}`,
+}
+`,
 
   "python": `def tarjan_scc(graph_adj, n):
     disc = [-1] * n
@@ -12159,7 +12221,7 @@ fn main() {
   ],
   desc: "BFS, DFS, Dijkstra, Bellman-Ford, Floyd",
   complexity: "O(V + E)",
-  featured: false,
+  featured: true,
 };
 
 const TREES_SECTION = {
@@ -15426,7 +15488,46 @@ const HASH_MAPS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The 'num − 1 not in set' check guarantees that the inner while-loop is entered exactly once per distinct consecutive run in the input, always starting from that run's true minimum value — this is what prevents the same run from being redundantly re-walked from every one of its members. Since every number belongs to exactly one maximal consecutive run, and that run is counted in full exactly once (when its start is processed), the algorithm correctly computes every run's true length and the maximum among them is correctly the longest consecutive sequence present in the input." }
-      ]
+      ],
+      codes:{
+        "c++": `#include <iostream>
+#include <vector>
+#include <unordered_set>
+#include <algorithm>
+using namespace std;
+
+int longestConsecutive(vector<int>& nums) {
+    unordered_set<int> set_nums;
+    for (int num : nums) {
+        set_nums.insert(num);
+    }
+
+    int max_val = 0;
+    for (int num : nums) {
+        // Only start a sequence if it's the beginning
+        if (set_nums.count(num - 1) == 0) {
+            int current = num;
+            int count = 1;
+
+            while (set_nums.count(current + 1)) {
+                current += 1;
+                count += 1;
+            }
+            max_val = max(max_val, count);
+        }
+    }
+    return max_val;
+}
+
+int main() {
+    vector<int> nums = {100, 4, 200, 1, 3, 2};
+    int ans = longestConsecutive(nums);
+    cout << "Longest Consecutive Sequence: " << ans << "\\n";
+    return 0;
+}
+
+        `
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -15553,7 +15654,71 @@ const HASH_MAPS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Correctness of lookup follows directly from the hash function being deterministic: any key always maps to the same bucket index given the same bucket array size, so a key inserted into bucket idx will always be found by computing that same idx during a later get or remove call (as long as no resize has happened in between, after which a re-hash correctly relocates it to its new appropriate bucket). The chain-scanning within each bucket correctly handles collisions by checking key equality explicitly, not just hash equality, since multiple distinct keys can legitimately hash to the same bucket index. The O(1) average-case guarantee follows from the load-factor-triggered resizing keeping the ratio of entries to buckets bounded by a constant, which keeps the expected chain length — and therefore the expected scan cost — bounded by a constant as well." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+const int TABLE_SIZE = 7;
+vector<vector<vector<int>>> buckets;
+
+void initHashMap() {
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        vector<vector<int>> bucket;
+        buckets.push_back(bucket);
+    }
+}
+
+void put(int key, int value) {
+    int idx = key % TABLE_SIZE;
+    for (int i = 0; i < buckets[idx].size(); i++) {
+        if (buckets[idx][i][0] == key) {
+            buckets[idx][i][1] = value;
+            return;
+        }
+    }
+    vector<int> kv;
+    kv.push_back(key);
+    kv.push_back(value);
+    buckets[idx].push_back(kv);
+}
+
+int get(int key) {
+    int idx = key % TABLE_SIZE;
+    for (int i = 0; i < buckets[idx].size(); i++) {
+        if (buckets[idx][i][0] == key) {
+            return buckets[idx][i][1];
+        }
+    }
+    return -1;
+}
+
+void removeKey(int key) {
+    int idx = key % TABLE_SIZE;
+    for (int i = 0; i < buckets[idx].size(); i++) {
+        if (buckets[idx][i][0] == key) {
+            // FIXED: Using standard C++ iterator for erase
+            buckets[idx].erase(buckets[idx].begin() + i);
+            return;
+        }
+    }
+}
+
+int main() {
+    initHashMap();
+    put(1, 1);
+    put(2, 2);
+    cout << "get(1): " << get(1) << "\\n";
+    cout << "get(3): " << get(3) << "\\n";
+    put(2, 10);
+    cout << "get(2): " << get(2) << "\\n";
+    removeKey(2);
+    cout << "get(2): " << get(2) << "\\n";
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -15645,7 +15810,39 @@ const HASH_MAPS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "If a valid pair (i, j) with i < j exists such that nums[i] + nums[j] == target, then by the time the scan reaches index j, nums[i] has ALREADY been inserted into the hash map (since i < j and insertion happens immediately after each element is processed). At index j, the complement check (target − nums[j] == nums[i]) will correctly succeed, finding the pair. Because the algorithm checks for the complement BEFORE inserting the current element, a single element is never paired with itself (e.g. nums[i] == target/2 wouldn't incorrectly match against its own just-inserted entry), correctly handling that edge case as a natural consequence of the check-then-insert ordering." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <unordered_map>
+using namespace std;
+
+vector<int> twoSum(vector<int>& nums, int target) {
+    unordered_map<int, int> map_seen;
+    vector<int> res={-1,-1};
+    
+    for (int i = 0; i < nums.size(); i++) {
+        int diff = target - nums[i];
+        if (map_seen.count(diff)) {
+            res.push_back(map_seen[diff]);
+            res.push_back(i);
+            return res;
+        }
+        map_seen[nums[i]] = i;
+    }
+    return res;
+}
+
+int main() {
+    vector<int> nums = {2, 7, 11, 15};
+    int target = 9;
+    vector<int> ans = twoSum(nums, target);
+    cout << "Indices: " << ans[0] << ", " << ans[1] << "\\n";
+    return 0;
+}
+
+        `
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -15739,7 +15936,72 @@ const HASH_MAPS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Two strings are anagrams of each other if and only if they contain the exact same multiset of characters — and sorting a string produces a canonical, order-independent representation of that multiset (any two strings with the same multiset of characters produce identical sorted output, and any two strings with different multisets produce different sorted output). This means the canonical-form hash map key correctly captures the 'is an anagram of' equivalence relation exactly: strings map to the same key if and only if they're anagrams of each other, so grouping by key correctly and completely partitions the input into anagram groups." }
-      ]
+      ],
+      codes:{
+        "c++": `#include <iostream>
+#include <vector>
+#include <string>
+#include <unordered_map>
+using namespace std;
+
+// FAST VERSION: Finishes in ~40 visualizer steps instead of 1,800!
+string sortString(string val) {
+    // 1. Break the string into a vector of characters (3 steps)
+    vector<string> temp_vec;
+    for (int i = 0; i < val.length(); i++) {
+        string ch = "";
+        ch += val[i];
+        temp_vec.push_back(ch);
+    }
+    
+    // 2. Sort the vector (Executes in exactly 1 visualizer step!)
+    sort(temp_vec.begin(), temp_vec.end());
+    
+    // 3. Rebuild the string (3 steps)
+    string res = "";
+    for (int i = 0; i < temp_vec.size(); i++) {
+        res += temp_vec[i];
+    }
+    return res;
+}
+
+
+vector<vector<string>> groupAnagrams(vector<string>& strs) {
+    unordered_map<string, vector<string>> map_groups;
+    vector<string> unique_keys;
+    
+    for (int i = 0; i < strs.size(); i++) {
+        string word = strs[i];
+        string sorted_word = sortString(word); // Safely sorted!
+        
+        if (map_groups.count(sorted_word) == 0) {
+            unique_keys.push_back(sorted_word);
+        }
+        map_groups[sorted_word].push_back(word);
+    }
+
+    vector<vector<string>> res;
+    for (int i = 0; i < unique_keys.size(); i++) {
+        res.push_back(map_groups[unique_keys[i]]);
+    }
+    return res;
+}
+
+int main() {
+    vector<string> strs = {"eat", "tea", "tan", "ate", "nat", "bat"};
+    vector<vector<string>> ans = groupAnagrams(strs);
+    
+    for (int i = 0; i < ans.size(); i++) {
+        cout << "[ ";
+        for (int j = 0; j < ans[i].size(); j++) {
+            cout << ans[i][j] << " ";
+        }
+        cout << "]\\n";
+    }
+    return 0;
+}
+ `
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -15861,7 +16123,98 @@ const HASH_MAPS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The frequency-bucket structure correctly groups every cached key by its exact access count, and within each bucket, the doubly linked list correctly orders keys by recency, mirroring LRU Cache Design's own correctness argument but applied independently to each frequency level. Eviction always pulls from freqLists[minFreq], which by the maintained minFreq invariant is guaranteed to be the genuinely lowest frequency currently present among ANY cached key — and within that bucket, removing from the least-recent end correctly breaks frequency ties using recency, satisfying the full LFU-with-recency-tiebreak specification. The minFreq invariant itself is correctly maintained because it's only ever decreased to 1 on a fresh insertion (provably correct, since a frequency-1 key is always tied for the minimum) and only ever incremented when its OWN bucket becomes empty due to a bump (provably correct, since an empty bucket can no longer contain the minimum, and the bumped key's new frequency, oldFreq+1, is the next viable candidate)." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <unordered_map>
+using namespace std;
+
+int capacity;
+int min_freq;
+unordered_map<int, int> map_vals;
+unordered_map<int, int> map_freqs;
+unordered_map<int, vector<int>> map_lists;
+
+void initLFU(int cap) {
+    capacity = cap;
+    min_freq = 0;
+    map_vals.clear();
+    map_freqs.clear();
+    map_lists.clear();
+}
+
+void removeKeyFromList(int freq, int key) {
+    for (int i = 0; i < map_lists[freq].size(); i++) {
+        if (map_lists[freq][i] == key) {
+            map_lists[freq].erase(i);
+            break;
+        }
+    }
+}
+
+void updateFreq(int key) {
+    int freq = map_freqs[key];
+    map_freqs[key] = freq + 1;
+    
+    // Remove from old freq list
+    removeKeyFromList(freq, key);
+    
+    // If min_freq list is now empty, increment min_freq
+    if (freq == min_freq && map_lists[freq].empty()) {
+        min_freq++;
+    }
+    
+    // Add to new freq list
+    map_lists[freq + 1].push_back(key);
+}
+
+int get(int key) {
+    if (map_vals.count(key) == 0) return -1;
+    updateFreq(key);
+    return map_vals[key];
+}
+
+void put(int key, int value) {
+    if (capacity == 0) return;
+    
+    if (map_vals.count(key) > 0) {
+        map_vals[key] = value;
+        updateFreq(key);
+        return;
+    }
+    
+    if (map_vals.size() == capacity) {
+        // Evict LFU
+        int evict_key = map_lists[min_freq].front();
+        map_lists[min_freq].erase(0);
+        map_vals.erase(evict_key);
+        map_freqs.erase(evict_key);
+    }
+    
+    // Insert new
+    map_vals[key] = value;
+    map_freqs[key] = 1;
+    min_freq = 1;
+    map_lists[1].push_back(key);
+}
+
+int main() {
+    initLFU(2);
+    put(1, 1);
+    put(2, 2);
+    cout << "get(1): " << get(1) << "\\n";       // 1
+    put(3, 3);                                  // evicts 2
+    cout << "get(2): " << get(2) << "\\n";       // -1
+    cout << "get(3): " << get(3) << "\\n";       // 3
+    put(4, 4);                                  // evicts 1
+    cout << "get(1): " << get(1) << "\\n";       // -1
+    cout << "get(3): " << get(3) << "\\n";       // 3
+    cout << "get(4): " << get(4) << "\\n";       // 4
+    return 0;
+}
+`
+      }
     }
 
   ],

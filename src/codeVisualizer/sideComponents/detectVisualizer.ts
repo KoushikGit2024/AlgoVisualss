@@ -120,7 +120,7 @@ const STACK_PREFIXES   = ['st_', 'stack', 'stk'];
 const QUEUE_PREFIXES   = ['q_', 'queue', 'deque', 'buffer_q'];
 const ARRAY_PREFIXES   = ['arr', 'vec', 'nums', 'seq', 'list', 'buffer', 'cache', 'res', 'array', 'tuple', 'valarray', 'collection', 'items', 'elements'];
 const MAP_PREFIXES     = ['map', 'dict', 'freq', 'count', 'hash', 'cache_map', 'memo', 'set', 'seen', 'visited'];
-const STRING_PREFIXES  = ['str', 'text', 'word', 'chars', 'msg', 'string', 'sentence', 'paragraph', 's', 't', 'pattern', 'substring', 'sub'];
+const STRING_PREFIXES  = ['str', 'text', 'word', 'chars', 'msg', 'string', 'sentence', 'paragraph', 'pattern', 'substring', 'sub'];
 const BITSET_PREFIXES  = ['mask', 'bits', 'flags', 'bitset', 'state_mask', 'b'];
 const SCALAR_PREFIXES  = ['ans', 'sum', 'count', 'total', 'result', 'max_val', 'min_val', 'cnt', 'res_val', 'diff'];
 
@@ -568,6 +568,24 @@ export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[
       visualizers.push({ id: scalarKey, type: 'scalar', usedKeys: [scalarKey], props: { value: scalarVal, name: scalarKey } });
     }
   });
+
+  // 12. AUTO-FALLBACK DETECTION
+  // If a variable wasn't consumed by any prefix rules, try to render it based on its shape.
+  // keys.forEach(key => {
+  //   if (consumedKeys.has(key)) return;
+  //   const rawVal = deepUnwrap(vars[key]?.value);
+    
+  //   if (is2DArray(rawVal)) {
+  //     consumedKeys.add(key);
+  //     visualizers.push({ id: key, type: 'matrix', usedKeys: [key], props: { value: rawVal, pointers: [], readIndices: [], writeIndices: [] } });
+  //   } else if (isFlatArray(rawVal)) {
+  //     consumedKeys.add(key);
+  //     visualizers.push({ id: key, type: 'array', usedKeys: [key], props: { value: rawVal, pointers: [], readIndices: [], writeIndices: [] } });
+  //   } else if (typeof rawVal === 'number' || typeof rawVal === 'string' || typeof rawVal === 'boolean') {
+  //     consumedKeys.add(key);
+  //     visualizers.push({ id: key, type: 'scalar', usedKeys: [key], props: { value: rawVal, name: key } });
+  //   }
+  // });
 
   return visualizers;
 }

@@ -721,23 +721,48 @@ export class IRBuilder {
         name = nameNode ? this.getDeclaratorName(nameNode) : "unknown";
 
         const paramList = declaratorNode.namedChildren.find(
-          c => c.type === "parameter_list" || c.type === "argument_list"
-        );
-        if (paramList) {
-          const rawArgs: IRExpression[] = [];
-          for (const param of paramList.namedChildren) {
-            try {
-              if (param.type === "parameter_declaration") {
-                // Extract the identifier/expression part of `int n`.
-                const last = param.namedChildren[param.namedChildren.length - 1];
-                if (last) rawArgs.push(this.buildExpression(last));
-              } else {
-                rawArgs.push(this.buildExpression(param));
+            c => c.type === "parameter_list" || c.type === "argument_list"
+          );
+          if (paramList) {
+            let innerText = paramList.text.slice(1, -1).trim();
+            const argStrings: string[] = [];
+            let current = "";
+            let depth = 0;
+            for (let i = 0; i < innerText.length; i++) {
+              const char = innerText[i];
+              if (char === '(' || char === '<') depth++;
+              else if (char === ')' || char === '>') depth--;
+              else if (char === ',' && depth === 0) {
+                argStrings.push(current.trim());
+                current = "";
+                continue;
               }
-            } catch { /* skip unparseable params */ }
+              current += char;
+            }
+            if (current.trim()) argStrings.push(current.trim());
+
+            const rawArgs: IRExpression[] = [];
+            for (const argStr of argStrings) {
+              if (!isNaN(Number(argStr))) {
+                rawArgs.push({ kind: "Literal", line: node.startPosition.row + 1, type: "number", value: argStr } as any);
+              } else if (argStr.match(/^([a-zA-Z_][a-zA-Z0-9_]*\s*<\s*[a-zA-Z0-9_:\s]+\s*>)\s*\((.*)\)$/)) {
+                const match = argStr.match(/^([a-zA-Z_][a-zA-Z0-9_]*\s*<\s*[a-zA-Z0-9_:\s]+\s*>)\s*\((.*)\)$/);
+                const callee = match![1];
+                const innerArgs = match![2].split(",").map(s => s.trim()).filter(s => s);
+                rawArgs.push({
+                  kind: "FunctionCall",
+                  line: node.startPosition.row + 1,
+                  callee: callee,
+                  arguments: innerArgs.map(a => !isNaN(Number(a))
+                    ? { kind: "Literal", type: "number", value: a, line: node.startPosition.row + 1 } as any
+                    : { kind: "Identifier", name: a, line: node.startPosition.row + 1 } as any)
+                });
+              } else {
+                rawArgs.push({ kind: "Identifier", name: argStr, line: node.startPosition.row + 1 } as any);
+              }
+            }
+            if (rawArgs.length > 0) constructorArgs = rawArgs;
           }
-          if (rawArgs.length > 0) constructorArgs = rawArgs;
-        }
       }
 
       // ── Case D: Bare declarator (no initializer, no constructor args) ─────

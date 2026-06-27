@@ -618,7 +618,7 @@ const VisualGround = ({
           {/* V-Divider */}
           <div
             onMouseDown={() => setDraggingDiv('v')}
-            className="flex items-center justify-center h-2 cursor-row-resize z-10 shrink-0 hover:bg-surface-2 transition-colors"
+            className="flex items-center justify-center h-1 cursor-row-resize z-10 shrink-0 hover:bg-surface-2 transition-colors my-[-2px]"
           >
             <div className="h-[2px] w-12 rounded-full bg-border" />
           </div>

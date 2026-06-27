@@ -174,33 +174,26 @@ export class ExpressionEvaluator {
         if (expr.name === "true")    return true;
         if (expr.name === "false")   return false;
 
-        // ── C++ global numeric constants ─────────────────────────────────
-        // Checked before scope lookup so user code can shadow them by
-        // declaring `int INT_MAX = 0;` without breaking the constants.
-        const constVal = this.resolveGlobalConstant(expr.name);
-        if (constVal !== undefined) return constVal;
-
-        // ── Standard scope-chain variable lookup ──────────────────────────
-        const symbol = this.scopeManager.getVariable(expr.name);
-
-        // Unwrap pass-by-reference proxy chain with cycle detection.
-        let val = symbol.value;
-        const seen = new Set<any>();
-        while (val && typeof val === "object" && "__ref" in (val as any)) {
-          if (seen.has(val)) break; // Cycle guard — should never happen in valid C++.
-          seen.add(val);
-          const refName = (val as any).__ref as string;
-          const callerScope = (val as any).__callerScope;
-          val = callerScope.getVariable(refName).value;
-        }
-
-        this.eventEmitter.emit(expr.line, EventType.READ, {
-          variable: expr.name,
-          value:    val,
-          isConst:  symbol.isConst,  // v2: expose const flag for UI badge
-        });
-
-        return val;
+        // Check user scope FIRST � user declarations shadow built-in constants
+          try {
+            const symbol = this.scopeManager.getVariable(expr.name);
+            let val = symbol.value;
+            const seen = new Set<any>();
+            while (val && typeof val === "object" && "__ref" in val) {
+              if (seen.has(val)) break;
+              seen.add(val);
+              const refName = val.__ref as string;
+              const targetScope = val.__callerScope;
+              val = targetScope.getVariable(refName).value;
+            }
+            this.eventEmitter.emit(expr.line, EventType.READ, { variable: expr.name, value: val });
+            return val;
+          } catch {
+            // Not in scope � fall back to built-in constants
+            const constVal = this.resolveGlobalConstant(expr.name);
+            if (constVal !== undefined) return constVal;
+            throw new Error(`Memory Access Violation: Variable '${expr.name}' is not defined.`);
+          }
       }
 
 
@@ -549,11 +542,13 @@ export class ExpressionEvaluator {
       const right = this.evaluate(expr.right);
 
       if (left && typeof left === "object" && (left as any).__isCout) {
-        if (right === "\n") {
+        const outStr = right !== null && right !== undefined ? String(right) : "";
+        if (outStr === "\n") {
           console.log("");
         } else {
-          console.log(`[C++]: ${right}`);
+          console.log(`[C++]: ${outStr}`);
         }
+        this.eventEmitter.emit(expr.line, EventType.WRITE, { output: outStr });
         // Return proxy so chaining works: `cout << a << b`.
         return { __isCout: true } as unknown as CppValue;
       }

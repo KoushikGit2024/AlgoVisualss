@@ -904,14 +904,17 @@ export class ExecutionEngine {
       }
     } else {
       arr.sort((a, b) => {
-        // Lexicographic sort for arrays (pairs/tuples), numeric for primitives.
+        // Lexicographic sort for arrays (pairs/tuples) and strings, numeric for others.
         if (Array.isArray(a) && Array.isArray(b)) {
           for (let i = 0; i < Math.min(a.length, b.length); i++) {
-            if (a[i] !== b[i]) return a[i] - b[i];
+            if (a[i] !== b[i]) return a[i] < b[i] ? -1 : (a[i] > b[i] ? 1 : 0);
           }
           return a.length - b.length;
         }
-        return a - b;
+        if (typeof a === "string" && typeof b === "string") {
+          return a < b ? -1 : (a > b ? 1 : 0);
+        }
+        return (a as any) - (b as any);
       });
     }
     this.eventEmitter.emit(callNode.line, EventType.FUNCTION_CALL,   { function: fn, args: [] });

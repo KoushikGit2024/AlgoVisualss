@@ -191,10 +191,29 @@ export class StatementExecutor {
         }
         // vector / list / deque / stack / queue / priority_queue / array (n, fill).
         else if (this.isContainerType(typeLower)) {
-          value = size >= 0
-            ? this.createMockContainer(new Array(size).fill(arg1 !== undefined ? arg1 : 0), typeLower)
-            : this.createMockContainer([], typeLower);
-        }
+            if (size >= 0) {
+              let fillVal = arg1;
+              if (fillVal === undefined) {
+                const innerMatch = typeLower.match(/<(.*)>/);
+                if (innerMatch) {
+                  fillVal = this.defaultValueForType(innerMatch[1], innerMatch[1].toLowerCase(), []);
+                } else {
+                  fillVal = 0;
+                }
+              }
+              value = this.createMockContainer(
+                Array.from({ length: size }, () =>
+                  Array.isArray(fillVal) ? [...fillVal] :
+                  (fillVal && typeof fillVal === "object" && Array.isArray((fillVal as any).data))
+                    ? { ...(fillVal as any), data: [...(fillVal as any).data] }
+                    : fillVal
+                ),
+                typeLower
+              );
+            } else {
+              value = this.createMockContainer([], typeLower);
+            }
+          }
         // pair<T,U> p(a, b) → [a, b]
         else if (typeLower.includes("pair")) {
           value = [arg0, arg1 !== undefined ? arg1 : 0];
@@ -214,23 +233,24 @@ export class StatementExecutor {
     // ── Step 3: Deep-wrap nested initialiser-list arrays ───────────────────
     // `vector<vector<int>> dp = {{1,2},{3,4}};` → array of mock containers.
     if (value !== undefined && Array.isArray(value) && this.isContainerType(typeLower)) {
-      const extractInnerType = (type: string): string => {
-        const start = type.indexOf("<");
-        const end = type.lastIndexOf(">");
-        return (start !== -1 && end > start) ? type.slice(start + 1, end).trim() : type;
-      };
+        const extractInnerType = (type: string): string => {
+          const match = type.match(/^(?:vector|list|deque|stack|queue|array|priority_queue)<(.+)>$/);
+          return match ? match[1].trim() : "";
+        };
+        const innerType = extractInnerType(typeLower);
 
-      const wrapContainer = (arr: any[], currentType: string): Record<string, any> => {
-        const innerType = extractInnerType(currentType);
-        for (let i = 0; i < arr.length; i++) {
-          if (Array.isArray(arr[i]) && this.isContainerType(innerType)) {
-            arr[i] = wrapContainer(arr[i], innerType);
-          }
+        if (this.isContainerType(innerType)) {
+          const wrapContainer = (arr: any[]): Record<string, any> => {
+            for (let i = 0; i < arr.length; i++) {
+              if (Array.isArray(arr[i])) arr[i] = wrapContainer(arr[i]);
+            }
+            return this.createMockContainer(arr, typeLower);
+          };
+          value = wrapContainer(value as any[]);
+        } else {
+          value = this.createMockContainer(value as any[], typeLower);
         }
-        return this.createMockContainer(arr, currentType);
-      };
-      value = wrapContainer(value as any[], typeLower);
-    }
+      }
 
     // ── Step 4: Type-directed default initialisation ───────────────────────
     if (value === undefined) {
@@ -269,14 +289,15 @@ export class StatementExecutor {
    * STL container that should be backed by a mock container object.
    */
   private isContainerType(typeLower: string): boolean {
+    const baseType = typeLower.split('<')[0].replace("std::", "").trim();
     return (
-      typeLower.includes("vector")         ||
-      typeLower.includes("list")           ||
-      typeLower.includes("array")          ||
-      typeLower.includes("deque")          ||
-      typeLower.includes("stack")          ||
-      typeLower.includes("queue")          ||
-      typeLower.includes("priority_queue")
+      baseType === "vector" ||
+      baseType === "list" ||
+      baseType === "array" ||
+      baseType === "deque" ||
+      baseType === "stack" ||
+      baseType === "queue" ||
+      baseType === "priority_queue"
     );
   }
 

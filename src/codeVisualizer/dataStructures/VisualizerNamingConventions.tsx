@@ -177,8 +177,6 @@ const DATA_STRUCTURES = [
       { prefix: "string", example: "string string_data" },
       { prefix: "sentence", example: "string sentence" },
       { prefix: "paragraph", example: "string paragraph" },
-      { prefix: "s", example: "string s" },
-      { prefix: "t", example: "string t" },
       { prefix: "pattern", example: "string pattern" },
       { prefix: "substring", example: "string substring" },
       { prefix: "sub", example: "string sub" }
@@ -432,7 +430,7 @@ export default function VisualizerNamingConventions() {
                 { c: "<Queue />", p: "q_, queue, deque, buffer_q", s: "Flat array", a: "front, back, rear, head, tail, curr" },
                 { c: "<Stack />", p: "st_, stack, stk", s: "Flat array", a: "top, peek" },
                 { c: "<MapVisualizer />", p: "map, dict, freq, count, hash, cache_map, memo, set, seen, visited", s: "Map/Set Object", a: "None" },
-                { c: "<StringVisualizer />", p: "str, text, word, chars, msg, string, sentence, paragraph, s, t, pattern, substring, sub", s: "String / Char Array", a: "i, j, k, left, right, mid, curr, ptr" },
+                { c: "<StringVisualizer />", p: "str, text, word, chars, msg, string, sentence, paragraph, pattern, substring, sub", s: "String / Char Array", a: "i, j, k, left, right, mid, curr, ptr" },
                 { c: "<BitsetVisualizer />", p: "mask, bits, flags, bitset, state_mask, b", s: "Number / Bool Array", a: "None" },
                 { c: "<ScalarVisualizer />", p: "ans, sum, count, total, result, max_val, min_val, cnt, res_val, diff", s: "Primitive", a: "None" }
               ].map((row, i) => (
