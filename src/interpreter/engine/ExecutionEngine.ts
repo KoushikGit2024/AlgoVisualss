@@ -1497,6 +1497,19 @@ export class ExecutionEngine {
         }
       }
 
+      // Mirror updated global variable values back to globalVariables
+      for (const [gName] of this.globalVariables) {
+        try {
+          const symbol = frame.scopeManager.getVariable(gName);
+          if (symbol) {
+            this.globalVariables.set(gName, {
+              type: symbol.type as CppType,
+              value: symbol.value,
+            });
+          }
+        } catch { /* variable may have gone out of scope */ }
+      }
+
       this.eventEmitter.emit(func.line, EventType.FUNCTION_RETURN, {
         function:    name,
         returnValue,
