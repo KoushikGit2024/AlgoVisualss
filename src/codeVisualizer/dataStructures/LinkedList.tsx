@@ -10,6 +10,7 @@ export interface LinkedListProps {
   nodes: LLNode[];
   pointers?: { name: string; nodeId: string }[];
   cycleTo?: string;
+  isDoublyLinked?: boolean;
   
   // Highlighting Operations
   highLightNodes?: string[];
@@ -26,6 +27,7 @@ const LinkedList = ({
   nodes = [],
   pointers = [],
   cycleTo,
+  isDoublyLinked = false,
   highLightNodes = [],
   readNodes = [],
   writeNodes = [],
@@ -150,23 +152,78 @@ const LinkedList = ({
             const safeValToDisplay = typeof node.value === 'object' ? JSON.stringify(node.value) : String(node.value);
 
             return (
-              <React.Fragment key={`fragment-${node.id}`}>
+              <motion.div key={node.id} layout variants={cellVariants} initial="hidden" animate="show" exit="exit" className="flex items-center gap-2">
+                {/* ─── THE FRONT NULL TERMINATOR (If First Node & Doubly Linked) ─── */}
+                {isDoublyLinked && idx === 0 && (
+                  <>
+                    <motion.div layout className="flex items-center justify-center shrink-0 opacity-60">
+                      <div className="flex items-center justify-center px-2 py-0.5 rounded bg-surface border-2 border-dashed border-border-2 shadow-sm">
+                        <span className="text-[10px] font-mono font-bold text-muted">NULL</span>
+                      </div>
+                    </motion.div>
+                    
+                    <motion.div layout className="flex items-center justify-center w-8 shrink-0 relative z-0">
+                      <motion.svg width="32" height="24" viewBox="0 0 32 24" fill="none" className="absolute">
+                        <motion.path 
+                          d="M0 12 L32 12" 
+                          stroke="currentColor" 
+                          className="text-border-2 opacity-70" 
+                          strokeWidth="2" 
+                          markerEnd="url(#normalArrowhead)" 
+                          markerStart="url(#reverseArrowhead)"
+                          initial={{ pathLength: 0, opacity: 0 }} 
+                          animate={{ pathLength: 1, opacity: 1 }} 
+                          transition={{ duration: 0.3 }}
+                        />
+                      </motion.svg>
+                    </motion.div>
+                  </>
+                )}
+
                 {/* ─── THE LIST NODE ─── */}
-                <motion.div id={`ll-node-${node.id}`} layout variants={cellVariants} exit="exit" className="relative flex flex-col items-center shrink-0">
+                <motion.div id={`ll-node-${node.id}`} layout className="relative flex flex-col items-center shrink-0 mt-8 mb-6">
                   
+                  {/* Anchored Pointers (e.g. 'head', 'slow', 'fast') */}
+                  <div className="absolute -top-14 flex items-end justify-center gap-1.5 w-full flex-wrap pointer-events-none">
+                    <AnimatePresence>
+                      {cellPointers.map((ptr) => (
+                        <motion.div
+                          key={ptr.name} layoutId={`pointer-ll-${ptr.name}`}
+                          initial={{ opacity: 0, y: -10, scale: 0.8 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.8 }}
+                          transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
+                          className="flex flex-col items-center text-accent-3 z-30 pointer-events-auto"
+                        >
+                          <span className="text-[10px] font-mono font-bold bg-surface-2 text-accent-3 px-1.5 py-0.5 rounded shadow-sm border border-accent-3/30 truncate max-w-[70px]">
+                            {ptr.name}
+                          </span>
+                          <div className="w-0.5 h-3 bg-accent-3/70 rounded-full mt-0.5 mb-0.5" />
+                          <div className="w-2 h-2 rounded-full bg-accent-3 shadow-[0_0_6px_var(--accent-3)]" />
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+
                   <motion.div
                     layout initial={false}
                     animate={{ scale: activeScale, zIndex: activeZIndex }}
                     transition={{ type: "spring", stiffness: 400, damping: 25 }}
                     className={`
                       flex items-stretch font-mono text-[14px] font-medium 
-                      rounded-sm border transition-colors duration-200 shadow-sm
+                      rounded-md border-2 transition-colors duration-200 shadow-md
                       ${bgClass} ${borderClass} ${textClass} ${shadowClass}
+                      overflow-hidden
                     `}
-                    style={{ height: '3rem', minWidth: '4.5rem' }}
+                    style={{ height: '3.2rem', minWidth: '5rem' }}
                   >
+                    {/* Prev Pointer Block (Doubly Linked) */}
+                    {isDoublyLinked && (
+                      <div className={`w-8 border-r-2 flex flex-col items-center justify-center bg-surface/60 ${borderClass}`}>
+                        <div className={`w-2.5 h-2.5 rounded-full shadow-sm ${isRead || isWrite || isInsert ? 'bg-current shadow-current' : 'bg-muted/80 shadow-none'}`} />
+                      </div>
+                    )}
+
                     {/* Value Block */}
-                    <div className="flex-1 flex items-center justify-center px-3 min-w-[2.5rem]">
+                    <div className="flex-1 flex items-center justify-center px-4 min-w-[3rem] bg-bg/40 backdrop-blur-sm">
                       <AnimatePresence mode="wait">
                         <motion.span key={`val-${safeValToDisplay}`} initial={{ opacity: 0, y: -2 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 2 }} transition={{ duration: 0.1 }} className="truncate max-w-[80px]">
                           {safeValToDisplay}
@@ -175,54 +232,51 @@ const LinkedList = ({
                     </div>
 
                     {/* Next Pointer Block */}
-                    <div className={`w-6 border-l flex items-center justify-center ${borderClass}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${isRead || isWrite || isInsert ? 'bg-current' : 'bg-muted'}`} />
+                    <div className={`w-8 border-l-2 flex flex-col items-center justify-center bg-surface/60 ${borderClass}`}>
+                      <div className={`w-2.5 h-2.5 rounded-full shadow-sm ${isRead || isWrite || isInsert ? 'bg-current shadow-current' : 'bg-muted/80 shadow-none'}`} />
                     </div>
                   </motion.div>
 
                   {/* Node Address / ID Label */}
-                  <span className="absolute -top-4 text-[8px] text-muted font-mono bg-bg/80 px-1 rounded">
+                  {/* <span className="absolute -bottom-6 text-[9px] text-muted font-mono bg-bg/80 px-1 rounded border border-border/50">
                     {node.id}
-                  </span>
-
-                  {/* Anchored Pointers (e.g. 'head', 'curr', 'prev') */}
-                  <div className="absolute top-full mt-2 flex flex-col items-center gap-1 w-full">
-                    <AnimatePresence>
-                      {cellPointers.map((ptr) => (
-                        <motion.div
-                          key={ptr.name} layoutId={`pointer-ll-${ptr.name}`}
-                          initial={{ opacity: 0, y: -10, scale: 0.8 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.8 }}
-                          transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
-                          className="flex flex-col items-center text-accent-3 z-30"
-                        >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mb-0.5 opacity-80 rotate-180">
-                            <path d="M12 19V5M5 12l7-7 7 7" />
-                          </svg>
-                          <span className="text-[9px] font-mono font-bold bg-surface-2 text-accent-3 px-1 rounded border border-accent-3/30 truncate max-w-[60px]">
-                            {ptr.name}
-                          </span>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  </div>
+                  </span> */}
                 </motion.div>
 
                 {/* ─── THE CONNECTING ARROW ─── */}
-                <motion.div layout variants={cellVariants} className="flex items-center text-border-2 px-1">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                  </svg>
+                <motion.div layout className="flex items-center justify-center w-10 shrink-0 relative z-0">
+                  <motion.svg width="40" height="24" viewBox="0 0 40 24" fill="none" className="absolute">
+                    <defs>
+                      <marker id="normalArrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+                        <path d="M0,0 L6,3 L0,6 Z" className="fill-border-2" />
+                      </marker>
+                      <marker id="reverseArrowhead" markerWidth="6" markerHeight="6" refX="1" refY="3" orient="auto" markerUnits="strokeWidth">
+                        <path d="M6,0 L0,3 L6,6 Z" className="fill-border-2" />
+                      </marker>
+                    </defs>
+                    <motion.path 
+                      d="M0 12 L36 12" 
+                      stroke="currentColor" 
+                      className="text-border-2 opacity-70" 
+                      strokeWidth="2" 
+                      markerEnd="url(#normalArrowhead)" 
+                      markerStart={isDoublyLinked ? "url(#reverseArrowhead)" : undefined}
+                      initial={{ pathLength: 0, opacity: 0 }} 
+                      animate={{ pathLength: 1, opacity: 1 }} 
+                      transition={{ duration: 0.3 }}
+                    />
+                  </motion.svg>
                 </motion.div>
 
                 {/* ─── THE NULL TERMINATOR (If Last Node) ─── */}
                 {isLastNode && (
-                  <motion.div layout variants={cellVariants} className="flex items-center justify-center h-12 px-2 shrink-0">
-                    <span className="text-[12px] font-mono text-muted font-bold opacity-60 border-b-2 border-muted border-dashed pb-0.5">
-                      null
-                    </span>
+                  <motion.div layout className="flex items-center justify-center shrink-0 opacity-60">
+                    <div className="flex items-center justify-center px-2 py-0.5 rounded bg-surface border-2 border-dashed border-border-2 shadow-sm">
+                      <span className="text-[10px] font-mono font-bold text-muted">NULL</span>
+                    </div>
                   </motion.div>
                 )}
-              </React.Fragment>
+              </motion.div>
             );
           })}
         </AnimatePresence>

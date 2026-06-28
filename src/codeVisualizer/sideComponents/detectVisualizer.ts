@@ -250,34 +250,34 @@ function collectNodePointers(keys: string[], vars: VarMap, patterns: string[], n
 
   for (const key of keys) {
     const lower = key.toLowerCase();
-    const isMatch = patterns.some(p => 
+    const isNameMatch = patterns.length === 0 || patterns.some(p => 
       lower === p || lower.endsWith(`_${p}`) || lower.startsWith(`ptr_${p}`)
     );
 
-    if (isMatch) {
-      let val = vars[key]?.value;
-      if (val !== undefined && val !== null) {
-        val = deepUnwrap(val);
+    let val = vars[key]?.value;
+    if (val !== undefined && val !== null) {
+      val = deepUnwrap(val);
+      
+      if (typeof val === 'object' && nodeArray) {
+        const targetRefId = val.__circular_ref !== undefined ? val.__circular_ref : val.__original_ref_id;
         
-        if (typeof val === 'object' && nodeArray) {
-          const targetRefId = val.__circular_ref !== undefined ? val.__circular_ref : val.__original_ref_id;
-          
-          let match;
-          if (targetRefId !== undefined) {
-            match = nodeArray.find(n => n.__raw && n.__raw.__original_ref_id === targetRefId);
-          } else {
-            // Fallback for non-ref structures
-            const valStr = JSON.stringify(val);
-            match = nodeArray.find(n => JSON.stringify(n.__raw) === valStr);
-          }
-          
-          if (match) {
-            pointers.push({ name: key, nodeId: String(match.id) });
-            usedKeys.push(key);
-            continue;
-          }
+        let match;
+        if (targetRefId !== undefined) {
+          match = nodeArray.find(n => n.__raw && n.__raw.__original_ref_id === targetRefId);
+        } else {
+          // Fallback for non-ref structures
+          const valStr = JSON.stringify(val);
+          match = nodeArray.find(n => JSON.stringify(n.__raw) === valStr);
         }
         
+        if (match) {
+          pointers.push({ name: key, nodeId: String(match.id) });
+          usedKeys.push(key);
+          continue;
+        }
+      }
+      
+      if (isNameMatch) {
         pointers.push({ name: key, nodeId: String(val) });
         usedKeys.push(key);
       }
@@ -563,23 +563,59 @@ export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[
   });
 
   // 4. LINKED LIST DETECTION
-  keys.filter(k => matchesPrefix(k, LL_PREFIXES) || k === 'head').forEach(llKey => {
-    if (consumedKeys.has(llKey)) return;
-    let llData = deepUnwrap(vars[llKey]?.value);
-    let cycleTo: string | undefined = undefined;
+  const candidateLists: any[] = [];
+  
+  keys.forEach(k => {
+    if (consumedKeys.has(k)) return;
+    const llData = deepUnwrap(vars[k]?.value);
     
     if (llData && typeof llData === 'object' && !Array.isArray(llData) && ('value' in llData || 'val' in llData) && 'next' in llData) {
       const unrolled = unrollPointerLinkedList(llData);
-      llData = unrolled.nodes;
-      cycleTo = unrolled.cycleTo;
+      const isDoublyLinked = 'prev' in llData;
+      if (isNodeArray(unrolled.nodes)) {
+        candidateLists.push({
+           key: k,
+           nodes: unrolled.nodes,
+           cycleTo: unrolled.cycleTo,
+           isDoublyLinked
+        });
+      }
     }
-    
-    if (isNodeArray(llData)) {
-      const { pointers, usedKeys: ptrKeys } = collectNodePointers(keys, vars, ['head', 'tail', 'curr', 'prev', 'next', 'slow', 'fast'], llData);
-      const usedKeys = [llKey, ...ptrKeys];
+  });
+
+  // Filter out candidates whose nodes are entirely contained within another candidate's nodes
+  const finalLists = candidateLists.filter(cand => {
+     const candRefIds = new Set(cand.nodes.map((n: any) => n.__raw?.__original_ref_id).filter(Boolean));
+     if (candRefIds.size === 0) return true; // Keep it if it has no IDs for some reason
+     
+     // Is there any OTHER candidate that contains ALL our nodes?
+     const isSublist = candidateLists.some(other => {
+        if (other === cand) return false;
+        const otherRefIds = new Set(other.nodes.map((n: any) => n.__raw?.__original_ref_id).filter(Boolean));
+        
+        const allContained = Array.from(candRefIds).every(id => otherRefIds.has(id as string));
+        if (!allContained) return false;
+        
+        if (otherRefIds.size > candRefIds.size) return true;
+        if (otherRefIds.size === candRefIds.size && other.key < cand.key) return true;
+        
+        return false;
+     });
+     
+     return !isSublist;
+  });
+
+  finalLists.forEach(list => {
+      const { pointers, usedKeys: ptrKeys } = collectNodePointers(keys, vars, [], list.nodes);
+      
+      if (!ptrKeys.includes(list.key)) {
+         pointers.unshift({ name: list.key, nodeId: list.nodes.length > 0 ? list.nodes[0].id : "0" });
+         ptrKeys.push(list.key);
+      }
+
+      const usedKeys = [...new Set([list.key, ...ptrKeys])];
       usedKeys.forEach(k => consumedKeys.add(k));
-      visualizers.push({ id: llKey, type: 'linkedlist', usedKeys, props: { nodes: llData, pointers, cycleTo } });
-    }
+      visualizers.push({ id: list.key, type: 'linkedlist', usedKeys, props: { nodes: list.nodes, pointers, cycleTo: list.cycleTo, isDoublyLinked: list.isDoublyLinked } });
   });
 
   // 5. STACK DETECTION

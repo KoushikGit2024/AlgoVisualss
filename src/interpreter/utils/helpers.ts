@@ -237,10 +237,20 @@ export function createSnapshot(
       const rawVariables = frame.scopeManager.captureState();
       for (const [key, symbol] of Object.entries(rawVariables)) {
         if (key.startsWith("__")) continue;
+        let val = symbol.value;
+        const seen = new Set<any>();
+        while (val && typeof val === "object" && "__ref" in val) {
+          if (seen.has(val)) break;
+          seen.add(val);
+          const refName = val.__ref as string;
+          const targetScope = val.__callerScope;
+          val = targetScope.getVariable(refName).value;
+        }
+
         variables[key] = {
           name:  symbol.name,
           type:  symbol.type as CppType,
-          value: deepCloneCppValue(symbol.value) as CppValue,
+          value: deepCloneCppValue(val) as CppValue,
         };
       }
     }
@@ -249,10 +259,20 @@ export function createSnapshot(
     const rawVariables = activeScopeManager.captureState();
     for (const [key, symbol] of Object.entries(rawVariables)) {
       if (key.startsWith("__")) continue;
+      let val = symbol.value;
+      const seen = new Set<any>();
+      while (val && typeof val === "object" && "__ref" in val) {
+        if (seen.has(val)) break;
+        seen.add(val);
+        const refName = val.__ref as string;
+        const targetScope = val.__callerScope;
+        val = targetScope.getVariable(refName).value;
+      }
+
       variables[key] = {
         name:  symbol.name,
         type:  symbol.type as CppType,
-        value: deepCloneCppValue(symbol.value) as CppValue,
+        value: deepCloneCppValue(val) as CppValue,
       };
     }
   }

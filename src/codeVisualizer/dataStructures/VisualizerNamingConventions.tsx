@@ -115,17 +115,14 @@ const DATA_STRUCTURES = [
     icon: <LinkIcon className="text-accent" size={18} />,
     color: "border-accent/30 bg-accent/5",
     textColor: "text-accent",
-    description: "Renders a horizontal sequence of connected node blocks.",
+    description: "Renders a sequence of memory blocks connected by pointers. Detection is completely automatic based on structure, no naming prefix is required!",
     prefixes: [
-      { prefix: "ll_", example: "vector<Node> ll_nodes" },
-      { prefix: "head", example: "Engine emits the fully traversed list as `head`" },
-      { prefix: "list_node", example: "ListNode* list_node_ptr" },
-      { prefix: "linked_list", example: "vector<Node> linked_list_data" }
+      { prefix: "ANY NAME", example: "Node* start = new Node(10);" },
+      { prefix: "ANY NAME", example: "Node* slow = head;" }
     ],
-    shape: "Value must be an array of objects, each with `id` and `value` fields.",
+    shape: "A struct/class containing a 'value' (or 'val') field and a 'next' pointer.",
     auxiliary: [
-      { role: "Standard pointers", trigger: "`head`, `tail`, `curr`, `prev`, `next`", notes: "" },
-      { role: "Fast/Slow pointers", trigger: "`slow`, `fast`", notes: "Must hold the `id` or index of the target node." }
+      { role: "All Pointers", trigger: "Any variable pointing to a node", notes: "Regardless of variable name, it will be attached as a floating pointer above the node." }
     ]
   },
   {
@@ -295,7 +292,7 @@ export default function VisualizerNamingConventions() {
                 { p: 1, c: "<Graph />", w: "Most specific prefix (`adj_`, `graph_`)" },
                 { p: 2, c: "<Tree />", w: "Requires `tree_`/`bst_` + node objects" },
                 { p: 3, c: "<D2Array />", w: "2D array shape (matrix)" },
-                { p: 4, c: "<LinkedList />", w: "Requires `ll_`/`head` + node objects" },
+                { p: 4, c: "<LinkedList />", w: "Automatic structure detection (`value` + `next` fields)" },
                 { p: 5, c: "<Stack />", w: "Flat array with LIFO semantics" },
                 { p: 6, c: "<Queue />", w: "Flat array with FIFO semantics" },
                 { p: 7, c: "<D1Array />", w: "Generic flat array fallback" },
@@ -426,7 +423,7 @@ export default function VisualizerNamingConventions() {
                 { c: "<Tree />", p: "tree_, bst_, trie_, root_, heap_, forest_", s: "Array of {id, value}", a: "root, curr, parent, temp, left, right" },
                 { c: "<D2Array />", p: "mat, grid, board, dp, table, matrix", s: "2D array", a: "r/row/r_*, c/col/c_* (both req)" },
                 { c: "<D1Array />", p: "arr, vec, nums, seq, list, buffer, cache, res", s: "Flat array", a: "i, j, k, left, right, mid, curr, ptr" },
-                { c: "<LinkedList />", p: "ll_, head, list_node, linked_list", s: "Array of {id, value}", a: "head, tail, curr, prev, next, slow, fast" },
+                { c: "<LinkedList />", p: "(Any Name)", s: "Struct with `value` & `next`", a: "All node pointers automatically attach" },
                 { c: "<Queue />", p: "q_, queue, deque, buffer_q", s: "Flat array", a: "front, back, rear, head, tail, curr" },
                 { c: "<Stack />", p: "st_, stack, stk", s: "Flat array", a: "top, peek" },
                 { c: "<MapVisualizer />", p: "map, dict, freq, count, hash, cache_map, memo, set, seen, visited", s: "Map/Set Object", a: "None" },

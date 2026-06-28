@@ -13859,7 +13859,154 @@ const LINKED_LISTS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: the doubly linked list is always ordered from most-recently-used (right after head) to least-recently-used (right before tail). Every get or put that touches an existing key unlinks and re-inserts it at the front, correctly re-establishing it as most-recently-used — and since unlink/re-link only touches the node's immediate neighbors (O(1) pointer rewiring, made possible because the hash map gives a direct node reference, avoiding any traversal), the recency ordering invariant is preserved on every operation. When eviction is needed, the node just before tail is, by the maintained invariant, guaranteed to be the genuinely least-recently-used entry in the entire cache." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <unordered_map>
+using namespace std;
+
+struct Node {
+    int key;
+    int value;
+    Node* prev;
+    Node* next;
+
+    Node(int k, int v) {
+        key = k;
+        value = v;
+        prev = nullptr;
+        next = nullptr;
+    }
+};
+
+Node* head;
+Node* tail;
+
+unordered_map<int, Node*> cache_map;
+
+int capacity = 3;
+int count = 0;
+
+// Remove a node from the list
+void removeNode(Node* curr) {
+
+    curr->prev->next = curr->next;
+    curr->next->prev = curr->prev;
+}
+
+// Insert node right after head
+void insertFront(Node* curr) {
+
+    curr->next = head->next;
+    curr->prev = head;
+
+    head->next->prev = curr;
+    head->next = curr;
+}
+
+// Get value
+int get(int key) {
+
+    if (cache_map.find(key) == cache_map.end())
+        return -1;
+
+    Node* curr = cache_map[key];
+
+    removeNode(curr);
+    insertFront(curr);
+
+    return curr->value;
+}
+
+// Put key-value pair
+void put(int key, int value) {
+
+    // Key already exists
+    if (cache_map.find(key) != cache_map.end()) {
+
+        Node* curr = cache_map[key];
+
+        curr->value = value;
+
+        removeNode(curr);
+        insertFront(curr);
+
+        return;
+    }
+
+    // Cache full
+    if (count == capacity) {
+
+        Node* curr = tail->prev;
+
+        removeNode(curr);
+
+        cache_map.erase(curr->key);
+
+        delete curr;
+
+        count--;
+    }
+
+    // Insert new node
+    Node* curr = new Node(key, value);
+
+    insertFront(curr);
+
+    cache_map[key] = curr;
+
+    count++;
+}
+
+// Print cache
+void printCache() {
+
+    Node* curr = head->next;
+
+    cout << "Cache: ";
+
+    while (curr != tail) {
+
+        cout << "(" << curr->key << "," << curr->value << ")";
+
+        if (curr->next != tail)
+            cout << " <-> ";
+
+        curr = curr->next;
+    }
+
+    cout << endl;
+}
+
+int main() {
+
+    head = new Node(-1, -1);
+    tail = new Node(-1, -1);
+
+    head->next = tail;
+    tail->prev = head;
+
+    put(1, 10);
+    put(2, 20);
+    put(3, 30);
+
+    printCache();
+
+    cout << "get(2) = " << get(2) << endl;
+
+    printCache();
+
+    put(4, 40);
+
+    printCache();
+
+    cout << "get(1) = " << get(1) << endl;
+
+    printCache();
+
+    return 0;
+}`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -14140,7 +14287,141 @@ function deleteNode(node):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Correctness for insertion follows from carefully ordering the four pointer updates so no needed reference is overwritten before it's used: the new node's own pointers are set first (capturing the original neighbor relationship), and only then are the neighbors' pointers updated to point at the new node, by which point the new node's pointers already correctly hold the original neighbor references. For deletion, the two redirections (prev's next, and next's prev) together ensure the deleted node is fully bypassed in BOTH traversal directions simultaneously — after these two updates, no remaining node in the list has a pointer referencing the deleted node, making it fully and correctly unlinked." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+using namespace std;
+
+struct Node {
+    int value;
+    Node* prev;
+    Node* next;
+
+    Node(int val) {
+        value = val;
+        prev = nullptr;
+        next = nullptr;
+    }
+};
+
+Node* head = nullptr;
+Node* tail = nullptr;
+
+// Insert at the end
+void insert(int value) {
+
+    Node* curr = new Node(value);
+
+    if (head == nullptr) {
+        head = curr;
+        tail = curr;
+        return;
+    }
+
+    tail->next = curr;
+    curr->prev = tail;
+    tail = curr;
+}
+
+// Delete first occurrence of value
+void remove(int value) {
+
+    Node* curr = head;
+
+    while (curr != nullptr && curr->value != value) {
+        curr = curr->next;
+    }
+
+    if (curr == nullptr)
+        return;
+
+    if (curr == head)
+        head = curr->next;
+
+    if (curr == tail)
+        tail = curr->prev;
+
+    if (curr->prev != nullptr)
+        curr->prev->next = curr->next;
+
+    if (curr->next != nullptr)
+        curr->next->prev = curr->prev;
+
+    delete curr;
+}
+
+// Print forward
+void printForward() {
+
+    cout << "Forward : ";
+
+    Node* curr = head;
+
+    while (curr != nullptr) {
+
+        cout << curr->value;
+
+        if (curr->next != nullptr)
+            cout << " <-> ";
+
+        curr = curr->next;
+    }
+
+    cout << endl;
+}
+
+// Print backward
+void printBackward() {
+
+    cout << "Backward: ";
+
+    Node* curr = tail;
+
+    while (curr != nullptr) {
+
+        cout << curr->value;
+
+        if (curr->prev != nullptr)
+            cout << " <-> ";
+
+        curr = curr->prev;
+    }
+
+    cout << endl;
+}
+
+int main() {
+
+    insert(10);
+    insert(20);
+    insert(30);
+    insert(40);
+    insert(50);
+
+    cout << "Initial List\\n";
+    printForward();
+    printBackward();
+
+    cout << endl;
+
+    remove(30);
+
+    cout << "After deleting 30\\n";
+    printForward();
+    printBackward();
+
+    cout << endl;
+
+    insert(60);
+
+    cout << "After inserting 60\\n";
+    printForward();
+    printBackward();
+
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -14472,7 +14753,118 @@ int main() {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: at every point during the merge, everything already attached to the result (from dummy.next up to tail) is correctly sorted, and represents exactly the smallest (length-so-far) elements available from the combination of l1 and l2's REMAINING (not-yet-merged) portions. Each loop iteration correctly extends this invariant by one element: comparing the current fronts of both remaining sorted sub-lists and choosing the smaller one is guaranteed to produce the next-smallest element overall, since both sub-lists are individually sorted (so neither sub-list's later elements could be smaller than its own current front). Once one list is exhausted, every remaining node in the other list is, by its own sortedness, guaranteed to be ≥ everything already merged — so attaching it directly preserves the sorted invariant without needing further comparison." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+using namespace std;
+
+struct Node {
+    int value;
+    Node* next;
+
+    Node(int val) {
+        value = val;
+        next = nullptr;
+    }
+};
+
+// Insert at end
+void insert(Node*& head, int value) {
+
+    Node* curr = new Node(value);
+
+    if (head == nullptr) {
+        head = curr;
+        return;
+    }
+
+    Node* tail = head;
+
+    while (tail->next != nullptr) {
+        tail = tail->next;
+    }
+
+    tail->next = curr;
+}
+
+// Print linked list
+void printList(Node* head) {
+
+    Node* curr = head;
+
+    while (curr != nullptr) {
+
+        cout << curr->value;
+
+        if (curr->next != nullptr)
+            cout << " -> ";
+
+        curr = curr->next;
+    }
+
+    cout << endl;
+}
+
+// Merge two sorted linked lists
+Node* mergeLists(Node* head1, Node* head2) {
+
+    Node dummy(0);
+    Node* curr = &dummy;
+
+    while (head1 != nullptr && head2 != nullptr) {
+
+        if (head1->value <= head2->value) {
+            curr->next = head1;
+            head1 = head1->next;
+        }
+        else {
+            curr->next = head2;
+            head2 = head2->next;
+        }
+
+        curr = curr->next;
+    }
+
+    if (head1 != nullptr)
+        curr->next = head1;
+    else
+        curr->next = head2;
+
+    Node* head = dummy.next;
+
+    return head;
+}
+
+int main() {
+
+    Node* head1 = nullptr;
+    Node* head2 = nullptr;
+
+    insert(head1, 1);
+    insert(head1, 3);
+    insert(head1, 5);
+    insert(head1, 7);
+
+    insert(head2, 2);
+    insert(head2, 4);
+    insert(head2, 6);
+    insert(head2, 8);
+
+    cout << "List 1:" << endl;
+    printList(head1);
+
+    cout << "List 2:" << endl;
+    printList(head2);
+
+    Node* head = mergeLists(head1, head2);
+
+    cout << "Merged List:" << endl;
+    printList(head);
+
+    return 0;
+}
+`
+      }
     }
 
   ],

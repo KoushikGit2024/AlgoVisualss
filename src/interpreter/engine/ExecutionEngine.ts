@@ -70,6 +70,7 @@ import { EventEmitter }          from "../events/EventEmitter";
 import { ExpressionEvaluator }   from "../evaluator/ExpressionEvaluator";
 import { StatementExecutor }     from "../executor/StatementExecutor";
 import { IRWalker }              from "../walker/IRWalker";
+import { ScopeManager }          from "../runtime/ScopeManager";
 import { EventType }             from "../types";
 import type {
   RuntimeSnapshot,
@@ -121,6 +122,7 @@ export class ExecutionEngine {
   private snapshots:           RuntimeSnapshot[];
   private globalDeclarations:  IRVariableDeclaration[];
   private globalVariables:     Map<string, { type: CppType; value: CppValue }>;
+  private globalScopeManager:  ScopeManager | null = null;
 
   /**
    * v2: Persistent storage for static local variables.
@@ -171,6 +173,7 @@ export class ExecutionEngine {
     this.snapshots          = [];
     this.globalDeclarations = [];
     this.globalVariables    = new Map();
+    this.globalScopeManager = null;
     this.staticStorage      = new Map();
     this.inputQueue         = [];
     this.accumulatedOutput  = "";
@@ -486,6 +489,7 @@ export class ExecutionEngine {
           );
         }
       }
+      this.globalScopeManager = globalFrame.scopeManager;
       this.callStack.pop();
     }
 
@@ -1183,12 +1187,14 @@ export class ExecutionEngine {
       switch (method) {
         case "insert":                  s.add(args[0]); result = args[0]; break;
         case "erase": case "remove":    result = s.delete(args[0]); break;
-        case "count": case "find":
+        case "count":
         case "contains":                result = s.has(args[0]) ? 1 : 0; break;
+        case "find":                    result = s.has(args[0]) ? args[0] : null; break;
         case "size": case "length":     result = s.size; break;
         case "empty":                   result = s.size === 0; break;
         case "clear":                   s.clear(); break;
-        case "begin": case "end":       result = s.size; break;
+        case "begin":                   result = 0; break;
+        case "end":                     result = null; break;
         default: handled = false;
       }
     }
@@ -1204,13 +1210,15 @@ export class ExecutionEngine {
           break;
         case "emplace":                 m.set(args[0], args[1]); break;
         case "erase": case "remove":    result = m.delete(args[0]); break;
-        case "count": case "find":
+        case "count":
         case "contains":                result = m.has(args[0]) ? 1 : 0; break;
+        case "find":                    result = m.has(args[0]) ? args[0] : null; break;
         case "at":                      result = m.get(args[0]); break;
         case "size": case "length":     result = m.size; break;
         case "empty":                   result = m.size === 0; break;
         case "clear":                   m.clear(); break;
-        case "begin": case "end":       result = m.size; break;
+        case "begin":                   result = 0; break;
+        case "end":                     result = null; break;
         default: handled = false;
       }
     }
@@ -1431,7 +1439,12 @@ export class ExecutionEngine {
 
     // ── Inject global variables ───────────────────────────────────────────
     for (const [gName, gData] of this.globalVariables) {
-      try { frame.scopeManager.injectIntoBase(gName, gData.type, gData.value); } catch { /* already present */ }
+      try { 
+        frame.scopeManager.injectIntoBase(gName, gData.type, {
+           __ref: gName,
+           __callerScope: this.globalScopeManager
+        }); 
+      } catch { /* already present */ }
     }
 
     // ── Inject enum member constants (v2) ─────────────────────────────────
@@ -1511,19 +1524,6 @@ export class ExecutionEngine {
           const key = `${name}::${varName}` as StaticStorageKey;
           this.staticStorage.set(key, value);
         }
-      }
-
-      // Mirror updated global variable values back to globalVariables
-      for (const [gName] of this.globalVariables) {
-        try {
-          const symbol = frame.scopeManager.getVariable(gName);
-          if (symbol) {
-            this.globalVariables.set(gName, {
-              type: symbol.type as CppType,
-              value: symbol.value,
-            });
-          }
-        } catch { /* variable may have gone out of scope */ }
       }
 
       this.eventEmitter.emit(func.line, EventType.FUNCTION_RETURN, {

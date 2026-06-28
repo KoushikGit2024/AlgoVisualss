@@ -222,6 +222,10 @@ export class StatementExecutor {
         else if (typeLower.includes("pair")) {
           value = [arg0, arg1 !== undefined ? arg1 : 0];
         }
+        // Custom struct / class initialized with constructor args
+        else if (this.classBlueprints?.has(resolvedType)) {
+          value = this.instantiateStruct(resolvedType, node.constructorArgs);
+        }
         // Scalar: int x(5) → 5
         else {
           value = arg0;

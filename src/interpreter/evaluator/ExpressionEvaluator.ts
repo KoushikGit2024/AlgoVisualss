@@ -513,7 +513,8 @@ export class ExpressionEvaluator {
       case "*":  return argValue;               // Dereference — no-op in duck-typed JS
       case "&":
         if (expr.argument.kind === "Identifier") {
-          return { __ref: (expr.argument as any).name, __callerScope: this.scopeManager };
+          const varName = (expr.argument as any).name;
+          return this.scopeManager.getVariable(varName).value;
         }
         return argValue;
       default:
