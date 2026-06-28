@@ -184,8 +184,7 @@ function unrollPointerTree(rootNode: any): any[] {
 
 const GRAPH_PREFIXES   = ['adj', 'graph', 'network'];
 const TREE_PREFIXES    = ['tree_', 'bst_', 'trie_', 'root_', 'heap_', 'forest_'];
-const MATRIX_PREFIXES  = ['mat', 'grid', 'board', 'dp', 'table', 'matrix', 'vec2d', 'array2d', 'grid2d', 'matrix2d', 'table2d'];
-const LL_PREFIXES      = ['ll_', 'list_node', 'linked_list'];
+const MATRIX_PREFIXES  = ['mat', 'grid', 'board', 'dp', 'table', 'matrix', 'vec2d', 'array2d', 'grid2d', 'matrix2d', 'table2d', 'res'];
 const STACK_PREFIXES   = ['st_', 'stack', 'stk'];
 const QUEUE_PREFIXES   = ['q_', 'queue', 'deque', 'buffer_q'];
 const ARRAY_PREFIXES   = ['arr', 'vec', 'nums', 'seq', 'list', 'buffer', 'cache', 'res', 'array', 'tuple', 'valarray', 'collection', 'items', 'elements'];

@@ -15704,32 +15704,32 @@ using namespace std;
 
 int largestRectangleArea(vector<int>& arr_heights) {
 
-    vector<int> stack;
+    vector<int> stack_indices;
     int maxArea = 0;
 
     for (int curr = 0; curr <= arr_heights.size(); curr++) {
 
-        while (!stack.empty()) {
+        while (!stack_indices.empty()) {
 
-            int top = stack.size() - 1;
+            int top = stack_indices.size() - 1;
 
-            if (curr != arr_heights.size() && arr_heights[stack[top]] <= arr_heights[curr])
+            if (curr != arr_heights.size() && arr_heights[stack_indices[top]] <= arr_heights[curr])
                 break;
 
-            int height = arr_heights[stack[top]];
-            stack.pop_back();
+            int height = arr_heights[stack_indices[top]];
+            stack_indices.pop_back();
 
             int width;
 
-            if (stack.empty())
+            if (stack_indices.empty())
                 width = curr;
             else
-                width = curr - stack.back() - 1;
+                width = curr - stack_indices.back() - 1;
 
             maxArea = max(maxArea, height * width);
         }
 
-        stack.push_back(curr);
+        stack_indices.push_back(curr);
     }
 
     return maxArea;
@@ -15751,7 +15751,7 @@ int main() {
   ],
   desc: "Monotonic stack, bracket matching, next greater",
   complexity: "O(n)",
-  featured: false
+  featured: true
 };
 
 const QUEUES_SECTION = {
@@ -17754,7 +17754,56 @@ const RECURSION_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Every subset corresponds to exactly one path through the recursion tree, determined entirely by which elements were 'included' along that path — and since the algorithm explores every combination of include-or-skip choices (constrained only by the strictly-increasing 'start' index, which doesn't restrict WHICH subsets are reachable, only ensures each is reached exactly once), every one of the 2ⁿ possible subsets is generated exactly once. The append-before-recursing-then-remove-after pattern correctly restores 'current' to its prior state before trying the next sibling choice, ensuring no element from an abandoned branch incorrectly persists into a later, unrelated branch." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+vector<vector<int>> res;
+
+void generateSubsets(vector<int>& nums, vector<int>& curr, int i) {
+
+    if (i == nums.size()) {
+        res.push_back(curr);
+        return;
+    }
+
+    // Don't take nums[i]
+    generateSubsets(nums, curr, i + 1);
+
+    // Take nums[i]
+    curr.push_back(nums[i]);
+
+    generateSubsets(nums, curr, i + 1);
+
+    curr.pop_back();
+}
+
+int main() {
+
+    vector<int> nums = {1, 2, 3};
+
+    vector<int> curr;
+
+    generateSubsets(nums, curr, 0);
+
+    cout << "Subsets:" << endl;
+
+    for (auto subset : res) {
+
+        cout << "{ ";
+
+        for (int value : subset)
+            cout << value << " ";
+
+        cout << "}" << endl;
+    }
+
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -18084,7 +18133,54 @@ function isValid(board, row, col, digit):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Every permutation corresponds to exactly one root-to-leaf path through the recursion tree, where the path's sequence of choices directly determines the resulting ordering. Since at every recursive level the algorithm tries EVERY currently-unused element (not restricted by any starting index or ordering constraint, unlike Subsets), every possible sequencing of the n elements is reachable as some path through the tree — and the 'used' array correctly ensures no element appears twice within a single permutation, since an element marked used is excluded from consideration until it's explicitly un-marked during backtracking. The choose-recurse-undo pattern correctly restores the used array and current list to their exact prior state before exploring each sibling branch, guaranteeing no cross-contamination between independent permutation candidates." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+vector<vector<int>> res;
+
+void generatePermutations(vector<int>& nums, int curr) {
+
+    if (curr == nums.size()) {
+        res.push_back(nums);
+        return;
+    }
+
+    for (int i = curr; i < nums.size(); i++) {
+
+        swap(nums[curr], nums[i]);
+
+        generatePermutations(nums, curr + 1);
+
+        swap(nums[curr], nums[i]);
+    }
+}
+
+int main() {
+
+    vector<int> nums = {1, 2, 3};
+
+    generatePermutations(nums, 0);
+
+    cout << "Permutations:" << endl;
+
+    for (auto permutation : res) {
+
+        cout << "{ ";
+
+        for (int value : permutation)
+            cout << value << " ";
+
+        cout << "}" << endl;
+    }
+
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -18185,7 +18281,61 @@ function isValid(board, row, col, digit):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Using the non-decreasing 'start' index (never going backward to a smaller index, while still allowing the SAME index to repeat) guarantees every combination is generated in exactly one canonical non-decreasing order, preventing the same set of values from being counted multiple times as different permutations of themselves. The remaining < 0 pruning check is provably safe because every candidate value is positive (given as a problem constraint) — once remaining goes negative, no further additions of positive candidates could ever bring it back to exactly 0, so abandoning that branch immediately loses no valid solutions. The remaining == 0 base case directly and correctly captures the problem's requirement: the current partial combination sums exactly to the target, which is precisely what's being recorded as a result." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+vector<vector<int>> res;
+
+void combinationSum(vector<int>& nums, vector<int>& curr, int i, int sum) {
+
+    if (sum == 0) {
+        res.push_back(curr);
+        return;
+    }
+
+    if (i == nums.size() || sum < 0)
+        return;
+
+    // Take current number
+    curr.push_back(nums[i]);
+
+    combinationSum(nums, curr, i, sum - nums[i]);
+
+    curr.pop_back();
+
+    // Skip current number
+    combinationSum(nums, curr, i + 1, sum);
+}
+
+int main() {
+
+    vector<int> nums = {2, 3, 6, 7};
+
+    int sum = 7;
+
+    vector<int> curr;
+
+    combinationSum(nums, curr, 0, sum);
+
+    cout << "Combinations:" << endl;
+
+    for (auto combination : res) {
+
+        cout << "{ ";
+
+        for (int value : combination)
+            cout << value << " ";
+
+        cout << "}" << endl;
+    }
+
+    return 0;
+}
+`
+      }
     }
 
   ],

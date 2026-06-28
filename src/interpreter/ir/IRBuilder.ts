@@ -778,6 +778,21 @@ export class IRBuilder {
                     ? { kind: "Literal", type: "number", value: a, line: node.startPosition.row + 1 } as any
                     : { kind: "Identifier", name: a, line: node.startPosition.row + 1 } as any)
                 });
+              } else if (argStr.match(/^([a-zA-Z_][a-zA-Z0-9_:]*)\s*\((.*)\)$/)) {
+                const match = argStr.match(/^([a-zA-Z_][a-zA-Z0-9_:]*)\s*\((.*)\)$/);
+                const callee = match![1];
+                const innerArgs = match![2].split(",").map(s => s.trim()).filter(s => s);
+                rawArgs.push({
+                  kind: "FunctionCall",
+                  line: node.startPosition.row + 1,
+                  callee: callee,
+                  arguments: innerArgs.map(a => {
+                    if (!isNaN(Number(a))) return { kind: "Literal", type: "number", value: Number(a), line: node.startPosition.row + 1 } as any;
+                    if (a.startsWith("'") && a.endsWith("'")) return { kind: "Literal", type: "string", value: a.slice(1, -1), line: node.startPosition.row + 1 } as any;
+                    if (a.startsWith('"') && a.endsWith('"')) return { kind: "Literal", type: "string", value: a.slice(1, -1), line: node.startPosition.row + 1 } as any;
+                    return { kind: "Identifier", name: a, line: node.startPosition.row + 1 } as any;
+                  })
+                });
               } else {
                 rawArgs.push({ kind: "Identifier", name: argStr, line: node.startPosition.row + 1 } as any);
               }

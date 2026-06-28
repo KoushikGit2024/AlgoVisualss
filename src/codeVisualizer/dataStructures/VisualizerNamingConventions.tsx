@@ -61,7 +61,7 @@ const DATA_STRUCTURES = [
     icon: <Grid className="text-accent-2" size={18} />,
     color: "border-accent-2/30 bg-accent-2/5",
     textColor: "text-accent-2",
-    description: "Renders a 2D grid/matrix layout.",
+    description: "Renders a 2D grid/matrix layout. Automatically handles and aligns jagged/irregular arrays where rows have varying lengths.",
     prefixes: [
       { prefix: "mat", example: "vector<vector<int>> mat_grid" },
       { prefix: "grid", example: "vector<vector<int>> grid" },
@@ -73,9 +73,10 @@ const DATA_STRUCTURES = [
       { prefix: "array2d", example: "vector<vector<int>> array2d_nums" },
       { prefix: "grid2d", example: "vector<vector<int>> grid2d_board" },
       { prefix: "matrix2d", example: "vector<vector<int>> matrix2d_dp" },
-      { prefix: "table2d", example: "int table2d[10][10]" }
+      { prefix: "table2d", example: "int table2d[10][10]" },
+      { prefix: "res", example: "vector<vector<int>> res_out" }
     ],
-    shape: "Value must be a 2D array (array of arrays).",
+    shape: "Value must be a 2D array (array of arrays). Supports jagged/irregular rows.",
     auxiliary: [
       { role: "Row", trigger: "`r`, `row`, `*_r`, `r_*`", notes: "Both a row and column variable must exist to drop a pointer." },
       { role: "Column", trigger: "`c`, `col`, `*_c`, `c_*`", notes: "" }
@@ -107,7 +108,8 @@ const DATA_STRUCTURES = [
     auxiliary: [
       { role: "Generic indexers", trigger: "`i`, `j`, `k`", notes: "" },
       { role: "Algorithmic pointers", trigger: "`left`, `right`, `mid`, `curr`, `ptr`", notes: "" },
-      { role: "Composite examples", trigger: "`ptr_i`, `left_idx`", notes: "" }
+      { role: "Composite examples", trigger: "`ptr_i`, `left_idx`", notes: "" },
+      { role: "Range Highlighting", trigger: "Pairs: `left`/`right`, `l`/`r`, `start`/`end`, `low`/`high`, `first`/`last`", notes: "If a pointer pair exists in the scope, the elements between them are automatically highlighted as a range." }
     ]
   },
   {
@@ -421,7 +423,7 @@ export default function VisualizerNamingConventions() {
               {[
                 { c: "<Graph />", p: "adj, graph, network", s: "2D array", a: "*edge*, *visit*, node/curr/u/v" },
                 { c: "<Tree />", p: "tree_, bst_, trie_, root_, heap_, forest_", s: "Array of {id, value}", a: "root, curr, parent, temp, left, right" },
-                { c: "<D2Array />", p: "mat, grid, board, dp, table, matrix", s: "2D array", a: "r/row/r_*, c/col/c_* (both req)" },
+                { c: "<D2Array />", p: "mat, grid, board, dp, table, matrix, res", s: "2D array (Jagged allowed)", a: "r/row/r_*, c/col/c_* (both req)" },
                 { c: "<D1Array />", p: "arr, vec, nums, seq, list, buffer, cache, res", s: "Flat array", a: "i, j, k, left, right, mid, curr, ptr" },
                 { c: "<LinkedList />", p: "(Any Name)", s: "Struct with `value` & `next`", a: "All node pointers automatically attach" },
                 { c: "<Queue />", p: "q_, queue, deque, buffer_q", s: "Flat array", a: "front, back, rear, head, tail, curr" },

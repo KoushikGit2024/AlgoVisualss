@@ -31,9 +31,35 @@ const D1Array = ({
   // 1. Bulletproof validation
   const safeValue = Array.isArray(value) ? value : [];
 
+  // Auto-detect ranges from pointer pairs
+  const rangePointerPairs = [
+    ['left', 'right'],
+    ['l', 'r'],
+    ['start', 'end'],
+    ['low', 'high'],
+    ['first', 'last']
+  ];
+
+  const effectiveRanges = [...highLightRange];
+  
+  if (pointers && pointers.length > 0) {
+    rangePointerPairs.forEach(([startName, endName]) => {
+      const startPtrs = pointers.filter(p => p.name.toLowerCase() === startName || p.name.toLowerCase().endsWith(`_${startName}`));
+      const endPtrs = pointers.filter(p => p.name.toLowerCase() === endName || p.name.toLowerCase().endsWith(`_${endName}`));
+      
+      startPtrs.forEach(start => {
+        endPtrs.forEach(end => {
+          if (start.index <= end.index) {
+            effectiveRanges.push([start.index, end.index]);
+          }
+        });
+      });
+    });
+  }
+
   const isInRange = (idx: number) => {
-    if (!highLightRange || highLightRange.length === 0) return false;
-    return highLightRange.some(([start, end]) => idx >= start && idx <= end);
+    if (effectiveRanges.length === 0) return false;
+    return effectiveRanges.some(([start, end]) => idx >= start && idx <= end);
   };
 
   const containerVariants = {

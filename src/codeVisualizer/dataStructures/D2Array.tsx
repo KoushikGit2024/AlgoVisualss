@@ -92,8 +92,13 @@ const D2Array = ({
                   <span className="text-[10px] text-muted font-mono">{r}</span>
                 </div>
 
-                {/* CRITICAL: Mapping over safeRow */}
-                {safeRow.map((val, c) => {
+                {/* CRITICAL: Mapping up to numCols for consistent sizing */}
+                {Array.from({ length: numCols }).map((_, c) => {
+                  if (c >= safeRow.length) {
+                    return <div key={`empty-${r}-${c}`} className="flex flex-col items-center flex-1 min-w-[2.5rem] max-w-[4rem]" />;
+                  }
+                  
+                  const val = safeRow[c];
                   const isDelete = isMatch(deleteIndices, r, c);
                   const isSwap = isMatch(swapIndices, r, c);
                   const isWrite = isMatch(writeIndices, r, c);

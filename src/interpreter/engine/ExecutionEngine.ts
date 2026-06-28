@@ -1312,8 +1312,8 @@ export class ExecutionEngine {
       switch (method) {
         case "size": case "length":     result = targetArr.length; break;
         case "empty":                   result = targetArr.length === 0; break;
-        case "push_back": case "push":  targetArr.push(args[0]); result = args[0]; break;
-        case "push_front":              targetArr.unshift(args[0]); result = args[0]; break;
+        case "push_back": case "push":  targetArr.push(cloneRuntimeValue(args[0])); result = args[0]; break;
+        case "push_front":              targetArr.unshift(cloneRuntimeValue(args[0])); result = args[0]; break;
         case "pop_back": case "pop":    result = targetArr.pop(); break;
         case "pop_front":               result = targetArr.shift(); break;
         case "front":                   result = targetArr[0]; break;
@@ -1324,8 +1324,8 @@ export class ExecutionEngine {
         case "begin":                   result = 0; break;
         case "end":                     result = targetArr.length; break;
         case "insert":
-          if (args.length === 1) targetArr.push(args[0]);
-          else if (typeof args[0] === "number") targetArr.splice(args[0] as number, 0, args[1]);
+          if (args.length === 1) targetArr.push(cloneRuntimeValue(args[0]));
+          else if (typeof args[0] === "number") targetArr.splice(args[0] as number, 0, cloneRuntimeValue(args[1]));
           break;
         case "erase": {
           const idx = typeof args[0] === "number" ? args[0] as number : targetArr.indexOf(args[0]);

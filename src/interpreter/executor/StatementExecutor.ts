@@ -433,7 +433,7 @@ export class StatementExecutor {
     constructorArgs: IRExpression[],
   ): Record<string, any> {
     if (this.instantiateCallback) {
-      return this.instantiateCallback(typeName, constructorArgs);
+      return this.instantiateCallback(typeName, constructorArgs) as Record<string, any>;
     }
     const blueprint = this.classBlueprints!.get(typeName)!;
     const instance: Record<string, any> = { __type: typeName };
@@ -481,19 +481,19 @@ export class StatementExecutor {
       data: [...initialData],
 
       // ── Insertion ─────────────────────────────────────────────────────────
-      push_back(val: any)  { this.data.push(val);           return val; },
+      push_back(val: any)  { this.data.push(cloneRuntimeValue(val));           return val; },
       push(val: any) {
-        this.data.push(val);
+        this.data.push(cloneRuntimeValue(val));
         if (this.__isHeap) this.__siftUp(this.data.length - 1);
         return val;
       },
-      push_front(val: any) { this.data.unshift(val);        return val; },
+      push_front(val: any) { this.data.unshift(cloneRuntimeValue(val));        return val; },
 
       insert(val: any, pos?: number) {
         if (pos !== undefined && typeof pos === "number") {
-          this.data.splice(pos, 0, val);
+          this.data.splice(pos, 0, cloneRuntimeValue(val));
         } else {
-          this.data.push(val);
+          this.data.push(cloneRuntimeValue(val));
         }
         return val;
       },
@@ -723,7 +723,21 @@ export class StatementExecutor {
         ? newValue
         : this.computeCompoundValue(stmt.operator, existingValue ?? 0, newValue);
 
-      this.writeSubscript(targetObj, index, finalValue);
+      if (typeof targetObj === "string") {
+        const i = typeof index === "string" ? parseInt(index) : (index as number);
+        const newStr = targetObj.substring(0, i) + String(finalValue) + targetObj.substring(i + 1);
+        
+        // Recursively assign the new string back to its container
+        this.executeAssignment({
+          kind: "Assignment",
+          operator: "=",
+          target: targetNode.object,
+          value: { kind: "Literal", value: newStr, valueType: "string", line: stmt.line },
+          line: stmt.line
+        } as IRAssignment);
+      } else {
+        this.writeSubscript(targetObj, index, finalValue);
+      }
 
       this.eventEmitter.emit(stmt.line, EventType.ASSIGNMENT, {
         variable: `${arrayName}[${index}]`,
