@@ -221,23 +221,42 @@ export class IRBuilder {
 
     const bodyNode = node.namedChildren.find(c => c.type === "field_declaration_list");
     const fields: IRStructDeclaration["fields"] = [];
+    const constructors: IRFunctionDeclaration[] = [];
+    const methods: IRFunctionDeclaration[]      = [];
 
     if (bodyNode) {
       for (const field of bodyNode.namedChildren) {
+        if (field.type === "function_definition") {
+          try {
+            const funcDecl = this.buildFunctionDeclaration(field);
+            if (funcDecl.name === name) constructors.push(funcDecl);
+            else methods.push(funcDecl);
+          } catch (e) {
+            console.warn(`[IRBuilder] Skipping struct method parse error: ${(e as Error).message}`);
+          }
+          continue;
+        }
+
         if (field.type !== "field_declaration") continue;
 
         let type = field.child(0)?.text ?? "unknown";
         let decl = field.namedChildren.find(
-          c => c.type === "field_identifier" || c.type === "array_declarator"
+          c => c.type === "field_identifier" || c.type === "array_declarator" || c.type === "pointer_declarator" || c.type === "reference_declarator"
         );
 
         let fieldName = "unknown";
         if (decl) {
-          if (decl.type === "array_declarator") {
-            type += "[]";
-            decl = decl.child(0) ?? undefined;
+          let currDecl = decl;
+          while (currDecl.type === "pointer_declarator" || currDecl.type === "reference_declarator") {
+            if (currDecl.type === "pointer_declarator") type += "*";
+            if (currDecl.type === "reference_declarator") type += "&";
+            currDecl = currDecl.child(1) as SyntaxNode;
           }
-          fieldName = decl?.text ?? "unknown";
+          if (currDecl.type === "array_declarator") {
+            type += "[]";
+            currDecl = currDecl.child(0) as SyntaxNode;
+          }
+          fieldName = currDecl?.text ?? "unknown";
         }
 
         // Look for a default initialiser: `int x = 0;`
@@ -261,6 +280,8 @@ export class IRBuilder {
       line:   node.startPosition.row + 1,
       name,
       fields,
+      constructors,
+      methods,
     };
   }
 
@@ -770,10 +791,18 @@ export class IRBuilder {
         name = this.getDeclaratorName(declaratorNode);
       }
 
+      let actualType = typeNode.text;
+      let currDecl = declaratorNode;
+      while (currDecl && (currDecl.type === "pointer_declarator" || currDecl.type === "reference_declarator")) {
+        if (currDecl.type === "pointer_declarator") actualType += "*";
+        if (currDecl.type === "reference_declarator") actualType += "&";
+        currDecl = currDecl.child(1) as SyntaxNode;
+      }
+
       declarations.push({
         kind:         "VariableDeclaration",
         line:         node.startPosition.row + 1,
-        variableType: typeNode.text,
+        variableType: actualType,
         name,
         initializer,
         constructorArgs,

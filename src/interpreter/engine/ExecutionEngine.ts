@@ -1283,6 +1283,21 @@ export class ExecutionEngine {
       handled = true;
     }
 
+    // ── Struct Method ─────────────────────────────────────────────────────
+    if (!handled && objInstance && typeof objInstance === "object" && (objInstance as Record<string, any>).__type) {
+      const typeName = (objInstance as Record<string, any>).__type;
+      const blueprint = this.classBlueprints.get(typeName);
+      if (blueprint && blueprint.methods) {
+        // Find best match method (by name and parameter count)
+        const methodDecl = blueprint.methods.find(m => m.name === method && m.parameters.length === args.length) || 
+                           blueprint.methods.find(m => m.name === method);
+        if (methodDecl) {
+          result = this.invokeStructMethod((objInstance as Record<string, any>), typeName, methodDecl, args);
+          handled = true;
+        }
+      }
+    }
+
     // ── Array / mock container polyfill fallback ──────────────────────────
     else if (targetArr !== null) {
       handled = true;
@@ -1474,6 +1489,7 @@ export class ExecutionEngine {
       this.typeAliases,       // v2
       this.staticStorage,     // v2
       name,                   // v2: current function name for static storage keys
+      (typeName, args) => this.instantiateStructAndExecuteConstructor(typeName, args, evaluator) // v2
     );
 
     const walker = new IRWalker(frame.scopeManager, evaluator, executor, this.eventEmitter);
@@ -1526,6 +1542,109 @@ export class ExecutionEngine {
   // ==========================================================================
 
   /**
+   * Instantiates a struct and executes its constructor block.
+   */
+  private instantiateStructAndExecuteConstructor(
+    typeName: string,
+    args: IRExpression[],
+    callerEvaluator: ExpressionEvaluator
+  ): Record<string, any> {
+    const blueprint = this.classBlueprints.get(typeName)!;
+    const instance: Record<string, any> = { __type: typeName };
+
+    // Apply default field values.
+    for (const field of blueprint.fields) {
+      instance[field.name] = field.defaultValue
+        ? callerEvaluator.evaluate(field.defaultValue)
+        : 0;
+    }
+
+    const evaluatedArgs = args.map(arg => callerEvaluator.evaluate(arg));
+
+    if (blueprint.constructors && blueprint.constructors.length > 0) {
+      const ctor = blueprint.constructors.find(c => c.parameters.length === evaluatedArgs.length) || blueprint.constructors[0];
+      this.invokeStructMethod(instance, typeName, ctor, evaluatedArgs);
+    } else {
+      // Positional args fallback
+      evaluatedArgs.forEach((v, i) => {
+        if (i < blueprint.fields.length) instance[blueprint.fields[i].name] = v;
+      });
+    }
+
+    return instance;
+  }
+
+  /**
+   * Executes a struct method or constructor.
+   */
+  private invokeStructMethod(
+    instance: Record<string, any>,
+    typeName: string,
+    methodDecl: IRFunctionDeclaration,
+    args: CppValue[]
+  ): CppValue {
+    const frame = this.callStack.push(`${typeName}::${methodDecl.name}`);
+    
+    // Inject 'this' pointer
+    frame.scopeManager.defineVariable("this", typeName, instance);
+    
+    // Support implicit 'this' (e.g. `value = 5;` instead of `this->value = 5;`)
+    const structScope = {
+      getVariable: (name: string) => {
+        if (name in instance) return { name, type: "auto", value: instance[name] };
+        throw new Error(`Member ${name} not found in ${typeName}`);
+      },
+      assignVariable: (name: string, value: any) => {
+        if (name in instance) instance[name] = value;
+        else throw new Error(`Member ${name} not found in ${typeName}`);
+      }
+    } as any;
+    
+    for (const key of Object.keys(instance)) {
+      if (key !== "__type") {
+        frame.scopeManager.defineVariable(key, "auto", {
+           __ref: key,
+           __callerScope: structScope
+        });
+      }
+    }
+
+    // Bind parameters
+    methodDecl.parameters.forEach((param: any, index: number) => {
+      let paramType = param.type as CppType;
+      if (paramType.includes("[]") || paramType.includes("*")) paramType = "array" as any;
+      let argValue  = index < args.length ? args[index] : undefined;
+      if (argValue !== undefined) argValue = cloneRuntimeValue(argValue);
+      frame.scopeManager.defineVariable(param.name, paramType, argValue);
+    });
+
+    const evaluator = new ExpressionEvaluator(frame.scopeManager, this.eventEmitter);
+    evaluator.setInputProvider(() => this.provideInput());
+    this.attachEvaluationInterceptor(evaluator);
+
+    const executor = new StatementExecutor(
+      frame.scopeManager, evaluator, this.eventEmitter,
+      this.classBlueprints, this.enumBlueprints, this.typeAliases, this.staticStorage, typeName,
+      (tName, tArgs) => this.instantiateStructAndExecuteConstructor(tName, tArgs, evaluator)
+    );
+
+    const walker = new IRWalker(frame.scopeManager, evaluator, executor, this.eventEmitter);
+    walker.setBreakpoints(this.breakpoints);
+
+    let returnValue: CppValue = undefined;
+    try {
+      walker.walkBlock(methodDecl.body);
+    } catch (e) {
+      if (e instanceof ReturnSignal) returnValue = e.value;
+      else if (e instanceof BreakpointSignal) throw e;
+      else throw e;
+    } finally {
+      this.callStack.pop();
+    }
+    return returnValue;
+  }
+
+  /**
    * Patches ExpressionEvaluator.evaluate() to redirect the node kinds that
    * require engine-level handling before the evaluator sees them.
    *
@@ -1560,30 +1679,21 @@ export class ExecutionEngine {
 
       if (expr.kind === "NewExpression") {
         const newExpr      = expr as IRNewExpression;
-        const evaluatedArgs = newExpr.arguments.map(arg => evaluator.evaluate(arg));
-
+        
         // `new T[n]` → array of n zeros.
         if (newExpr.typeName.includes("[")) {
+          const evaluatedArgs = newExpr.arguments.map(arg => evaluator.evaluate(arg));
           const size = evaluatedArgs[0] as number;
           return typeof size === "number" ? new Array(size).fill(0) : [];
         }
 
         // Known struct blueprint.
         if (this.classBlueprints.has(newExpr.typeName)) {
-          const blueprint = this.classBlueprints.get(newExpr.typeName)!;
-          const instance: Record<string, any> = {};
-          for (const field of blueprint.fields) {
-            instance[field.name] = field.defaultValue
-              ? evaluator.evaluate(field.defaultValue)
-              : 0;
-          }
-          evaluatedArgs.forEach((v, i) => {
-            if (i < blueprint.fields.length) instance[blueprint.fields[i].name] = v;
-          });
-          return instance;
+          return this.instantiateStructAndExecuteConstructor(newExpr.typeName, newExpr.arguments, evaluator);
         }
 
         // Generic node heuristic (linked list / tree node).
+        const evaluatedArgs = newExpr.arguments.map(arg => evaluator.evaluate(arg));
         const newObj: Record<string, any> = {
           val:   evaluatedArgs[0] ?? 0,
           value: evaluatedArgs[0] ?? 0,
@@ -1621,6 +1731,7 @@ export class ExecutionEngine {
             lambdaFrame.scopeManager, localEval, this.eventEmitter,
             this.classBlueprints, this.enumBlueprints, this.typeAliases,
             this.staticStorage, "<lambda>",
+            (typeName, args) => this.instantiateStructAndExecuteConstructor(typeName, args, localEval)
           );
           const localWalker = new IRWalker(
             lambdaFrame.scopeManager, localEval, localExec, this.eventEmitter

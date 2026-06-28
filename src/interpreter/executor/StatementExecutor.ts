@@ -98,6 +98,10 @@ export class StatementExecutor {
      * Used to form StaticStorageKey for static local variables.
      */
     private currentFunction?: string,
+    /**
+     * v2: Callback to ExecutionEngine to instantiate a struct and execute its constructor.
+     */
+    private instantiateCallback?: (typeName: string, args: IRExpression[]) => CppValue,
   ) {}
 
 
@@ -424,8 +428,11 @@ export class StatementExecutor {
     typeName:        string,
     constructorArgs: IRExpression[],
   ): Record<string, any> {
+    if (this.instantiateCallback) {
+      return this.instantiateCallback(typeName, constructorArgs);
+    }
     const blueprint = this.classBlueprints!.get(typeName)!;
-    const instance: Record<string, any> = {};
+    const instance: Record<string, any> = { __type: typeName };
 
     // Apply default field values.
     for (const field of blueprint.fields) {

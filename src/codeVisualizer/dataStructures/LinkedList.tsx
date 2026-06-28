@@ -9,6 +9,7 @@ export interface LLNode {
 export interface LinkedListProps {
   nodes: LLNode[];
   pointers?: { name: string; nodeId: string }[];
+  cycleTo?: string;
   
   // Highlighting Operations
   highLightNodes?: string[];
@@ -24,6 +25,7 @@ export interface LinkedListProps {
 const LinkedList = ({
   nodes = [],
   pointers = [],
+  cycleTo,
   highLightNodes = [],
   readNodes = [],
   writeNodes = [],
@@ -36,6 +38,42 @@ const LinkedList = ({
 
   // 1. Bulletproof validation
   const safeNodes = Array.isArray(nodes) ? nodes : [];
+  
+  const [cyclePath, setCyclePath] = React.useState("");
+
+  React.useLayoutEffect(() => {
+    if (!cycleTo || safeNodes.length === 0) {
+      setCyclePath("");
+      return;
+    }
+    
+    // Allow React layout to settle
+    const timer = setTimeout(() => {
+      const targetNode = document.getElementById(`ll-node-${cycleTo}`);
+      const lastNode = document.getElementById(`ll-node-${safeNodes[safeNodes.length - 1].id}`);
+      
+      if (targetNode && lastNode) {
+        const p1x = lastNode.offsetLeft + lastNode.offsetWidth / 2;
+        const p1y = lastNode.offsetTop + 48; // Bottom of the node block
+        
+        const p2x = targetNode.offsetLeft + targetNode.offsetWidth / 2;
+        const p2y = targetNode.offsetTop + 48;
+        
+        const dx = Math.abs(p1x - p2x);
+        const depth = Math.max(50, dx * 0.3);
+        
+        // Draw cubic bezier curve looping down
+        const cp1x = p1x;
+        const cp1y = p1y + depth;
+        const cp2x = p2x;
+        const cp2y = p2y + depth;
+        
+        setCyclePath(`M ${p1x} ${p1y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2x} ${p2y}`);
+      }
+    }, 50); // slight delay for framer-motion settling
+    
+    return () => clearTimeout(timer);
+  }, [cycleTo, safeNodes]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -59,7 +97,7 @@ const LinkedList = ({
   }
 
   return (
-    <div className="w-full flex flex-col items-start overflow-x-auto styled-scrollbar pb-10 pt-4 px-4">
+    <div className="w-full flex flex-col items-start overflow-x-auto styled-scrollbar pb-16 pt-4 px-4 relative">
       <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex items-center gap-2 relative min-w-max">
         <AnimatePresence mode="popLayout">
           {safeNodes.map((node, idx) => {
@@ -114,7 +152,7 @@ const LinkedList = ({
             return (
               <React.Fragment key={`fragment-${node.id}`}>
                 {/* ─── THE LIST NODE ─── */}
-                <motion.div layout variants={cellVariants} exit="exit" className="relative flex flex-col items-center shrink-0">
+                <motion.div id={`ll-node-${node.id}`} layout variants={cellVariants} exit="exit" className="relative flex flex-col items-center shrink-0">
                   
                   <motion.div
                     layout initial={false}
@@ -187,6 +225,46 @@ const LinkedList = ({
               </React.Fragment>
             );
           })}
+        </AnimatePresence>
+
+        {/* ─── CYCLE SVG OVERLAY ─── */}
+        <AnimatePresence>
+          {cyclePath && (
+            <motion.svg
+              initial={{ opacity: 0, pathLength: 0 }}
+              animate={{ opacity: 1, pathLength: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+              className="absolute top-0 left-0 w-full h-full pointer-events-none z-0 overflow-visible"
+            >
+            <defs>
+              <marker
+                id="cycleArrowhead"
+                markerWidth="6"
+                markerHeight="6"
+                refX="5"
+                refY="3"
+                orient="auto"
+                markerUnits="strokeWidth"
+              >
+                <path d="M0,0 L6,3 L0,6 Z" fill="var(--accent-3, #f43f5e)" />
+              </marker>
+            </defs>
+            <motion.path
+              d={cyclePath}
+              fill="none"
+              stroke="var(--accent-3, #f43f5e)"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeDasharray="6 6"
+              markerEnd="url(#cycleArrowhead)"
+              className="opacity-70 drop-shadow-sm"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            />
+            </motion.svg>
+          )}
         </AnimatePresence>
       </motion.div>
     </div>

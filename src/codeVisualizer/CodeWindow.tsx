@@ -166,7 +166,7 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
       </div> 
       {/* ─── Naming Conventions Modal ──────────────────────────────────────── */}
       {showInfo && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-surface border border-border rounded-lg shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface-2 shrink-0">
               <h2 className="text-sm font-bold text-text flex items-center gap-2">

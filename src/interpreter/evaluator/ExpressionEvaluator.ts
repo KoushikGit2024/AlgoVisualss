@@ -511,7 +511,11 @@ export class ExpressionEvaluator {
       case "!":  return !argValue;
       case "~":  return ~(argValue as number);  // Bitwise NOT
       case "*":  return argValue;               // Dereference — no-op in duck-typed JS
-      case "&":  return argValue;               // Address-of — no-op in duck-typed JS
+      case "&":
+        if (expr.argument.kind === "Identifier") {
+          return { __ref: (expr.argument as any).name, __callerScope: this.scopeManager };
+        }
+        return argValue;
       default:
         throw new Error(
           `Runtime Exception: Unsupported unary operator '${expr.operator}'.`
@@ -615,8 +619,22 @@ export class ExpressionEvaluator {
       case ">":  return (left as number) >  (right as number);
       case "<=": return (left as number) <= (right as number);
       case ">=": return (left as number) >= (right as number);
-      case "==": return left === right;
-      case "!=": return left !== right;
+      case "==": {
+        // v2: Handle loose pointer comparison (ptr == 0 <-> ptr == nullptr)
+        const isLeftObj = left === null || typeof left === "object";
+        const isRightObj = right === null || typeof right === "object";
+        if (left === 0 && isRightObj) return right === null;
+        if (right === 0 && isLeftObj) return left === null;
+        return left === right;
+      }
+      case "!=": {
+        // v2: Handle loose pointer comparison
+        const isLeftObj = left === null || typeof left === "object";
+        const isRightObj = right === null || typeof right === "object";
+        if (left === 0 && isRightObj) return right !== null;
+        if (right === 0 && isLeftObj) return left !== null;
+        return left !== right;
+      }
 
       // Bitwise operators — JavaScript's bitwise ops work on Int32.
       case "&":  return (left as number) &  (right as number);

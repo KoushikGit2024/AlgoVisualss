@@ -110,6 +110,76 @@ function normalizeNodeArray(val: any[]): any[] {
   });
 }
 
+/**
+ * Traverses a pointer-based linked list and flattens it into an array of nodes.
+ */
+function unrollPointerLinkedList(headNode: any): { nodes: any[], cycleTo?: string } {
+  if (!headNode || typeof headNode !== 'object' || Array.isArray(headNode)) return { nodes: [] };
+  if (!('value' in headNode) && !('val' in headNode)) return { nodes: [] };
+
+  const nodes = [];
+  let curr = headNode;
+  let id = 0;
+  const refToNodeId = new Map<string, string>();
+  let cycleTo: string | undefined = undefined;
+  
+  while (curr && typeof curr === 'object') {
+    if (curr.__circular_ref !== undefined) {
+      cycleTo = refToNodeId.get(curr.__circular_ref);
+      break;
+    }
+    
+    if (curr.__original_ref_id !== undefined) {
+      refToNodeId.set(curr.__original_ref_id, String(id));
+    }
+    
+    nodes.push({
+      id: String(id),
+      value: curr.value !== undefined ? curr.value : curr.val,
+      __raw: curr
+    });
+    
+    curr = curr.next;
+    id++;
+  }
+  return { nodes, cycleTo };
+}
+
+/**
+ * Traverses a pointer-based binary tree and flattens it into an array of nodes.
+ */
+function unrollPointerTree(rootNode: any): any[] {
+  if (!rootNode || typeof rootNode !== 'object' || Array.isArray(rootNode)) return [];
+  if (!('value' in rootNode) && !('val' in rootNode)) return [];
+
+  const nodes: any[] = [];
+  let idCounter = 0;
+  const seen = new Set();
+
+  function traverse(node: any): string | null {
+    if (!node || typeof node !== 'object') return null;
+    if (seen.has(node)) return null;
+    seen.add(node);
+
+    const currentId = String(idCounter++);
+    const leftId = traverse(node.left);
+    const rightId = traverse(node.right);
+
+    nodes.push({
+      id: currentId,
+      value: node.value !== undefined ? node.value : node.val,
+      left: leftId,
+      right: rightId,
+      __raw: node
+    });
+
+    return currentId;
+  }
+
+  traverse(rootNode);
+  return nodes;
+}
+
 // ─── PREFIX MATCHERS ────────────────────────────────────────────────────────
 
 const GRAPH_PREFIXES   = ['adj', 'graph', 'network'];
@@ -174,7 +244,7 @@ function collectIndexPointers(keys: string[], vars: VarMap, patterns: string[]):
   return { pointers, usedKeys };
 }
 
-function collectNodePointers(keys: string[], vars: VarMap, patterns: string[]): { pointers: { name: string; nodeId: string }[]; usedKeys: string[] } {
+function collectNodePointers(keys: string[], vars: VarMap, patterns: string[], nodeArray?: any[]): { pointers: { name: string; nodeId: string }[]; usedKeys: string[] } {
   const pointers: { name: string; nodeId: string }[] = [];
   const usedKeys: string[] = [];
 
@@ -185,8 +255,29 @@ function collectNodePointers(keys: string[], vars: VarMap, patterns: string[]): 
     );
 
     if (isMatch) {
-      const val = vars[key]?.value;
+      let val = vars[key]?.value;
       if (val !== undefined && val !== null) {
+        val = deepUnwrap(val);
+        
+        if (typeof val === 'object' && nodeArray) {
+          const targetRefId = val.__circular_ref !== undefined ? val.__circular_ref : val.__original_ref_id;
+          
+          let match;
+          if (targetRefId !== undefined) {
+            match = nodeArray.find(n => n.__raw && n.__raw.__original_ref_id === targetRefId);
+          } else {
+            // Fallback for non-ref structures
+            const valStr = JSON.stringify(val);
+            match = nodeArray.find(n => JSON.stringify(n.__raw) === valStr);
+          }
+          
+          if (match) {
+            pointers.push({ name: key, nodeId: String(match.id) });
+            usedKeys.push(key);
+            continue;
+          }
+        }
+        
         pointers.push({ name: key, nodeId: String(val) });
         usedKeys.push(key);
       }
@@ -436,12 +527,16 @@ export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[
   // 2. TREE DETECTION
   keys.filter(k => matchesPrefix(k, TREE_PREFIXES)).forEach(treeKey => {
     if (consumedKeys.has(treeKey)) return;
-    const treeData = deepUnwrap(vars[treeKey]?.value);
+    let treeData = deepUnwrap(vars[treeKey]?.value);
+    
+    if (treeData && typeof treeData === 'object' && !Array.isArray(treeData) && ('value' in treeData || 'val' in treeData) && ('left' in treeData || 'right' in treeData)) {
+      treeData = unrollPointerTree(treeData);
+    }
+    
     if (isNodeArray(treeData)) {
       const normalizedNodes = normalizeNodeArray(treeData);
-      const { pointers, usedKeys: ptrKeys } = collectNodePointers(keys, vars, ['root', 'curr', 'parent', 'left', 'right', 'temp']);
+      const { pointers, usedKeys: ptrKeys } = collectNodePointers(keys, vars, ['root', 'curr', 'parent', 'left', 'right', 'temp'], normalizedNodes);
       const usedKeys = [treeKey, ...ptrKeys];
-      usedKeys.forEach(k => consumedKeys.add(k));
       usedKeys.forEach(k => consumedKeys.add(k));
       visualizers.push({ id: treeKey, type: 'tree', usedKeys, props: { nodes: normalizedNodes, pointers } });
     }
@@ -470,13 +565,20 @@ export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[
   // 4. LINKED LIST DETECTION
   keys.filter(k => matchesPrefix(k, LL_PREFIXES) || k === 'head').forEach(llKey => {
     if (consumedKeys.has(llKey)) return;
-    const llData = deepUnwrap(vars[llKey]?.value);
+    let llData = deepUnwrap(vars[llKey]?.value);
+    let cycleTo: string | undefined = undefined;
+    
+    if (llData && typeof llData === 'object' && !Array.isArray(llData) && ('value' in llData || 'val' in llData) && 'next' in llData) {
+      const unrolled = unrollPointerLinkedList(llData);
+      llData = unrolled.nodes;
+      cycleTo = unrolled.cycleTo;
+    }
+    
     if (isNodeArray(llData)) {
-      const { pointers, usedKeys: ptrKeys } = collectNodePointers(keys, vars, ['head', 'tail', 'curr', 'prev', 'next', 'slow', 'fast']);
+      const { pointers, usedKeys: ptrKeys } = collectNodePointers(keys, vars, ['head', 'tail', 'curr', 'prev', 'next', 'slow', 'fast'], llData);
       const usedKeys = [llKey, ...ptrKeys];
       usedKeys.forEach(k => consumedKeys.add(k));
-      usedKeys.forEach(k => consumedKeys.add(k));
-      visualizers.push({ id: llKey, type: 'linkedlist', usedKeys, props: { nodes: llData, pointers } });
+      visualizers.push({ id: llKey, type: 'linkedlist', usedKeys, props: { nodes: llData, pointers, cycleTo } });
     }
   });
 

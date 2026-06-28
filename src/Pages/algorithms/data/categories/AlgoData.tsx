@@ -13953,7 +13953,91 @@ const LINKED_LISTS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: at the start of every loop iteration, the sub-list from the original head up to (but not including) current has already been fully and correctly reversed, with prev pointing to its new head (the original list's most recently processed node). The loop body extends this invariant by exactly one more node: it reverses current's pointer to point at prev (correctly attaching it to the already-reversed prefix), then advances both pointers. By induction, when current reaches null (having processed all n nodes), prev points to the fully reversed list's head — the original list's tail." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+using namespace std;
+
+struct Node {
+    int value;
+    Node* next;
+
+    Node(int val) {
+        value = val;
+        next = nullptr;
+    }
+};
+
+// Insert at the end
+void insert(Node*& head, int value) {
+    Node* curr = new Node(value);
+
+    if (head == nullptr) {
+        head = curr;
+        return;
+    }
+
+    Node* temp = head;
+
+    while (temp->next != nullptr) {
+        temp = temp->next;
+    }
+
+    temp->next = curr;
+}
+
+// Print the linked list
+void printList(Node* head) {
+    Node* curr = head;
+
+    while (curr != nullptr) {
+        cout << curr->value;
+        if (curr->next != nullptr)
+            cout << " -> ";
+        curr = curr->next;
+    }
+
+    cout << endl;
+}
+
+// Reverse the linked list
+void reverseList(Node*& head) {
+
+    Node* prev = nullptr;
+    Node* curr = head;
+
+    while (curr != nullptr) {
+
+        Node* next = curr->next;
+
+        curr->next = prev;
+
+        prev = curr;
+        curr = next;
+        head = prev;
+    }
+
+    
+}
+
+int main() {
+    Node* head = nullptr;
+
+    insert(head, 1);
+    insert(head, 2);
+    insert(head, 3);
+    insert(head, 4);
+
+    printList(head);
+
+    reverseList(head);
+
+    printList(head);
+
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -14171,7 +14255,118 @@ function findCycleStart(head):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "If no cycle exists, fast (moving twice as fast) simply reaches the null-terminated end of the list strictly before slow could ever catch up to it — so the loop correctly terminates with no meeting. If a cycle DOES exist, once slow enters the cycle, fast is already somewhere inside it (having entered first, since it moves faster), and on every subsequent iteration, fast's distance ahead of slow (measured around the cycle) decreases by exactly 1 (fast gains 2 steps, slow gains 1, net gain of 1 per iteration) — since the cycle has finite length, this gap must reach exactly 0 within at most (cycle length) iterations, at which point the two pointers necessarily occupy the same node. The cycle-start-finding phase's correctness follows from a number-theoretic relationship: if the tail (pre-cycle) length is μ and the cycle length is λ, the meeting point is always exactly μ mod λ steps into the cycle — which means advancing a fresh pointer from the head exactly μ steps lands it at the cycle start at precisely the same time the slow pointer (continuing from the meeting point) does, by simple modular arithmetic." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+using namespace std;
+
+struct Node {
+    int value;
+    Node* next;
+
+    Node(int val) {
+        value = val;
+        next = nullptr;
+    }
+};
+
+// Insert at end
+void insert(Node*& head, int value) {
+
+    Node* curr = new Node(value);
+
+    if (head == nullptr) {
+        head = curr;
+        return;
+    }
+
+    Node* tail = head;
+
+    while (tail->next != nullptr) {
+        tail = tail->next;
+    }
+
+    tail->next = curr;
+}
+
+// Print list (only use before creating cycle)
+void printList(Node* head) {
+
+    Node* curr = head;
+
+    while (curr != nullptr) {
+
+        cout << curr->value;
+
+        if (curr->next != nullptr)
+            cout << " -> ";
+
+        curr = curr->next;
+    }
+
+    cout << endl;
+}
+
+// Create a cycle
+void createCycle(Node* head) {
+
+    Node* tail = head;
+    Node* target = head;
+
+    // Move target to node with value 30
+    target = target->next;
+    target = target->next;
+
+    while (tail->next != nullptr) {
+        tail = tail->next;
+    }
+
+    // 50 -> 30
+    tail->next = target;
+}
+
+// Floyd Cycle Detection
+bool hasCycle(Node* head) {
+
+    Node* slow = head;
+    Node* fast = head;
+
+    while (fast != nullptr && fast->next != nullptr) {
+
+        slow = slow->next;
+        fast = fast->next->next;
+
+        if (slow == fast)
+            return true;
+    }
+
+    return false;
+}
+
+int main() {
+
+    Node* head = nullptr;
+
+    insert(head, 10);
+    insert(head, 20);
+    insert(head, 30);
+    insert(head, 40);
+    insert(head, 50);
+
+    cout << "Original List:" << endl;
+    printList(head);
+
+    createCycle(head);
+
+    if (hasCycle(head))
+        cout << "Cycle Detected" << endl;
+    else
+        cout << "No Cycle Found" << endl;
+
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -16130,87 +16325,113 @@ int main() {
 #include <unordered_map>
 using namespace std;
 
-int capacity;
-int min_freq;
-unordered_map<int, int> map_vals;
-unordered_map<int, int> map_freqs;
-unordered_map<int, vector<int>> map_lists;
+// SCALARS (ans, sum, count, total, result, max_val, min_val, cnt, res_val, diff)
+int total_capacity; 
+int min_val_freq;
+
+// MAPS (map, dict, freq, count, hash, cache_map, memo, set, seen, visited)
+unordered_map<int, int> cache_map;
+unordered_map<int, int> freq_map;
+unordered_map<int, vector<int> > dict_lists;
 
 void initLFU(int cap) {
-    capacity = cap;
-    min_freq = 0;
-    map_vals.clear();
-    map_freqs.clear();
-    map_lists.clear();
+    total_capacity = cap;
+    min_val_freq = 0;
+
+    cache_map.clear();
+    freq_map.clear();
+    dict_lists.clear();
 }
 
-void removeKeyFromList(int freq, int key) {
-    for (int i = 0; i < map_lists[freq].size(); i++) {
-        if (map_lists[freq][i] == key) {
-            map_lists[freq].erase(i);
+void removeKeyFromList(int cnt_freq, int key) {
+
+    for (int i = 0; i < dict_lists[cnt_freq].size(); i++) {
+
+        if (dict_lists[cnt_freq][i] == key) {
+
+            dict_lists[cnt_freq].erase(dict_lists[cnt_freq].begin() + i);
             break;
         }
     }
 }
 
 void updateFreq(int key) {
-    int freq = map_freqs[key];
-    map_freqs[key] = freq + 1;
-    
-    // Remove from old freq list
-    removeKeyFromList(freq, key);
-    
-    // If min_freq list is now empty, increment min_freq
-    if (freq == min_freq && map_lists[freq].empty()) {
-        min_freq++;
+
+    // SCALAR local var
+    int cnt_freq = freq_map[key];
+
+    freq_map[key] = cnt_freq + 1;
+
+    removeKeyFromList(cnt_freq, key);
+
+    if (cnt_freq == min_val_freq && dict_lists[cnt_freq].empty()) {
+        min_val_freq++;
     }
-    
-    // Add to new freq list
-    map_lists[freq + 1].push_back(key);
+
+    dict_lists[cnt_freq + 1].push_back(key);
 }
 
 int get(int key) {
-    if (map_vals.count(key) == 0) return -1;
+
+    if (cache_map.count(key) == 0)
+        return -1;
+
     updateFreq(key);
-    return map_vals[key];
+
+    return cache_map[key];
 }
 
 void put(int key, int value) {
-    if (capacity == 0) return;
-    
-    if (map_vals.count(key) > 0) {
-        map_vals[key] = value;
+
+    if (total_capacity == 0)
+        return;
+
+    if (cache_map.count(key) > 0) {
+
+        cache_map[key] = value;
         updateFreq(key);
         return;
     }
-    
-    if (map_vals.size() == capacity) {
-        // Evict LFU
-        int evict_key = map_lists[min_freq].front();
-        map_lists[min_freq].erase(0);
-        map_vals.erase(evict_key);
-        map_freqs.erase(evict_key);
+
+    if (cache_map.size() == total_capacity) {
+
+        // SCALAR local var
+        int res_val_evict = dict_lists[min_val_freq].front();
+
+        dict_lists[min_val_freq].erase(dict_lists[min_val_freq].begin());
+
+        cache_map.erase(res_val_evict);
+        freq_map.erase(res_val_evict);
     }
-    
-    // Insert new
-    map_vals[key] = value;
-    map_freqs[key] = 1;
-    min_freq = 1;
-    map_lists[1].push_back(key);
+
+    cache_map[key] = value;
+    freq_map[key] = 1;
+
+    min_val_freq = 1;
+
+    dict_lists[1].push_back(key);
 }
 
 int main() {
+
     initLFU(2);
+
     put(1, 1);
     put(2, 2);
-    cout << "get(1): " << get(1) << "\\n";       // 1
-    put(3, 3);                                  // evicts 2
-    cout << "get(2): " << get(2) << "\\n";       // -1
-    cout << "get(3): " << get(3) << "\\n";       // 3
-    put(4, 4);                                  // evicts 1
-    cout << "get(1): " << get(1) << "\\n";       // -1
-    cout << "get(3): " << get(3) << "\\n";       // 3
-    cout << "get(4): " << get(4) << "\\n";       // 4
+
+    cout << "get(1): " << get(1) << endl;
+
+    put(3, 3);
+
+    cout << "get(2): " << get(2) << endl;
+    cout << "get(3): " << get(3) << endl;
+
+    put(4, 4);
+
+    cout << "get(1): " << get(1) << endl;
+    cout << "get(3): " << get(3) << endl;
+    cout << "get(4): " << get(4) << endl;
+
     return 0;
 }
 `
@@ -16220,7 +16441,7 @@ int main() {
   ],
   desc: "Frequency count, anagram, LRU cache",
   complexity: "O(1) avg",
-  featured: false
+  featured: true
 };
 
 const HEAP_SECTION = {
