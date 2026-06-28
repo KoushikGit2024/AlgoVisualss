@@ -1307,7 +1307,7 @@ export class ExecutionEngine {
     }
 
     // ── Array / mock container polyfill fallback ──────────────────────────
-    else if (targetArr !== null) {
+    else if (!handled && targetArr !== null) {
       handled = true;
       switch (method) {
         case "size": case "length":     result = targetArr.length; break;

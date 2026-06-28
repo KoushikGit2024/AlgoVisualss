@@ -624,6 +624,8 @@ export class IRWalker {
       targetArray = Array.from(container.entries());
     } else if (container instanceof Set) {
       targetArray = Array.from(container);
+    } else if (typeof container === "string") {
+      targetArray = Array.from(container);
     }
 
     // Graceful fallback: uninitialized or unsupported collection type.

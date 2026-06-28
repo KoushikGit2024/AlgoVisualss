@@ -14871,7 +14871,7 @@ int main() {
   
   desc: "Reversal, cycle detection, merge, Floyd's",
   complexity: "O(n)",
-  featured: false
+  featured: true
 };
 
 const STACKS_SECTION = {
@@ -15020,7 +15020,61 @@ const STACKS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The stack correctly models the 'most recently opened, not-yet-closed' bracket at every point, because a valid nesting structure REQUIRES that the most recently opened bracket be the next one closed (this is exactly the definition of properly nested/balanced brackets — you cannot close an outer bracket while an inner one remains open). Checking that each closing bracket matches the top of the stack directly enforces this LIFO matching requirement. The final empty-stack check correctly catches the case of unmatched openers (which would otherwise be silently ignored if we only checked closers against pops), and the empty-stack-on-pop check correctly catches the case of an unmatched closer with nothing left to match against." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+bool isValid(string str) {
+
+    vector<char> stack;
+
+    for (char ch : str) {
+
+        if (ch == '(' || ch == '{' || ch == '[') {
+
+            stack.push_back(ch);
+            int top = stack.size() - 1;
+
+            continue;
+        }
+
+        if (stack.empty())
+            return false;
+
+        int top = stack.size() - 1;
+
+        if (ch == ')' && stack[top] != '(')
+            return false;
+
+        if (ch == '}' && stack[top] != '{')
+            return false;
+
+        if (ch == ']' && stack[top] != '[')
+            return false;
+
+        stack.pop_back();
+    }
+
+    return stack.empty();
+}
+
+int main() {
+
+    string str = "{[()]}";
+
+    cout << "String : " << str << endl;
+
+    if (isValid(str))
+        cout << "Valid Parentheses" << endl;
+    else
+        cout << "Invalid Parentheses" << endl;
+
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -15123,7 +15177,108 @@ const STACKS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: at every point, minStack.top() equals the minimum value among all elements currently in mainStack. This holds by induction on the sequence of operations: initially (both stacks empty) it holds vacuously. On push, the new minStack top is set to min(new value, previous minStack top) — exactly the new overall minimum after adding the new value. On pop, since both stacks are popped together, minStack's new top correctly reverts to whatever the minimum was immediately before the just-removed element was pushed — which is, by the same invariant applied one step earlier, exactly the correct minimum of the now-smaller mainStack." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+vector<int> stack;
+vector<int> stackMin;
+
+void push(int value) {
+
+    stack.push_back(value);
+
+    if (stackMin.empty() || value <= stackMin.back())
+        stackMin.push_back(value);
+}
+
+void pop() {
+
+    if (stack.empty())
+        return;
+
+    int top = stack.size() - 1;
+
+    if (stack[top] == stackMin.back())
+        stackMin.pop_back();
+
+    stack.pop_back();
+}
+
+int top() {
+
+    if (stack.empty())
+        return -1;
+
+    int top = stack.size() - 1;
+
+    return stack[top];
+}
+
+int getMin() {
+
+    if (stackMin.empty())
+        return -1;
+
+    int peek = stackMin.size() - 1;
+
+    return stackMin[peek];
+}
+
+void printStack() {
+
+    cout << "Stack    : ";
+
+    for (int value : stack)
+        cout << value << " ";
+
+    cout << endl;
+
+    cout << "stackMin : ";
+
+    for (int value : stackMin)
+        cout << value << " ";
+
+    cout << endl;
+}
+
+int main() {
+
+    push(5);
+    push(2);
+    push(8);
+    push(1);
+    push(4);
+
+    printStack();
+
+    cout << "Top : " << top() << endl;
+    cout << "Min : " << getMin() << endl;
+
+    cout << endl;
+
+    pop();
+
+    printStack();
+
+    cout << "Top : " << top() << endl;
+    cout << "Min : " << getMin() << endl;
+
+    cout << endl;
+
+    pop();
+
+    printStack();
+
+    cout << "Top : " << top() << endl;
+    cout << "Min : " << getMin() << endl;
+
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -15227,7 +15382,67 @@ const STACKS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Stack invariant: at every point, the indices on the stack form a sequence with strictly decreasing values from bottom to top — every element on the stack is genuinely still waiting, because if a larger element had already appeared to its right, it would have been popped and resolved already. When processing arr[i], any index j popped off the stack is correctly resolved because arr[i] is, by construction, the FIRST element to j's right that exceeds arr[j] — every index between j and i (if any) was either already popped before j (meaning it was smaller than something even closer to j, contradicting being 'between' — actually meaning those were already resolved and removed) or simply never violated the monotonic decreasing order, meaning none of them exceeded arr[j] either. This guarantees the very first popping element encountered while scanning left-to-right is indeed the correct, FIRST next-greater element." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+vector<int> nextGreaterElement(vector<int>& nums) {
+
+    vector<int> res(nums.size(), -1);
+    vector<int> stack;
+
+    for (int i = nums.size() - 1; i >= 0; i--) {
+
+        int curr = nums[i];
+
+        while (!stack.empty()) {
+
+            int top = stack.size() - 1;
+
+            if (stack[top] > curr)
+                break;
+
+            stack.pop_back();
+        }
+
+        if (!stack.empty()) {
+
+            int top = stack.size() - 1;
+            res[i] = stack[top];
+        }
+
+        stack.push_back(curr);
+    }
+
+    return res;
+}
+
+int main() {
+
+    vector<int> nums = {2, 1, 2, 4, 3};
+
+    vector<int> res = nextGreaterElement(nums);
+
+    cout << "Nums : ";
+
+    for (int value : nums)
+        cout << value << " ";
+
+    cout << endl;
+
+    cout << "Next Greater : ";
+
+    for (int value : res)
+        cout << value << " ";
+
+    cout << endl;
+
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -15335,7 +15550,51 @@ const STACKS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The crucial correctness argument is WHY popped elements can be safely discarded forever, not just for the current index: if arr[stack.top()] ≥ arr[i], then for any future index k > i, arr[i] is BOTH closer to k than the popped element AND at least as small — so the popped element could never be the correct (nearest) answer for k either, since arr[i] would always be preferred. This means discarding it permanently loses no correctness. After this cleanup, the stack's new top (if it exists) is, by the maintained increasing-stack invariant, guaranteed to be both smaller than arr[i] and the closest such index to i's left among all currently-valid candidates — exactly the definition of the previous smaller element." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+void monotonicStack(vector<int>& nums) {
+
+    vector<int> stack;
+
+    for (int i = 0; i < nums.size(); i++) {
+
+        int curr = nums[i];
+
+        while (!stack.empty()) {
+
+            int top = stack.size() - 1;
+
+            if (stack[top] <= curr)
+                break;
+
+            stack.pop_back();
+        }
+
+        stack.push_back(curr);
+    }
+
+    cout << "Monotonic Stack: ";
+
+    for (int value : stack)
+        cout << value << " ";
+
+    cout << endl;
+}
+
+int main() {
+
+    vector<int> nums = {5, 3, 7, 2, 6, 1, 4};
+
+    monotonicStack(nums);
+
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -15437,7 +15696,56 @@ const STACKS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "For each bar, the largest rectangle using that bar as the limiting (minimum) height extends exactly as far left as the nearest strictly-shorter bar to its left, and exactly as far right as the nearest strictly-shorter bar to its right — any further in either direction would include a shorter bar, which would make THAT bar (not the original) the true limiting height instead. The monotonic stack correctly identifies both boundaries simultaneously: when a bar is popped because a new shorter bar i arrived, i is by construction its nearest-strictly-shorter-bar-to-the-right (the first one encountered while scanning rightward), and the new stack top after popping is, by the maintained increasing-stack invariant, its nearest-strictly-shorter-bar-to-the-left. Since every bar is eventually popped exactly once (guaranteed by the height-0 sentinel) and its true maximal rectangle is computed at exactly that moment, the algorithm is guaranteed to consider the optimal rectangle for every possible limiting bar, and therefore finds the true global maximum." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+int largestRectangleArea(vector<int>& arr_heights) {
+
+    vector<int> stack;
+    int maxArea = 0;
+
+    for (int curr = 0; curr <= arr_heights.size(); curr++) {
+
+        while (!stack.empty()) {
+
+            int top = stack.size() - 1;
+
+            if (curr != arr_heights.size() && arr_heights[stack[top]] <= arr_heights[curr])
+                break;
+
+            int height = arr_heights[stack[top]];
+            stack.pop_back();
+
+            int width;
+
+            if (stack.empty())
+                width = curr;
+            else
+                width = curr - stack.back() - 1;
+
+            maxArea = max(maxArea, height * width);
+        }
+
+        stack.push_back(curr);
+    }
+
+    return maxArea;
+}
+
+int main() {
+
+    vector<int> arr_heights = {2, 1, 5, 6, 2, 3};
+
+    cout << "Largest Rectangle = "
+         << largestRectangleArea(arr_heights);
+
+    return 0;
+}
+`
+      }
     }
 
   ],
