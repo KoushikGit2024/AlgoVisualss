@@ -12419,7 +12419,132 @@ function rotateRight(y):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Each rotation is a local, BST-order-preserving restructuring: a right rotation around node y promotes y's left child x to take y's place, while preserving the in-order traversal sequence of all affected nodes (this can be verified by checking that the rotated subtree's in-order traversal is identical before and after). Since BST order is preserved by every rotation, search correctness is never compromised. The height-rebalancing guarantee follows from a classical proof: an AVL tree's minimum node count for height h grows according to the Fibonacci recurrence N(h) = N(h-1) + N(h-2) + 1, and solving this recurrence shows h = O(log n) is the only possibility consistent with the balance-factor-≤1 invariant being maintained after every single insertion or deletion." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <algorithm>
+using namespace std;
+
+struct TreeNode {
+    int value;
+    int height;
+    TreeNode* left;
+    TreeNode* right;
+
+    TreeNode(int value) {
+        this->value = value;
+        height = 1;
+        left = nullptr;
+        right = nullptr;
+    }
+};
+
+int getHeight(TreeNode* node) {
+    if (node == nullptr)
+        return 0;
+    return node->height;
+}
+
+int getBalance(TreeNode* node) {
+    if (node == nullptr)
+        return 0;
+    return getHeight(node->left) - getHeight(node->right);
+}
+
+TreeNode* rightRotate(TreeNode* node) {
+    TreeNode* left = node->left;
+    TreeNode* temp = left->right;
+
+    left->right = node;
+    node->left = temp;
+
+    node->height = max(getHeight(node->left), getHeight(node->right)) + 1;
+    left->height = max(getHeight(left->left), getHeight(left->right)) + 1;
+
+    return left;
+}
+
+TreeNode* leftRotate(TreeNode* node) {
+    TreeNode* right = node->right;
+    TreeNode* temp = right->left;
+
+    right->left = node;
+    node->right = temp;
+
+    node->height = max(getHeight(node->left), getHeight(node->right)) + 1;
+    right->height = max(getHeight(right->left), getHeight(right->right)) + 1;
+
+    return right;
+}
+
+TreeNode* insert(TreeNode* node, int value) {
+    if (node == nullptr)
+        return new TreeNode(value);
+
+    TreeNode* curr = node;
+
+    if (value < curr->value)
+        curr->left = insert(curr->left, value);
+    else if (value > curr->value)
+        curr->right = insert(curr->right, value);
+    else
+        return curr;
+
+    curr->height = max(getHeight(curr->left), getHeight(curr->right)) + 1;
+
+    int balance = getBalance(curr);
+
+    if (balance > 1 && value < curr->left->value)
+        return rightRotate(curr);
+
+    if (balance < -1 && value > curr->right->value)
+        return leftRotate(curr);
+
+    if (balance > 1 && value > curr->left->value) {
+        curr->left = leftRotate(curr->left);
+        return rightRotate(curr);
+    }
+
+    if (balance < -1 && value < curr->right->value) {
+        curr->right = rightRotate(curr->right);
+        return leftRotate(curr);
+    }
+
+    return curr;
+}
+
+void inorder(TreeNode* node) {
+    if (node == nullptr)
+        return;
+
+    inorder(node->left);
+    cout << node->value << " ";
+    inorder(node->right);
+}
+
+int main() {
+    TreeNode* root = nullptr;
+
+    root = insert(root, 45);
+    root = insert(root, 20);
+    root = insert(root, 10);
+    root = insert(root, 30);
+    root = insert(root, 5);
+    root = insert(root, 15);
+    root = insert(root, 25);
+    root = insert(root, 35);
+    root = insert(root, 50);
+    root = insert(root, 58);
+    root = insert(root, 65);
+    root = insert(root, 80);
+
+    inorder(root);
+    cout << endl;
+
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -12537,7 +12662,86 @@ function levelOrder(root):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "For the three DFS orders, correctness follows directly from the recursive definition: by induction on subtree size, each recursive call correctly traverses its entire subtree in the specified order (process/left/right in some sequence), and since the function is called on the left and right subtrees of every node, every node in the tree is eventually visited exactly once. For level-order, the queue's FIFO property guarantees that all nodes at depth d are dequeued (and their children enqueued) before any node at depth d+1 is dequeued, by the same inductive argument used to prove BFS correctness on graphs." }
-      ]
+      ],
+      codes:{
+        "c++": `#include <iostream>
+using namespace std;
+
+struct TreeNode {
+    int id;
+    int value;
+    TreeNode* left;
+    TreeNode* right;
+
+    TreeNode(int id, int value) {
+        this->id = id;
+        this->value = value;
+        left = nullptr;
+        right = nullptr;
+    }
+};
+
+void inorder(TreeNode* node) {
+    if (node == nullptr)
+        return;
+
+    TreeNode* curr = node;
+
+    inorder(curr->left);
+
+    cout << curr->value << " ";
+
+    inorder(curr->right);
+}
+
+void preorder(TreeNode* node) {
+    if (node == nullptr)
+        return;
+
+    TreeNode* curr = node;
+
+    cout << curr->value << " ";
+
+    preorder(curr->left);
+    preorder(curr->right);
+}
+
+void postorder(TreeNode* node) {
+    if (node == nullptr)
+        return;
+
+    TreeNode* curr = node;
+
+    postorder(curr->left);
+    postorder(curr->right);
+
+    cout << curr->value << " ";
+}
+
+int main() {
+    TreeNode* root = new TreeNode(1, 10);
+
+    root->left = new TreeNode(2, 5);
+    root->right = new TreeNode(3, 20);
+
+    root->left->left = new TreeNode(4, 2);
+    root->left->right = new TreeNode(5, 8);
+
+    root->right->left = new TreeNode(6, 15);
+    root->right->right = new TreeNode(7, 30);
+
+    inorder(root);
+    cout << endl;
+
+    preorder(root);
+    cout << endl;
+
+    postorder(root);
+    cout << endl;
+
+    return 0;
+}`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -12661,7 +12865,140 @@ function delete(node, key):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Search correctness follows directly from the BST invariant: if key < node.key, every key in the right subtree is guaranteed larger than key (by the invariant), so it cannot contain the target — recursing left is safe and complete. Insertion correctness follows because the new node is always placed at a position consistent with the invariant (smaller keys to the left, larger to the right of every ancestor on its path). Deletion's two-child case is the subtle one: replacing the deleted key with its in-order successor (the smallest key greater than it) preserves the invariant, because the successor is guaranteed to be larger than everything in the original left subtree and smaller than everything remaining in the right subtree — exactly the ordering position the deleted node occupied." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+using namespace std;
+
+struct TreeNode {
+    int id;
+    int value;
+    TreeNode* left;
+    TreeNode* right;
+
+    TreeNode(int id, int value) {
+        this->id = id;
+        this->value = value;
+        left = nullptr;
+        right = nullptr;
+    }
+};
+
+TreeNode* insert(TreeNode* node, int id, int value) {
+    if (node == nullptr)
+        return new TreeNode(id, value);
+
+    TreeNode* curr = node;
+
+    if (value < curr->value)
+        curr->left = insert(curr->left, id, value);
+    else
+        curr->right = insert(curr->right, id, value);
+
+    return curr;
+}
+
+bool search(TreeNode* node, int target) {
+    TreeNode* curr = node;
+
+    while (curr != nullptr) {
+        if (curr->value == target)
+            return true;
+
+        if (target < curr->value)
+            curr = curr->left;
+        else
+            curr = curr->right;
+    }
+
+    return false;
+}
+
+TreeNode* findMin(TreeNode* node) {
+    TreeNode* curr = node;
+
+    while (curr->left != nullptr)
+        curr = curr->left;
+
+    return curr;
+}
+
+TreeNode* deleteNode(TreeNode* node, int target) {
+    if (node == nullptr)
+        return nullptr;
+
+    TreeNode* curr = node;
+
+    if (target < curr->value)
+        curr->left = deleteNode(curr->left, target);
+    else if (target > curr->value)
+        curr->right = deleteNode(curr->right, target);
+    else {
+        if (curr->left == nullptr) {
+            TreeNode* temp = curr->right;
+            delete curr;
+            return temp;
+        }
+
+        if (curr->right == nullptr) {
+            TreeNode* temp = curr->left;
+            delete curr;
+            return temp;
+        }
+
+        TreeNode* temp = findMin(curr->right);
+        curr->value = temp->value;
+        curr->id = temp->id;
+        curr->right = deleteNode(curr->right, temp->value);
+    }
+
+    return curr;
+}
+
+void inorder(TreeNode* node) {
+    if (node == nullptr)
+        return;
+
+    inorder(node->left);
+    cout << node->value << " ";
+    inorder(node->right);
+}
+
+int main() {
+    TreeNode* root = nullptr;
+
+    root = insert(root, 1, 10);
+    root = insert(root, 2, 5);
+    root = insert(root, 3, 15);
+    root = insert(root, 4, 3);
+    root = insert(root, 5, 8);
+    root = insert(root, 6, 12);
+    root = insert(root, 7, 20);
+
+    cout << "Inorder : ";
+    inorder(root);
+    cout << endl;
+
+    cout << "Search 8 : " << search(root, 8) << endl;
+    cout << "Search 25 : " << search(root, 25) << endl;
+
+    root = deleteNode(root, 5);
+
+    cout << "After deleting 5 : ";
+    inorder(root);
+    cout << endl;
+
+    root = deleteNode(root, 15);
+
+    cout << "After deleting 15 : ";
+    inorder(root);
+    cout << endl;
+
+    return 0;
+}
+        
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -12762,7 +13099,73 @@ function delete(node, key):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Correctness follows from a key invariant: a non-null return value from a subtree's recursive call means that subtree contains at least one of the two target nodes (possibly both, if it's already found their LCA internally). When a node receives non-null results from BOTH its left and right recursive calls, this proves the two targets are split across its two subtrees — meaning this node is precisely the deepest node with both as descendants, satisfying the definition of LCA. If a node already equals one of the targets, it's correctly returned immediately, since (by definition) any node is its own ancestor, covering the edge case where one target is an ancestor of the other." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+using namespace std;
+
+struct TreeNode {
+    int id;
+    int value;
+    TreeNode* left;
+    TreeNode* right;
+
+    TreeNode(int id, int value) {
+        this->id = id;
+        this->value = value;
+        left = nullptr;
+        right = nullptr;
+    }
+};
+
+TreeNode* lowestCommonAncestor(TreeNode* node, int p, int q) {
+    if (node == nullptr)
+        return nullptr;
+
+    TreeNode* curr = node;
+
+    if (curr->value == p || curr->value == q)
+        return curr;
+
+    TreeNode* left = lowestCommonAncestor(curr->left, p, q);
+    TreeNode* right = lowestCommonAncestor(curr->right, p, q);
+
+    if (left != nullptr && right != nullptr)
+        return curr;
+
+    if (left != nullptr)
+        return left;
+
+    return right;
+}
+
+int main() {
+    TreeNode* root = new TreeNode(1, 3);
+
+    root->left = new TreeNode(2, 5);
+    root->right = new TreeNode(3, 1);
+
+    root->left->left = new TreeNode(4, 6);
+    root->left->right = new TreeNode(5, 2);
+
+    root->right->left = new TreeNode(6, 0);
+    root->right->right = new TreeNode(7, 8);
+
+    root->left->right->left = new TreeNode(8, 7);
+    root->left->right->right = new TreeNode(9, 4);
+
+    TreeNode* ans = lowestCommonAncestor(root, 5, 1);
+
+    cout << ans->value << endl;
+
+    ans = lowestCommonAncestor(root, 5, 4);
+
+    cout << ans->value << endl;
+
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -12891,13 +13294,138 @@ function fixInsertViolations(tree, node):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The five Red-Black invariants together force a provable height bound: rule 4 (no two consecutive reds) means that on any root-to-leaf path, red nodes can never make up more than half the path, so the longest path is at most twice the length of the shortest. Rule 5 (equal black-height on every path) is what makes 'shortest path' a well-defined, consistent quantity. The fix-up procedure is correct because each of its three cases either resolves the violation completely (cases 2 and 3, via rotation) or provably preserves all other invariants while pushing the violation strictly higher up the tree (case 1, recoloring) — and since the tree has finite height, this propagation must terminate, either by reaching a black parent (no violation) or by reaching the root (which is then simply recolored black, always a safe final fix)." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+using namespace std;
+
+struct TreeNode {
+    int value;
+    bool red;
+    TreeNode* left;
+    TreeNode* right;
+    TreeNode* parent;
+
+    TreeNode(int value) {
+        this->value = value;
+        red = true;
+        left = nullptr;
+        right = nullptr;
+        parent = nullptr;
+    }
+};
+
+TreeNode* leftRotate(TreeNode* root, TreeNode* node) {
+    TreeNode* right = node->right;
+
+    node->right = right->left;
+
+    if (right->left != nullptr)
+        right->left->parent = node;
+
+    right->parent = node->parent;
+
+    if (node->parent == nullptr)
+        root = right;
+    else if (node == node->parent->left)
+        node->parent->left = right;
+    else
+        node->parent->right = right;
+
+    right->left = node;
+    node->parent = right;
+
+    return root;
+}
+
+TreeNode* rightRotate(TreeNode* root, TreeNode* node) {
+    TreeNode* left = node->left;
+
+    node->left = left->right;
+
+    if (left->right != nullptr)
+        left->right->parent = node;
+
+    left->parent = node->parent;
+
+    if (node->parent == nullptr)
+        root = left;
+    else if (node == node->parent->left)
+        node->parent->left = left;
+    else
+        node->parent->right = left;
+
+    left->right = node;
+    node->parent = left;
+
+    return root;
+}
+
+void flipColors(TreeNode* node) {
+    node->red = !node->red;
+
+    if (node->left != nullptr)
+        node->left->red = !node->left->red;
+
+    if (node->right != nullptr)
+        node->right->red = !node->right->red;
+}
+
+void inorder(TreeNode* node) {
+    if (node == nullptr)
+        return;
+
+    inorder(node->left);
+
+    cout << node->value;
+
+    if (node->red)
+        cout << "(R) ";
+    else
+        cout << "(B) ";
+
+    inorder(node->right);
+}
+
+int main() {
+    TreeNode* root = new TreeNode(20);
+    root->red = false;
+
+    root->left = new TreeNode(10);
+    root->left->parent = root;
+
+    root->right = new TreeNode(30);
+    root->right->parent = root;
+
+    root->right->right = new TreeNode(40);
+    root->right->right->parent = root->right;
+
+    cout << "Before Rotation:" << endl;
+    inorder(root);
+    cout << endl;
+
+    root = leftRotate(root, root);
+
+    cout << "After Left Rotation:" << endl;
+    inorder(root);
+    cout << endl;
+
+    flipColors(root);
+
+    cout << "After Color Flip:" << endl;
+    inorder(root);
+    cout << endl;
+
+    return 0;
+}
+`
+      }
     }
 
   ],
   desc: "BST, AVL, segment tree, traversals",
   complexity: "O(log n)",
-  featured: false,
+  featured: true,
 };
 
 const DYNAMIC_PROGRAMMING_SECTION = {

@@ -183,14 +183,14 @@ function unrollPointerTree(rootNode: any): any[] {
 // ─── PREFIX MATCHERS ────────────────────────────────────────────────────────
 
 const GRAPH_PREFIXES   = ['adj', 'graph', 'network'];
-const TREE_PREFIXES    = ['tree_', 'bst_', 'trie_', 'root_', 'heap_', 'forest_'];
+const TREE_PREFIXES    = ['tree', 'bst', 'trie', 'root', 'heap', 'forest'];
 const MATRIX_PREFIXES  = ['mat', 'grid', 'board', 'dp', 'table', 'matrix', 'vec2d', 'array2d', 'grid2d', 'matrix2d', 'table2d', 'res'];
 const STACK_PREFIXES   = ['st_', 'stack', 'stk'];
 const QUEUE_PREFIXES   = ['q_', 'queue', 'deque', 'buffer_q'];
 const ARRAY_PREFIXES   = ['arr', 'vec', 'nums', 'seq', 'list', 'buffer', 'cache', 'res', 'array', 'tuple', 'valarray', 'collection', 'items', 'elements'];
 const MAP_PREFIXES     = ['map', 'dict', 'freq', 'count', 'hash', 'cache_map', 'memo', 'set', 'seen', 'visited'];
 const STRING_PREFIXES  = ['str', 'text', 'word', 'chars', 'msg', 'string', 'sentence', 'paragraph', 'pattern', 'substring', 'sub'];
-const BITSET_PREFIXES  = ['mask', 'bits', 'flags', 'bitset', 'state_mask', 'b'];
+const BITSET_PREFIXES  = ['mask', 'bits', 'flags', 'bitset', 'state_mask'];
 const SCALAR_PREFIXES  = ['ans', 'sum', 'count', 'total', 'result', 'max_val', 'min_val', 'cnt', 'res_val', 'diff', 'target'];
 
 function matchesPrefix(name: string, prefixes: string[]): boolean {

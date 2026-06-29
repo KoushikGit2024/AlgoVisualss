@@ -43,14 +43,14 @@ const DATA_STRUCTURES = [
     textColor: "text-success",
     description: "Renders a top-down hierarchical tree. Node coordinates are auto-calculated using an in-order layout algorithm.",
     prefixes: [
-      { prefix: "tree_", example: "vector<TreeNode> tree_nodes" },
-      { prefix: "bst_", example: "vector<Node> bst_data" },
-      { prefix: "trie_", example: "vector<TrieNode> trie_nodes" },
-      { prefix: "root_", example: "TreeNode* root_node" },
-      { prefix: "heap_", example: "vector<int> heap_arr" },
-      { prefix: "forest_", example: "vector<TreeNode> forest_nodes" }
+      { prefix: "tree", example: "vector<TreeNode> tree_nodes" },
+      { prefix: "bst", example: "vector<Node> bst_data" },
+      { prefix: "trie", example: "vector<TrieNode> trie_nodes" },
+      { prefix: "root", example: "TreeNode* root" },
+      { prefix: "heap", example: "vector<int> heap" },
+      { prefix: "forest", example: "vector<TreeNode> forest" }
     ],
-    shape: "Value must be an array of objects, each with `id` and `value` fields.",
+    shape: "Can be a pointer-based tree (struct with `value` + `left`/`right` pointers) OR an array of objects with `id` and `value` fields.",
     auxiliary: [
       { role: "Core pointers", trigger: "`root`, `curr`, `parent`, `temp`", notes: "Stores target node's `id`" },
       { role: "Branch pointers", trigger: "`left`, `right`", notes: "Badges attach above the target node" }
@@ -422,7 +422,7 @@ export default function VisualizerNamingConventions() {
             <tbody>
               {[
                 { c: "<Graph />", p: "adj, graph, network", s: "2D array", a: "*edge*, *visit*, node/curr/u/v" },
-                { c: "<Tree />", p: "tree_, bst_, trie_, root_, heap_, forest_", s: "Array of {id, value}", a: "root, curr, parent, temp, left, right" },
+                { c: "<Tree />", p: "tree, bst, trie, root, heap, forest", s: "Struct OR Array", a: "root, curr, parent, temp, left, right" },
                 { c: "<D2Array />", p: "mat, grid, board, dp, table, matrix, res", s: "2D array (Jagged allowed)", a: "r/row/r_*, c/col/c_* (both req)" },
                 { c: "<D1Array />", p: "arr, vec, nums, seq, list, buffer, cache, res", s: "Flat array", a: "i, j, k, left, right, mid, curr, ptr" },
                 { c: "<LinkedList />", p: "(Any Name)", s: "Struct with `value` & `next`", a: "All node pointers automatically attach" },
@@ -430,7 +430,7 @@ export default function VisualizerNamingConventions() {
                 { c: "<Stack />", p: "st_, stack, stk", s: "Flat array", a: "top, peek" },
                 { c: "<MapVisualizer />", p: "map, dict, freq, count, hash, cache_map, memo, set, seen, visited", s: "Map/Set Object", a: "None" },
                 { c: "<StringVisualizer />", p: "str, text, word, chars, msg, string, sentence, paragraph, pattern, substring, sub", s: "String / Char Array", a: "i, j, k, left, right, mid, curr, ptr" },
-                { c: "<BitsetVisualizer />", p: "mask, bits, flags, bitset, state_mask, b", s: "Number / Bool Array", a: "None" },
+                { c: "<BitsetVisualizer />", p: "mask, bits, flags, bitset, state_mask", s: "Number / Bool Array", a: "None" },
                 { c: "<ScalarVisualizer />", p: "ans, sum, count, total, result, max_val, min_val, cnt, res_val, diff, target", s: "Primitive", a: "None" }
               ].map((row, i) => (
                 <tr key={i} className="border-b border-border last:border-b-0 hover:bg-surface-2 transition-colors">
