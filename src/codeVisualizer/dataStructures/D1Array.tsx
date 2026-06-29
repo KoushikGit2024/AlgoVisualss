@@ -154,15 +154,9 @@ const D1Array = ({
                     ${bgClass} ${borderClass} ${textClass} ${shadowClass}
                   `}
                 >
-                  <AnimatePresence mode="wait">
-                    <motion.span
-                      key={`val-${safeValToDisplay}-${idx}`}
-                      initial={{ opacity: 0, y: -2 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 2 }}
-                      transition={{ duration: 0.1 }} className="truncate max-w-full"
-                    >
-                      {safeValToDisplay}
-                    </motion.span>
-                  </AnimatePresence>
+                  <span className="truncate max-w-full">
+                    {safeValToDisplay}
+                  </span>
                 </motion.div>
 
                 {/* Bottom Pointers */}

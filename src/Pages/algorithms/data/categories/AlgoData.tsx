@@ -20562,7 +20562,32 @@ const BIT_MANIPULATION_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "By the commutative and associative properties of XOR, the final accumulated result is independent of processing order and can be conceptually regrouped as (pair1_a ^ pair1_b) ^ (pair2_a ^ pair2_b) ^ ... ^ singleValue. Each parenthesised pair, by definition, XORs an identical value with itself, which always evaluates to exactly 0 (a ^ a = 0 for any a). Since 0 is XOR's identity element, every one of these zero-valued pair-terms vanishes from the overall expression without affecting it, leaving the final result exactly equal to 0 ^ 0 ^ ... ^ singleValue = singleValue — the one element that had no pair to cancel it out." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+int singleNumber(vector<int>& nums) {
+    int mask = 0;
+
+    for (int curr = 0; curr < nums.size(); curr++)
+        mask ^= nums[curr];
+
+    return mask;
+}
+
+int main() {
+    vector<int> nums = {4, 1, 2, 1, 2};
+
+    int ans = singleNumber(nums);
+
+    cout << ans << endl;
+
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -20651,7 +20676,37 @@ const BIT_MANIPULATION_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The bitwise identity i & (i − 1) provably clears exactly the lowest set bit of i and leaves every other bit unchanged — this is a standard, easily-verified property of how binary subtraction borrows propagate through trailing zero bits. Since exactly one set bit (the lowest one) was removed to go from i to i & (i − 1), the number of set bits in i must be exactly one greater than the number of set bits in i & (i − 1) — this is the recurrence's core correctness argument. By strong induction on i (processing values in increasing order, so every smaller value's bit count is already correctly computed by the time it's needed), this recurrence correctly computes the bit count for every integer from 0 to n." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+vector<int> countBits(int n) {
+    vector<int> bits(n + 1);
+
+    bits[0] = 0;
+
+    for (int curr = 1; curr <= n; curr++)
+        bits[curr] = bits[curr >> 1] + (curr & 1);
+
+    return bits;
+}
+
+int main() {
+    int n = 8;
+
+    vector<int> bits = countBits(n);
+
+    for (int curr = 0; curr < bits.size(); curr++)
+        cout << bits[curr] << " ";
+
+    cout << endl;
+
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -20744,7 +20799,35 @@ const BIT_MANIPULATION_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Any bit position where m and n's binary representations DIFFER is guaranteed to take on both 0 and 1 values somewhere within the range [m, n] (since the range includes every integer between them, and that bit position must flip at least once as the range progresses from m to n) — and ANDing a 0 with a 1 at any point always forces that bit position to 0 in the final cumulative result. This means every bit position at or below the FIRST point where m and n differ must be 0 in the answer, while every bit position ABOVE that point — where m and n's bits genuinely agree throughout their entire shared prefix — IS guaranteed to remain that same shared value throughout the whole range (since it never flips for any number between m and n). Right-shifting both values in lockstep until they become equal correctly identifies exactly this shared prefix, and left-shifting back by the same count correctly restores it to its proper bit positions while leaving every lower (necessarily mixed, hence zero) bit as 0." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+using namespace std;
+
+int rangeBitwiseAnd(int left, int right) {
+    int mask = 0;
+
+    while (left != right) {
+        left >>= 1;
+        right >>= 1;
+        mask++;
+    }
+
+    return left << mask;
+}
+
+int main() {
+    int left = 5;
+    int right = 7;
+
+    int ans = rangeBitwiseAnd(left, right);
+
+    cout << ans << endl;
+
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -20831,7 +20914,34 @@ const BIT_MANIPULATION_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The algorithm directly and mechanically implements the definition of bit reversal: for a 32-bit value, the bit at position i in the input must end up at position (31 − i) in the output, for every i from 0 to 31. The extraction step (n >> i) & 1 correctly isolates exactly the bit at position i (shifting it down to the units position, then masking away everything else). The placement step bit << (31 − i) correctly positions that single extracted bit at its mirrored destination, and OR-ing it into the accumulator correctly sets that bit without disturbing any other bit already placed by a previous iteration (since each iteration targets a DISTINCT, non-overlapping output position, OR-ing in a new bit can never accidentally clear or corrupt a previously-set one)." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+using namespace std;
+
+unsigned int reverseBits(unsigned int n) {
+    unsigned int mask = 0;
+
+    for (int curr = 0; curr < 32; curr++) {
+        mask <<= 1;
+        mask |= (n & 1);
+        n >>= 1;
+    }
+
+    return mask;
+}
+
+int main() {
+    unsigned int n = 43261596;
+
+    unsigned int ans = reverseBits(n);
+
+    cout << ans << endl;
+
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -20919,13 +21029,40 @@ const BIT_MANIPULATION_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The accumulator effectively computes the XOR of the complete set {0, 1, 2, ..., n} together with the XOR of every actual array value — by commutativity and associativity, this can be regrouped as XOR-ing together every NUMBER THAT APPEARS IN BOTH conceptual sets (which cancels to 0, exactly as in Single Number) plus whatever appears in ONLY ONE of the two sets. Since the array contains exactly n distinct values all drawn from the (n+1)-element range [0, n], exactly one number from that range is absent from the array — every OTHER number in the range appears in BOTH the 'expected indices' set and the 'actual values' set (contributing a cancelling pair), while the missing number appears ONLY in the 'expected indices' set, surviving as the final uncancelled XOR result." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+int missingNumber(vector<int>& nums) {
+    int target = nums.size();
+
+    for (int curr = 0; curr < nums.size(); curr++) {
+        target ^= curr;
+        target ^= nums[curr];
+    }
+
+    return target;
+}
+
+int main() {
+    vector<int> nums = {3, 0, 1};
+
+    int ans = missingNumber(nums);
+
+    cout << ans << endl;
+
+    return 0;
+}
+`
+      }
     }
 
   ],
   desc: "XOR tricks, bitmasking, power of two",
   complexity: "O(1)",
-  featured: false
+  featured: true
 };
 
 const RANGE_STRUCTURES_SECTION = {

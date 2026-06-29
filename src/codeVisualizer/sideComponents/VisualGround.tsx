@@ -476,11 +476,8 @@ const VisualGround = ({
               // the previous one, capped at 4 positions with modulo.
               const defaultX = (idx % 4) * 40 + 20;
               const defaultY = (idx % 4) * 40 + 20;
-              // Scalars: pin to bottom-right corner, tiny footprint (~10% width)
+              // Scalars: pin to bottom-right corner
               const isScalar    = type === 'scalar';
-              // const initX       = isScalar ? undefined : defaultX;  // let DraggableWindow use its own default
-              // const initY       = isScalar ? undefined : defaultY;
-              // const cornerAnchor = isScalar ? 'bottom-right' : undefined; // pass as new prop (see step 3)
 
               return (
                 <DraggableWindow
@@ -488,7 +485,7 @@ const VisualGround = ({
                   id={type}
                   title={`${type}s`}
                   defaultPosition={{ x: isScalar ? 0 : defaultX, y: isScalar ? 0 : defaultY }}
-                  defaultSize={isScalar ? { width: '10%', minWidth: 40, height: '10%', minHeight: 40 } : undefined}
+                  defaultSize={isScalar ? { width: 250, minWidth: 150, height: 150, minHeight: 100 } : undefined}
                   cornerAnchor={isScalar ? 'bottom-right' : undefined}
                   windowState={ws}
                   updateWindow={(partial) => updateWindow(type, partial)}

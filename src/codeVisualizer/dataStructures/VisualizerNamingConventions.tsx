@@ -431,7 +431,7 @@ export default function VisualizerNamingConventions() {
                 { c: "<MapVisualizer />", p: "map, dict, freq, count, hash, cache_map, memo, set, seen, visited", s: "Map/Set Object", a: "None" },
                 { c: "<StringVisualizer />", p: "str, text, word, chars, msg, string, sentence, paragraph, pattern, substring, sub", s: "String / Char Array", a: "i, j, k, left, right, mid, curr, ptr" },
                 { c: "<BitsetVisualizer />", p: "mask, bits, flags, bitset, state_mask, b", s: "Number / Bool Array", a: "None" },
-                { c: "<ScalarVisualizer />", p: "ans, sum, count, total, result, max_val, min_val, cnt, res_val, diff", s: "Primitive", a: "None" }
+                { c: "<ScalarVisualizer />", p: "ans, sum, count, total, result, max_val, min_val, cnt, res_val, diff, target", s: "Primitive", a: "None" }
               ].map((row, i) => (
                 <tr key={i} className="border-b border-border last:border-b-0 hover:bg-surface-2 transition-colors">
                   <td className="px-3 py-2 border-r border-border text-text font-mono whitespace-nowrap">{row.c}</td>

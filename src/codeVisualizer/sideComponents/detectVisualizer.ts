@@ -191,7 +191,7 @@ const ARRAY_PREFIXES   = ['arr', 'vec', 'nums', 'seq', 'list', 'buffer', 'cache'
 const MAP_PREFIXES     = ['map', 'dict', 'freq', 'count', 'hash', 'cache_map', 'memo', 'set', 'seen', 'visited'];
 const STRING_PREFIXES  = ['str', 'text', 'word', 'chars', 'msg', 'string', 'sentence', 'paragraph', 'pattern', 'substring', 'sub'];
 const BITSET_PREFIXES  = ['mask', 'bits', 'flags', 'bitset', 'state_mask', 'b'];
-const SCALAR_PREFIXES  = ['ans', 'sum', 'count', 'total', 'result', 'max_val', 'min_val', 'cnt', 'res_val', 'diff'];
+const SCALAR_PREFIXES  = ['ans', 'sum', 'count', 'total', 'result', 'max_val', 'min_val', 'cnt', 'res_val', 'diff', 'target'];
 
 function matchesPrefix(name: string, prefixes: string[]): boolean {
   const lower = name.toLowerCase();
@@ -689,8 +689,14 @@ export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[
     
     if (typeof bitVal === 'number' || (isFlatArray(bitVal) && bitVal.every(v => typeof v === 'boolean' || v === 0 || v === 1))) {
       consumedKeys.add(bitKey);
-      consumedKeys.add(bitKey);
       visualizers.push({ id: bitKey, type: 'bitset', usedKeys: [bitKey], props: { value: bitVal } });
+    } else if (isFlatArray(bitVal)) {
+      // Fallback to a regular array if the variable has non-binary values (e.g. 2)
+      const { pointers, usedKeys: ptrKeys } = collectIndexPointers(keys, vars, ['i', 'j', 'k', 'left', 'right', 'mid', 'curr', 'ptr']);
+      const usedKeys = [bitKey, ...ptrKeys];
+      const { reads, writes } = extractEventIndices(bitKey, false);
+      usedKeys.forEach(k => consumedKeys.add(k));
+      visualizers.push({ id: bitKey, type: 'array', usedKeys, props: { value: bitVal, pointers, readIndices: reads, writeIndices: writes } });
     }
   });
 
