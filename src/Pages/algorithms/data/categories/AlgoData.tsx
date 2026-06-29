@@ -16626,7 +16626,7 @@ int main() {
   ],
   desc: "Deque, sliding window max, BFS patterns",
   complexity: "O(n)",
-  featured: false
+  featured: true
 };
 
 const HASH_MAPS_SECTION = {
