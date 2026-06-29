@@ -13580,7 +13580,43 @@ const DYNAMIC_PROGRAMMING_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Optimal substructure: the optimal solution using the first i items and capacity w must either include item i or not. If it doesn't include item i, the optimal solution is exactly the optimal solution using the first i-1 items and the same capacity w — by definition. If it does include item i, the remaining budget w − weights[i-1] must be allocated optimally among the first i-1 items, which is exactly dp[i-1][w − weights[i-1]] by the same inductive definition. Since these are the only two possibilities and both are correctly computed by the recurrence (by strong induction on i), taking their maximum correctly computes dp[i][w] for every cell, and the final answer dp[n][W] is therefore provably optimal." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int knapsack(int capacity, const vector<int>& arr_weights, const vector<int>& arr_values, int n) {
+    // dp[i][j] stores the max value for first 'i' items with weight limit 'j'
+    vector<vector<int>> dp(n + 1, vector<int>(capacity + 1, 0));
+
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= capacity; j++) {
+            if (arr_weights[i - 1] <= j) {
+                // Include item or exclude item
+                dp[i][j] = max(arr_values[i - 1] + dp[i - 1][j - arr_weights[i - 1]], dp[i - 1][j]);
+            } else {
+                // Exclude item
+                dp[i][j] = dp[i - 1][j];
+            }
+        }
+    }
+    return dp[n][capacity];
+}
+
+int main() {
+    vector<int> arr_values = {60, 100, 120};
+    vector<int> arr_weights = {10, 20, 30};
+    int capacity = 50;
+    int n = arr_values.size();
+
+    cout << "Maximum value in Knapsack = " << knapsack(capacity, arr_weights, arr_values, n) << endl;
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -13684,7 +13720,46 @@ const DYNAMIC_PROGRAMMING_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Optimal substructure: in any valid parenthesisation of matrices i through j, there must be SOME position k where the final (outermost) multiplication occurs, splitting the chain into a left part [i,k] and right part [k+1,j]. Whatever k is chosen, the optimal way to compute each of those two parts independently must itself be optimal — if a cheaper way to compute [i,k] existed, substituting it would only decrease the total cost, contradicting optimality. By trying every possible k and taking the minimum, the algorithm is guaranteed to consider the true optimal split point among all candidates, and by strong induction on chain length, every dp[i][k] and dp[k+1][j] used in that calculation is already correctly computed (since they represent strictly shorter sub-chains processed earlier)." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <climits>
+#include <algorithm>
+
+using namespace std;
+
+int matrixChainOrder(const vector<int>& p) {
+    int n = p.size();
+    // dp[i][j] stores the min multiplications needed to multiply matrices from i to j
+    vector<vector<int>> dp(n, vector<int>(n, 0));
+
+    // L is the chain length
+    for (int L = 2; L < n; L++) {
+        for (int i = 1; i < n - L + 1; i++) {
+            int j = i + L - 1;
+            dp[i][j] = INT_MAX;
+            for (int k = i; k <= j - 1; k++) {
+                int cost = dp[i][k] + dp[k + 1][j] + p[i - 1] * p[k] * p[j];
+                if (cost < dp[i][j]) {
+                    dp[i][j] = cost;
+                }
+            }
+        }
+    }
+    return dp[1][n - 1];
+}
+
+int main() {
+    // Array representing dimensions of matrices
+    // A is 1x2, B is 2x3, C is 3x4
+    vector<int> arr = {1, 2, 3, 4}; 
+    
+    cout << "Minimum number of multiplications is = " << matrixChainOrder(arr) << endl;
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -13782,7 +13857,41 @@ const DYNAMIC_PROGRAMMING_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Optimal substructure: if A[i-1] == B[j-1], this matching character can always be included in SOME longest common subsequence of A[0..i-1] and B[0..j-1] (a standard exchange argument shows that if an optimal LCS doesn't use this match, it can be modified to use it without becoming shorter) — so the problem correctly reduces to 1 + LCS(A[0..i-2], B[0..j-2]). If they don't match, the final characters can't BOTH be part of the LCS, so the optimal solution must exclude at least one of them — meaning the true LCS length equals the best of 'exclude A[i-1]' or 'exclude B[j-1]', exactly what max(dp[i-1][j], dp[i][j-1]) computes. By strong induction on i+j, every smaller subproblem used in these recurrences is already correctly computed." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+using namespace std;
+
+int longestCommonSubsequence(string text1, string text2) {
+    int m = text1.length();
+    int n = text2.length();
+    vector<vector<int>> dp(m + 1, vector<int>(n + 1, 0));
+
+    for (int i = 1; i <= m; i++) {
+        for (int j = 1; j <= n; j++) {
+            if (text1[i - 1] == text2[j - 1]) {
+                dp[i][j] = 1 + dp[i - 1][j - 1];
+            } else {
+                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1]);
+            }
+        }
+    }
+    return dp[m][n];
+}
+
+int main() {
+    string s1 = "abcde";
+    string s2 = "ace";
+    
+    cout << "Length of LCS = " << longestCommonSubsequence(s1, s2) << endl;
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -13890,7 +13999,39 @@ const DYNAMIC_PROGRAMMING_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Key invariant: at every point during the algorithm, tails[k] holds the smallest possible last-element value among all increasing subsequences of length k+1 discovered in the input processed so far. This invariant is maintained because replacing tails[lo] with a smaller x can only ever help future elements (a smaller tail value is strictly easier to extend than a larger one, since 'increasing' comparisons become more permissive), and it never hurts, since the LENGTH represented by that position doesn't change. Appending x when it exceeds every current tail correctly represents a genuinely new, longer subsequence. Because tails is always sorted (each binary search and replacement preserves sortedness, since x replaces the first value ≥ x), binary search correctly finds the right position in O(log n), and the final length of tails accurately reflects the longest increasing subsequence length, even though the contents of tails don't form an actual subsequence from the array themselves." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int longestIncreasingSubsequence(const vector<int>& nums) {
+    if (nums.empty()) return 0;
+    
+    int n = nums.size();
+    vector<int> dp(n, 1);
+    int maxLength = 1;
+
+    for (int i = 1; i < n; i++) {
+        for (int j = 0; j < i; j++) {
+            if (nums[i] > nums[j]) {
+                dp[i] = max(dp[i], dp[j] + 1);
+            }
+        }
+        maxLength = max(maxLength, dp[i]);
+    }
+    return maxLength;
+}
+
+int main() {
+    vector<int> nums = {10, 9, 2, 5, 3, 7, 101, 18};
+    cout << "Length of LIS = " << longestIncreasingSubsequence(nums) << endl;
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -13987,7 +14128,38 @@ const DYNAMIC_PROGRAMMING_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Optimal substructure: any optimal solution for amount a must use SOME coin as its 'last' coin — call it coin c. Removing that one coin leaves an optimal solution for amount a − c (if it weren't optimal, a cheaper solution for a − c plus that same coin c would produce a cheaper solution for a, contradicting a's optimality). By trying every possible coin c as the 'last coin' and taking the minimum over dp[a − c] + 1, the algorithm is guaranteed to consider the true optimal choice among all coins, and by induction on a (processing amounts in increasing order), every dp[a − c] referenced is already correctly computed before it's needed." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int coinChange(const vector<int>& coins, int amount) {
+    // Initialize DP array with a value strictly greater than the maximum possible coins
+    vector<int> dp(amount + 1, amount + 1);
+    dp[0] = 0;
+
+    for (int i = 1; i <= amount; i++) {
+        for (int coin : coins) {
+            if (i - coin >= 0) {
+                dp[i] = min(dp[i], dp[i - coin] + 1);
+            }
+        }
+    }
+    return dp[amount] > amount ? -1 : dp[amount];
+}
+
+int main() {
+    vector<int> coins = {1, 2, 5};
+    int amount = 11;
+    
+    cout << "Minimum coins required = " << coinChange(coins, amount) << endl;
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -14103,7 +14275,58 @@ const DYNAMIC_PROGRAMMING_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The crucial insight enabling this DP is that the future of the tour (which unvisited cities remain to be visited, and how to visit them optimally) depends ONLY on the current city and the SET of cities already visited — not on the specific order in which they were visited. This means many different permutations that happen to visit the same set of cities and end at the same city are correctly collapsed into a single state, which is exactly what eliminates the (n-1)! redundancy of brute force. By induction on the number of bits set in mask, dp[mask][i] is correctly computed as the minimum over all valid ways to reach that exact (visited-set, current-city) combination, since every transition considered builds directly on already-correctly-computed smaller states (states with fewer visited cities)." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <climits>
+#include <algorithm>
+
+using namespace std;
+
+const int INF = 1e9;
+
+int tsp(int mask, int pos, int n, const vector<vector<int>>& dist, vector<vector<int>>& dp) {
+    // If all cities have been visited, return cost to go back to the starting city (0)
+    if (mask == (1 << n) - 1) {
+        return dist[pos][0];
+    }
+    
+    if (dp[mask][pos] != -1) {
+        return dp[mask][pos];
+    }
+
+    int ans = INF;
+    for (int city = 0; city < n; city++) {
+        // If the city has not been visited yet
+        if ((mask & (1 << city)) == 0) {
+            int newAns = dist[pos][city] + tsp(mask | (1 << city), city, n, dist, dp);
+            ans = min(ans, newAns);
+        }
+    }
+    return dp[mask][pos] = ans;
+}
+
+int main() {
+    int n = 4;
+    // Distance matrix where dist[i][j] is distance from city i to j
+    vector<vector<int>> dist = {
+        {0, 10, 15, 20},
+        {10, 0, 35, 25},
+        {15, 35, 0, 30},
+        {20, 25, 30, 0}
+    };
+    
+    // dp array initialized to -1
+    // Size is 2^n for rows (bitmask) and n for columns
+    vector<vector<int>> dp(1 << n, vector<int>(n, -1));
+
+    // Start at city 0, mask is 1 (city 0 visited)
+    cout << "Minimum cost of Travelling Salesperson = " << tsp(1, 0, n, dist, dp) << endl;
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -14206,7 +14429,34 @@ const DYNAMIC_PROGRAMMING_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "This is a direct, mechanical implementation of the mathematical recurrence F(n) = F(n-1) + F(n-2) with base cases F(0)=0, F(1)=1. By induction on i: after the loop body executes for index i, curr correctly holds F(i) and prev correctly holds F(i-1), assuming this was true before that iteration (which holds trivially at i=2, since prev=F(0) and curr=F(1) at initialisation). Since this invariant is preserved through every iteration, when the loop terminates at i=n, curr correctly equals F(n). The O(1) space variant works precisely because the recurrence has 'memory' of only 2, meaning no value of n ever needs to look further back than its two immediate predecessors." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+
+using namespace std;
+
+// Calculates the nth Fibonacci number
+long long fibonacci(int n) {
+    if (n <= 1) return n;
+
+    vector<long long> dp(n + 1);
+    dp[0] = 0;
+    dp[1] = 1;
+
+    for (int i = 2; i <= n; i++) {
+        dp[i] = dp[i - 1] + dp[i - 2];
+    }
+    return dp[n];
+}
+
+int main() {
+    int n = 10;
+    cout << "Fibonacci of " << n << " is: " << fibonacci(n) << "\n";
+    return 0;
+}
+`
+      }
     }
 
   ],

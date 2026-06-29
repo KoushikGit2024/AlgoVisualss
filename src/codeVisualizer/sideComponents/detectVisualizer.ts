@@ -187,7 +187,7 @@ const TREE_PREFIXES    = ['tree', 'bst', 'trie', 'root', 'heap', 'forest'];
 const MATRIX_PREFIXES  = ['mat', 'grid', 'board', 'dp', 'table', 'matrix', 'vec2d', 'array2d', 'grid2d', 'matrix2d', 'table2d', 'res'];
 const STACK_PREFIXES   = ['st_', 'stack', 'stk'];
 const QUEUE_PREFIXES   = ['q_', 'queue', 'deque', 'buffer_q'];
-const ARRAY_PREFIXES   = ['arr', 'vec', 'nums', 'seq', 'list', 'buffer', 'cache', 'res', 'array', 'tuple', 'valarray', 'collection', 'items', 'elements'];
+const ARRAY_PREFIXES   = ['arr', 'vec', 'nums', 'seq', 'dp', 'list', 'buffer', 'cache', 'res', 'array', 'tuple', 'valarray', 'collection', 'items', 'elements'];
 const MAP_PREFIXES     = ['map', 'dict', 'freq', 'count', 'hash', 'cache_map', 'memo', 'set', 'seen', 'visited'];
 const STRING_PREFIXES  = ['str', 'text', 'word', 'chars', 'msg', 'string', 'sentence', 'paragraph', 'pattern', 'substring', 'sub'];
 const BITSET_PREFIXES  = ['mask', 'bits', 'flags', 'bitset', 'state_mask'];
@@ -548,12 +548,35 @@ export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[
     if (is2DArray(rawGrid)) {
       const pointers: { name: string; row: number; col: number }[] = [];
       const usedKeys = [matrixKey];
-      const rowKey = keys.find(k => !consumedKeys.has(k) && (k.toLowerCase() === 'r' || k.toLowerCase().includes('row') || k.toLowerCase().endsWith('_r') || k.toLowerCase().startsWith('r_')));
-      const colKey = keys.find(k => !consumedKeys.has(k) && (k.toLowerCase() === 'c' || k.toLowerCase().includes('col') || k.toLowerCase().endsWith('_c') || k.toLowerCase().startsWith('c_')));
+      
+      const potentialRowKeys = keys.filter(k => !consumedKeys.has(k) && (k.toLowerCase() === 'r' || k.toLowerCase() === 'i' || k.toLowerCase().includes('row') || k.toLowerCase().endsWith('_r') || k.toLowerCase().startsWith('r_')));
+      const potentialColKeys = keys.filter(k => !consumedKeys.has(k) && (k.toLowerCase() === 'c' || k.toLowerCase() === 'j' || k.toLowerCase().includes('col') || k.toLowerCase().endsWith('_c') || k.toLowerCase().startsWith('c_')));
 
-      if (rowKey && colKey && typeof vars[rowKey]?.value === 'number' && typeof vars[colKey]?.value === 'number') {
-        pointers.push({ name: `${rowKey},${colKey}`, row: vars[rowKey].value, col: vars[colKey].value });
-        usedKeys.push(rowKey, colKey);
+      let foundPair = false;
+      for (const rKey of potentialRowKeys) {
+        for (const cKey of potentialColKeys) {
+          if (rKey === cKey) continue;
+          const rVal = vars[rKey]?.value;
+          const cVal = vars[cKey]?.value;
+          
+          if (typeof rVal === 'number' && typeof cVal === 'number') {
+            const numRows = rawGrid.length;
+            let numCols = 0;
+            if (numRows > 0) {
+                const firstRow: any = rawGrid[0];
+                numCols = Array.isArray(firstRow) ? firstRow.length : (typeof firstRow === 'string' ? firstRow.length : 0);
+            }
+            
+            // Check if they are valid bounds for the matrix
+            if (rVal >= 0 && rVal < numRows && cVal >= 0 && cVal < numCols) {
+              pointers.push({ name: `${rKey},${cKey}`, row: rVal, col: cVal });
+              usedKeys.push(rKey, cKey);
+              foundPair = true;
+              break;
+            }
+          }
+        }
+        if (foundPair) break;
       }
       const { reads, writes } = extractEventIndices(matrixKey, true);
       usedKeys.forEach(k => consumedKeys.add(k));
