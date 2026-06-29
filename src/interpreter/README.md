@@ -130,7 +130,7 @@ The execution happens instantly, usually in under 5 milliseconds. To visualize i
 
 Whenever `StatementExecutor` performs a meaningful action, it fires an event:
 ```typescript
-this.eventEmitter.emit(lineNumber, EventType.VARIABLE_ASSIGN, payload);
+this.eventEmitter.emit(lineNumber, EventType.ASSIGNMENT, payload);
 ```
 
 The `ExecutionEngine` subscribes to this emitter. Upon receiving an event:
@@ -138,7 +138,16 @@ The `ExecutionEngine` subscribes to this emitter. Upon receiving an event:
 2. It deep-clones the entire variable state in the current scope using `createSnapshot()`.
 3. It pushes this immutable `RuntimeSnapshot` into the `snapshots` array.
 
-When the interpreter finishes running, it returns the array of `RuntimeSnapshot` objects to the React UI.
+### Semantic Hierarchical Compression
+To prevent Out-Of-Memory crashes in the browser when running algorithms with massive execution trees (like Sudoku backtracking), the engine enforces memory limits using Semantic Hierarchical Compression. If the number of generated snapshots reaches the safe limit (`30,000`), the engine dynamically filters the snapshot array by progressively dropping visually less-important events:
+- **Level 1:** Drops all `READ` events (often ~90% of total events).
+- **Level 2:** Drops `CONDITION` and loop internal events.
+- **Level 3:** Drops `ASSIGNMENT` and `DECLARE` events.
+- **Level 4+:** Uniformly downsamples any remaining events.
+
+This ensures that the final solved state and the terminal output are perfectly preserved and reachable, regardless of how long the algorithm runs.
+
+When the interpreter finishes running, it returns the dynamically compressed array of `RuntimeSnapshot` objects to the React UI.
 
 ---
 

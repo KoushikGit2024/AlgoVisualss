@@ -49,7 +49,7 @@ export type EventCallback = (event: ExecutionEvent) => void;
  * 500,000 snapshots at ~2 KB each ≈ 1 GB — the hard cap is well below that.
  * Typical interactive programs produce < 10,000 snapshots.
  */
-const ABSOLUTE_MAX_SNAPSHOTS = 500_000;
+const ABSOLUTE_MAX_SNAPSHOTS = 10_000_000;
 
 
 // ─── EventEmitter ─────────────────────────────────────────────────────────────

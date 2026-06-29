@@ -4,7 +4,7 @@ export interface GridCoordinate { row: number; col: number; }
 export interface GridRange { startRow: number; endRow: number; startCol: number; endCol: number; }
 
 export interface D2ArrayProps {
-  value: (number | string)[][];
+  value: ((number | string)[] | string)[];
   pointers?: { name: string; row: number; col: number }[];
   highLightIndices?: GridCoordinate[];
   readIndices?: GridCoordinate[];
@@ -36,9 +36,42 @@ const D2Array = ({
     return arr.some((coord) => coord.row === r && coord.col === c);
   };
 
+  const rangePointerPairs = [
+    ['left', 'right'],
+    ['l', 'r'],
+    ['start', 'end'],
+    ['low', 'high'],
+    ['first', 'last'],
+    ['topleft', 'bottomright'],
+    ['startrow', 'endrow'],
+    ['startcol', 'endcol']
+  ];
+
+  const effectiveRanges = [...highLightRange];
+
+  if (pointers && pointers.length > 0) {
+    rangePointerPairs.forEach(([startName, endName]) => {
+      const startPtrs = pointers.filter(p => p.name.toLowerCase() === startName || p.name.toLowerCase().endsWith(`_${startName}`));
+      const endPtrs = pointers.filter(p => p.name.toLowerCase() === endName || p.name.toLowerCase().endsWith(`_${endName}`));
+      
+      startPtrs.forEach(start => {
+        endPtrs.forEach(end => {
+          if (start.row <= end.row && start.col <= end.col) {
+            effectiveRanges.push({
+              startRow: start.row,
+              endRow: end.row,
+              startCol: start.col,
+              endCol: end.col
+            });
+          }
+        });
+      });
+    });
+  }
+
   const isInRange = (r: number, c: number) => {
-    if (!highLightRange || highLightRange.length === 0) return false;
-    return highLightRange.some(
+    if (effectiveRanges.length === 0) return false;
+    return effectiveRanges.some(
       (range) => r >= range.startRow && r <= range.endRow && c >= range.startCol && c <= range.endCol
     );
   };
@@ -50,8 +83,9 @@ const D2Array = ({
   const safeValue = Array.isArray(value) ? value : [];
   let numCols = 0;
   for (const row of safeValue) {
-    if (Array.isArray(row) && row.length > numCols) {
-      numCols = row.length;
+    const len = Array.isArray(row) ? row.length : (typeof row === 'string' ? row.length : 0);
+    if (len > numCols) {
+      numCols = len;
     }
   }
 
@@ -73,16 +107,15 @@ const D2Array = ({
         <div className="flex items-center gap-1.5 mb-0.5 w-full">
           <div className="w-6 h-6 shrink-0" />
           {Array.from({ length: numCols }).map((_, c) => (
-            <div key={`col-idx-${c}`} className="flex-1 min-w-[2.5rem] max-w-[4rem] flex justify-center shrink-0">
+            <div key={`col-idx-${c}`} className="w-12 flex justify-center shrink-0">
               <span className="text-[10px] text-muted font-mono">{c}</span>
             </div>
           ))}
         </div>
 
         <AnimatePresence mode="popLayout">
-          {/* CRITICAL: Mapping over safeValue */}
           {safeValue.map((row, r) => {
-            const safeRow = Array.isArray(row) ? row : [];
+            const safeRow = Array.isArray(row) ? row : (typeof row === 'string' ? row.split('') : []);
 
             return (
               <motion.div key={`row-${r}`} variants={rowVariants} layout className="flex items-center gap-1.5 w-full">
@@ -92,13 +125,8 @@ const D2Array = ({
                   <span className="text-[10px] text-muted font-mono">{r}</span>
                 </div>
 
-                {/* CRITICAL: Mapping up to numCols for consistent sizing */}
-                {Array.from({ length: numCols }).map((_, c) => {
-                  if (c >= safeRow.length) {
-                    return <div key={`empty-${r}-${c}`} className="flex flex-col items-center flex-1 min-w-[2.5rem] max-w-[4rem]" />;
-                  }
-                  
-                  const val = safeRow[c];
+                {/* CRITICAL: Mapping exactly over safeRow for jagged arrays */}
+                {safeRow.map((val: any, c: number) => {
                   const isDelete = isMatch(deleteIndices, r, c);
                   const isSwap = isMatch(swapIndices, r, c);
                   const isWrite = isMatch(writeIndices, r, c);
@@ -149,7 +177,7 @@ const D2Array = ({
                   const safeValToDisplay = typeof val === 'object' ? JSON.stringify(val) : String(val);
 
                   return (
-                    <motion.div key={`cell-${r}-${c}`} layout variants={cellVariants} className="relative flex flex-col items-center flex-1 min-w-[2.5rem] max-w-[4rem]">
+                    <motion.div key={`cell-${r}-${c}`} layout variants={cellVariants} className="relative flex flex-col items-center w-12 shrink-0">
                       
                       <motion.div
                         layout initial={false}

@@ -59,7 +59,7 @@ function isFlatArray(val: any): val is (number | string)[] {
 
 function is2DArray(val: any): val is any[][] {
   if (!Array.isArray(val) || val.length === 0) return false;
-  return val.some(row => Array.isArray(row));
+  return val.some(row => Array.isArray(row) || typeof row === 'string');
 }
 
 function isNodeArray(val: any): boolean {

@@ -41,7 +41,7 @@ const VisualGround = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isCompiling, setIsCompiling] = useState(false);
-  const [speed, setSpeed] = useState<number>(1);
+  const [speed, setSpeed] = useState<number>(100);
   const [error, setError] = useState<string | null>(null);
 
   const [hSplit, setHSplit] = useState<number>(65);
@@ -188,7 +188,7 @@ const VisualGround = ({
     if (isPlaying && currentStep < snapshots.length - 1) {
       interval = setInterval(() => {
         setCurrentStep((prev) => prev + 1);
-      }, 10 / speed);
+      }, speed);
     } else if (currentStep >= snapshots.length - 1) {
       setIsPlaying(false);
     }
@@ -692,17 +692,18 @@ const VisualGround = ({
           <span className="text-[9px] font-mono text-muted whitespace-nowrap min-w-[35px]">
             {snapshots.length > 0 ? currentStep + 1 : 0} / {snapshots.length}
           </span>
-          <div className="flex-1 h-1 bg-bg rounded-full overflow-hidden border border-border relative">
-            <div
-              className="absolute left-0 top-0 h-full bg-accent transition-all duration-300"
-              style={{
-                width:
-                  snapshots.length > 1
-                    ? `${(currentStep / (snapshots.length - 1)) * 100}%`
-                    : '0%',
-              }}
-            />
-          </div>
+          <input
+            type="range"
+            min={0}
+            max={Math.max(0, snapshots.length - 1)}
+            value={currentStep}
+            onChange={(e) => {
+              setIsPlaying(false);
+              setCurrentStep(parseInt(e.target.value));
+            }}
+            disabled={snapshots.length === 0}
+            className="flex-1 h-1 bg-bg rounded-full border border-border accent-accent cursor-pointer disabled:opacity-50"
+          />
         </div>
 
         {/* Button row */}
@@ -769,14 +770,28 @@ const VisualGround = ({
           <div className="flex items-center gap-1">
             <input
               type="range"
-              className="w-12 accent-accent h-1 bg-border rounded cursor-pointer"
+              className="w-16 accent-accent h-1 bg-border rounded cursor-pointer"
               onChange={(e) => setSpeed(parseFloat(e.target.value))}
-              min={0.25}
-              max={5}
+              min={1}
+              max={1000}
               value={speed}
-              step={0.25}
+              step={1}
             />
-            <span className="text-[9px] text-accent font-mono w-5">{speed}x</span>
+            <div className="flex items-center">
+              <input
+                type="number"
+                className="w-10 bg-transparent hover:bg-surface focus:bg-surface border border-transparent hover:border-border focus:border-accent text-[9px] text-accent font-mono rounded-sm px-1 py-0.5 text-right outline-none transition-all"
+                style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (!isNaN(val)) setSpeed(Math.min(1000, Math.max(1, val)));
+                }}
+                min={1}
+                max={1000}
+                value={speed}
+              />
+              <span className="text-[9px] text-accent font-mono pr-1">ms</span>
+            </div>
           </div>
         </div>
       </div>

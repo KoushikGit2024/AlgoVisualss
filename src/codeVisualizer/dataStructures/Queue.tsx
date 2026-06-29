@@ -46,32 +46,35 @@ const Queue = ({
     return (
       <div className="w-full flex items-center justify-center p-4">
         <span className="text-muted text-[10px] font-mono border border-dashed border-border rounded p-2 flex items-center gap-2">
-          <span>Front &larr;</span>
+          {/* <span>Front &larr;</span> */}
           <span className="opacity-50">Empty Queue</span>
-          <span>&larr; Rear</span>
+          {/* <span>&larr; Rear</span> */}
         </span>
       </div>
     );
   }
 
   return (
-    <div className="w-full flex flex-col items-center overflow-x-auto styled-scrollbar pb-8 pt-6 px-4">
+    <div className="w-full flex flex-col items-center overflow-x-auto styled-scrollbar pb-8 pt-24 px-4">
       
       {/* ─── Queue Tube Container ─── */}
-      <div className="relative flex items-center min-w-max">
+      <div className="relative flex items-center min-w-[200px] min-h-[5rem] mx-24">
         
+        {/* The Queue Track (Clean Pipe) */}
+        <div className="absolute inset-y-[-16px] -inset-x-12 border-y-2 border-accent/40 bg-surface-2/10 rounded-sm pointer-events-none" />
+
         {/* Structural Indicators (Front / Rear Labels) */}
-        <div className="absolute -left-12 flex items-center justify-center text-[9px] font-bold font-mono text-muted uppercase tracking-widest rotate-180" style={{ writingMode: 'vertical-rl' }}>
-          Front
-        </div>
-        <div className="absolute -right-12 flex items-center justify-center text-[9px] font-bold font-mono text-muted uppercase tracking-widest" style={{ writingMode: 'vertical-rl' }}>
-          Rear
+        <div className="absolute -left-20 flex flex-col items-center justify-center">
+          <span className="text-[10px] font-black font-mono text-emerald-400 uppercase tracking-widest bg-emerald-400/10 px-2 py-0.5 rounded border border-emerald-400/30 mb-1">Front</span>
+          {/* <span className="text-emerald-400/70 text-xs font-black tracking-widest animate-pulse">← OUT</span> */}
         </div>
 
-        {/* The Queue Track */}
-        <div className="absolute inset-y-[-8px] -inset-x-2 border-y-2 border-dashed border-border/50 bg-surface-2/10 rounded-sm pointer-events-none" />
+        <div className="absolute -right-20 flex flex-col items-center justify-center">
+          <span className="text-[10px] font-black font-mono text-accent-3 uppercase tracking-widest bg-accent-3/10 px-2 py-0.5 rounded border border-accent-3/30 mb-1">Rear</span>
+          {/* <span className="text-accent-3/70 text-xs font-black tracking-widest animate-pulse">IN ←</span> */}
+        </div>
 
-        <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex items-center gap-1.5 relative z-10 px-2">
+        <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex items-center gap-2 relative z-10 px-2 w-full justify-start">
           <AnimatePresence mode="popLayout">
             {safeValue.map((val, idx) => {
               const isDelete = deleteIndices?.includes(idx);

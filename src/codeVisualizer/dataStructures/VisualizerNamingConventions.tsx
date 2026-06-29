@@ -445,6 +445,26 @@ export default function VisualizerNamingConventions() {
         </div>
       </section>
 
+      {/* Engine Architecture & Limits */}
+      <section className="bg-surface-2 p-5 rounded-xl border border-border mt-4">
+        <h2 className="text-lg font-bold text-emerald-400 mb-3 flex items-center gap-2">
+          <Database size={20} />
+          Engine Limits & Semantic Compression
+        </h2>
+        <p className="text-[13px] text-muted leading-relaxed mb-4">
+          To prevent browser out-of-memory crashes on enormous algorithms (like backtracking), the VisualGround engine features a smart <strong className="text-text">Semantic Hierarchical Compression</strong> system.
+        </p>
+        <ul className="flex flex-col gap-2 mb-4 text-[13px] text-muted list-disc list-inside marker:text-emerald-400">
+          <li><strong>Max Execution Steps:</strong> The engine will halt execution if a single run exceeds <code className="text-text">2,000,000</code> operations to prevent infinite loops.</li>
+          <li><strong>Smart Frame Dropping:</strong> If the visualizer accumulates over <code className="text-text">30,000</code> animation frames, it automatically begins dropping less-important events to save memory.</li>
+          <li>It first drops <code className="text-text">READ</code> events (which usually make up 90% of a loop), keeping all your assignments, function calls, and console logs completely intact!</li>
+          <li>If memory pressure continues, it drops <code className="text-text">CONDITION</code> and loop events, meaning variables will jump cleanly to their next states without showing the intermediate loop overhead.</li>
+        </ul>
+        <p className="text-[13px] text-muted italic border-l-2 border-accent pl-3 py-1 bg-surface/50 rounded-r">
+          <strong>Playback Tip:</strong> The playback speed slider directly sets the exact delay between frames in milliseconds (<code className="text-text">1ms - 1000ms</code>) for precise, real-time timing control. You can also click the value to type an exact number.
+        </p>
+      </section>
+
     </div>
   );
 }

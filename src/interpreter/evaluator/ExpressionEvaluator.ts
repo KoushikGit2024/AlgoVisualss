@@ -910,6 +910,9 @@ export class ExpressionEvaluator {
    */
   private resolveGlobalConstant(name: string): number | undefined {
     switch (name) {
+      // ── <string> ─────────────────────────────────────────────────────────
+      case "string::npos":
+      case "std::string::npos": return -1;
       // ── <climits> ────────────────────────────────────────────────────────
       case "INT_MAX":     return  2_147_483_647;
       case "INT_MIN":     return -2_147_483_648;

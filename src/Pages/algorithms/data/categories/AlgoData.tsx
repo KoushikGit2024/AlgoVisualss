@@ -15901,7 +15901,95 @@ const QUEUES_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "FIFO ordering is preserved because every enqueue strictly appends to the tail (the most recently added position) and every dequeue strictly removes from the head (the longest-waiting position) — elements are therefore always removed in exactly the order they were added, by construction. Both operations only ever touch the head or tail pointer and at most one node's next pointer, never requiring traversal through the middle of the list, which is precisely what guarantees O(1) cost regardless of how many elements are currently queued." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+vector<int> queue;
+
+int front = 0;
+int rear = -1;
+
+bool empty() {
+    return queue.empty();
+}
+
+void enqueue(int value) {
+
+    queue.push_back(value);
+
+    rear++;
+} 
+
+void dequeue() {
+
+    if (empty()) {
+        cout << "Queue Underflow" << endl;
+        return;
+    }
+
+    queue.erase(queue.begin());
+
+    if (queue.empty()) {
+        front = 0;
+        rear = -1;
+    } else {
+        rear--;
+    }
+}
+
+int peek() {
+
+    if (empty())
+        return -1;
+
+    return queue[front];
+}
+
+void display() {
+
+    for (int curr = front; curr <= rear; curr++)
+        cout << queue[curr] << " ";
+
+    cout << endl;
+}
+
+int main() {
+
+    enqueue(10);
+    enqueue(20);
+    enqueue(30);
+
+    display();
+
+    dequeue();
+
+    display();
+
+    enqueue(40);
+
+    display();
+
+    cout << "Front : " << peek() << endl;
+
+    dequeue();
+
+    display();
+
+    dequeue();
+
+    display();
+
+    enqueue(50);
+    enqueue(60);
+
+    display();
+
+    return 0;
+}`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -16006,7 +16094,78 @@ const QUEUES_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The deque invariant — strictly decreasing values from front to back, containing only indices within the current window — is maintained by two complementary removal rules: front-removal correctly discards indices that have physically left the window's range, and back-removal correctly discards values that can never again be the maximum, since any future window containing both the discarded index and i would prefer i's value (it's both newer, so it stays in range longer, and at least as large). Because every surviving index in the deque is genuinely both in-range and 'still competitive', and the deque remains sorted in decreasing order, the front element is guaranteed to be the maximum of all currently-valid candidates — which is exactly the maximum of the current window." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+vector<int> nums = {1,3,-1,-3,5,3,6,7};
+vector<int> deque;
+vector<int> ans;
+
+int front = 0;
+int rear = -1;
+
+bool empty() {
+    return deque.empty();
+}
+
+void pushBack(int value) {
+    deque.push_back(value);
+    rear++;
+}
+
+void popBack() {
+    if (empty()) return;
+    deque.pop_back();
+    if (deque.empty()) {
+        front = 0;
+        rear = -1;
+    } else {
+        rear--;
+    }
+}
+
+void popFront() {
+    if (empty()) return;
+    deque.erase(deque.begin());
+    if (deque.empty()) {
+        front = 0;
+        rear = -1;
+    } else {
+        rear--;
+    }
+}
+
+int getFront() {
+    return deque[front];
+}
+
+int getBack() {
+    return deque[rear];
+}
+
+void maxSlidingWindow(int k) {
+    for (int i = 0; i < nums.size(); i++) {
+        while (!empty() && getFront() <= i - k)
+            popFront();
+        while (!empty() && nums[getBack()] <= nums[i])
+            popBack();
+        pushBack(i);
+        if (i >= k - 1)
+            ans.push_back(nums[getFront()]);
+    }
+}
+
+int main() {
+    maxSlidingWindow(3);
+    for (int curr = 0; curr < ans.size(); curr++)
+        cout << ans[curr] << " ";
+    cout << endl;
+    return 0;
+}`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -16110,7 +16269,113 @@ const QUEUES_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The modulo arithmetic (index + 1) mod capacity correctly implements the circular wraparound: once an index reaches capacity − 1, adding 1 and taking the modulo brings it back to 0, exactly modeling a ring of capacity slots. FIFO ordering is preserved because enqueue always writes to (and advances) tail while dequeue always reads from (and advances) head, and these two pointers can never 'pass' each other while the queue has valid (count > 0, count < capacity) state, since enqueue is blocked when count == capacity and dequeue is blocked when count == 0 — the count variable acts as the single source of truth that prevents head and tail from ever producing an ambiguous or incorrect read." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+vector<int> queue;
+
+int front = -1;
+int rear = -1;
+int capacity = 5;
+
+bool empty() {
+    return front == -1;
+}
+
+bool full() {
+    return (rear + 1) % capacity == front;
+}
+
+void enqueue(int value) {
+
+    if (full()) {
+        cout << "Queue Overflow" << endl;
+        return;
+    }
+
+    if (empty()) {
+        front = 0;
+        rear = 0;
+        queue.push_back(value);
+        return;
+    }
+
+    rear = (rear + 1) % capacity;
+
+    if (rear < queue.size())
+        queue[rear] = value;
+    else
+        queue.push_back(value);
+}
+
+void dequeue() {
+
+    if (empty()) {
+        cout << "Queue Underflow" << endl;
+        return;
+    }
+
+    queue.erase(queue.begin());
+
+    if (front == rear) {
+        front = -1;
+        rear = -1;
+    }
+    else {
+        rear--;
+    }
+}
+
+int peek() {
+
+    if (empty())
+        return -1;
+
+    return queue[front];
+}
+
+void display() {
+
+    if (empty()) {
+        cout << "Queue Empty" << endl;
+        return;
+    }
+
+    for (int curr = front; curr <= rear; curr++)
+        cout << queue[curr] << " ";
+
+    cout << endl;
+}
+
+int main() {
+
+    enqueue(10);
+    enqueue(20);
+    enqueue(30);
+    enqueue(40);
+
+    display();
+
+    dequeue();
+
+    display();
+
+    enqueue(50);
+
+    display();
+
+    dequeue();
+
+    display();
+
+    cout << "Front : " << peek() << endl;
+
+    return 0;
+}`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -16234,7 +16499,128 @@ const QUEUES_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Because the underlying structure is a doubly linked list, every node has direct O(1) access to both its next and prev neighbors — this is precisely what allows operations at EITHER end to be implemented symmetrically and independently, without one end's operations needing to know anything about how the other end is currently structured. The size tracking and the explicit null-checks when removing the last remaining element ensure front and back stay correctly synchronised (both null exactly when the deque is empty, and pointing at the same single node when exactly one element remains), preserving structural consistency across any sequence of front and back operations." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+vector<int> deque;
+
+int front = 0;
+int rear = -1;
+
+bool empty() {
+    return deque.empty();
+}
+
+void pushFront(int value) {
+
+    deque.insert(deque.begin(), value);
+
+    rear++;
+}
+
+void pushBack(int value) {
+
+    deque.push_back(value);
+
+    rear++;
+}
+
+void popFront() {
+
+    if (empty()) {
+        cout << "Deque Underflow" << endl;
+        return;
+    }
+
+    deque.erase(deque.begin());
+
+    if (deque.empty()) {
+        front = 0;
+        rear = -1;
+    }
+    else {
+        rear--;
+    }
+}
+
+void popBack() {
+
+    if (empty()) {
+        cout << "Deque Underflow" << endl;
+        return;
+    }
+
+    deque.pop_back();
+
+    if (deque.empty()) {
+        front = 0;
+        rear = -1;
+    }
+    else {
+        rear--;
+    }
+}
+
+int getFront() {
+
+    if (empty())
+        return -1;
+
+    return deque[front];
+}
+
+int getBack() {
+
+    if (empty())
+        return -1;
+
+    return deque[rear];
+}
+
+void display() {
+
+    for (int curr = front; curr <= rear; curr++)
+        cout << deque[curr] << " ";
+
+    cout << endl;
+}
+
+int main() {
+
+    pushBack(20);
+    pushBack(30);
+
+    display();
+
+    pushFront(10);
+
+    display();
+
+    pushFront(5);
+
+    display();
+
+    popBack();
+
+    display();
+
+    popFront();
+
+    display();
+
+    pushBack(40);
+
+    display();
+
+    cout << "Front : " << getFront() << endl;
+    cout << "Back : " << getBack() << endl;
+
+    return 0;
+}`
+      }
     }
 
   ],
@@ -17913,7 +18299,76 @@ int main() {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Placing exactly one queen per row, by construction, eliminates row conflicts entirely without needing to check for them. The column-conflict check directly enforces the column constraint. The two diagonal-tracking sets correctly enforce diagonal constraints because cells on the same 'positive-slope' diagonal share an identical (row − col) value, and cells on the same 'negative-slope' diagonal share an identical (row + col) value — these are standard, easily-verified algebraic facts about grid coordinates, so checking membership in these two sets is exactly equivalent to checking for any diagonal conflict with EVERY previously placed queen, in O(1) rather than re-scanning all prior placements. The undo step correctly restores all three tracking sets to their exact prior state before trying the next column, ensuring that an abandoned (pruned or fully-explored) branch's placements never incorrectly persist into a sibling branch's exploration." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+vector<vector<vector<int>>> res;
+
+bool isSafe(vector<vector<int>>& board, int row, int col) {
+
+    for (int r = 0; r < row; r++)
+        if (board[r][col] == 1)
+            return false;
+
+    for (int r = row - 1, c = col - 1; r >= 0 && c >= 0; r--, c--)
+        if (board[r][c] == 1)
+            return false;
+
+    for (int r = row - 1, c = col + 1; r >= 0 && c < board.size(); r--, c++)
+        if (board[r][c] == 1)
+            return false;
+
+    return true;
+}
+
+void solve(vector<vector<int>>& board, int row) {
+
+    if (row == board.size()) {
+        res.push_back(board);
+        return;
+    }
+
+    for (int col = 0; col < board.size(); col++) {
+
+        if (!isSafe(board, row, col))
+            continue;
+
+        board[row][col] = 1;
+
+        solve(board, row + 1);
+
+        board[row][col] = 0;
+    }
+}
+
+int main() {
+
+    int n = 4;
+
+    vector<vector<int>> board(n, vector<int>(n, 0));
+
+    solve(board, 0);
+
+    for (auto solution : res) {
+
+        for (auto row : solution) {
+
+            for (int cell : row)
+                cout << cell << " ";
+
+            cout << endl;
+        }
+
+        cout << endl;
+    }
+
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -18028,7 +18483,104 @@ function isValid(board, row, col, digit):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The isValid check directly and completely enforces all three Sudoku constraints for the candidate cell against every already-filled cell in its row, column, and box — so any digit that passes this check is guaranteed not to immediately violate the puzzle's rules. The recursive structure ensures that a digit is only considered 'successful' if EVERY remaining empty cell can also be validly filled given this choice (since success only propagates upward when the deepest recursive call — corresponding to the last empty cell — itself succeeds), correctly capturing the requirement that a valid Sudoku solution must satisfy ALL constraints simultaneously across the ENTIRE board, not just locally. The undo-on-failure step correctly ensures that a dead-end branch's placement doesn't incorrectly persist and affect the validity checks of subsequent candidate digits tried for the same cell, or for cells explored after backtracking to an earlier level." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+// Bitmasks to track used numbers (1-9) in rows, columns, and 3x3 boxes.
+// e.g. if (rowMask[3] & (1 << 5)) is true, the number 5 is already in row 3.
+int rowMask[9] = {0};
+int colMask[9] = {0};
+int boxMask[9] = {0};
+
+// Pre-collected empty cells to avoid scanning the 9x9 board on every recursion
+vector<int> emptyRows;
+vector<int> emptyCols;
+
+bool solve(vector<vector<int>>& board, int idx) {
+    // Base case: If we've successfully filled all empty cells, we are done
+    if (idx == emptyRows.size())
+        return true;
+
+    int r = emptyRows[idx];
+    int c = emptyCols[idx];
+    int box = (r / 3) * 3 + (c / 3);
+
+    for (int num = 1; num <= 9; num++) {
+        int mask = 1 << num;
+        
+        // O(1) Safety check using bitwise logic (no loops!)
+        if (!(rowMask[r] & mask) && !(colMask[c] & mask) && !(boxMask[box] & mask)) {
+            
+            // Place the number and update the masks
+            board[r][c] = num;
+            rowMask[r] |= mask;
+            colMask[c] |= mask;
+            boxMask[box] |= mask;
+
+            // Recurse to the next empty cell
+            if (solve(board, idx + 1))
+                return true;
+
+            // Backtrack: Remove the number and reset the masks
+            board[r][c] = 0;
+            rowMask[r] &= ~mask;
+            colMask[c] &= ~mask;
+            boxMask[box] &= ~mask;
+        }
+    }
+
+    return false;
+}
+
+int main() {
+    vector<vector<int>> board = {
+        {5,3,0,0,7,0,0,0,0},
+        {6,0,0,1,9,5,0,0,0},
+        {0,9,8,0,0,0,0,6,0},
+        {8,0,0,0,6,0,0,0,3},
+        {4,0,0,8,0,3,0,0,1},
+        {7,0,0,0,2,0,0,0,6},
+        {0,6,0,0,0,0,2,8,0},
+        {0,0,0,4,1,9,0,0,5},
+        {0,0,0,0,8,0,0,7,9}
+    };
+
+    // 1. Pre-process the board to populate masks
+    // 2. Collect all empty cells into vectors so we never scan them again
+    for (int r = 0; r < 9; r++) {
+        for (int c = 0; c < 9; c++) {
+            if (board[r][c] != 0) {
+                int num = board[r][c];
+                int box = (r / 3) * 3 + (c / 3);
+                int mask = 1 << num;
+                rowMask[r] |= mask;
+                colMask[c] |= mask;
+                boxMask[box] |= mask;
+            } else {
+                emptyRows.push_back(r);
+                emptyCols.push_back(c);
+            }
+        }
+    }
+
+    // Start solving from the 0th empty cell
+    solve(board, 0);
+
+    // Print results
+    for (auto row : board) {
+        for (int cell : row)
+            cout << cell << " ";
+        cout << endl;
+    }
+
+    return 0;
+}
+
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -18341,7 +18893,7 @@ int main() {
   ],
   desc: "Backtracking, permutations, divide & conquer",
   complexity: "O(2ⁿ)",
-  featured: false,
+  featured: true,
 };
 
 const STRINGS_SECTION = {

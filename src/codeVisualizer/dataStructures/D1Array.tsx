@@ -138,7 +138,7 @@ const D1Array = ({
             const safeValToDisplay = typeof val === 'object' ? JSON.stringify(val) : String(val);
 
             return (
-              <motion.div key={`cell-container-${idx}`} layout variants={cellVariants} className="flex flex-col items-center relative flex-1 min-w-[2.5rem] max-w-[4rem]">
+              <motion.div key={`cell-container-${idx}`} layout variants={cellVariants} className="flex flex-col items-center relative w-12 shrink-0">
                 <motion.span layout className="text-[10px] text-muted font-mono mb-1">
                   {idx}
                 </motion.span>

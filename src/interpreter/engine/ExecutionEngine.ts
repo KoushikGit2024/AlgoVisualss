@@ -117,6 +117,12 @@ export class ExecutionEngine {
 
   // ── Per-run state ─────────────────────────────────────────────────────────
 
+  public maxSteps: number = 2000000; // Limit execution steps to prevent browser hangs
+  public maxSnapshots: number = 30000; // Limit memory to prevent postMessage out-of-memory crashes
+  private importanceLevel: number = 0;
+  private snapshotSkipFactor: number = 1;
+  private stepsSinceLastSnapshot: number = 0;
+  private steps: number = 0;
   private callStack:           CallStack;
   private eventEmitter:        EventEmitter;
   private snapshots:           RuntimeSnapshot[];
@@ -197,14 +203,55 @@ export class ExecutionEngine {
         : this.callStack.peek();
 
       if (activeFrame) {
-        this.snapshots.push(
-          createSnapshot(
-            event,
-            this.callStack,
-            activeFrame.scopeManager,
-            this.accumulatedOutput,
-          )
-        );
+        if (++this.steps > this.maxSteps) {
+          throw new Error(`Runtime Error: Maximum execution steps (${this.maxSteps}) exceeded. Algorithm is taking too long or has an infinite loop.`);
+        }
+        
+        // Filter out less important events if we've escalated the importance level
+        let shouldCapture = true;
+        if (this.importanceLevel >= 1 && event.type === EventType.READ) shouldCapture = false;
+        if (this.importanceLevel >= 2 && (event.type === EventType.CONDITION || String(event.type).startsWith("LOOP_"))) shouldCapture = false;
+        if (this.importanceLevel >= 3 && (event.type === EventType.ASSIGNMENT || event.type === EventType.ASSIGN || event.type === EventType.DECLARE)) shouldCapture = false;
+
+        if (shouldCapture) {
+          this.stepsSinceLastSnapshot++;
+          if (this.stepsSinceLastSnapshot >= this.snapshotSkipFactor) {
+            this.snapshots.push(
+              createSnapshot(
+                event,
+                this.callStack,
+                activeFrame.scopeManager,
+                this.accumulatedOutput,
+              )
+            );
+            this.stepsSinceLastSnapshot = 0;
+
+            // Hierarchical compression: drop less important events first to stay under memory limits
+            while (this.snapshots.length >= this.maxSnapshots) {
+              if (this.importanceLevel === 0) {
+                this.snapshots = this.snapshots.filter(s => s.event.type !== EventType.READ);
+                this.importanceLevel = 1;
+              } else if (this.importanceLevel === 1) {
+                this.snapshots = this.snapshots.filter(s => 
+                  s.event.type !== EventType.CONDITION && 
+                  !String(s.event.type).startsWith("LOOP_")
+                );
+                this.importanceLevel = 2;
+              } else if (this.importanceLevel === 2) {
+                this.snapshots = this.snapshots.filter(s => 
+                  s.event.type !== EventType.ASSIGNMENT && 
+                  s.event.type !== EventType.ASSIGN && 
+                  s.event.type !== EventType.DECLARE
+                );
+                this.importanceLevel = 3;
+              } else {
+                // Final fallback: uniformly drop half of the remaining events (e.g. Function calls)
+                this.snapshots = this.snapshots.filter((_, i) => i % 2 === 0);
+                this.snapshotSkipFactor *= 2;
+              }
+            }
+          }
+        }
       }
     });
   }
@@ -445,6 +492,7 @@ export class ExecutionEngine {
   ): RuntimeSnapshot[] {
 
     // ── Reset per-run state ───────────────────────────────────────────────
+    this.steps             = 0;
     this.snapshots         = [];
     this.accumulatedOutput = "";
     this.pausedAtStep      = null;
@@ -597,6 +645,18 @@ export class ExecutionEngine {
     }
 
     // ── 1.8 Container Constructors (e.g. vector<int>(n, INF)) ─────────────
+    if (fn === "string" || fn === "std::string") {
+      const args = callNode.arguments.map(arg => currentEvaluator.evaluate(arg));
+      if (args.length === 2 && typeof args[0] === "number") {
+        const fillChar = typeof args[1] === "string" ? args[1] : String.fromCharCode(args[1] as number);
+        return fillChar.repeat(args[0]);
+      } else if (args.length === 1) {
+        return String(args[0] ?? "");
+      } else if (args.length === 0) {
+        return "";
+      }
+    }
+
     if (fn.startsWith("vector") || fn.startsWith("list") || fn.startsWith("deque") || fn.startsWith("array")) {
       const args = callNode.arguments.map(arg => currentEvaluator.evaluate(arg));
       let size = -1;
@@ -1252,6 +1312,7 @@ export class ExecutionEngine {
         case "end":                                    result = s.length; break;
         // Mutating methods — return new string; write-back to variable.
         case "append": case "push_back":               newStr = s + String(args[0] ?? ""); break;
+        case "pop_back":                               newStr = s.slice(0, -1); break;
         case "insert":                                 newStr = s.slice(0, args[0] as number) + String(args[1] ?? "") + s.slice(args[0] as number); break;
         case "erase": {
           const pos = (args[0] as number) ?? 0;

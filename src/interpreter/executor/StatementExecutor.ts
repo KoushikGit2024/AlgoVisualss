@@ -190,7 +190,13 @@ export class StatementExecutor {
         const size = typeof arg0 === "number" && arg0 >= 0 && arg0 < 1_000_000 ? arg0 : -1;
 
         // string s(n, 'c') → repeat character n times.
-        if (typeLower.includes("string") && size >= 0 && arg1 !== undefined) {
+        const isBareStringType = (
+          typeLower === "string"      ||
+          typeLower === "std::string" ||
+          typeLower === "wstring"     ||
+          typeLower === "std::wstring"
+        );
+        if (isBareStringType && size >= 0 && arg1 !== undefined) {
           value = String(arg1).repeat(size);
         }
         // vector / list / deque / stack / queue / priority_queue / array (n, fill).
@@ -359,8 +365,13 @@ export class StatementExecutor {
       return new Map();
     }
 
-    // 6. String
-    if (typeLower.includes("string")) return "";
+    // 6. String — exact match only (not substring, to avoid matching vector<string> etc.)
+    if (
+      typeLower === "string"      ||
+      typeLower === "std::string" ||
+      typeLower === "wstring"     ||
+      typeLower === "std::wstring"
+    ) return "";
 
     // 7. Bool
     if (typeLower.includes("bool")) return false;
@@ -489,13 +500,17 @@ export class StatementExecutor {
       },
       push_front(val: any) { this.data.unshift(cloneRuntimeValue(val));        return val; },
 
-      insert(val: any, pos?: number) {
-        if (pos !== undefined && typeof pos === "number") {
-          this.data.splice(pos, 0, cloneRuntimeValue(val));
+      insert(arg1: any, arg2?: any) {
+        if (arg2 !== undefined) {
+          // Typically insert(iterator, value)
+          const pos = typeof arg1 === "number" ? arg1 : 0;
+          this.data.splice(pos, 0, cloneRuntimeValue(arg2));
+          return arg2;
         } else {
-          this.data.push(cloneRuntimeValue(val));
+          // Fallback if only 1 arg is provided (shouldn't happen for vector/deque, but just in case)
+          this.data.push(cloneRuntimeValue(arg1));
+          return arg1;
         }
-        return val;
       },
 
       // ── Deletion ──────────────────────────────────────────────────────────
@@ -724,17 +739,11 @@ export class StatementExecutor {
         : this.computeCompoundValue(stmt.operator, existingValue ?? 0, newValue);
 
       if (typeof targetObj === "string") {
+        // String character mutation: board[row][col] = 'Q'
+        // Walk up the subscript chain to find the root variable and rebuild.
         const i = typeof index === "string" ? parseInt(index) : (index as number);
         const newStr = targetObj.substring(0, i) + String(finalValue) + targetObj.substring(i + 1);
-        
-        // Recursively assign the new string back to its container
-        this.executeAssignment({
-          kind: "Assignment",
-          operator: "=",
-          target: targetNode.object,
-          value: { kind: "Literal", value: newStr, valueType: "string", line: stmt.line },
-          line: stmt.line
-        } as IRAssignment);
+        this.writeBackString(targetNode.object, newStr, stmt.line);
       } else {
         this.writeSubscript(targetObj, index, finalValue);
       }
@@ -806,6 +815,49 @@ export class StatementExecutor {
   /**
    * Writes a value to a subscript target, dispatching on the backing type.
    */
+  /**
+   * Walks up a potentially-nested subscript/identifier chain and writes a
+   * new string value back to the root container.
+   *
+   * Handles:
+   *   board[row][col] = 'Q'  → board[row] = newString
+   *   s[i] = 'x'            → s = newString
+   *
+   * This avoids the infinite recursion caused by calling executeAssignment
+   * recursively when the target is itself a SubscriptExpression.
+   */
+  private writeBackString(targetExpr: IRExpression, newStr: string, line: number): void {
+    if (targetExpr.kind === "Identifier") {
+      // Base case: simple variable — just assign.
+      const varName = (targetExpr as IRIdentifier).name;
+      try {
+        this.scopeManager.assignVariable(varName, newStr);
+      } catch {
+        this.scopeManager.defineVariable(varName, "string", newStr);
+      }
+      this.eventEmitter.emit(line, EventType.ASSIGNMENT, { variable: varName, value: newStr });
+    } else if (targetExpr.kind === "SubscriptExpression") {
+      // Nested case: board[row] — evaluate the parent object and write to it.
+      const subExpr = targetExpr as IRSubscriptExpression;
+      const parentObj = this.evaluator.evaluate(subExpr.object) as any;
+      const parentIndex = this.evaluator.evaluate(subExpr.index) as string | number;
+      if (typeof parentObj === "string") {
+        const pIndex = typeof parentIndex === "string" ? parseInt(parentIndex) : (parentIndex as number);
+        const newParentStr = parentObj.substring(0, pIndex) + newStr + parentObj.substring(pIndex + 1);
+        this.writeBackString(subExpr.object, newParentStr, line);
+      } else if (parentObj !== null && parentObj !== undefined) {
+        this.writeSubscript(parentObj, parentIndex, newStr);
+        const parentName = subExpr.object.kind === "Identifier"
+          ? (subExpr.object as IRIdentifier).name
+          : "container";
+        this.eventEmitter.emit(line, EventType.ASSIGNMENT, {
+          variable: `${parentName}[${parentIndex}]`,
+          value: newStr,
+        });
+      }
+    }
+  }
+
   private writeSubscript(targetObj: any, index: string | number, value: any): void {
     if (targetObj instanceof Map) {
       targetObj.set(index, value);
