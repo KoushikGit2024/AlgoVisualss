@@ -14462,7 +14462,7 @@ int main() {
   ],
   desc: "Memoization, tabulation, optimal substructure",
   complexity: "O(n²)",
-  featured: false
+  featured: true
 };
 
 const LINKED_LISTS_SECTION = {
