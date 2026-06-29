@@ -18449,7 +18449,39 @@ const HEAP_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: after processing any prefix of the input, the heap contains exactly the k largest elements seen SO FAR (or fewer than k, if fewer than k elements have been processed yet). This holds by induction: each new element is unconditionally added, and if this would exceed k elements, the single smallest among the current k+1 candidates is removed — correctly restoring the invariant, since removing the smallest of (top-k-so-far plus the new element) is exactly how to determine the new top-k set. By induction, after all n elements are processed, the heap holds exactly the true k largest elements of the entire array, and since it's a min-heap, its root is the smallest of those k — which, by definition, is the Kth largest element overall." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+int findKthLargest(const vector<int>& nums, int k) {
+    priority_queue<int> q_heapArr;
+
+    for (int num : nums) {
+        q_heapArr.push(num);
+    }
+    
+    // Pop k-1 times to reach the kth largest element
+    for (int i = 1; i < k; i++) {
+        q_heapArr.pop();
+    }
+    
+    return q_heapArr.top();
+}
+
+int main() {
+    vector<int> nums = {3, 2, 1, 5, 6, 4};
+    int k = 2;
+    
+    cout << "The " << k << "nd largest element is: " << findKthLargest(nums, k) << "\n";
+    return 0;
+}
+
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -18554,7 +18586,83 @@ const HEAP_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: at every point, the heap contains exactly the current 'front' node of every list that still has unprocessed elements, and everything already appended to the result is correctly sorted and represents exactly the globally smallest (length-so-far) elements available across all k lists' remaining portions. Each iteration correctly extends this invariant: the heap's minimum is, by construction, the smallest among all k lists' current fronts — and since every individual list is itself sorted, no list's LATER elements could possibly be smaller than its own current front, so the heap's global minimum really is the smallest element available from the combination of everything not yet merged. By induction over the N total extraction steps, the final result is fully and correctly sorted." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+
+using namespace std;
+
+// Standard Linked List Node
+struct ListNode {
+    int val;
+    ListNode* next;
+    ListNode(int x) : val(x), next(nullptr) {}
+};
+
+ListNode* mergeKLists(vector<ListNode*>& lists) {
+    ListNode dummy(0);
+    ListNode* curr = &dummy;
+
+    while (true) {
+        int minIdx = -1;
+        int minVal = 1000000; // Infinity placeholder
+
+        // Find the list with the smallest current node
+        for (int i = 0; i < lists.size(); i++) {
+            if (lists[i] != nullptr && lists[i]->val < minVal) {
+                minVal = lists[i]->val;
+                minIdx = i;
+            }
+        }
+
+        // If all lists are exhausted
+        if (minIdx == -1) break;
+
+        // Append the smallest node to our result list
+        curr->next = lists[minIdx];
+        curr = curr->next;
+        lists[minIdx] = lists[minIdx]->next;
+    }
+
+    return dummy.next;
+}
+
+// Helper function to create a linked list from an array
+ListNode* createList(const vector<int>& vals) {
+    ListNode dummy(0);
+    ListNode* curr = &dummy;
+    for (int v : vals) {
+        curr->next = new ListNode(v);
+        curr = curr->next;
+    }
+    return dummy.next;
+}
+
+void printList(ListNode* head) {
+    while (head != nullptr) {
+        cout << head->val << " -> ";
+        head = head->next;
+    }
+    cout << "NULL"<<endl;
+}
+
+int main() {
+    vector<ListNode*> lists;
+    lists.push_back(createList({1, 4, 5}));
+    lists.push_back(createList({1, 3, 4}));
+    lists.push_back(createList({2, 6}));
+
+    ListNode* mergedHead = mergeKLists(lists);
+    
+    cout << "Merged List: ";
+    printList(mergedHead);
+    
+    return 0;
+}
+
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -18658,7 +18766,69 @@ const HEAP_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Phase 1's correctness is immediate: a hash map correctly and exactly counts the occurrences of every distinct value with a single pass. Phase 2's correctness follows from the exact same invariant argument as Kth Largest Element, applied to frequency instead of raw value: after processing any prefix of the distinct (value, frequency) pairs, the heap contains exactly the k highest-frequency elements seen so far, since each new candidate is added and, if it would exceed size k, the lowest-frequency entry among the current top-(k+1) is correctly evicted. By induction, after processing all distinct elements, the heap holds exactly the true k most frequent elements of the original input." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <unordered_map>
+
+using namespace std;
+
+vector<int> topKFrequent(const vector<int>& nums, int k) {
+    // freqMap will beautifully visualize as a Map!
+    unordered_map<int, int> freqMap;
+    // arrUniqueNums will beautifully visualize as a 1D Array!
+    vector<int> arrUniqueNums;
+    
+    for (int num : nums) {
+        // Increment FIRST. The engine handles undefined -> 1 perfectly.
+        freqMap[num]++;
+        
+        // If it's exactly 1, this is the very first time we've seen it!
+        if (freqMap[num] == 1) {
+            arrUniqueNums.push_back(num);
+        }
+    }
+
+    vector<int> res;
+    // Extract top K elements using a visual maximum search
+    for (int i = 0; i < k; i++) {
+        int bestNum = -1;
+        int maxFreq = -1;
+        
+        for (int num : arrUniqueNums) {
+            // Since all nums in arrUniqueNums exist in the map, 
+            // freqMap[num] will always safely return a number.
+            if (freqMap[num] > maxFreq) {
+                maxFreq = freqMap[num];
+                bestNum = num;
+            }
+        }
+        
+        res.push_back(bestNum);
+        freqMap[bestNum] = -1; // Mark as extracted so it isn't picked again
+    }
+    
+    return res;
+}
+
+int main() {
+    vector<int> nums = {1, 1, 1, 2, 2, 3};
+    int k = 2;
+    
+    vector<int> res = topKFrequent(nums, k);
+    
+    cout << "Top " << k << " frequent elements: ";
+    for (int num : res) {
+        cout << num << " ";
+    }
+    cout << endl;
+    
+    return 0;
+}
+
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -18766,13 +18936,58 @@ const HEAP_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The core invariant — every value in lowerHalf is ≤ every value in upperHalf, and the two heaps' sizes differ by at most 1 — is maintained on every insertion by the explicit rebalancing step, and this invariant is exactly what's needed to guarantee correctness: it means lowerHalf contains precisely the smaller half (or smaller-half-plus-one, if odd) of ALL values seen, and upperHalf contains precisely the larger half. Given this partition, the median is, by definition, either the boundary element (lowerHalf's maximum, when there's an odd total count and lowerHalf holds the extra element) or the average of the two boundary elements (when the count is even and the true median lies between them) — exactly what findMedian computes, using only the O(1)-accessible roots of both heaps." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <queue>
+
+using namespace std;
+
+priority_queue<int> arrLower;
+priority_queue<int> arrUpper;
+
+void addNumber(int num) {
+    arrLower.push(num);
+    arrUpper.push(-arrLower.top());
+    arrLower.pop();
+
+    if (arrLower.size() < arrUpper.size()) {
+        arrLower.push(-arrUpper.top());
+        arrUpper.pop();
+    }
+}
+
+double getMedian() {
+    if (arrLower.size() > arrUpper.size()) {
+        return arrLower.top();
+    } else {
+        return (arrLower.top() + (-arrUpper.top())) * 0.5; 
+    }
+}
+
+int main() {
+    addNumber(1);
+    addNumber(2);
+    cout << "Median after adding 1, 2: " << getMedian() << "\n";
+    
+    addNumber(3);
+    cout << "Median after adding 3: " << getMedian() << "\n"; 
+    
+    addNumber(10);
+    addNumber(20);
+    cout << "Median after adding 10, 20: " << getMedian() << "\n";
+    
+    return 0;
+}
+
+`
+      }
     }
 
   ],
   desc: "Min-heap, max-heap, k-way merge, top-k",
   complexity: "O(log n)",
-  featured: false
+  featured: true
 };
 
 const RECURSION_SECTION = {
@@ -20804,7 +21019,44 @@ const GREEDY_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The greedy choice property here is that maintaining only the SINGLE maximum reachable index, rather than tracking every individual reachable position, loses no information relevant to the final answer — because if position p is reachable, then EVERY position between the start and the current maximum reach is ALSO reachable (a position q < farthest is reachable because some earlier position i <= q has nums[i] large enough to cover at least up to the current farthest value, and by the inductive construction of 'farthest', that earlier position was itself confirmed reachable). This means 'is the last index within the current farthest reach' is not just a necessary condition but a fully SUFFICIENT one for reachability, and tracking the single maximum value across a left-to-right scan correctly captures everything needed to answer the question, with no loss of information from discarding the specific paths that achieved that maximum." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+
+using namespace std;
+
+bool canJump(const vector<int>& nums) {
+    int maxReach = 0;
+    
+    for (int i = 0; i < nums.size(); i++) {
+        // If we can't even reach the current index, we fail
+        if (i > maxReach) {
+            return false;
+        }
+        // Update the furthest we can jump
+        int potentialReach = i + nums[i];
+        if (potentialReach > maxReach) {
+            maxReach = potentialReach;
+        }
+    }
+    return true;
+}
+
+int main() {
+    // Array 1 visualizes a successful jump
+    vector<int> nums1 = {2, 3, 1, 1, 4};
+    // Array 2 visualizes getting stuck at the 0
+    vector<int> nums2 = {3, 2, 1, 0, 4};
+    
+    cout << "Can jump (nums1): " << (canJump(nums1) ? "true" : "false") << "\n";
+    cout << "Can jump (nums2): " << (canJump(nums2) ? "true" : "false") << "\n";
+    
+    return 0;
+}
+
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -20911,7 +21163,49 @@ function assignCodes(node, currentCode, codeTable):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The greedy choice property — always merging the two CURRENTLY smallest-frequency nodes — can be proven optimal via an exchange argument: in ANY optimal Huffman tree, the two lowest-frequency symbols must be siblings at the maximum tree depth (if they weren't, swapping them with whichever symbols ARE at maximum depth could only decrease or maintain the total weighted path length, since lower-frequency symbols belong as deep as possible to minimise their contribution to the total). Since the two globally smallest frequencies are guaranteed to be siblings in SOME optimal tree, merging them first and treating the merged node as a single new 'symbol' with the combined frequency correctly reduces the problem to a smaller instance of itself (n−1 symbols), and by induction on n, repeating this process always converges to a globally optimal tree." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+// Calculates the minimum cost to build the Huffman Tree 
+int huffmanCost(const vector<int>& frequencies) {
+    // Because it's a local variable, the visualizer initializes it perfectly!
+    priority_queue<int> minHeap;
+    
+    // Push negative frequencies to simulate a Min-Heap natively
+    for (int freq : frequencies) {
+        minHeap.push(-freq);
+    }
+    
+    int totalCost = 0;
+    
+    while (minHeap.size() > 1) {
+        // Extract the two smallest frequencies
+        int first = -minHeap.top(); minHeap.pop();
+        int second = -minHeap.top(); minHeap.pop();
+        
+        int combined = first + second;
+        totalCost += combined;
+        
+        // Push the merged node back in
+        minHeap.push(-combined);
+    }
+    
+    return totalCost;
+}
+
+int main() {
+    vector<int> frequencies = {5, 9, 12, 13, 16, 45};
+    cout << "Total cost of Huffman Tree: " << huffmanCost(frequencies) << "\n";
+    return 0;
+}
+
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -21011,7 +21305,89 @@ function cutPropertyProof_sketch(graph, S):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The Cut Property is proven via a standard exchange argument: suppose, for contradiction, that some minimum spanning tree T does NOT contain the minimum-weight crossing edge e. Since T is a spanning tree, it must still connect the two sides of the cut somehow — via some other edge f that also crosses the cut. Because e was defined as the MINIMUM-weight crossing edge, weight(e) ≤ weight(f). Constructing T' by removing f and adding e instead produces another valid spanning tree (removing f splits T into exactly two pieces corresponding to the cut, and adding e — which also crosses that same cut — reconnects them) with total weight no greater than T's original weight. This means T' is ALSO a minimum spanning tree, and it DOES contain e — proving that SOME minimum spanning tree always contains the cheapest crossing edge for ANY cut, which is exactly the property both Kruskal's and Prim's exploit at every single step of their respective greedy constructions." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+// Find with path compression
+int findParent(vector<int>& arrParent, int i) {
+    if (arrParent[i] == i)
+        return i;
+    arrParent[i] = findParent(arrParent, arrParent[i]);
+    return arrParent[i];
+}
+
+// Union by arrRank
+void unionNodes(vector<int>& arrParent, vector<int>& arrRank, int u, int v) {
+    int rootU = findParent(arrParent, u);
+    int rootV = findParent(arrParent, v);
+
+    if (arrRank[rootU] < arrRank[rootV]) {
+        arrParent[rootU] = rootV;
+    } else if (arrRank[rootU] > arrRank[rootV]) {
+        arrParent[rootV] = rootU;
+    } else {
+        arrParent[rootV] = rootU;
+        arrRank[rootU]++;
+    }
+}
+
+int kruskalMST(int n, vector<vector<int>> tableEdges) {
+    // Edges format: {weight, u, v}
+    // The visualizer natively supports lexicographical sorting for nested vectors!
+    // So this automatically sorts by weight (the first element).
+    sort(tableEdges.begin(), tableEdges.end());
+
+    vector<int> arrParent(n);
+    vector<int> arrRank(n, 0);
+
+    for (int i = 0; i < n; i++) {
+        arrParent[i] = i;
+    }
+
+    int mstWeight = 0;
+    int edgesTaken = 0;
+
+    for (int i = 0; i < tableEdges.size(); i++) {
+        int w = tableEdges[i][0];
+        int u = tableEdges[i][1];
+        int v = tableEdges[i][2];
+
+        if (findParent(arrParent, u) != findParent(arrParent, v)) {
+            mstWeight += w;
+            unionNodes(arrParent, arrRank, u, v);
+            edgesTaken++;
+            
+            // Stop early if we have n-1 tableEdges
+            if (edgesTaken == n - 1) break;
+        }
+    }
+
+    return mstWeight;
+}
+
+int main() {
+    int n = 4; // 4 vertices: 0, 1, 2, 3
+    
+    // format: {weight, u, v}
+    vector<vector<int>> tableEdges = {
+        {1, 0, 1},
+        {2, 1, 2},
+        {3, 0, 2},
+        {4, 2, 3},
+        {5, 1, 3}
+    };
+
+    cout << "Weight of Minimum Spanning Tree is: " << kruskalMST(n, tableEdges) << "\n";
+    return 0;
+}
+
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -21102,7 +21478,53 @@ function cutPropertyProof_sketch(graph, S):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Exchange argument proof: let A be the greedy solution (always picking the earliest available finish time) and let O be ANY optimal solution. Sort both by finish time. The greedy algorithm's FIRST selected activity has a finish time ≤ the finish time of O's first selected activity (since greedy always picks the earliest finish time available among ALL activities, while O's first pick is merely SOME compatible activity). Replacing O's first activity with greedy's first activity therefore cannot reduce O's total count (since the new finish time is earlier or equal, leaving at least as much room for subsequent activities) — so O can always be modified to match greedy's first choice without losing optimality. Applying this argument repeatedly (by induction) to the remaining activities after each selection shows greedy's choice at EVERY step can always be substituted into an optimal solution without reducing its size — proving the greedy algorithm's total count is provably equal to, never less than, the true optimum." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int activitySelection(vector<vector<int>> tableActivities) {
+    // tableActivities[i] = {end_time, start_time}
+    // We store end_time FIRST so that native sort automatically sorts by end_time!
+    sort(tableActivities.begin(), tableActivities.end());
+
+    int count = 0;
+    int lastEndTime = -1;
+
+    for (int i = 0; i < tableActivities.size(); i++) {
+        int end = tableActivities[i][0];
+        int start = tableActivities[i][1];
+
+        // If the start time is strictly after or equal to the last end time
+        if (start >= lastEndTime) {
+            count++;
+            lastEndTime = end;
+        }
+    }
+
+    return count;
+}
+
+int main() {
+    // {end_time, start_time}
+    vector<vector<int>> tableActivities = {
+        {2, 1}, 
+        {4, 3}, 
+        {6, 0}, 
+        {7, 5}, 
+        {9, 8}, 
+        {9, 5}
+    };
+
+    cout << "Maximum tableActivities performed: " << activitySelection(tableActivities) << "\n";
+    return 0;
+}
+
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -21206,13 +21628,72 @@ function cutPropertyProof_sketch(graph, S):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Exchange argument proof: suppose an optimal solution does NOT take the highest-ratio item first (or doesn't take as much of it as possible). Since items are divisible, it's always possible to swap a small amount of a LOWER-ratio item already in the optimal solution for an equal WEIGHT of the higher-ratio item not yet fully used — this swap is feasible because fractional substitution doesn't violate the capacity constraint (same weight in, same weight out), and it strictly increases (or at minimum doesn't decrease) the total value, since the substituted weight is now contributing at a higher value-per-weight rate. This means any solution that doesn't greedily prioritise the highest ratio first can always be improved (or matched) by such a swap, proving that the greedy strategy — sort by ratio, take as much of the best as possible, then the next-best, and so on — is optimal. This exchange argument relies fundamentally on divisibility (the ability to swap an ARBITRARY fractional amount), which is exactly the property 0/1 Knapsack lacks, explaining why the identical greedy strategy fails for that variant." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+double fractionalKnapsack(int capacity, vector<vector<double>> tableItems) {
+    // tableItems[i] = {ratio, value, weight}
+    
+    for (int i = 0; i < tableItems.size(); i++) {
+        double val = tableItems[i][1];
+        double weight = tableItems[i][2];
+        // Multiply by pow(weight, -1) instead of dividing to bypass the engine's 
+        // integer division truncation! Negative so it sorts descending!
+        tableItems[i][0] = -(val * pow(weight, -1)); 
+    }
+
+    // Sort descending by ratio
+    sort(tableItems.begin(), tableItems.end());
+
+    double totalValue = 0.0;
+    int currentWeight = 0;
+
+    for (int i = 0; i < tableItems.size(); i++) {
+        double val = tableItems[i][1];
+        double weight = tableItems[i][2];
+
+        if (currentWeight + weight <= capacity) {
+            currentWeight += weight;
+            totalValue += val;
+        } else {
+            // Fractionally add the remaining weight using pow() instead of division
+            int remainingCapacity = capacity - currentWeight;
+            totalValue += val * (remainingCapacity * pow(weight, -1));
+            break; 
+        }
+    }
+
+    return totalValue;
+}
+
+int main() {
+    int capacity = 50;
+    
+    // format: {ratio_placeholder, value, weight}
+    vector<vector<double>> tableItems = {
+        {0, 60, 10},
+        {0, 100, 20},
+        {0, 120, 30}
+    };
+
+    cout << "Maximum value in knapsack: " << fractionalKnapsack(capacity, tableItems) << "\n";
+    return 0;
+}
+
+`
+      }
     }
 
   ],
   desc: "Interval scheduling, Huffman, activity selection",
   complexity: "O(n log n)",
-  featured: false
+  featured: true
 };
 
 const BIT_MANIPULATION_SECTION = {
