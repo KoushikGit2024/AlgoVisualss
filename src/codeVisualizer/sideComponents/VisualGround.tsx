@@ -116,7 +116,7 @@ const VisualGround = ({
     worker.onmessage = (e) => {
       const { success, snapshots, error } = e.data;
       if (success) {
-        console.log(snapshots)
+        console.log(`[Main] Received ${snapshots.length} snapshots`);
         setSnapshots(snapshots);
         setCurrentStep(0);
       } else {

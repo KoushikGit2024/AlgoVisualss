@@ -14452,7 +14452,7 @@ long long fibonacci(int n) {
 
 int main() {
     int n = 10;
-    cout << "Fibonacci of " << n << " is: " << fibonacci(n) << "\n";
+    cout << "Fibonacci of " << n << " is: " << fibonacci(n) << endl;
     return 0;
 }
 `
@@ -18476,10 +18476,9 @@ int main() {
     vector<int> nums = {3, 2, 1, 5, 6, 4};
     int k = 2;
     
-    cout << "The " << k << "nd largest element is: " << findKthLargest(nums, k) << "\n";
+    cout << "The " << k << "nd largest element is: " << findKthLargest(nums, k) << endl;
     return 0;
 }
-
 `
       }
     },
@@ -18968,14 +18967,14 @@ double getMedian() {
 int main() {
     addNumber(1);
     addNumber(2);
-    cout << "Median after adding 1, 2: " << getMedian() << "\n";
+    cout << "Median after adding 1, 2: " << getMedian() << endl;
     
     addNumber(3);
-    cout << "Median after adding 3: " << getMedian() << "\n"; 
+    cout << "Median after adding 3: " << getMedian() << endl; 
     
     addNumber(10);
     addNumber(20);
-    cout << "Median after adding 10, 20: " << getMedian() << "\n";
+    cout << "Median after adding 10, 20: " << getMedian() << endl;
     
     return 0;
 }
@@ -20638,7 +20637,114 @@ const TRIES_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Every complete word in the word list corresponds to exactly one path from the trie's root to a node marked isEndOfWord — and the DFS only ever follows a grid path as long as it has a CORRESPONDING path in the trie, since the trie-lookup check at each step prunes any grid path that has diverged from every remaining word's prefix. This means any grid path the DFS continues to explore is, by construction, still a valid prefix of at least one word in the list, and the moment that path reaches a trie node marked as a complete word, the corresponding grid-traced string IS genuinely one of the target words (since it was built by walking exactly the trie's structure, which only contains paths spelling out the inserted words). The visited-marking-and-unmarking ensures no single word-search path reuses the same grid cell twice, correctly enforcing the problem's 'each cell used at most once per word' constraint." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+struct TrieNode {
+    TrieNode* children[26];
+    bool isEndOfWord;
+    string word;
+
+    TrieNode() {
+        isEndOfWord = false;
+        word = "";
+        for (int i = 0; i < 26; i++)
+            children[i] = nullptr;
+    }
+};
+
+TrieNode* root;
+
+void insert(string word) {
+    if (root == nullptr)
+        root = new TrieNode();
+
+    TrieNode* node = root;
+
+    for (char ch : word) {
+        int idx = ch - 'a';
+        if (node->children[idx] == nullptr)
+            node->children[idx] = new TrieNode();
+        node = node->children[idx];
+    }
+
+    node->isEndOfWord = true;
+    node->word = word;
+}
+
+void dfs(vector<vector<char>>& board, int row, int col, TrieNode* node, vector<string>& ans) {
+
+    if (row < 0 || row >= board.size() || col < 0 || col >= board[0].size())
+        return;
+
+    if (board[row][col] == '#')
+        return;
+
+    char ch = board[row][col];
+
+    if (node->children[ch - 'a'] == nullptr)
+        return;
+
+    node = node->children[ch - 'a'];
+
+    if (node->isEndOfWord) {
+        ans.push_back(node->word);
+        node->isEndOfWord = false;
+    }
+
+    board[row][col] = '#';
+
+    dfs(board, row + 1, col, node, ans);
+    dfs(board, row - 1, col, node, ans);
+    dfs(board, row, col + 1, node, ans);
+    dfs(board, row, col - 1, node, ans);
+
+    board[row][col] = ch;
+}
+
+int main() {
+
+    vector<string> words = {
+        "oath",
+        "pea",
+        "eat",
+        "rain",
+        "hike",
+        "oak",
+        "oat"
+    };
+
+    for (string word : words)
+        insert(word);
+
+    vector<vector<char>> board = {
+        {'o','a','a','n'},
+        {'e','t','a','e'},
+        {'i','h','k','r'},
+        {'i','f','l','v'}
+    };
+
+    vector<string> ans;
+
+    for (int i = 0; i < board.size(); i++) {
+        for (int j = 0; j < board[0].size(); j++) {
+            dfs(board, i, j, root, ans);
+        }
+    }
+
+    cout << "Words Found:" << endl;
+
+    for (string word : ans)
+        cout << word << endl;
+
+    return 0;
+}`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -20758,7 +20864,136 @@ class Trie:
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "By construction, a path from the root through a sequence of child links exists in the trie if and only if some inserted word has that exact sequence as a prefix — every insert operation creates exactly the nodes needed to represent the word's full character path, and never removes or alters any other word's path. The isEndOfWord flag correctly distinguishes 'this exact string was inserted as a complete word' from 'this string is merely a prefix of something longer that was inserted' — search() correctly requires this flag (since an exact word match requires both path existence AND being a designated complete-word endpoint), while startsWith() correctly ignores it (since any successful path walk, regardless of endpoint status, confirms that prefix is shared by at least one inserted word)." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <string>
+
+using namespace std;
+
+struct TrieNode {
+    TrieNode* children[26];
+    bool isEndOfWord;
+
+    TrieNode() {
+        isEndOfWord = false;
+        for (int i = 0; i < 26; i++)
+            children[i] = nullptr;
+    }
+};
+
+TrieNode* root;
+
+void insert(string word) {
+
+    if (root == nullptr)
+        root = new TrieNode();
+
+    TrieNode* node = root;
+
+    for (char ch : word) {
+        int idx = ch - 'a';
+
+        if (node->children[idx] == nullptr)
+            node->children[idx] = new TrieNode();
+
+        node = node->children[idx];
+    }
+
+    node->isEndOfWord = true;
+}
+
+bool search(string word) {
+
+    if (root == nullptr)
+        return false;
+
+    TrieNode* node = root;
+
+    for (char ch : word) {
+        int idx = ch - 'a';
+
+        if (node->children[idx] == nullptr)
+            return false;
+
+        node = node->children[idx];
+    }
+
+    return node->isEndOfWord;
+}
+
+bool startsWith(string prefix) {
+
+    if (root == nullptr)
+        return false;
+
+    TrieNode* node = root;
+
+    for (char ch : prefix) {
+        int idx = ch - 'a';
+
+        if (node->children[idx] == nullptr)
+            return false;
+
+        node = node->children[idx];
+    }
+
+    return true;
+}
+
+int main() {
+
+    // a branch
+    insert("apple");
+    insert("app");
+    insert("apply");
+    insert("ape");
+
+    // b branch
+    insert("bat");
+    insert("bath");
+    insert("banana");
+    insert("band");
+
+    // c branch
+    insert("cat");
+    insert("catch");
+    insert("cater");
+    insert("cap");
+
+    // d branch
+    insert("dog");
+    insert("door");
+    insert("dot");
+
+    // e branch
+    insert("ear");
+    insert("earth");
+    insert("easy");
+
+    // t branch
+    insert("tree");
+    insert("trie");
+    insert("trip");
+
+    cout << search("apple") << endl;
+    cout << search("apply") << endl;
+    cout << search("banana") << endl;
+    cout << search("band") << endl;
+    cout << search("cat") << endl;
+    cout << search("tree") << endl;
+    cout << search("unknown") << endl;
+
+    cout << startsWith("ap") << endl;
+    cout << startsWith("ban") << endl;
+    cout << startsWith("cat") << endl;
+    cout << startsWith("do") << endl;
+    cout << startsWith("tri") << endl;
+    cout << startsWith("xyz") << endl;
+
+    return 0;
+}`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -20877,13 +21112,102 @@ class Trie:
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "For literal characters, the search behaves identically to (and is exactly as correct as) plain trie search, since a wildcard-free query has only one possible matching path by definition. For wildcard positions, since a wildcard is defined to match ANY single character, the search is correct if and only if it explores EVERY possible character that could occupy that position — which is precisely what trying every non-null child accomplishes, since the trie's existing children at that node represent EXACTLY the characters that some stored word actually has at that position (no more, no less). The recursive OR-across-branches logic (returning true if ANY explored branch eventually succeeds) correctly implements the semantics of 'this query matches SOME stored word', since a query with a wildcard is satisfied by matching against any one valid completion, not requiring all of them to succeed simultaneously." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <string>
+
+using namespace std;
+
+struct TrieNode {
+    TrieNode* children[26];
+    bool isEndOfWord;
+
+    TrieNode() {
+        isEndOfWord = false;
+        for (int i = 0; i < 26; i++)
+            children[i] = nullptr;
+    }
+};
+
+TrieNode* root;
+
+void insert(string word) {
+
+    if (root == nullptr)
+        root = new TrieNode();
+
+    TrieNode* node = root;
+
+    for (char ch : word) {
+        int idx = ch - 'a';
+
+        if (node->children[idx] == nullptr)
+            node->children[idx] = new TrieNode();
+
+        node = node->children[idx];
+    }
+
+    node->isEndOfWord = true;
+}
+
+// Renamed the overloaded function to 'searchHelper'
+bool searchHelper(string word, int pos, TrieNode* node) {
+
+    if (node == nullptr)
+        return false;
+
+    if (pos == word.length())
+        return node->isEndOfWord;
+
+    if (word[pos] == '.') {
+
+        for (int i = 0; i < 26; i++) {
+            if (searchHelper(word, pos + 1, node->children[i]))
+                return true;
+        }
+
+        return false;
+    }
+
+    return searchHelper(word, pos + 1, node->children[word[pos] - 'a']);
+}
+
+// Main search function calls searchHelper
+bool search(string word) {
+    return searchHelper(word, 0, root);
+}
+
+int main() {
+
+    insert("bad");
+    insert("dad");
+    insert("mad");
+    insert("pad");
+    insert("bat");
+    insert("ball");
+    insert("bake");
+    insert("make");
+
+    cout << search("pad") << endl;
+    cout << search("bad") << endl;
+    cout << search(".ad") << endl;
+    cout << search("b..") << endl;
+    cout << search("ba..") << endl;
+    cout << search("m.ke") << endl;
+    cout << search("....") << endl;
+    cout << search("c..") << endl;
+
+    return 0;
+}
+`
+      }
     }
 
   ],
   desc: "Prefix trees, autocomplete, word search",
   complexity: "O(m)",
-  featured: false
+  featured: true
 };
 
 const GREEDY_SECTION = {
@@ -21049,8 +21373,8 @@ int main() {
     // Array 2 visualizes getting stuck at the 0
     vector<int> nums2 = {3, 2, 1, 0, 4};
     
-    cout << "Can jump (nums1): " << (canJump(nums1) ? "true" : "false") << "\n";
-    cout << "Can jump (nums2): " << (canJump(nums2) ? "true" : "false") << "\n";
+    cout << "Can jump (nums1): " << (canJump(nums1) ? "true" : "false") << endl;
+    cout << "Can jump (nums2): " << (canJump(nums2) ? "true" : "false") << endl;
     
     return 0;
 }
@@ -21200,7 +21524,7 @@ int huffmanCost(const vector<int>& frequencies) {
 
 int main() {
     vector<int> frequencies = {5, 9, 12, 13, 16, 45};
-    cout << "Total cost of Huffman Tree: " << huffmanCost(frequencies) << "\n";
+    cout << "Total cost of Huffman Tree: " << huffmanCost(frequencies) << endl;
     return 0;
 }
 
@@ -21382,7 +21706,7 @@ int main() {
         {5, 1, 3}
     };
 
-    cout << "Weight of Minimum Spanning Tree is: " << kruskalMST(n, tableEdges) << "\n";
+    cout << "Weight of Minimum Spanning Tree is: " << kruskalMST(n, tableEdges) << endl;
     return 0;
 }
 
@@ -21519,7 +21843,7 @@ int main() {
         {9, 5}
     };
 
-    cout << "Maximum tableActivities performed: " << activitySelection(tableActivities) << "\n";
+    cout << "Maximum tableActivities performed: " << activitySelection(tableActivities) << endl;
     return 0;
 }
 
@@ -21682,7 +22006,7 @@ int main() {
         {0, 120, 30}
     };
 
-    cout << "Maximum value in knapsack: " << fractionalKnapsack(capacity, tableItems) << "\n";
+    cout << "Maximum value in knapsack: " << fractionalKnapsack(capacity, tableItems) << endl;
     return 0;
 }
 

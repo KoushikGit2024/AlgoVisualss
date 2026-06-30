@@ -594,8 +594,22 @@ export class ExpressionEvaluator {
     }
 
     // ── Standard arithmetic, comparison, bitwise ──────────────────────────
-    const left  = this.evaluate(expr.left);
-    const right = this.evaluate(expr.right);
+    let left  = this.evaluate(expr.left);
+    let right = this.evaluate(expr.right);
+
+    // Coerce single-character strings to their ASCII character codes for C++ char math
+    if (typeof left === "string" && left.length === 1 && typeof right === "number") {
+      left = left.charCodeAt(0);
+    }
+    if (typeof right === "string" && right.length === 1 && typeof left === "number") {
+      right = right.charCodeAt(0);
+    }
+    if (typeof left === "string" && left.length === 1 && typeof right === "string" && right.length === 1) {
+      if (expr.operator === "-" || expr.operator === "+" || expr.operator === "*" || expr.operator === "/") {
+        left = left.charCodeAt(0);
+        right = right.charCodeAt(0);
+      }
+    }
 
     switch (expr.operator) {
       case "+":
