@@ -1648,7 +1648,9 @@ export class ExecutionEngine {
     const frame = this.callStack.push(`${typeName}::${methodDecl.name}`);
     
     // Inject 'this' pointer
+    console.log(`[Engine DEBUG] 🛠 invokeStructMethod for ${typeName}::${methodDecl.name}, instance keys:`, Object.keys(instance));
     frame.scopeManager.defineVariable("this", typeName, instance);
+    console.log(`[Engine DEBUG] ✅ 'this' injected. instance =`, instance);
     
     // Support implicit 'this' (e.g. `value = 5;` instead of `this->value = 5;`)
     const structScope = {
@@ -1662,8 +1664,14 @@ export class ExecutionEngine {
       }
     } as any;
     
+    // Collect constructor parameter names FIRST so we can skip member fields
+    // that share a name with a parameter (e.g. `TreeNode(int value)` where
+    // `value` is also a member field). The parameter wins in the local scope;
+    // `this->value` still resolves correctly because `this` is always present.
+    const paramNames = new Set(methodDecl.parameters.map((p: any) => p.name));
+
     for (const key of Object.keys(instance)) {
-      if (key !== "__type") {
+      if (key !== "__type" && !paramNames.has(key)) {
         frame.scopeManager.defineVariable(key, "auto", {
            __ref: key,
            __callerScope: structScope
@@ -1677,6 +1685,7 @@ export class ExecutionEngine {
       if (paramType.includes("[]") || paramType.includes("*")) paramType = "array" as any;
       let argValue  = index < args.length ? args[index] : undefined;
       if (argValue !== undefined) argValue = cloneRuntimeValue(argValue);
+      console.log(`[Engine DEBUG] 🔗 Binding param '${param.name}' = ${argValue}`);
       frame.scopeManager.defineVariable(param.name, paramType, argValue);
     });
 

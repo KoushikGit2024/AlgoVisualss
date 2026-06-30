@@ -1479,6 +1479,15 @@ export class IRBuilder {
       case "sized_type_specifier":  // `long long` in expression context
         return { kind: "Identifier", line: node.startPosition.row + 1, name: node.text };
 
+      // ── `this` keyword ────────────────────────────────────────────────────
+      // Tree-sitter parses `this` inside struct/class bodies as a node with
+      // type "this" (confirmed via debug). Map it to Identifier "this" so
+      // `this->field` and `this.field` member assignments resolve correctly.
+      case "this":
+      case "this_expression":
+        console.log(`[IRBuilder DEBUG] ✅ '${node.type}' hit at line ${node.startPosition.row + 1} → mapping to Identifier 'this'`);
+        return { kind: "Identifier", line: node.startPosition.row + 1, name: "this" };
+
       // ── Sizeof expression ─────────────────────────────────────────────────
       // v2: `sizeof(int)`, `sizeof(x)`, `sizeof x`
       case "sizeof_expression": {
@@ -1738,8 +1747,8 @@ export class IRBuilder {
         // Emit a warning but return a safe null literal so the surrounding
         // statement can still compile rather than aborting the whole function.
         console.warn(
-          `[IRBuilder.buildExpression] Unsupported expression type '${node.type}' ` +
-          `at line ${node.startPosition.row + 1}. Substituting null.`
+          `[IRBuilder.buildExpression] ❌ Unsupported expression type '${node.type}' ` +
+          `at line ${node.startPosition.row + 1}. Substituting null. TEXT: '${node.text}'`
         );
         return {
           kind:      "Literal",

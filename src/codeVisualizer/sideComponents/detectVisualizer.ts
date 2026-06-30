@@ -1110,5 +1110,48 @@ export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[
     }
   });
 
+  // ── 13. FALLBACK ANIMATOR (Anything except Scalars) ──────────────────────
+  keys.forEach(key => {
+    if (consumedKeys.has(key)) return;
+    const val = deepUnwrap(vars[key]?.value);
+    
+    // Ignore scalars, nulls, functions
+    if (val === null || val === undefined) return;
+    if (typeof val === 'number' || typeof val === 'string' || typeof val === 'boolean' || typeof val === 'function') return;
+
+    // Detect type
+    if (is2DArray(val)) {
+      const { pointers, usedKeys: ptrKeys } = collectIndexPointers(
+        keys, vars, ['i', 'j', 'k', 'r', 'c', 'row', 'col', 'curr', 'ptr']
+      );
+      const usedKeys = [key, ...ptrKeys];
+      const { reads, writes } = extractEventIndices(key, true);
+      usedKeys.forEach(k => consumedKeys.add(k));
+      visualizers.push({
+        id: key, type: 'matrix', usedKeys,
+        props: { value: val, pointers, readIndices: reads, writeIndices: writes },
+      });
+    } else if (Array.isArray(val)) {
+      const { pointers, usedKeys: ptrKeys } = collectIndexPointers(
+        keys, vars, ['i', 'j', 'k', 'left', 'right', 'mid', 'curr', 'ptr']
+      );
+      const usedKeys = [key, ...ptrKeys];
+      const { reads, writes } = extractEventIndices(key, false);
+      usedKeys.forEach(k => consumedKeys.add(k));
+      visualizers.push({
+        id: key, type: 'array', usedKeys,
+        props: { value: val, pointers, readIndices: reads, writeIndices: writes },
+      });
+    } else if (typeof val === 'object') {
+      // Fallback for objects/structs: Render as Map
+      const entries = Object.entries(val).map(([k, v]) => [k, v]);
+      consumedKeys.add(key);
+      visualizers.push({
+        id: key, type: 'map', usedKeys: [key],
+        props: { entries },
+      });
+    }
+  });
+
   return visualizers;
 }

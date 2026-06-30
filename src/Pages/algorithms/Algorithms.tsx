@@ -65,15 +65,13 @@ const Algorithms = () => {
 
     if (Object.keys(codes).length === 0) {
       return {
-        "c++": `
-      #include <iostream>
+        "c++": `#include <iostream>
 
-      using namespace std;
-      int main() {
-        cout<<"Hello World"<<endl;
-        return 0;
-      }
-      `
+using namespace std;
+int main() {
+  cout<<"Hello World"<<endl;
+  return 0;
+}`
       };
     }
     

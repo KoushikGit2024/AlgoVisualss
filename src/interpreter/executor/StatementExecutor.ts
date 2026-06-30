@@ -757,7 +757,9 @@ export class StatementExecutor {
     // ── CASE 3: Member mutation ────────────────────────────────────────────
     else if (stmt.target.kind === "MemberExpression") {
       const targetNode = stmt.target as IRMemberExpression;
+      console.log(`[Executor DEBUG] 🎯 CASE 3 MemberExpression: object.kind='${targetNode.object.kind}', object.name='${(targetNode.object as any).name}', property='${targetNode.property}'`);
       const targetObj  = this.evaluator.evaluate(targetNode.object) as any;
+      console.log(`[Executor DEBUG] 🎯 targetObj after evaluate:`, targetObj, `| type: ${typeof targetObj}`);
       let   property: string | number = targetNode.property;
 
       // Auto-recovery: struct stored as plain array (schema not linked).
@@ -771,6 +773,7 @@ export class StatementExecutor {
       }
 
       if (!targetObj) {
+        console.error(`[Executor DEBUG] 💥 CRASH: targetObj is null/undefined. targetNode.object =`, targetNode.object);
         throw new Error(
           `Memory Access Violation at line ${stmt.line}: ` +
           `Cannot assign property '${property}' on a null or undefined reference.`

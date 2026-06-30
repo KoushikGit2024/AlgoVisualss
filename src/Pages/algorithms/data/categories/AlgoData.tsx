@@ -20022,7 +20022,40 @@ const STRINGS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: at the top of every outer-loop iteration, s[left..right−1] contains no duplicate characters. The inner while-loop correctly restores this invariant whenever adding str_s[right] would violate it, by removing characters from the left one at a time until the specific conflicting character is gone — and because left only ever moves forward (never resets), no valid window is ever skipped over or incorrectly re-examined, exactly matching the general Sliding Window correctness argument from the Arrays section." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <string>
+#include <unordered_set>
+#include <algorithm>
+
+using namespace std;
+
+int lengthOfLongestSubstring(string s) {
+    unordered_set<char> charSet;
+    int left = 0;
+    int maxLength = 0;
+    
+    for (int right = 0; right < s.length(); right++) {
+        // Shrink window from the left until there are no repeats
+        while (charSet.find(s[right]) != charSet.end()) {
+            charSet.erase(s[left]);
+            left++;
+        }
+        charSet.insert(s[right]);
+        maxLength = max(maxLength, right - left + 1);
+    }
+    return maxLength;
+}
+
+int main() {
+    string s = "abcabcbb";
+    cout << "Longest Substring Length: " << lengthOfLongestSubstring(s) << endl;
+    return 0;
+}
+
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -20132,7 +20165,61 @@ const STRINGS_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The algorithm never reports a false match, because every hash match is explicitly verified with a direct character comparison before being added to the results — so correctness (no false positives) is guaranteed regardless of hash quality. The algorithm also never MISSES a true match, because a genuine pattern occurrence always produces an identical hash to the pattern itself (since the hash function is deterministic and computed identically for both), guaranteeing the hash comparison passes and triggers verification at every true match position. The rolling hash update formula is correct because polynomial hashing treats the string as coefficients of a polynomial in BASE — removing the leading term's contribution (subtracting text[i] × BASE^(m-1)) and then shifting (multiplying by BASE) and adding the new trailing term (text[i+m]) exactly recomputes what the hash of the new window would be if computed from scratch, by the standard algebraic properties of polynomial evaluation." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <string>
+
+using namespace std;
+
+void searchRabinKarp(string pattern, string text) {
+    int m = pattern.length();
+    int n = text.length();
+    int p = 0; // Hash value for pattern
+    int t = 0; // Hash value for text
+    int h = 1;
+    int d = 256; // Number of characters in alphabet
+    int q = 101; // Prime number
+
+    // Calculate h = pow(d, m-1) % q
+    for (int i = 0; i < m - 1; i++)
+        h = (h * d) % q;
+
+    // Calculate the hash value of pattern and first window of text
+    for (int i = 0; i < m; i++) {
+        p = (d * p + pattern[i]) % q;
+        t = (d * t + text[i]) % q;
+    }
+
+    for (int i = 0; i <= n - m; i++) {
+        if (p == t) {
+            bool match = true;
+            for (int j = 0; j < m; j++) {
+                if (text[i + j] != pattern[j]) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) cout << "Pattern found at index " << i << endl;
+        }
+        
+        // Calculate hash value for next window
+        if (i < n - m) {
+            t = (d * (t - text[i] * h) + text[i + m]) % q;
+            if (t < 0) t = (t + q);
+        }
+    }
+}
+
+int main() {
+    string text = "ABCCDDAEFG";
+    string pattern = "CDD";
+    searchRabinKarp(pattern, text);
+    return 0;
+}
+
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -20247,7 +20334,72 @@ function kmpSearch(text, pattern):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The failure function correctly captures 'how much of the pattern is reusable' after a mismatch because of the following invariant: if pattern[0..j-1] matched text ending just before the mismatch, and failure[j-1] = k, then pattern[0..k-1] is GUARANTEED to also be a suffix of what was just matched in the text (since it's defined as a suffix of pattern[0..j-1], which IS what was just matched) — meaning the text already contains a valid match for pattern[0..k-1] ending at the current text position, so resuming comparison from pattern[k] (rather than pattern[0]) is provably safe and loses no possible match. The amortised O(n) bound for the main scan follows because i (the text pointer) only ever increases, while j only decreases via failure-function lookups — and since j is always bounded between 0 and its current value, the total decrease across the ENTIRE scan can never exceed the total increase, capping total work at O(n) despite the apparent nested-loop structure." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+void computeLPSArray(string pat, int m, vector<int>& lps) {
+    int len = 0;
+    lps[0] = 0;
+    int i = 1;
+    
+    while (i < m) {
+        if (pat[i] == pat[len]) {
+            len++;
+            lps[i] = len;
+            i++;
+        } else {
+            if (len != 0) {
+                len = lps[len - 1];
+            } else {
+                lps[i] = 0;
+                i++;
+            }
+        }
+    }
+}
+
+void KMPSearch(string pat, string txt) {
+    int m = pat.length();
+    int n = txt.length();
+    vector<int> lps(m);
+    
+    computeLPSArray(pat, m, lps);
+    
+    int i = 0; // index for txt[]
+    int j = 0; // index for pat[]
+    
+    while ((n - i) >= (m - j)) {
+        if (pat[j] == txt[i]) {
+            j++;
+            i++;
+        }
+        
+        if (j == m) {
+            cout << "Found pattern at index " << i - j << endl;
+            j = lps[j - 1];
+        } else if (i < n && pat[j] != txt[i]) {
+            if (j != 0)
+                j = lps[j - 1];
+            else
+                i = i + 1;
+        }
+    }
+}
+
+int main() {
+    string txt = "ABABDABACDABABCABAB";
+    string pat = "ABABCABAB";
+    KMPSearch(pat, txt);
+    return 0;
+}
+
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -20349,7 +20501,48 @@ function kmpSearch(text, pattern):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "A string is a palindrome if and only if, for every valid index i, the character at position i equals the character at the mirrored position (length − 1 − i). The two-pointer approach directly checks exactly this condition for every symmetric pair, working from the outside in: left and right always represent a mirrored pair relative to the (normalised) string's center, and since left only increases and right only decreases, every pair is checked exactly once, with no pair skipped or double-checked. Skipping non-alphanumeric characters from both ends before each comparison correctly implements the 'ignore punctuation and spaces' normalisation rule without altering the fundamental mirrored-pair-checking logic." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <string>
+#include <cctype>
+
+using namespace std;
+
+bool isPalindrome(string str) {
+    int left = 0;
+    int right = str.length() - 1;
+    
+    while (left < right) {
+        // Skip non-alphanumeric characters from left
+        while (left < right && !isalnum(str[left])) {
+            left++;
+        }
+        // Skip non-alphanumeric characters from right
+        while (left < right && !isalnum(str[right])) {
+            right--;
+        }
+        
+        // Compare case-insensitively
+        if (tolower(str[left]) != tolower(str[right])) {
+            return false;
+        }
+        
+        left++;
+        right--;
+    }
+    
+    return true;
+}
+
+int main() {
+    string str = "A man, a plan, a canal: Panama";
+    cout << "Is valid palindrome? " << (isPalindrome(str) ? "true" : "false") << endl;
+    return 0;
+}
+
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -20467,13 +20660,84 @@ function zSearch(text, pattern):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The Z-box-based shortcut is correct because of a key property of prefix-matching: if position i falls within an existing Z-box [left, right) known to match the prefix, then the substring starting at i is GUARANTEED to match the prefix for AT LEAST min(right − i, Z[i − left]) characters — this follows because the substring at i, by virtue of being inside the Z-box, is itself a copy of the corresponding substring starting at (i − left) in the prefix, so whatever the prefix matches starting at (i − left) is mirrored exactly at i, UP TO the point where the Z-box's own boundary might cut off that guarantee. The subsequent direct-comparison extension step correctly verifies and extends beyond this guaranteed minimum where possible. The amortised O(n) bound follows because the Z-box's right boundary, 'right', only ever moves forward across the algorithm's entire execution — every direct character comparison performed during the extension step either successfully extends 'right' further (contributing to its bounded total forward movement) or fails immediately (costing only O(1) and ending that position's extension attempt), so total comparison work across the whole algorithm is provably bounded by O(n)." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+// Function to construct the Z-array
+void getZarr(string str, vector<int>& Z) {
+    int n = str.length();
+    int L, R, k;
+    
+    // [L,R] represents the interval that matches the prefix of str
+    L = R = 0;
+    
+    for (int i = 1; i < n; ++i) {
+        // If i > R nothing matches so we calculate Z[i] using naive way
+        if (i > R) {
+            L = R = i;
+            while (R < n && str[R - L] == str[R]) {
+                R++;
+            }
+            Z[i] = R - L;
+            R--;
+        } else {
+            // k corresponds to number which matches in [L,R] interval
+            k = i - L;
+            
+            // If Z[k] is less than remaining interval, Z[i] is equal to Z[k]
+            if (Z[k] < R - i + 1) {
+                Z[i] = Z[k];
+            } else {
+                // Otherwise start from R and match manually
+                L = i;
+                while (R < n && str[R - L] == str[R]) {
+                    R++;
+                }
+                Z[i] = R - L;
+                R--;
+            }
+        }
+    }
+}
+
+// Function to search pattern in text using Z-Algorithm
+void searchZAlgorithm(string text, string pattern) {
+    // Create concatenated string "pattern$text"
+    string concat = pattern + "$" + text;
+    int l = concat.length();
+    
+    vector<int> Z(l, 0);
+    getZarr(concat, Z);
+    
+    // Now loop over Z array. If Z[i] equals pattern length,
+    // pattern is found at index i - pattern.length() - 1
+    for (int i = 0; i < l; ++i) {
+        if (Z[i] == pattern.length()) {
+            cout << "Pattern found at index " << i - pattern.length() - 1 << endl;
+        }
+    }
+}
+
+int main() {
+    string text = "AABAACAADAABAABA";
+    string pattern = "AABA";
+    searchZAlgorithm(text, pattern);
+    return 0;
+}
+
+`
+      }
     }
 
   ],
   desc: "KMP, Rabin-Karp, Z-algorithm, trie patterns",
   complexity: "O(n + m)",
-  featured: false
+  featured: true
 };
 
 const TRIES_SECTION = {
@@ -22816,7 +23080,87 @@ function query(node, start, end, L, R):              // query range [L, R]
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "By construction (and maintained by every update), each internal node's stored value is exactly the combined aggregate of its entire subtree's range — this invariant is established during build (bottom-up combination) and correctly re-established after every update (by recombining every ancestor on the path from the changed leaf back to the root). The query function's three-way case split correctly and completely partitions any possible relationship between a node's range and the query range: fully outside contributes the identity element (correctly adding nothing to the combined result), fully inside returns the exact precomputed answer for that sub-range (correct by the maintained invariant), and partial overlap is correctly handled by recursively combining the contributions from both children, which together exactly cover the node's full range. Since these three cases are exhaustive and each correctly resolves its scenario, the overall query result is exactly the correct aggregate over the full requested range [L, R]." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+struct SegmentTreeNode {
+    int start;
+    int end;
+    int value;
+    SegmentTreeNode* left;
+    SegmentTreeNode* right;
+
+    SegmentTreeNode(int s, int e) {
+        start = s;
+        end = e;
+        value = 0;
+        left = nullptr;
+        right = nullptr;
+    }
+};
+
+SegmentTreeNode* build(vector<int>& arr, int start, int end) {
+    SegmentTreeNode* node = new SegmentTreeNode(start, end);
+    if (start == end) {
+        node->value = arr[start];
+        return node;
+    }
+    int mid = (start + end) / 2;
+    node->left = build(arr, start, mid);
+    node->right = build(arr, mid + 1, end);
+    node->value = node->left->value + node->right->value;
+    return node;
+}
+
+void update(SegmentTreeNode* node, int idx, int val) {
+    if (node->start == node->end) {
+        node->value = val;
+        return;
+    }
+    int mid = (node->start + node->end) / 2;
+    if (idx <= mid) {
+        update(node->left, idx, val);
+    } else {
+        update(node->right, idx, val);
+    }
+    node->value = node->left->value + node->right->value;
+}
+
+int query(SegmentTreeNode* node, int l, int r) {
+    if (r < node->start || l > node->end) {
+        return 0; // Out of bounds
+    }
+    if (l <= node->start && r >= node->end) {
+        return node->value;
+    }
+    return query(node->left, l, r) + query(node->right, l, r);
+}
+
+int main() {
+    vector<int> arr = {1, 3, 5, 7, 9, 11};
+    int n = arr.size();
+    
+    // Build tree
+    SegmentTreeNode* root = build(arr, 0, n - 1);
+    
+    // Query sum from index 1 to 3
+    int q1 = query(root, 1, 3);
+    cout << "Sum [1, 3]: " << q1 << "\n";
+    
+    // Update index 2 to 10
+    update(root, 2, 10);
+    
+    // Query sum from index 1 to 3 again
+    int q2 = query(root, 1, 3);
+    cout << "Sum [1, 3] after update: " << q2 << "\n";
+    
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -22911,7 +23255,54 @@ function rangeSum(tree, left, right):          // sum of elements [left, right],
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Each Fenwick array index i is implicitly responsible for covering exactly the range of original-array positions [i − (i & −i) + 1, i] — a range whose length is precisely i's lowest set bit value, a consequence of how binary representations decompose. The update operation's upward-jumping sequence (i ← i + (i & −i)) correctly visits every Fenwick index whose RESPONSIBLE RANGE includes the updated position, since adding the lowest set bit is exactly the operation that finds the next index whose range extends to cover the current one. The prefixSum operation's downward-jumping sequence correctly decomposes the range [1, index] into a small number of DISJOINT, non-overlapping Fenwick-responsible ranges whose union exactly equals [1, index] — this decomposition is guaranteed unique and complete because subtracting the lowest set bit at each step is exactly equivalent to peeling off the binary representation of 'index' one set bit at a time, and any positive integer's binary representation has a unique decomposition into its set bits." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+using namespace std;
+
+// Exactly sized for n=6 (1-based index means size 7)
+vector<int> bit = {0, 0, 0, 0, 0, 0, 0};
+int n;
+
+void update(int idx, int val) {
+    for (; idx <= n; idx += idx & -idx) {
+        bit[idx] += val;
+    }
+}
+
+int query(int idx) {
+    int sum = 0;
+    for (; idx > 0; idx -= idx & -idx) {
+        sum += bit[idx];
+    }
+    return sum;
+}
+
+int queryRange(int l, int r) {
+    return query(r) - query(l - 1);
+}
+
+int main() {
+    vector<int> arr = {0, 1, 3, 5, 7, 9, 11}; // 1-based indexing
+    n = arr.size() - 1;
+    
+    for (int i = 1; i <= n; i++) {
+        update(i, arr[i]);
+    }
+    
+    int q1 = queryRange(2, 4);
+    cout << "Sum [2, 4]: " << q1 << "\n";
+    
+    update(3, 5); // Add 5 to arr[3], making it 10
+    
+    int q2 = queryRange(2, 4);
+    cout << "Sum [2, 4] after update: " << q2 << "\n";
+    
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -23012,7 +23403,63 @@ function query(table, L, R):                // inclusive range [L, R]
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The build phase correctly computes table[i][j] as the minimum of the range [i, i + 2^j − 1] by induction on j: the base case (j=0, single elements) is trivially correct, and each subsequent level correctly combines two already-correctly-computed half-length ranges that, together, exactly and exhaustively cover the full 2^j-length range with no gaps. For the query phase, since 2^k ≤ length ≤ 2^(k+1) − 1 (by the definition of k as the largest power of two fitting within the range), the two chosen ranges [L, L+2^k−1] and [R−2^k+1, R] are each fully WITHIN the query range [L, R] (so they only include valid, in-range elements), and their UNION is guaranteed to cover the ENTIRE query range (since their combined length 2×2^k ≥ length, by the choice of k, they cannot fail to meet in the middle). Because the underlying operation is idempotent, the fact that they might overlap and 'double-count' some middle elements has no effect on the final combined value — min(min(A), min(B)) for any two ranges A and B that together cover [L,R], even with overlap, is always exactly min over [L,R]." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+// Exactly sized for n=6 and max power of 2=3 (2^3 = 8 > 6)
+// This will render a beautiful 6x4 grid in the visualizer without extra zeroes!
+vector<vector<int>> st = {
+    {0, 0, 0, 0},
+    {0, 0, 0, 0},
+    {0, 0, 0, 0},
+    {0, 0, 0, 0},
+    {0, 0, 0, 0},
+    {0, 0, 0, 0}
+};
+vector<int> logTable = {0, 0, 0, 0, 0, 0, 0}; // size 7
+int n;
+
+void build(vector<int>& arr) {
+    n = arr.size();
+    
+    for (int i = 2; i <= n; i++) {
+        logTable[i] = logTable[i/2] + 1;
+    }
+
+    for (int i = 0; i < n; i++) {
+        st[i][0] = arr[i];
+    }
+
+    for (int j = 1; (1 << j) <= n; j++) {
+        for (int i = 0; i + (1 << j) <= n; i++) {
+            st[i][j] = min(st[i][j-1], st[i + (1 << (j - 1))][j - 1]);
+        }
+    }
+}
+
+int query(int L, int R) {
+    int j = logTable[R - L + 1];
+    return min(st[L][j], st[R - (1 << j) + 1][j]);
+}
+
+int main() {
+    vector<int> arr = {7, 2, 3, 0, 5, 10};
+    build(arr);
+    
+    int q1 = query(0, 4);
+    cout << "Min [0, 4]: " << q1 << "\n";
+    
+    int q2 = query(4, 5);
+    cout << "Min [4, 5]: " << q2 << "\n";
+    
+    return 0;
+}
+`
+      }
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -23133,13 +23580,81 @@ function rangeSum(arr, blockSum, blockSize, L, R):     // inclusive range [L, R]
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The range [L, R] is exhaustively and exactly partitioned into exactly three non-overlapping pieces: the tail-end of the starting block (from L to that block's boundary), zero or more complete blocks in between, and the head of the ending block (from that block's start to R) — every element of [L, R] falls into exactly one of these three categories, with no element double-counted or omitted. The partial-block portions are correctly summed via direct element-by-element scanning, and the fully-covered blocks are correctly summed via their precomputed blockSum values, which by construction (maintained correctly through every update) always hold the exact sum of their entire block's current contents. Since all three regions are correctly and completely accounted for with no overlap, their combined sum is exactly the correct answer for the full requested range." }
-      ]
+      ],
+      codes:{
+        "c++":`#include <iostream>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+// Exactly sized for n=10 (blk_sz = 3, so ceil(10/3) = 4 blocks)
+vector<int> arr = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+vector<int> block = {0, 0, 0, 0};
+int blk_sz;
+
+void build(vector<int>& input) {
+    int n = input.size();
+    blk_sz = floor(sqrt(n)); // Force integer
+    
+    int blk_idx = -1;
+    for (int i = 0; i < n; i++) {
+        arr[i] = input[i]; 
+        if (i % blk_sz == 0) {
+            blk_idx++;
+        }
+        block[blk_idx] += arr[i];
+    }
+}
+
+void update(int idx, int val) {
+    int blockNumber = floor(idx / blk_sz); // Force integer
+    block[blockNumber] += val - arr[idx];
+    arr[idx] = val;
+}
+
+int query(int l, int r) {
+    int sum = 0;
+    int startBlock = floor(l / blk_sz); // Force integer
+    int endBlock = floor(r / blk_sz);   // Force integer
+    
+    if (startBlock == endBlock) {
+        for (int i = l; i <= r; i++) sum += arr[i];
+    } else {
+        // partial start block
+        for (int i = l; i < (startBlock + 1) * blk_sz; i++) sum += arr[i];
+        
+        // completely overlapping blocks
+        for (int i = startBlock + 1; i < endBlock; i++) sum += block[i];
+        
+        // partial end block
+        for (int i = endBlock * blk_sz; i <= r; i++) sum += arr[i];
+    }
+    return sum;
+}
+
+int main() {
+    vector<int> input = {1, 5, 2, 4, 6, 1, 3, 5, 7, 10};
+    
+    build(input);
+    
+    int q1 = query(3, 8); 
+    cout << "Sum [3, 8]: " << q1 << "\n";
+    
+    update(8, 0); 
+    
+    int q2 = query(8, 8); 
+    cout << "Sum [8, 8] after update: " << q2 << "\n";
+    
+    return 0;
+}
+`
+      }
     }
 
   ],
   desc: "Segment trees, BIT/Fenwick, range queries",
   complexity: "O(log n)",
-  featured: false
+  featured: true
 };
 
 const ALGODATA = [
