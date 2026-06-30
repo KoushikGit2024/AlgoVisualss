@@ -1617,12 +1617,13 @@ export class ExecutionEngine {
     for (const field of blueprint.fields) {
       instance[field.name] = field.defaultValue
         ? callerEvaluator.evaluate(field.defaultValue)
-        : 0;
+        : (field.type.includes("[]") ? [] : 0);
     }
 
     const evaluatedArgs = args.map(arg => callerEvaluator.evaluate(arg));
 
     if (blueprint.constructors && blueprint.constructors.length > 0) {
+      console.log(`[DEBUG] Found ${blueprint.constructors.length} constructors for ${typeName}!`);
       const ctor = blueprint.constructors.find(c => c.parameters.length === evaluatedArgs.length) || blueprint.constructors[0];
       this.invokeStructMethod(instance, typeName, ctor, evaluatedArgs);
     } else {

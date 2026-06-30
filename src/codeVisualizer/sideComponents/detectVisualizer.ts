@@ -11,7 +11,7 @@
 
 // ─── TYPES ──────────────────────────────────────────────────────────────────
 
-export type VisualizerType = 'graph' | 'matrix' | 'array' | 'linkedlist' | 'queue' | 'stack' | 'tree' | 'map' | 'string' | 'bitset' | 'scalar' | 'none';
+export type VisualizerType = 'graph' | 'matrix' | 'array' | 'linkedlist' | 'queue' | 'stack' | 'tree' | 'trie' | 'map' | 'string' | 'bitset' | 'scalar' | 'none';
 
 export interface CanvasState {
   id: string;
@@ -170,6 +170,55 @@ function unrollPointerTree(rootNode: any): any[] {
       value: node.value !== undefined ? node.value : node.val,
       left: leftId,
       right: rightId,
+      __raw: node
+    });
+
+    return currentId;
+  }
+
+  traverse(rootNode);
+  return nodes;
+}
+
+/**
+ * Traverses a pointer-based N-ary tree (Trie) and flattens it into an array of nodes.
+ */
+function unrollPointerTrie(rootNode: any): any[] {
+  if (!rootNode || typeof rootNode !== 'object' || Array.isArray(rootNode)) return [];
+
+  const nodes: any[] = [];
+  let idCounter = 0;
+  const seen = new Set();
+
+  function traverse(node: any, charKey?: string): string | null {
+    if (!node || typeof node !== 'object') return null;
+    if (seen.has(node)) return null;
+    seen.add(node);
+
+    const currentId = String(idCounter++);
+    const childIds: string[] = [];
+
+    const childrenArr = node.children || node.next || node.edges;
+    if (Array.isArray(childrenArr) || (childrenArr && Array.isArray(childrenArr.data))) {
+      const arr = Array.isArray(childrenArr) ? childrenArr : childrenArr.data;
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i]) {
+          const childChar = String.fromCharCode(97 + i);
+          const childId = traverse(arr[i], childChar);
+          if (childId) childIds.push(childId);
+        }
+      }
+    }
+
+    let displayVal = charKey || '*';
+    if (node.isEndOfWord || node.isEnd) {
+      displayVal += " (end)";
+    }
+
+    nodes.push({
+      id: currentId,
+      value: node.value !== undefined ? node.value : (node.val !== undefined ? node.val : displayVal),
+      children: childIds,
       __raw: node
     });
 
@@ -523,21 +572,27 @@ export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[
     }
   });
 
-  // 2. TREE DETECTION
+  // 2. TREE & TRIE DETECTION
   keys.filter(k => matchesPrefix(k, TREE_PREFIXES)).forEach(treeKey => {
     if (consumedKeys.has(treeKey)) return;
     let treeData = deepUnwrap(vars[treeKey]?.value);
     
-    if (treeData && typeof treeData === 'object' && !Array.isArray(treeData) && ('value' in treeData || 'val' in treeData) && ('left' in treeData || 'right' in treeData)) {
-      treeData = unrollPointerTree(treeData);
+    let isTrie = false;
+    if (treeData && typeof treeData === 'object' && !Array.isArray(treeData) && ('value' in treeData || 'val' in treeData || 'isEndOfWord' in treeData)) {
+      if ('left' in treeData || 'right' in treeData) {
+        treeData = unrollPointerTree(treeData);
+      } else if ('children' in treeData || 'next' in treeData || 'edges' in treeData) {
+        treeData = unrollPointerTrie(treeData);
+        isTrie = true;
+      }
     }
     
     if (isNodeArray(treeData)) {
       const normalizedNodes = normalizeNodeArray(treeData);
-      const { pointers, usedKeys: ptrKeys } = collectNodePointers(keys, vars, ['root', 'curr', 'parent', 'left', 'right', 'temp'], normalizedNodes);
+      const { pointers, usedKeys: ptrKeys } = collectNodePointers(keys, vars, ['root', 'curr', 'parent', 'left', 'right', 'temp', 'node'], normalizedNodes);
       const usedKeys = [treeKey, ...ptrKeys];
       usedKeys.forEach(k => consumedKeys.add(k));
-      visualizers.push({ id: treeKey, type: 'tree', usedKeys, props: { nodes: normalizedNodes, pointers } });
+      visualizers.push({ id: treeKey, type: isTrie ? 'trie' : 'tree', usedKeys, props: { nodes: normalizedNodes, pointers } });
     }
   });
 

@@ -226,18 +226,29 @@ export class IRBuilder {
 
     if (bodyNode) {
       for (const field of bodyNode.namedChildren) {
-        if (field.type === "function_definition") {
-          try {
-            const funcDecl = this.buildFunctionDeclaration(field);
-            if (funcDecl.name === name) constructors.push(funcDecl);
-            else methods.push(funcDecl);
-          } catch (e) {
-            console.warn(`[IRBuilder] Skipping struct method parse error: ${(e as Error).message}`);
+        if (field.type === "function_definition" || field.type === "declaration") {
+          // A constructor is often parsed as a declaration if it lacks a return type, but contains a compound_statement
+          const hasBody = field.namedChildren.some(c => c.type === "compound_statement");
+          if (hasBody) {
+            try {
+              const funcDecl = this.buildFunctionDeclaration(field);
+              if (funcDecl.name === name) {
+                console.log(`[DEBUG] Pushed constructor ${funcDecl.name} to ${name}`);
+                constructors.push(funcDecl);
+              } else {
+                methods.push(funcDecl);
+              }
+            } catch (e) {
+              console.warn(`[IRBuilder] Skipping struct method parse error: ${(e as Error).message}`);
+            }
+            continue;
           }
-          continue;
         }
 
-        if (field.type !== "field_declaration") continue;
+        if (field.type !== "field_declaration") {
+          console.log(`[IRBuilder] Skipping struct field type: ${field.type}`);
+          continue;
+        }
 
         let type = field.child(0)?.text ?? "unknown";
         let decl = field.namedChildren.find(
@@ -422,14 +433,22 @@ export class IRBuilder {
    * parameter for its type, name, isReference flag, and optional default value.
    */
   private buildFunctionDeclaration(node: SyntaxNode): IRFunctionDeclaration {
-    const typeNode = node.child(0);
-    let   declaratorNode = node.child(1);
+    let declaratorNode = node.children.find(c => 
+      c.type === "function_declarator" || 
+      c.type === "pointer_declarator" || 
+      c.type === "reference_declarator"
+    );
+    let typeNode: any = node.child(0);
+    if (typeNode && declaratorNode && (typeNode.equals(declaratorNode) || typeNode.type === declaratorNode.type)) {
+      // It's a constructor, so it has no return type
+      typeNode = null;
+    }
     const bodyNode = node.namedChildren.find(c => c.type === "compound_statement");
 
-    if (!typeNode || !declaratorNode || !bodyNode) {
+    if (!declaratorNode || !bodyNode) {
       throw new Error(
         `Compilation Error at line ${node.startPosition.row + 1}: ` +
-        `Malformed function definition — missing type, declarator, or body.`
+        `Malformed function definition — missing declarator or body.`
       );
     }
 
@@ -510,7 +529,7 @@ export class IRBuilder {
     return {
       kind:       "FunctionDeclaration",
       line:       node.startPosition.row + 1,
-      returnType: typeNode.text,
+      returnType: typeNode?.text ?? "void",
       name:       functionName,
       parameters,
       body:       this.buildBlock(bodyNode),

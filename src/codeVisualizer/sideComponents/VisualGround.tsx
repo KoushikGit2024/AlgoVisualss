@@ -21,6 +21,7 @@ import LinkedList from '../dataStructures/LinkedList';
 import Queue from '../dataStructures/Queue';
 import Stack from '../dataStructures/Stack';
 import Tree from '../dataStructures/Tree';
+import TrieTree from '../dataStructures/TrieTree';
 import { MapVisualizer } from '../dataStructures/MapVisualizer';
 import StringVisualizer from '../dataStructures/StringVisualizer';
 import BitsetVisualizer from '../dataStructures/BitsetVisualizer';
@@ -509,6 +510,7 @@ const VisualGround = ({
                           {state.type === 'queue'      && <Queue       {...(state.props as any)} />}
                           {state.type === 'stack'      && <Stack       {...(state.props as any)} />}
                           {state.type === 'tree'       && <Tree        {...(state.props as any)} />}
+                          {state.type === 'trie'       && <TrieTree    {...(state.props as any)} />}
                           {state.type === 'map'        && <MapVisualizer {...(state.props as any)} />}
                           {state.type === 'string'     && <StringVisualizer {...(state.props as any)} />}
                           {state.type === 'bitset'     && <BitsetVisualizer {...(state.props as any)} />}

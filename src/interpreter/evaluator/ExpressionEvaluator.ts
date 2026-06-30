@@ -626,6 +626,8 @@ export class ExpressionEvaluator {
         const isRightObj = right === null || typeof right === "object";
         if (left === 0 && isRightObj) return right === null;
         if (right === 0 && isLeftObj) return left === null;
+        if (left === undefined && right === null) return true;
+        if (left === null && right === undefined) return true;
         return left === right;
       }
       case "!=": {
@@ -634,6 +636,8 @@ export class ExpressionEvaluator {
         const isRightObj = right === null || typeof right === "object";
         if (left === 0 && isRightObj) return right !== null;
         if (right === 0 && isLeftObj) return left !== null;
+        if (left === undefined && right === null) return false;
+        if (left === null && right === undefined) return false;
         return left !== right;
       }
 
