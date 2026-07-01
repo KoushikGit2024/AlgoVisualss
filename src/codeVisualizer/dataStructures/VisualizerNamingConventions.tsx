@@ -360,7 +360,7 @@ export default function VisualizerNamingConventions() {
       </section>
 
       {/* Data Structures */}
-      <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {DATA_STRUCTURES.map((ds, idx) => (
           <section key={idx} className={cn(`border rounded-xl overflow-hidden ${ds.color.split(" ")[0]} bg-surface`)}>
             {/* Header */}
@@ -375,13 +375,19 @@ export default function VisualizerNamingConventions() {
               {/* Prefixes */}
               <div>
                 <h3 className="text-[11px] font-bold text-text uppercase tracking-wider mb-2">Primary Structure Prefixes</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {ds.prefixes.map((pref, i) => (
-                    <div key={i} className="flex flex-col bg-surface-2 p-2.5 rounded-lg border border-border">
-                      <span className={cn(`font-mono ${ds.textColor} text-[12px] font-semibold mb-1`)}>{pref.prefix}</span>
-                      <code className="text-[11px] text-text bg-surface px-2 py-1 rounded border border-border/50">
-                        {pref.example}
-                      </code>
+                    <div 
+                      key={i} 
+                      className="group relative flex items-center bg-surface-2 px-2 py-0.5 rounded border border-border cursor-help"
+                    >
+                      <span className={cn(`font-mono ${ds.textColor} text-[11.5px] font-semibold`)}>
+                        {pref.prefix}
+                      </span>
+                      {/* Tooltip for example */}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block z-50 whitespace-nowrap bg-bg border border-border px-2 py-1 rounded shadow-lg">
+                        <code className="text-[10px] font-mono text-muted">{pref.example}</code>
+                      </div>
                     </div>
                   ))}
                 </div>
