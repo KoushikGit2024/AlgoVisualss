@@ -237,6 +237,11 @@ export interface RuntimeSnapshot {
      * retains context variables (e.g. graph adjacency list) during deep recursion.
      */
     variables:  Record<string, SnapshotVariable>;
+    /**
+     * Variables isolated by stack frame, ordered from bottom to top.
+     * This ensures the visualizer can separate local variables per recursive call.
+     */
+    perFrameVariables?: Record<string, SnapshotVariable>[];
     /** Ordered function names currently on the call stack, bottom → top. */
     callStack:  string[];
     /**

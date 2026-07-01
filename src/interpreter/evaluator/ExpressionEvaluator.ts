@@ -605,9 +605,14 @@ export class ExpressionEvaluator {
       right = right.charCodeAt(0);
     }
     if (typeof left === "string" && left.length === 1 && typeof right === "string" && right.length === 1) {
-      if (expr.operator === "-" || expr.operator === "+" || expr.operator === "*" || expr.operator === "/") {
+      if (expr.operator === "-" || expr.operator === "*" || expr.operator === "/") {
         left = left.charCodeAt(0);
         right = right.charCodeAt(0);
+      } else if (expr.operator === "+") {
+        if (this.isTypeChar(expr.left) && this.isTypeChar(expr.right)) {
+          left = left.charCodeAt(0);
+          right = right.charCodeAt(0);
+        }
       }
     }
 
@@ -934,8 +939,8 @@ export class ExpressionEvaluator {
       // ── <climits> ────────────────────────────────────────────────────────
       case "INT_MAX":     return  2_147_483_647;
       case "INT_MIN":     return -2_147_483_648;
-      case "LONG_MAX":    return  2_147_483_647;
-      case "LONG_MIN":    return -2_147_483_648;
+      case "LONG_MAX":    return  Number.MAX_SAFE_INTEGER;
+      case "LONG_MIN":    return -Number.MAX_SAFE_INTEGER;
       case "LLONG_MAX":   return  Number.MAX_SAFE_INTEGER;
       case "LLONG_MIN":   return -Number.MAX_SAFE_INTEGER;
       case "UINT_MAX":    return  4_294_967_295;
@@ -968,5 +973,34 @@ export class ExpressionEvaluator {
       case "NaN":         return  NaN;
       default:            return  undefined;
     }
+  }
+
+  /**
+   * Helper to determine if an expression explicitly represents a C++ `char`.
+   * Used to distinguish `char + char` (integer math) from `string + string/char` (concatenation).
+   */
+  private isTypeChar(expr: IRExpression): boolean {
+    if (expr.kind === "Literal") {
+      return (expr as any).valueType === "char";
+    }
+    if (expr.kind === "Identifier") {
+      try {
+        return this.scopeManager.getVariable((expr as any).name).type === "char";
+      } catch {
+        return false;
+      }
+    }
+    if (expr.kind === "SubscriptExpression") {
+      const obj = (expr as any).object;
+      if (obj.kind === "Identifier") {
+        try {
+          const type = this.scopeManager.getVariable(obj.name).type;
+          return type === "string" || type === "std::string" || type === "char*";
+        } catch {
+          return false;
+        }
+      }
+    }
+    return false;
   }
 }

@@ -400,6 +400,7 @@ export interface IRForRangeStatement extends IRBaseNode {
   kind:         "ForRangeStatement";
   iteratorType: string;
   iteratorName: string;
+  isConst?:     boolean;
   collection:   IRExpression;
   body:         IRBlock;
 }

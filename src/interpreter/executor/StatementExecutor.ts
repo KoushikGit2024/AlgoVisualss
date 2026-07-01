@@ -58,7 +58,7 @@ import { EventEmitter }        from "../events/EventEmitter";
 import { ExpressionEvaluator } from "../evaluator/ExpressionEvaluator";
 import { EventType }           from "../types";
 import type { CppValue, StaticStorageKey } from "../types";
-import { ReturnSignal, ThrowSignal, cloneRuntimeValue }       from "../utils/helpers";
+import { ReturnSignal, ThrowSignal, cloneRuntimeValue, makeMockContainer }       from "../utils/helpers";
 
 
 // ─── StatementExecutor ────────────────────────────────────────────────────────
@@ -276,6 +276,11 @@ export class StatementExecutor {
       value = cloneRuntimeValue(value);
     }
 
+    // Coerce numbers assigned to char variables back to char strings.
+    if ((resolvedType === "char" || resolvedType === "const char") && typeof value === "number") {
+      value = String.fromCharCode(value);
+    }
+
     // ── Structured binding support: `auto [a, b] = expr;` ─────────────────
     if (node.name.startsWith("[") && node.name.endsWith("]")) {
       this.defineStructuredBinding(node, resolvedType, value, isConst);
@@ -449,11 +454,20 @@ export class StatementExecutor {
     const blueprint = this.classBlueprints!.get(typeName)!;
     const instance: Record<string, any> = { __type: typeName };
 
-    // Apply default field values.
+    // Apply default field values with proper type-directed defaults.
+    // H1 (Review 1): Replaces previous hardcoded `0` which gave wrong defaults
+    // for string (should be ""), bool (should be false), and pointer (null) fields.
     for (const field of blueprint.fields) {
-      instance[field.name] = field.defaultValue
-        ? this.evaluator.evaluate(field.defaultValue)
-        : 0;
+      if (field.defaultValue) {
+        instance[field.name] = this.evaluator.evaluate(field.defaultValue);
+      } else {
+        const t = field.type.toLowerCase();
+        if (t.includes("[]")) instance[field.name] = [];
+        else if (t === "string" || t === "std::string" || t === "wstring") instance[field.name] = "";
+        else if (t.includes("bool")) instance[field.name] = false;
+        else if (t.includes("*") || t.includes("nullptr")) instance[field.name] = null;
+        else instance[field.name] = 0;
+      }
     }
 
     // Overlay explicit constructor arguments positionally.
@@ -489,7 +503,7 @@ export class StatementExecutor {
     const isQueue = typeLower === "queue" || (typeLower.includes("queue") && !isPriorityQueue);
 
     const container: Record<string, any> = {
-      data: [...initialData],
+      ...makeMockContainer(initialData),
 
       // ── Insertion ─────────────────────────────────────────────────────────
       push_back(val: any)  { this.data.push(cloneRuntimeValue(val));           return val; },
@@ -679,10 +693,16 @@ export class StatementExecutor {
 
       let resolvedValue: CppValue;
       try {
-        const existing = targetScopeManager.getVariable(targetVarName).value;
+        const symbol = targetScopeManager.getVariable(targetVarName);
+        const existing = symbol.value;
         resolvedValue  = stmt.operator === "="
           ? newValue
           : this.computeCompoundValue(stmt.operator, existing, newValue);
+          
+        if ((symbol.type === "char" || symbol.type === "const char") && typeof resolvedValue === "number") {
+          resolvedValue = String.fromCharCode(resolvedValue);
+        }
+        
         targetScopeManager.assignVariable(targetVarName, resolvedValue);
       } catch (e: any) {
         // Re-throw ConstAssignmentError — it is a user-visible error.
@@ -773,7 +793,6 @@ export class StatementExecutor {
       }
 
       if (!targetObj) {
-        console.error(`[Executor DEBUG] 💥 CRASH: targetObj is null/undefined. targetNode.object =`, targetNode.object);
         throw new Error(
           `Memory Access Violation at line ${stmt.line}: ` +
           `Cannot assign property '${property}' on a null or undefined reference.`

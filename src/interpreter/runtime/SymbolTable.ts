@@ -295,4 +295,24 @@ export class SymbolTable {
   public keys(): string[] {
     return Array.from(this.symbols.keys());
   }
+
+  /**
+   * Removes a symbol from this table by name.
+   *
+   * Used exclusively by ScopeManager.defineShadowing() to clear a
+   * pre-injected global/enum/static entry before re-defining it as a
+   * function parameter. This allows a parameter to legitimately shadow
+   * an engine-injected binding without triggering the "already defined"
+   * guard in define().
+   *
+   * Callers outside ScopeManager.defineShadowing() should not call this
+   * directly — all normal scoping and shadowing is handled by the
+   * SymbolTable stack in ScopeManager.
+   *
+   * @param name - The identifier to remove.
+   * @returns true if the symbol existed and was removed; false otherwise.
+   */
+  public delete(name: string): boolean {
+    return this.symbols.delete(name);
+  }
 }

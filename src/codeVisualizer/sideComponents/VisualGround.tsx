@@ -133,6 +133,10 @@ const VisualGround = ({
     workerRef.current = worker;
 
     worker.onmessage = (e) => {
+      // M3 (Review 2): Staleness guard — if another Simulate was clicked
+      // before this response arrived, discard it to prevent state corruption.
+      if (workerRef.current !== worker) return;
+
       const { success, snapshots, error } = e.data;
       if (success) {
         console.log(`[Main] Received ${snapshots.length} snapshots`);
@@ -148,6 +152,8 @@ const VisualGround = ({
     };
 
     worker.onerror = (err) => {
+      // M3 (Review 2): Staleness guard.
+      if (workerRef.current !== worker) return;
       console.error('Worker Thread Error:', err);
       setError('A fatal worker error occurred (Out of Memory / Timeout).');
       setIsCompiling(false);
@@ -286,9 +292,23 @@ const VisualGround = ({
       func: activeFunction,
     });
   });
-
+  
   // ─── TERMINAL OUTPUT ───
+  // H3 (Review 1): Replace O(n²) forward scan with a backward scan.
+  // Each snapshot carries state.output which is a cumulative string of all
+  // WRITE events up to and including that snapshot (built by the engine during
+  // run()). Walking back to the latest WRITE snapshot at or before currentStep
+  // and reading its state.output is therefore O(steps-since-last-write)
+  // instead of O(currentStep), making slider scrubbing effectively O(1).
+  // If no snapshot in the range has state.output (old engine builds), we fall
+  // back to the O(n) forward accumulation so the component stays compatible.
   const consoleOutput = useMemo(() => {
+    // Fast path: walk backward to find the most recent snapshot with cumulative output.
+    for (let i = currentStep; i >= 0; i--) {
+      const snap = snapshots[i];
+      if (snap?.state?.output !== undefined) return snap.state.output as string;
+    }
+    // Fallback: accumulate from scratch (for engine builds without state.output).
     let out = '';
     for (let i = 0; i <= currentStep; i++) {
       if (snapshots[i]?.event?.type === 'WRITE' && snapshots[i].event.payload?.output) {
@@ -611,7 +631,7 @@ const VisualGround = ({
           onMouseDown={() => setDraggingDiv('h')}
           className="flex items-center justify-center w-1 cursor-col-resize z-10 shrink-0 hover:bg-surface-2 transition-colors"
         >
-          <div className="w-[1px] h-12 rounded-full bg-border" />
+          <div className="w-px h-12 rounded-full bg-border" />
         </div>
         )}
 
@@ -673,7 +693,7 @@ const VisualGround = ({
             onMouseDown={() => setDraggingDiv('v')}
             className="flex items-center justify-center h-1 cursor-row-resize z-10 shrink-0 hover:bg-surface-2 transition-colors my-[-2px]"
           >
-            <div className="h-[1px] w-12 rounded-full bg-border" />
+            <div className="h-px w-12 rounded-full bg-border" />
           </div>
           )}
 
@@ -895,6 +915,6 @@ const VisualGround = ({
       </div>
     </div>
   );
-};
+}
 
 export default React.memo(VisualGround);

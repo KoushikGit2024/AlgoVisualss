@@ -195,7 +195,7 @@ export class EventEmitter {
     }
 
     // ── Step 2: Category filter ───────────────────────────────────────────
-    if (this.isSuppressed(type)) {
+    if (this.isSuppressed(type, payload)) {
       this.suppressedCount++;
       return; // Step counter NOT advanced — suppressed steps leave no gap.
     }
@@ -286,8 +286,9 @@ export class EventEmitter {
    * like READ events inside tight loops).
    *
    * @param type - The event category to test.
+   * @param payload - Optional event payload (needed for native call suppression check).
    */
-  public isSuppressed(type: EventType): boolean {
+  public isSuppressed(type: EventType, payload?: any): boolean {
     if (!this.filter) return false;
 
     switch (type) {
@@ -303,10 +304,7 @@ export class EventEmitter {
 
       case EventType.FUNCTION_CALL:
       case EventType.FUNCTION_RETURN:
-        // suppressNativeCalls is handled by ExecutionEngine passing a flag on
-        // the payload. The emitter itself cannot distinguish native vs user
-        // calls, so it never suppresses FUNCTION_CALL/RETURN here.
-        return false;
+        return this.filter?.suppressNativeCalls === true && (payload as any)?.isNative === true;
 
       default:
         // All other event types (DECLARE, ASSIGNMENT, WRITE, CONDITION,

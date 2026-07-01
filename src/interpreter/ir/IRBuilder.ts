@@ -439,7 +439,7 @@ export class IRBuilder {
       c.type === "reference_declarator"
     );
     let typeNode: any = node.child(0);
-    if (typeNode && declaratorNode && (typeNode.equals(declaratorNode) || typeNode.type === declaratorNode.type)) {
+    if (typeNode && declaratorNode && ((typeof typeNode.equals === 'function' ? typeNode.equals(declaratorNode) : (typeNode as any).id === (declaratorNode as any).id) || typeNode.type === declaratorNode.type)) {
       // It's a constructor, so it has no return type
       typeNode = null;
     }
@@ -765,21 +765,33 @@ export class IRBuilder {
           );
           if (paramList) {
             let innerText = paramList.text.slice(1, -1).trim();
-            const argStrings: string[] = [];
-            let current = "";
-            let depth = 0;
-            for (let i = 0; i < innerText.length; i++) {
-              const char = innerText[i];
-              if (char === '(' || char === '<') depth++;
-              else if (char === ')' || char === '>') depth--;
-              else if (char === ',' && depth === 0) {
-                argStrings.push(current.trim());
-                current = "";
-                continue;
+            const splitArgs = (text: string): string[] => {
+              const result: string[] = [];
+              let current = "";
+              let depth = 0;
+              let inStr = false;
+              let inChar = false;
+              for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const prev = i > 0 ? text[i - 1] : '';
+                if (char === '"' && prev !== '\\' && !inChar) inStr = !inStr;
+                else if (char === "'" && prev !== '\\' && !inStr) inChar = !inChar;
+                else if (!inStr && !inChar) {
+                  if (char === '(' || char === '<') depth++;
+                  else if (char === ')' || char === '>') depth--;
+                  else if (char === ',' && depth === 0) {
+                    result.push(current.trim());
+                    current = "";
+                    continue;
+                  }
+                }
+                current += char;
               }
-              current += char;
-            }
-            if (current.trim()) argStrings.push(current.trim());
+              if (current.trim()) result.push(current.trim());
+              return result;
+            };
+
+            const argStrings = splitArgs(innerText);
 
             const rawArgs: IRExpression[] = [];
             for (const argStr of argStrings) {
@@ -788,7 +800,7 @@ export class IRBuilder {
               } else if (argStr.match(/^([a-zA-Z_][a-zA-Z0-9_]*\s*<\s*[a-zA-Z0-9_:\s]+\s*>)\s*\((.*)\)$/)) {
                 const match = argStr.match(/^([a-zA-Z_][a-zA-Z0-9_]*\s*<\s*[a-zA-Z0-9_:\s]+\s*>)\s*\((.*)\)$/);
                 const callee = match![1];
-                const innerArgs = match![2].split(",").map(s => s.trim()).filter(s => s);
+                const innerArgs = splitArgs(match![2]).filter(s => s);
                 rawArgs.push({
                   kind: "FunctionCall",
                   line: node.startPosition.row + 1,
@@ -800,7 +812,7 @@ export class IRBuilder {
               } else if (argStr.match(/^([a-zA-Z_][a-zA-Z0-9_:]*)\s*\((.*)\)$/)) {
                 const match = argStr.match(/^([a-zA-Z_][a-zA-Z0-9_:]*)\s*\((.*)\)$/);
                 const callee = match![1];
-                const innerArgs = match![2].split(",").map(s => s.trim()).filter(s => s);
+                const innerArgs = splitArgs(match![2]).filter(s => s);
                 rawArgs.push({
                   kind: "FunctionCall",
                   line: node.startPosition.row + 1,
@@ -867,16 +879,25 @@ export class IRBuilder {
       node.type === "pointer_declarator"   ||
       node.type === "reference_declarator"
     ) {
+      if (node.namedChildren.length > 0) {
+        return this.getDeclaratorName(node.namedChildren[0]);
+      }
       return node.child(1) ? this.getDeclaratorName(node.child(1)!) : "unknown";
     }
 
     if (node.type === "array_declarator") {
+      if (node.namedChildren.length > 0) {
+        return this.getDeclaratorName(node.namedChildren[0]);
+      }
       return node.child(0) ? this.getDeclaratorName(node.child(0)!) : "unknown";
     }
 
     // Tree-sitter misparse: `vector<int> v(n)` → function_declarator.
     // child(0) is the name identifier; child(1) is the fake parameter list.
     if (node.type === "function_declarator") {
+      if (node.namedChildren.length > 0) {
+        return this.getDeclaratorName(node.namedChildren[0]);
+      }
       return node.child(0) ? this.getDeclaratorName(node.child(0)!) : "unknown";
     }
 
@@ -1099,8 +1120,6 @@ export class IRBuilder {
           operator: (updateNode.child(1)?.text ?? "=") as IRAssignment["operator"],
           value:    this.buildExpression(updateNode.child(2) as SyntaxNode),
         };
-      } else if (updateNode.type === "comma_expression") {   // v2
-        update = this.buildExpression(updateNode);
       } else {
         update = this.buildExpression(updateNode);
       }
@@ -1139,6 +1158,7 @@ export class IRBuilder {
 
     let varType = "auto";
     let varName = "unknown";
+    let isConst = false;
     const firstNode = node.namedChildren[0];
 
     if (firstNode?.type === "declaration") {
@@ -1160,12 +1180,31 @@ export class IRBuilder {
         typeParts.push(c.text);
       }
       varType = typeParts.join(" ") || "auto";
+      isConst = typeParts.includes("const");
       varName = declaratorChild ? this.getDeclaratorName(declaratorChild) : "unknown";
     } else {
-      varType = firstNode?.text ?? "auto";
-      varName = node.namedChildren.length > 1
-        ? this.getDeclaratorName(node.namedChildren[1])
-        : "unknown";
+      let typeParts: string[] = [];
+      let declaratorChild: SyntaxNode | undefined;
+      // In tree-sitter, the children before `collectionNode` comprise the type and declarator.
+      for (const c of node.namedChildren) {
+        if ((c as any).id === (collectionNode as any).id) break;
+        if (
+          c.type === "identifier"                  ||
+          c.type === "pointer_declarator"          ||
+          c.type === "reference_declarator"        ||
+          c.type === "array_declarator"            ||
+          c.type === "function_declarator"         ||
+          c.type === "structured_binding_declarator"
+        ) {
+          declaratorChild = c;
+          // Stop accumulating type parts once we hit the declarator
+          break;
+        }
+        typeParts.push(c.text);
+      }
+      varType = typeParts.join(" ") || "auto";
+      isConst = typeParts.includes("const");
+      varName = declaratorChild ? this.getDeclaratorName(declaratorChild) : "unknown";
     }
 
     return {
@@ -1173,6 +1212,7 @@ export class IRBuilder {
       line:         node.startPosition.row + 1,
       iteratorType: varType,
       iteratorName: varName,
+      isConst,
       collection:   this.buildExpression(collectionNode),
       body:         this.wrapInBlock(bodyNode),
     };

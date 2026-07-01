@@ -159,7 +159,7 @@ const CodeEditor = ({
 
       <button
         onClick={handleCopy}
-        className="absolute bottom-3 right-4 z-10 p-1.5 bg-surface/80 hover:bg-surface border border-border rounded text-muted hover:text-text opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm"
+        className="absolute top-3 right-4 z-10 p-1.5 bg-surface/80 hover:bg-surface border border-border rounded text-muted hover:text-text opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm"
         title="Copy Code"
       >
         {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}

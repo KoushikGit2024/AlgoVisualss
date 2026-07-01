@@ -85,11 +85,12 @@ int main() {
 
           {/* View Content */}
           <div className="flex-1 w-full h-full overflow-hidden min-h-0">
-            {activeView === "docs" ? (
+            <div className={`w-full h-full ${activeView === "docs" ? "block" : "hidden"}`}>
               <DocParser data={data} />
-            ) : (
+            </div>
+            <div className={`w-full h-full ${activeView === "visualizer" ? "block" : "hidden"}`}>
               <CodeWindow codeObject={getCodeObject()} />
-            )}
+            </div>
           </div>
         </div>
       )}

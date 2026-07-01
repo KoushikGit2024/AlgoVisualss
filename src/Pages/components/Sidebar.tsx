@@ -409,7 +409,7 @@ export default function Sidebar() {
     if (isMounted) setLoading(false);
     
     return () => { isMounted = false; };
-  }, [algoTopic, isSidebarPage, isAlgo, isVis, pathname, platform]);
+  }, [algoTopic, isSidebarPage, isAlgo, isVis, platform]);
 
   const filteredData = useMemo(() => {
     if (!data) return [];

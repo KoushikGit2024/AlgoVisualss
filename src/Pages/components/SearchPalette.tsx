@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Command, CornerDownLeft } from "lucide-react";
+import { Search, Command, CornerDownLeft, Compass, ArrowRight } from "lucide-react";
 import ALGODATA from "../algorithms/data/categories/AlgoData";
 import { cn } from "../../lib/utils";
 
@@ -47,20 +47,20 @@ ALGODATA.forEach(cat => {
 
   cat.items?.forEach(item => {
     let itemText = extractText(item.about);
-    
+
     // Include complexity in search text
     if (item.timeComplexityCalculation) {
       const tc = item.timeComplexityCalculation;
-      itemText += " " + (tc.notation || "") + " " + 
-        extractText(tc.best) + " " + 
-        extractText(tc.average) + " " + 
+      itemText += " " + (tc.notation || "") + " " +
+        extractText(tc.best) + " " +
+        extractText(tc.average) + " " +
         extractText(tc.worst);
     }
     if (item.spaceComplexityCalculation) {
       const sc = item.spaceComplexityCalculation;
-      itemText += " " + (sc.notation || "") + " " + 
-        extractText(sc.best) + " " + 
-        extractText(sc.average) + " " + 
+      itemText += " " + (sc.notation || "") + " " +
+        extractText(sc.best) + " " +
+        extractText(sc.average) + " " +
         extractText(sc.worst);
     }
 
@@ -77,6 +77,44 @@ ALGODATA.forEach(cat => {
   });
 });
 
+// A handful of topics to surface as quick suggestions when a query misses.
+const FALLBACK_TOPICS = SEARCH_INDEX.filter(i => i.category === "Topic").slice(0, 4);
+
+// Deterministic accent per category so the same topic always reads as the
+// same color across a session — a lightweight way to let people pattern-match
+// results by category without needing a legend.
+const CATEGORY_HUES = [
+  "var(--accent)",
+  "var(--accent-2)",
+  "var(--accent-3)",
+  "var(--ds-graph)",
+  "var(--ds-tree)",
+  "var(--ds-trie)",
+  "var(--ds-matrix)",
+];
+const categoryColor = (category: string) => {
+  let hash = 0;
+  for (let i = 0; i < category.length; i++) hash = (hash * 31 + category.charCodeAt(i)) | 0;
+  return CATEGORY_HUES[Math.abs(hash) % CATEGORY_HUES.length];
+};
+
+// Wrap the first matched substring in a <mark> so people can see *why* a
+// result surfaced, not just that it did.
+const highlight = (text: string, query: string): ReactNode => {
+  if (!query.trim() || !text) return text;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return text;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="bg-accent/20 text-accent rounded-[3px] px-[1px] font-semibold">
+        {text.slice(idx, idx + query.length)}
+      </mark>
+      {text.slice(idx + query.length)}
+    </>
+  );
+};
+
 interface SearchPaletteProps {
   isOpen: boolean;
   onClose: () => void;
@@ -91,10 +129,21 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
 
   // Filter results
   const results = useMemo(() => {
-    if (!query.trim()) return SEARCH_INDEX.slice(0, 5); // Show first 5 by default
+    if (!query.trim()) return SEARCH_INDEX.slice(0, 6); // Quick-access default
     const q = query.toLowerCase();
-    return SEARCH_INDEX.filter(item => item.searchText.includes(q)).slice(0, 8); // Max 8 results
+    return SEARCH_INDEX.filter(item => item.searchText.includes(q)).slice(0, 20);
   }, [query]);
+
+  // Group results by category, preserving first-seen order, so the list
+  // reads as sections instead of one undifferentiated stream.
+  const groups = useMemo(() => {
+    const map = new Map<string, SearchItem[]>();
+    results.forEach(item => {
+      if (!map.has(item.category)) map.set(item.category, []);
+      map.get(item.category)!.push(item);
+    });
+    return Array.from(map.entries());
+  }, [results]);
 
   // Reset selected index on query change
   useEffect(() => {
@@ -139,13 +188,12 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
     }
   };
 
-  // Scroll active item into view
+  // Scroll active item into view (looked up by data-index since the list is
+  // now sectioned with header elements interleaved between rows).
   useEffect(() => {
     if (listRef.current) {
-      const activeEl = listRef.current.children[selectedIndex] as HTMLElement;
-      if (activeEl) {
-        activeEl.scrollIntoView({ block: "nearest" });
-      }
+      const activeEl = listRef.current.querySelector(`[data-index="${selectedIndex}"]`) as HTMLElement | null;
+      activeEl?.scrollIntoView({ block: "nearest" });
     }
   }, [selectedIndex]);
 
@@ -160,11 +208,15 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
     "Hard": "text-red-400 border-red-400/30 bg-red-400/10"
   };
 
+  // Flat counter used to hand out data-index values as we walk the grouped
+  // structure, so keyboard nav stays in sync with the visual order.
+  let flatIndex = -1;
+
   return (
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4">
-          
+
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -181,86 +233,169 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-            className="relative w-full max-w-xl bg-surface rounded-xl border border-border shadow-2xl overflow-hidden flex flex-col"
+            className="relative w-full max-w-[640px] bg-[var(--bg)] rounded-xl border border-[var(--border)] shadow-2xl overflow-hidden flex flex-col"
           >
+            {/* Signature gradient hairline — ties the palette to the brand accent trio */}
+            {/* <div
+              className="h-[3px] w-full shrink-0"
+              style={{ background: "linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3))" }}
+            /> */}
+
             {/* Input Header */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-surface-2/50">
-              <Search size={18} className="text-muted shrink-0" />
+            <div className="flex items-center gap-4 px-5 py-4 border-b border-[var(--border)] bg-[var(--surface)] transition-shadow duration-200 focus-within:shadow-[inset_0_-2px_0_var(--accent)]">
+              <Search size={20} className="text-[var(--accent)] shrink-0" strokeWidth={2.25} />
               <input
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Search algorithms, structures, or complexities..."
-                className="flex-1 bg-transparent border-none outline-none text-text text-[15px] placeholder:text-muted/70"
+                placeholder="Search algorithms, data structures..."
+                className="flex-1 bg-transparent border-none outline-none text-[var(--text)] text-[16px] md:text-[18px] placeholder:text-[var(--muted)]/60 font-medium tracking-tight"
               />
-              <kbd className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-surface border border-border text-[10px] font-mono font-semibold text-muted shrink-0">
+              {query && (
+                <span className="hidden sm:block text-[11px] font-mono font-semibold text-[var(--muted)] shrink-0">
+                  {results.length} result{results.length === 1 ? "" : "s"}
+                </span>
+              )}
+              <kbd className="hidden sm:flex items-center justify-center h-6 px-2 rounded-[6px] bg-[var(--surface-2)] border border-[var(--border)] text-[11px] font-mono font-bold text-[var(--muted)] shrink-0 shadow-sm">
                 ESC
               </kbd>
             </div>
 
             {/* Results List */}
-            <div 
+            <div
               ref={listRef}
-              className="max-h-[340px] overflow-y-auto styled-scrollbar p-2 flex flex-col"
+              className="max-h-[400px] overflow-y-auto styled-scrollbar p-3 flex flex-col gap-1"
             >
+              {!query.trim() && (
+                <div className="flex items-center gap-2 px-2 pb-1 pt-0.5">
+                  <Compass size={12} className="text-[var(--muted)] opacity-70" />
+                  <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
+                    Jump back in
+                  </span>
+                </div>
+              )}
+
               {results.length === 0 ? (
-                <div className="py-10 text-center text-muted text-[13px]">
-                  No results found for "{query}"
+                <div className="py-12 flex flex-col items-center justify-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-[var(--surface-2)] flex items-center justify-center">
+                    <Search size={20} className="text-[var(--muted)] opacity-50" />
+                  </div>
+                  <span className="text-[14px] font-medium text-[var(--muted)]">
+                    No results for "{query}"
+                  </span>
+                  <div className="flex flex-wrap items-center justify-center gap-2 px-6">
+                    {FALLBACK_TOPICS.map(topic => (
+                      <button
+                        key={topic.id}
+                        onClick={() => handleSelect(topic)}
+                        className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--text)] bg-[var(--surface-2)] border border-[var(--border)] rounded-full px-3 py-1.5 hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+                      >
+                        {topic.title}
+                        <ArrowRight size={11} className="opacity-60" />
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ) : (
-                results.map((item, idx) => {
-                  const isActive = idx === selectedIndex;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => handleSelect(item)}
-                      onMouseEnter={() => setSelectedIndex(idx)}
-                      className={cn(`w-full text-left flex items-start gap-3 px-3 py-2.5 rounded-lg transition-colors duration-150 ${
-                        isActive ? "bg-surface-2 shadow-sm" : "hover:bg-surface-2/50"
-                      }`)}
-                    >
-                      <div className="flex-1 min-w-0 flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-[14px] text-text truncate">{item.title}</span>
-                          <span className="text-[10px] text-muted border border-border px-1.5 rounded-sm shrink-0">
-                            {item.category}
-                          </span>
-                          {item.type && (
-                            <span className={cn(`text-[9px] font-bold font-mono px-1.5 py-0.5 rounded-sm border shrink-0 ${TYPE_COLORS[item.type]}`)}>
-                              {item.type.toUpperCase()}
-                            </span>
+                groups.map(([category, items]) => (
+                  <div key={category} className="flex flex-col gap-1">
+                    {/* Section header */}
+                    <div className="sticky top-0 z-10 flex items-center gap-2 px-2 pt-2 pb-1 bg-[var(--bg)]">
+                      <span
+                        className="w-1.5 h-1.5 rounded-full shrink-0"
+                        style={{ backgroundColor: categoryColor(category) }}
+                      />
+                      <span className="text-[10.5px] font-bold uppercase tracking-wider text-[var(--muted)]">
+                        {category}
+                      </span>
+                      <span className="text-[10px] font-mono text-[var(--muted)] opacity-50">
+                        {items.length}
+                      </span>
+                    </div>
+
+                    {items.map((item) => {
+                      flatIndex += 1;
+                      const idx = flatIndex;
+                      const isActive = idx === selectedIndex;
+                      const accent = categoryColor(item.category);
+
+                      return (
+                        <button
+                          key={item.id}
+                          data-index={idx}
+                          onClick={() => handleSelect(item)}
+                          onMouseEnter={() => setSelectedIndex(idx)}
+                          className={cn(`group relative w-full text-left flex items-start gap-3 pl-4 pr-4 py-3 rounded-lg border transition-all duration-150 outline-none ${
+                            isActive
+                              ? "bg-[var(--surface-2)] border-[var(--border-2)] shadow-sm"
+                              : "border-transparent hover:bg-[var(--surface)]"
+                          }`)}
+                        >
+                          {isActive && (
+                            <motion.div
+                              layoutId="search-active-pill"
+                              className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full"
+                              style={{ backgroundColor: accent }}
+                              transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
+                            />
                           )}
-                        </div>
-                        {item.snippet && (
-                          <span className="text-[12px] text-muted line-clamp-1 leading-relaxed">
-                            {item.snippet}
-                          </span>
-                        )}
-                      </div>
-                      
-                      {isActive && (
-                        <div className="hidden sm:flex items-center shrink-0 mt-1">
-                          <CornerDownLeft size={14} className="text-accent" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })
+
+                          <div className="flex-1 min-w-0 flex flex-col gap-1">
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="font-semibold text-[15px] truncate text-[var(--text)]">
+                                {highlight(item.title, query)}
+                              </span>
+                              {item.type && (
+                                <span className={cn(`text-[10px] font-bold font-mono tracking-wider px-2 py-0.5 rounded-full border shrink-0 ${TYPE_COLORS[item.type]}`)}>
+                                  {item.type.toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+
+                            {item.snippet && (
+                              <span className={cn(`text-[13px] line-clamp-1 leading-relaxed transition-colors ${
+                                isActive ? "text-[var(--text)] opacity-80" : "text-[var(--muted)]"
+                              }`)}>
+                                {highlight(item.snippet, query)}
+                              </span>
+                            )}
+                          </div>
+
+                          {isActive && (
+                            <div className="hidden sm:flex items-center self-center shrink-0 ml-2">
+                              <CornerDownLeft size={16} className="text-[var(--muted)]" />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))
               )}
             </div>
 
             {/* Footer */}
-            <div className="px-4 py-2 bg-surface-2 border-t border-border flex items-center justify-between">
-              <div className="flex items-center gap-4 text-[10px] text-muted font-medium">
-                <span className="flex items-center gap-1"><kbd className="px-1 py-0.5 rounded bg-surface border border-border">↑</kbd> <kbd className="px-1 py-0.5 rounded bg-surface border border-border">↓</kbd> to navigate</span>
-                <span className="flex items-center gap-1"><kbd className="px-1 py-0.5 rounded bg-surface border border-border">↵</kbd> to select</span>
+            <div className="px-5 py-3 border-t border-[var(--border)] flex items-center justify-between bg-[var(--surface)]">
+              <div className="flex items-center gap-5 text-[11px] text-[var(--muted)] font-medium">
+                <span className="flex items-center gap-2">
+                  <span className="flex items-center gap-1">
+                    <kbd className="flex items-center justify-center w-5 h-5 rounded-[4px] bg-[var(--surface)] border border-[var(--border)] shadow-sm text-xs">↑</kbd>
+                    <kbd className="flex items-center justify-center w-5 h-5 rounded-[4px] bg-[var(--surface)] border border-[var(--border)] shadow-sm text-xs">↓</kbd>
+                  </span>
+                  Navigate
+                </span>
+                <span className="flex items-center gap-2">
+                  <kbd className="flex items-center justify-center w-5 h-5 rounded-[4px] bg-[var(--surface)] border border-[var(--border)] shadow-sm text-[10px]">↵</kbd>
+                  Select
+                </span>
               </div>
-              <div className="flex items-center gap-1 text-[10px] font-mono text-muted/70">
-                <Command size={10} /> AlgoSearch
+              <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold opacity-80">
+                <Command size={11} className="text-[var(--muted)]" />
+                <span className="text-[var(--muted)]">AlgoVisuals</span>
               </div>
             </div>
-            
+
           </motion.div>
         </div>
       )}

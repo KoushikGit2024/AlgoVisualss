@@ -35,6 +35,10 @@ import { ScopeManager } from "../runtime/ScopeManager";
 const globalIdMap = new WeakMap<any, number>();
 let globalIdCounter = 1;
 
+export function resetGlobalIdCounter() {
+  globalIdCounter = 1;
+}
+
 function getObjectId(obj: any): string {
   if (!globalIdMap.has(obj)) {
     globalIdMap.set(obj, globalIdCounter++);
@@ -55,74 +59,89 @@ export function deepCloneCppValue(value: any, seen = new Set()): any {
     typeof value === "string"
   ) return value;
 
+  if (value.kind === "LambdaExpression") return "[Lambda]";
   if (typeof value === "function") return "[Function]";
 
-  if (typeof value === "object") {
+  // Track whether this value is an object so we know whether to remove it
+  // from `seen` in the finally block. Only objects are added to `seen`.
+  const isObj = typeof value === "object";
+  if (isObj) {
+    // `seen` tracks the current DFS path, not "ever visited".
+    // This correctly detects true cycles (object reachable from itself along
+    // the current path) while allowing legitimate shared references across
+    // sibling branches (DAGs, slow/fast pointer pairs, doubly-linked nodes).
     if (seen.has(value)) {
       return { __circular_ref: getObjectId(value) };
     }
     seen.add(value);
   }
 
-  if (typeof value === "object" && "__ref" in value) {
-    const callerScope = value.__callerScope;
-    if (callerScope && typeof callerScope.getVariable === "function") {
-      try {
-        const symbol = callerScope.getVariable(value.__ref);
-        return {
-          __ref:      value.__ref,
-          __resolved: deepCloneCppValue(symbol.value, seen),
-        };
-      } catch {
-        return `&${value.__ref}`;
+  try {
+    if (typeof value === "object" && "__ref" in value) {
+      const callerScope = value.__callerScope;
+      if (callerScope && typeof callerScope.getVariable === "function") {
+        try {
+          const symbol = callerScope.getVariable(value.__ref);
+          return {
+            __ref:      value.__ref,
+            __resolved: deepCloneCppValue(symbol.value, seen),
+          };
+        } catch {
+          return `&${value.__ref}`;
+        }
       }
+      return `&${value.__ref}`;
     }
-    return `&${value.__ref}`;
-  }
 
-  if (value instanceof Map) {
-    const entries: [any, any][] = [];
-    value.forEach((v: any, k: any) => {
-      entries.push([deepCloneCppValue(k, seen), deepCloneCppValue(v, seen)]);
-    });
-    return { __type: "map", entries };
-  }
+    if (value instanceof Map) {
+      const entries: [any, any][] = [];
+      value.forEach((v: any, k: any) => {
+        entries.push([deepCloneCppValue(k, seen), deepCloneCppValue(v, seen)]);
+      });
+      return { __type: "map", entries };
+    }
 
-  if (value instanceof Set) {
-    return Array.from(value).map(v => deepCloneCppValue(v, seen));
-  }
+    if (value instanceof Set) {
+      return Array.from(value).map(v => deepCloneCppValue(v, seen));
+    }
 
-  if (Array.isArray(value)) {
-    return value.map(v => deepCloneCppValue(v, seen));
-  }
+    if (Array.isArray(value)) {
+      return value.map(v => deepCloneCppValue(v, seen));
+    }
 
-  if (
-    typeof value === "object" &&
-    "data" in value &&
-    Array.isArray((value as Record<string, any>).data)
-  ) {
-    return {
-      __type: "container",
-      data: (value.data as any[]).map(v => deepCloneCppValue(v, seen)),
-    };
-  }
+    if (
+      typeof value === "object" &&
+      "data" in value &&
+      Array.isArray((value as Record<string, any>).data)
+    ) {
+      return {
+        __type: "container",
+        data: (value.data as any[]).map(v => deepCloneCppValue(v, seen)),
+      };
+    }
 
-  if (typeof value === "object") {
-    const clone: Record<string, any> = {};
-    for (const key of Object.keys(value)) {
-      const prop = (value as Record<string, any>)[key];
-      if (typeof prop !== "function") {
-        clone[key] = deepCloneCppValue(prop, seen);
+    if (typeof value === "object") {
+      const clone: Record<string, any> = {};
+      for (const key of Object.keys(value)) {
+        const prop = (value as Record<string, any>)[key];
+        if (typeof prop !== "function") {
+          clone[key] = deepCloneCppValue(prop, seen);
+        }
       }
+      Object.defineProperty(clone, '__original_ref_id', {
+        value: getObjectId(value),
+        enumerable: true
+      });
+      return clone;
     }
-    Object.defineProperty(clone, '__original_ref_id', {
-      value: getObjectId(value),
-      enumerable: true
-    });
-    return clone;
-  }
 
-  return value;
+    return value;
+  } finally {
+    // Remove from the DFS path once this subtree is fully cloned.
+    // This allows the same object to be legitimately referenced from
+    // multiple sibling branches without being flagged as circular.
+    if (isObj) seen.delete(value);
+  }
 }
 
 
@@ -231,10 +250,12 @@ export function createSnapshot(
 ): RuntimeSnapshot {
 
   const variables: Record<string, SnapshotVariable> = {};
+  const perFrameVariables: Record<string, SnapshotVariable>[] = [];
 
   if (typeof callStack.getAllFrames === "function") {
     for (const frame of callStack.getAllFrames()) {
       const rawVariables = frame.scopeManager.captureState();
+      const frameVars: Record<string, SnapshotVariable> = {};
       for (const [key, symbol] of Object.entries(rawVariables)) {
         if (key.startsWith("__")) continue;
         let val = symbol.value;
@@ -247,12 +268,15 @@ export function createSnapshot(
           val = targetScope.getVariable(refName).value;
         }
 
-        variables[key] = {
+        const snapVar = {
           name:  symbol.name,
           type:  symbol.type as CppType,
           value: deepCloneCppValue(val) as CppValue,
         };
+        variables[key] = snapVar;
+        frameVars[key] = snapVar;
       }
+      perFrameVariables.push(frameVars);
     }
   } else {
     console.warn("[createSnapshot] CallStack.getAllFrames() unavailable — falling back to active scope only.");
@@ -286,6 +310,7 @@ export function createSnapshot(
     },
     state: {
       variables,
+      perFrameVariables,
       callStack:  callStack.getTrace(),
       scopeDepth: activeScopeManager.getDepth(),
       ...(accumulatedOutput !== undefined && accumulatedOutput !== ""
@@ -339,4 +364,29 @@ export class BreakpointSignal extends Error {
     this.line = line;
     Object.setPrototypeOf(this, BreakpointSignal.prototype);
   }
+}
+
+// ============================================================================
+// SECTION 4 — SHARED MOCK CONTAINER FACTORY
+// ============================================================================
+
+/**
+ * Creates a generic Mock Container to back C++ vector/deque/etc structures in JS.
+ * Used by StatementExecutor and ExecutionEngine for consistency.
+ */
+export function makeMockContainer(initialData: any[]): Record<string, any> {
+  return {
+    data: [...initialData],
+    size() { return this.data.length; },
+    empty() { return this.data.length === 0; },
+    push_back(val: any) { this.data.push(val); return val; },
+    pop_back() { return this.data.pop(); },
+    clear() { this.data = []; },
+    insert(pos: number, val: any) { this.data.splice(pos, 0, val); },
+    erase(pos: number) { this.data.splice(pos, 1); },
+    begin() { return 0; },
+    end() { return this.data.length; },
+    front() { return this.data[0]; },
+    back() { return this.data[this.data.length - 1]; },
+  };
 }

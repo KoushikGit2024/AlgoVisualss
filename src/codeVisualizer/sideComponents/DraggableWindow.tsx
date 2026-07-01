@@ -69,6 +69,13 @@ export function DraggableWindow({
       updateWindow({ snap: 'left', isMaximized: false });
     } else if (parentRect.right - pointerX < 30) {
       updateWindow({ snap: 'right', isMaximized: false });
+    } else if (
+      pointerX < parentRect.left || pointerX > parentRect.right ||
+      pointerY < parentRect.top  || pointerY > parentRect.bottom
+    ) {
+      // Dragged fully outside the visible canvas — snap back to a safe corner
+      // instead of leaving it unreachable.
+      updateWindow({ snap: 'none', isMaximized: false });
     }
   };
 

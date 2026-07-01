@@ -658,21 +658,21 @@ export class IRWalker {
         const parts = varName.slice(1, -1).split(",").map(s => s.trim());
         if (Array.isArray(val)) {
           parts.forEach((p, idx) => {
-            if (p) this.scopeManager.defineVariable(p, varType, val[idx]);
+            if (p) this.scopeManager.defineVariable(p, varType, val[idx], node.isConst);
           });
         } else if (val && typeof val === "object") {
           const keys = Object.keys(val);
           parts.forEach((p, idx) => {
-            if (p) this.scopeManager.defineVariable(p, varType, (val as any)[keys[idx]]);
+            if (p) this.scopeManager.defineVariable(p, varType, (val as any)[keys[idx]], node.isConst);
           });
         } else {
           parts.forEach(p => {
-            if (p) this.scopeManager.defineVariable(p, varType, val);
+            if (p) this.scopeManager.defineVariable(p, varType, val, node.isConst);
           });
         }
       } else {
         // Standard iterator variable.
-        this.scopeManager.defineVariable(varName, varType, val);
+        this.scopeManager.defineVariable(varName, varType, val, node.isConst);
       }
 
       try {
@@ -749,9 +749,10 @@ export class IRWalker {
         !handler.catchType ||   // bare `catch(e)` with no type — matches anything
         handler.catchType === caughtSignal.payload.typeName ||
         // Allow matching base type names: `catch (exception& e)` catches
-        // `std::exception`-derived throws when the type prefix matches.
+        // `std::exception`-derived throws when the namespace prefix matches.
         (handler.catchType &&
-         caughtSignal.payload.typeName?.endsWith(handler.catchType));
+         (caughtSignal.payload.typeName === handler.catchType ||
+          caughtSignal.payload.typeName?.endsWith("::" + handler.catchType)));
 
       if (doesMatch) {
         matched = true;

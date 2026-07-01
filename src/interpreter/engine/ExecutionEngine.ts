@@ -86,6 +86,8 @@ import {
   ThrowSignal,
   BreakpointSignal,
   cloneRuntimeValue,
+  resetGlobalIdCounter,
+  makeMockContainer,
 } from "../utils/helpers";
 
 
@@ -246,7 +248,10 @@ export class ExecutionEngine {
                 this.importanceLevel = 3;
               } else {
                 // Final fallback: uniformly drop half of the remaining events (e.g. Function calls)
-                this.snapshots = this.snapshots.filter((_, i) => i % 2 === 0);
+                const last = this.snapshots[this.snapshots.length - 1];
+                const kept = this.snapshots.filter((_, i) => i % 2 === 0);
+                if (kept[kept.length - 1] !== last) kept.push(last);
+                this.snapshots = kept;
                 this.snapshotSkipFactor *= 2;
               }
             }
@@ -335,6 +340,8 @@ export class ExecutionEngine {
 
     // ── Global variable declarations ──────────────────────────────────────
     this.globalDeclarations = program.globals ?? [];
+    this.globalVariables.clear();
+    this.globalScopeManager = null;
   }
 
   /**
@@ -496,8 +503,12 @@ export class ExecutionEngine {
     this.snapshots         = [];
     this.accumulatedOutput = "";
     this.pausedAtStep      = null;
+    this.importanceLevel   = 0;
+    this.snapshotSkipFactor = 1;
+    this.stepsSinceLastSnapshot = 0;
     this.callStack.reset();
     this.eventEmitter.reset();
+    resetGlobalIdCounter();
     if (resetStatics) this.staticStorage.clear();
 
     if (!this.functions.has(entryPoint)) {
@@ -630,7 +641,14 @@ export class ExecutionEngine {
     try {
       if (!this.callStack.isEmpty()) {
         const activeScope = this.callStack.peek().scopeManager;
-        localFuncRef = activeScope.getVariable(fn)?.value;
+        const candidate = activeScope.getVariable(fn)?.value;
+        if (
+          typeof candidate === "function" ||
+          typeof candidate === "string" ||
+          (candidate && typeof candidate === "object" && "kind" in candidate && (candidate as any).kind === "LambdaExpression")
+        ) {
+          localFuncRef = candidate;
+        }
       }
     } catch { /* Not a local variable */ }
 
@@ -664,40 +682,14 @@ export class ExecutionEngine {
       if (args.length >= 1 && typeof args[0] === "number") size = args[0];
       if (args.length >= 2) fill = args[1] as any;
       if (size >= 0) {
-        const container = {
-          data: new Array(size).fill(fill) as any[],
-          size: () => container.data.length,
-          empty: () => container.data.length === 0,
-          push_back: (val: any) => { container.data.push(val); },
-          pop_back: () => { container.data.pop(); },
-          clear: () => { container.data = []; },
-          insert: (pos: number, val: any) => { container.data.splice(pos, 0, val); },
-          erase: (pos: number) => { container.data.splice(pos, 1); },
-          begin: () => 0,
-          end: () => container.data.length,
-          front: () => container.data[0],
-          back: () => container.data[container.data.length - 1],
-          __type: fn,
-          __isContainer: true
-        };
+        const container = makeMockContainer(new Array(size).fill(fill));
+        container.__type = fn;
+        container.__isContainer = true;
         return container;
       } else {
-        const container = {
-          data: [] as any[],
-          size: () => container.data.length,
-          empty: () => container.data.length === 0,
-          push_back: (val: any) => { container.data.push(val); },
-          pop_back: () => { container.data.pop(); },
-          clear: () => { container.data = []; },
-          insert: (pos: number, val: any) => { container.data.splice(pos, 0, val); },
-          erase: (pos: number) => { container.data.splice(pos, 1); },
-          begin: () => 0,
-          end: () => container.data.length,
-          front: () => container.data[0],
-          back: () => container.data[container.data.length - 1],
-          __type: fn,
-          __isContainer: true
-        };
+        const container = makeMockContainer([]);
+        container.__type = fn;
+        container.__isContainer = true;
         return container;
       }
     }
@@ -936,6 +928,19 @@ export class ExecutionEngine {
 
       this.eventEmitter.emit(callNode.line, EventType.ASSIGNMENT, { variable: name1, value: v2 });
       this.eventEmitter.emit(callNode.line, EventType.ASSIGNMENT, { variable: name2, value: v1 });
+    } else if (arg1.kind === "MemberExpression" && arg2.kind === "MemberExpression") {
+      // M2 (Review 1): Support swap(a.val, b.val) / swap(node1->next, node2->next).
+      const obj1 = ev.evaluate((arg1 as any).object) as any;
+      const obj2 = ev.evaluate((arg2 as any).object) as any;
+      const prop1 = (arg1 as any).property as string;
+      const prop2 = (arg2 as any).property as string;
+      if (obj1 && obj2) {
+        const tmp = obj1[prop1];
+        obj1[prop1] = obj2[prop2];
+        obj2[prop2] = tmp;
+        this.eventEmitter.emit(callNode.line, EventType.ASSIGNMENT, { variable: prop1, value: obj1[prop1] });
+        this.eventEmitter.emit(callNode.line, EventType.ASSIGNMENT, { variable: prop2, value: obj2[prop2] });
+      }
     }
     return undefined;
   }
@@ -1214,6 +1219,17 @@ export class ExecutionEngine {
           else if ((parentObj as any)?.data) (parentObj as any).data[index as number] = objInstance;
           else (parentObj as any)[index] = objInstance;
         }
+      } else if (methodNode.object.kind === "MemberExpression") {
+        // M4 (Review 1): Auto-recovery for uninitialized struct field containers,
+        // e.g. node->children.push_back(x) where children was never set.
+        const memExpr = methodNode.object as any;
+        try {
+          const parentObj = currentEvaluator.evaluate(memExpr.object);
+          if (parentObj && typeof parentObj === "object") {
+            objInstance = [];
+            (parentObj as any)[memExpr.property] = objInstance;
+          }
+        } catch { /* Outer object also undefined — leave objInstance undefined, throw below */ }
       }
     }
 
@@ -1480,9 +1496,14 @@ export class ExecutionEngine {
     const func     = isLambda ? target : this.functions.get(name);
 
     // ── Constructor auto-recovery for unknown types ────────────────────────
+    // Only apply the array-fill heuristic when the callee name looks like a
+    // type (uppercase-first, e.g. Node, Matrix, Grid). Lowercase-first names
+    // are almost universally functions in this codebase's target C++ style —
+    // applying the heuristic to them would silently swallow genuine typos.
+    const looksLikeType = /^[A-Z]/.test(name);
     if (!func) {
-      if (args.length === 1 && typeof args[0] === "number") return new Array(args[0]).fill(0);
-      if (args.length === 2 && typeof args[0] === "number") return new Array(args[0]).fill(args[1]);
+      if (looksLikeType && args.length === 1 && typeof args[0] === "number") return new Array(args[0]).fill(0);
+      if (looksLikeType && args.length === 2 && typeof args[0] === "number") return new Array(args[0]).fill(args[1]);
       throw new Error(`Linker Error: Undefined reference to function '${name}'.`);
     }
 
@@ -1546,7 +1567,11 @@ export class ExecutionEngine {
         argValue = cloneRuntimeValue(argValue);
       }
 
-      frame.scopeManager.defineVariable(param.name, paramType, argValue);
+      // Use defineShadowing() instead of defineVariable() so that a parameter
+      // whose name matches a pre-injected global, enum constant, or static
+      // local does not throw "already defined". This is valid C++: a parameter
+      // always shadows a same-named global inside the function body.
+      frame.scopeManager.defineShadowing(param.name, paramType, argValue);
     });
 
     // ── Set up evaluator, executor, and walker ────────────────────────────
@@ -1571,27 +1596,35 @@ export class ExecutionEngine {
 
     // ── Execute function body ─────────────────────────────────────────────
     let returnValue: CppValue = undefined;
+    let unwoundByBreakpoint = false;
     try {
       walker.walkBlock(func.body);
     } catch (e) {
-      if (e instanceof ReturnSignal)    returnValue = e.value;
-      else if (e instanceof BreakpointSignal) throw e;   // Let run() catch it.
-      else throw e;
-    } finally {
-      // v2: Mirror static variable values back to persistent storage.
-      if (name !== "<lambda>" && name !== "__global_init__") {
-        const statics = frame.scopeManager.getStaticSymbols();
-        for (const [varName, value] of Object.entries(statics)) {
-          const key = `${name}::${varName}` as StaticStorageKey;
-          this.staticStorage.set(key, value);
-        }
+      if (e instanceof ReturnSignal) {
+        returnValue = e.value;
+      } else if (e instanceof BreakpointSignal) {
+        unwoundByBreakpoint = true;
+        throw e;
+      } else {
+        throw e;
       }
+    } finally {
+      if (!unwoundByBreakpoint) {
+        // v2: Mirror static variable values back to persistent storage.
+        if (name !== "<lambda>" && name !== "__global_init__") {
+          const statics = frame.scopeManager.getStaticSymbols();
+          for (const [varName, value] of Object.entries(statics)) {
+            const key = `${name}::${varName}` as StaticStorageKey;
+            this.staticStorage.set(key, value);
+          }
+        }
 
-      this.eventEmitter.emit(func.line, EventType.FUNCTION_RETURN, {
-        function:    name,
-        returnValue,
-      });
-      this.callStack.pop();
+        this.eventEmitter.emit(func.line, EventType.FUNCTION_RETURN, {
+          function:    name,
+          returnValue,
+        });
+        this.callStack.pop();
+      }
     }
 
     return returnValue;
@@ -1605,6 +1638,21 @@ export class ExecutionEngine {
   /**
    * Instantiates a struct and executes its constructor block.
    */
+  /**
+   * Returns the appropriate zero-value for a struct field type when no
+   * explicit default is provided. Mirrors C++ value-initialization semantics.
+   * H1 (Review 1): Replaces the previous hardcoded `0` which incorrectly
+   * initialized string fields to 0 and bool fields to 0.
+   */
+  private defaultForFieldType(type: string): CppValue {
+    const t = type.toLowerCase();
+    if (t.includes("[]")) return [];
+    if (t === "string" || t === "std::string" || t === "wstring") return "";
+    if (t.includes("bool")) return false;
+    if (t.includes("*") || t.includes("nullptr")) return null;
+    return 0;
+  }
+
   private instantiateStructAndExecuteConstructor(
     typeName: string,
     args: IRExpression[],
@@ -1613,17 +1661,18 @@ export class ExecutionEngine {
     const blueprint = this.classBlueprints.get(typeName)!;
     const instance: Record<string, any> = { __type: typeName };
 
-    // Apply default field values.
+    // Apply default field values with proper type-directed defaults.
+    // H1 (Review 1): Previously hardcoded to 0 for all uninitialized fields,
+    // causing string fields to start as 0 and bool fields to start as 0.
     for (const field of blueprint.fields) {
       instance[field.name] = field.defaultValue
         ? callerEvaluator.evaluate(field.defaultValue)
-        : (field.type.includes("[]") ? [] : 0);
+        : this.defaultForFieldType(field.type);
     }
 
     const evaluatedArgs = args.map(arg => callerEvaluator.evaluate(arg));
 
     if (blueprint.constructors && blueprint.constructors.length > 0) {
-      console.log(`[DEBUG] Found ${blueprint.constructors.length} constructors for ${typeName}!`);
       const ctor = blueprint.constructors.find(c => c.parameters.length === evaluatedArgs.length) || blueprint.constructors[0];
       this.invokeStructMethod(instance, typeName, ctor, evaluatedArgs);
     } else {
@@ -1646,12 +1695,42 @@ export class ExecutionEngine {
     args: CppValue[]
   ): CppValue {
     const frame = this.callStack.push(`${typeName}::${methodDecl.name}`);
-    
-    // Inject 'this' pointer
-    console.log(`[Engine DEBUG] 🛠 invokeStructMethod for ${typeName}::${methodDecl.name}, instance keys:`, Object.keys(instance));
+    // Qualified key prefix for static storage: "TypeName::methodName"
+    // This avoids the key ambiguity that would arise from using bare typeName.
+    const staticKeyPrefix = `${typeName}::${methodDecl.name}`;
+
+    // Inject 'this' pointer (H1 Review 2: debug log removed).
     frame.scopeManager.defineVariable("this", typeName, instance);
-    console.log(`[Engine DEBUG] ✅ 'this' injected. instance =`, instance);
-    
+
+    // M3 / H2 (Review 1 + 2): Inject global variables so struct methods can
+    // read and write globals, just like free functions can.
+    for (const [gName, gData] of this.globalVariables) {
+      try {
+        frame.scopeManager.injectIntoBase(gName, gData.type, {
+          __ref: gName,
+          __callerScope: this.globalScopeManager,
+        });
+      } catch { /* already present */ }
+    }
+
+    // M3 / H2 (Review 1 + 2): Inject enum member constants so struct methods
+    // can reference enum values without qualification.
+    for (const [memberName, memberValue] of this.resolvedEnumValues) {
+      try { frame.scopeManager.injectIntoBase(memberName, "int", memberValue, true, false); } catch { /* ok */ }
+    }
+
+    // H2 (Review 2): Re-inject static locals persisted from previous calls
+    // so struct methods honour C++ static local semantics.
+    for (const [key, value] of this.staticStorage) {
+      const keyStr = key as string;
+      // Keys for struct method statics have the form "TypeName::methodName::varName".
+      const prefix = keyStr.split("::").slice(0, -1).join("::");
+      const varName = keyStr.split("::").slice(-1)[0];
+      if (prefix === staticKeyPrefix) {
+        try { frame.scopeManager.injectIntoBase(varName, "auto", value, false, true); } catch { /* ok */ }
+      }
+    }
+
     // Support implicit 'this' (e.g. `value = 5;` instead of `this->value = 5;`)
     const structScope = {
       getVariable: (name: string) => {
@@ -1663,7 +1742,7 @@ export class ExecutionEngine {
         else throw new Error(`Member ${name} not found in ${typeName}`);
       }
     } as any;
-    
+
     // Collect constructor parameter names FIRST so we can skip member fields
     // that share a name with a parameter (e.g. `TreeNode(int value)` where
     // `value` is also a member field). The parameter wins in the local scope;
@@ -1679,13 +1758,12 @@ export class ExecutionEngine {
       }
     }
 
-    // Bind parameters
+    // Bind parameters (H1 Review 2: debug log removed).
     methodDecl.parameters.forEach((param: any, index: number) => {
       let paramType = param.type as CppType;
       if (paramType.includes("[]") || paramType.includes("*")) paramType = "array" as any;
       let argValue  = index < args.length ? args[index] : undefined;
       if (argValue !== undefined) argValue = cloneRuntimeValue(argValue);
-      console.log(`[Engine DEBUG] 🔗 Binding param '${param.name}' = ${argValue}`);
       frame.scopeManager.defineVariable(param.name, paramType, argValue);
     });
 
@@ -1693,9 +1771,12 @@ export class ExecutionEngine {
     evaluator.setInputProvider(() => this.provideInput());
     this.attachEvaluationInterceptor(evaluator);
 
+    // H2 (Review 2): Pass the qualified prefix as currentFunction so static
+    // local declarations inside the method form the correct storage key.
     const executor = new StatementExecutor(
       frame.scopeManager, evaluator, this.eventEmitter,
-      this.classBlueprints, this.enumBlueprints, this.typeAliases, this.staticStorage, typeName,
+      this.classBlueprints, this.enumBlueprints, this.typeAliases, this.staticStorage,
+      staticKeyPrefix,
       (tName, tArgs) => this.instantiateStructAndExecuteConstructor(tName, tArgs, evaluator)
     );
 
@@ -1710,6 +1791,12 @@ export class ExecutionEngine {
       else if (e instanceof BreakpointSignal) throw e;
       else throw e;
     } finally {
+      // H2 (Review 2): Mirror static local values back to persistent storage,
+      // using the qualified key so they survive across calls.
+      const statics = frame.scopeManager.getStaticSymbols();
+      for (const [varName, value] of Object.entries(statics)) {
+        this.staticStorage.set(`${staticKeyPrefix}::${varName}` as StaticStorageKey, value);
+      }
       this.callStack.pop();
     }
     return returnValue;
@@ -1790,8 +1877,10 @@ export class ExecutionEngine {
           }
 
           // Bind lambda parameters.
+          // Use defineShadowing() so a lambda parameter whose name matches a
+          // captured variable (e.g. [i](int i){...}) does not throw.
           lambdaExpr.parameters.forEach((param, i) => {
-            lambdaFrame.scopeManager.defineVariable(param.name, param.type, args[i]);
+            lambdaFrame.scopeManager.defineShadowing(param.name, param.type as CppType, args[i]);
           });
 
           const localEval = new ExpressionEvaluator(lambdaFrame.scopeManager, this.eventEmitter);

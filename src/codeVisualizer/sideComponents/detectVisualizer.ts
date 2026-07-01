@@ -467,8 +467,11 @@ function collectNodePointers(
             n => n.__raw && n.__raw.__original_ref_id === targetRefId
           );
         } else {
-          const valStr = JSON.stringify(val);
-          match = nodeArray.find(n => JSON.stringify(n.__raw) === valStr);
+          match = nodeArray.find(n => n.__raw === val);
+          if (!match) {
+            const valStr = JSON.stringify(val);
+            match = nodeArray.find(n => JSON.stringify(n.__raw) === valStr);
+          }
         }
 
         if (match) {

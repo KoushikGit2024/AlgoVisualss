@@ -143,6 +143,42 @@ export class ScopeManager {
   }
 
   /**
+   * Defines a variable in the current (innermost) scope, silently removing
+   * any existing entry with the same name first.
+   *
+   * This is used exclusively for parameter binding in `invokeFunction` and
+   * the lambda closure, where a parameter is allowed to shadow a global
+   * variable, enum constant, or static local that was pre-injected into the
+   * same base scope by the engine. In valid C++, a parameter always wins over
+   * a same-named global in the function body.
+   *
+   * Unlike `defineVariable()`, which throws on redeclaration to catch genuine
+   * user-code errors (e.g., `int x; int x;` in the same block), this method
+   * is intentionally non-throwing for the specific shadowing case. It must NOT
+   * be used for ordinary variable declarations.
+   *
+   * @param name     - The C++ parameter identifier.
+   * @param type     - The resolved C++ type string.
+   * @param value    - The initial value (the evaluated argument).
+   * @param isConst  - True when the parameter is const-qualified.
+   * @param isStatic - True when the parameter is static (extremely rare).
+   */
+  public defineShadowing(
+    name:     string,
+    type:     CppType,
+    value:    CppValue,
+    isConst:  boolean = false,
+    isStatic: boolean = false,
+  ): void {
+    const currentScope = this.scopes[this.scopes.length - 1];
+    // Remove any pre-existing entry (e.g., a global or enum constant injected
+    // by the engine) so the subsequent define() call does not throw.
+    currentScope.delete(name);
+    currentScope.define(name, type, value, isConst, isStatic);
+    if (isStatic) this.staticNames.add(name);
+  }
+
+  /**
    * Injects a variable into the base (outermost) scope of this frame without
    * triggering the "already defined" guard.
    *
