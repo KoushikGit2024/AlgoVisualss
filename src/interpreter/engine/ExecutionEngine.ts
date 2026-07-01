@@ -170,6 +170,8 @@ export class ExecutionEngine {
   private pausedAtStep:        number | null;
 
 
+  private lambdaCounter:       number = 0;
+
   constructor() {
     this.callStack          = new CallStack();
     this.eventEmitter       = new EventEmitter();
@@ -233,12 +235,22 @@ export class ExecutionEngine {
               if (this.importanceLevel === 0) {
                 this.snapshots = this.snapshots.filter(s => s.event.type !== EventType.READ);
                 this.importanceLevel = 1;
+                this.snapshots.push({
+                  step: this.steps, line: 0,
+                  event: { type: EventType.WRITE, payload: { output: "\n[Engine] Downsampling Level 1: Dropped READ events to save memory.\n" } },
+                  state: { variables: {}, perFrameVariables: [], callStack: [], scopeDepth: 0, output: this.accumulatedOutput }
+                } as any);
               } else if (this.importanceLevel === 1) {
                 this.snapshots = this.snapshots.filter(s => 
                   s.event.type !== EventType.CONDITION && 
                   !String(s.event.type).startsWith("LOOP_")
                 );
                 this.importanceLevel = 2;
+                this.snapshots.push({
+                  step: this.steps, line: 0,
+                  event: { type: EventType.WRITE, payload: { output: "\n[Engine] Downsampling Level 2: Dropped LOOP/CONDITION events to save memory.\n" } },
+                  state: { variables: {}, perFrameVariables: [], callStack: [], scopeDepth: 0, output: this.accumulatedOutput }
+                } as any);
               } else if (this.importanceLevel === 2) {
                 this.snapshots = this.snapshots.filter(s => 
                   s.event.type !== EventType.ASSIGNMENT && 
@@ -246,6 +258,11 @@ export class ExecutionEngine {
                   s.event.type !== EventType.DECLARE
                 );
                 this.importanceLevel = 3;
+                this.snapshots.push({
+                  step: this.steps, line: 0,
+                  event: { type: EventType.WRITE, payload: { output: "\n[Engine] Downsampling Level 3: Dropped ASSIGN/DECLARE events to save memory.\n" } },
+                  state: { variables: {}, perFrameVariables: [], callStack: [], scopeDepth: 0, output: this.accumulatedOutput }
+                } as any);
               } else {
                 // Final fallback: uniformly drop half of the remaining events (e.g. Function calls)
                 const last = this.snapshots[this.snapshots.length - 1];
@@ -253,6 +270,11 @@ export class ExecutionEngine {
                 if (kept[kept.length - 1] !== last) kept.push(last);
                 this.snapshots = kept;
                 this.snapshotSkipFactor *= 2;
+                this.snapshots.push({
+                  step: this.steps, line: 0,
+                  event: { type: EventType.WRITE, payload: { output: `\n[Engine] Downsampling Level 4+: Subsampling rate 1/${this.snapshotSkipFactor} to save memory.\n` } },
+                  state: { variables: {}, perFrameVariables: [], callStack: [], scopeDepth: 0, output: this.accumulatedOutput }
+                } as any);
               }
             }
           }
@@ -556,6 +578,12 @@ export class ExecutionEngine {
     try {
       this.invokeFunction(entryPoint, []);
     } catch (e: any) {
+      if (e instanceof RangeError) {
+        throw new Error(
+          `Runtime Error: Maximum call stack size exceeded (JS engine limit). ` +
+          `Try reducing max depth or checking for infinite recursion.`
+        );
+      }
       if (e instanceof BreakpointSignal || e?.name === "BreakpointSignal") {
         // Record where we paused and return snapshots up to this point.
         // The call stack is left intact for a future step() / resume() call.
@@ -1865,10 +1893,15 @@ export class ExecutionEngine {
 
       if (expr.kind === "LambdaExpression") {
         const lambdaExpr    = expr as IRLambdaExpression;
+        if (!(lambdaExpr as any)._id) {
+          this.lambdaCounter = (this.lambdaCounter || 0) + 1;
+          (lambdaExpr as any)._id = `<lambda_${this.lambdaCounter}>`;
+        }
+        const lambdaName = (lambdaExpr as any)._id;
         const definitionScope = this.callStack.peek().scopeManager;
 
         return ((...args: any[]) => {
-          const lambdaFrame = this.callStack.push("<lambda>");
+          const lambdaFrame = this.callStack.push(lambdaName);
 
           // Capture all variables visible at definition time (capture-by-value).
           const captured = definitionScope.captureState();

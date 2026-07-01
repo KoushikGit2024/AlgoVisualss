@@ -46,102 +46,134 @@ function getObjectId(obj: any): string {
   return globalIdMap.get(obj)!.toString();
 }
 
-/**
- * Deep clones a CppValue for use in SNAPSHOTS.
- * It always makes full copies so the UI sees a stable frozen state at each step.
- * Do NOT use this for runtime value assignment — use cloneRuntimeValue instead.
- */
-export function deepCloneCppValue(value: any, seen = new Set()): any {
-  if (value === null || value === undefined) return value;
-  if (
-    typeof value === "number"  ||
-    typeof value === "boolean" ||
-    typeof value === "string"
-  ) return value;
+export function deepCloneCppValue(rootValue: any): any {
+  const isPrimitive = (val: any) => val === null || val === undefined || typeof val === "number" || typeof val === "boolean" || typeof val === "string";
+  if (isPrimitive(rootValue)) return rootValue;
+  if (rootValue.kind === "LambdaExpression") return "[Lambda]";
+  if (typeof rootValue === "function") return "[Function]";
 
-  if (value.kind === "LambdaExpression") return "[Lambda]";
-  if (typeof value === "function") return "[Function]";
+  const resultContainer: { val: any } = { val: undefined };
+  
+  type Task = {
+    source: any;
+    target: any;
+    key: string | number;
+    state: "enter" | "exit";
+  };
 
-  // Track whether this value is an object so we know whether to remove it
-  // from `seen` in the finally block. Only objects are added to `seen`.
-  const isObj = typeof value === "object";
-  if (isObj) {
-    // `seen` tracks the current DFS path, not "ever visited".
-    // This correctly detects true cycles (object reachable from itself along
-    // the current path) while allowing legitimate shared references across
-    // sibling branches (DAGs, slow/fast pointer pairs, doubly-linked nodes).
-    if (seen.has(value)) {
-      return { __circular_ref: getObjectId(value) };
+  const stack: Task[] = [{ source: rootValue, target: resultContainer, key: "val", state: "enter" }];
+  const seen = new Set<any>();
+
+  while (stack.length > 0) {
+    const task = stack.pop()!;
+
+    if (task.state === "exit") {
+      seen.delete(task.source);
+      continue;
     }
-    seen.add(value);
-  }
 
-  try {
-    if (typeof value === "object" && "__ref" in value) {
-      const callerScope = value.__callerScope;
+    const val = task.source;
+
+    if (isPrimitive(val)) {
+      task.target[task.key] = val;
+      continue;
+    }
+    if (val.kind === "LambdaExpression") {
+      task.target[task.key] = "[Lambda]";
+      continue;
+    }
+    if (typeof val === "function") {
+      task.target[task.key] = "[Function]";
+      continue;
+    }
+
+    if (seen.has(val)) {
+      task.target[task.key] = { __circular_ref: getObjectId(val) };
+      continue;
+    }
+
+    seen.add(val);
+    stack.push({ source: val, target: null, key: "", state: "exit" });
+
+    if (typeof val === "object" && "__ref" in val) {
+      const callerScope = val.__callerScope;
+      let resolved = false;
       if (callerScope && typeof callerScope.getVariable === "function") {
         try {
-          const symbol = callerScope.getVariable(value.__ref);
-          return {
-            __ref:      value.__ref,
-            __resolved: deepCloneCppValue(symbol.value, seen),
-          };
-        } catch {
-          return `&${value.__ref}`;
-        }
+          const symbol = callerScope.getVariable(val.__ref);
+          const refObj = { __ref: val.__ref, __resolved: undefined };
+          task.target[task.key] = refObj;
+          stack.push({ source: symbol.value, target: refObj, key: "__resolved", state: "enter" });
+          resolved = true;
+        } catch {}
       }
-      return `&${value.__ref}`;
+      if (!resolved) {
+        task.target[task.key] = `&${val.__ref}`;
+      }
+      continue;
     }
 
-    if (value instanceof Map) {
+    if (val instanceof Map) {
       const entries: [any, any][] = [];
-      value.forEach((v: any, k: any) => {
-        entries.push([deepCloneCppValue(k, seen), deepCloneCppValue(v, seen)]);
-      });
-      return { __type: "map", entries };
-    }
-
-    if (value instanceof Set) {
-      return Array.from(value).map(v => deepCloneCppValue(v, seen));
-    }
-
-    if (Array.isArray(value)) {
-      return value.map(v => deepCloneCppValue(v, seen));
-    }
-
-    if (
-      typeof value === "object" &&
-      "data" in value &&
-      Array.isArray((value as Record<string, any>).data)
-    ) {
-      return {
-        __type: "container",
-        data: (value.data as any[]).map(v => deepCloneCppValue(v, seen)),
-      };
-    }
-
-    if (typeof value === "object") {
-      const clone: Record<string, any> = {};
-      for (const key of Object.keys(value)) {
-        const prop = (value as Record<string, any>)[key];
-        if (typeof prop !== "function") {
-          clone[key] = deepCloneCppValue(prop, seen);
-        }
+      const mapObj = { __type: "map", entries };
+      task.target[task.key] = mapObj;
+      const valEntries = Array.from(val.entries());
+      for (let i = valEntries.length - 1; i >= 0; i--) {
+        const entryArr = [undefined, undefined];
+        entries.unshift(entryArr as any);
+        stack.push({ source: valEntries[i][1], target: entryArr, key: 1, state: "enter" });
+        stack.push({ source: valEntries[i][0], target: entryArr, key: 0, state: "enter" });
       }
-      Object.defineProperty(clone, '__original_ref_id', {
-        value: getObjectId(value),
-        enumerable: true
-      });
-      return clone;
+      continue;
     }
 
-    return value;
-  } finally {
-    // Remove from the DFS path once this subtree is fully cloned.
-    // This allows the same object to be legitimately referenced from
-    // multiple sibling branches without being flagged as circular.
-    if (isObj) seen.delete(value);
+    if (val instanceof Set) {
+      const arr: any[] = [];
+      task.target[task.key] = arr;
+      const values = Array.from(val.values());
+      for (let i = values.length - 1; i >= 0; i--) {
+        stack.push({ source: values[i], target: arr, key: i, state: "enter" });
+      }
+      continue;
+    }
+
+    if (Array.isArray(val)) {
+      const arr: any[] = new Array(val.length);
+      task.target[task.key] = arr;
+      for (let i = val.length - 1; i >= 0; i--) {
+        stack.push({ source: val[i], target: arr, key: i, state: "enter" });
+      }
+      continue;
+    }
+
+    if ("data" in val && Array.isArray(val.data)) {
+      const arr: any[] = new Array(val.data.length);
+      const containerObj = { __type: "container", data: arr };
+      task.target[task.key] = containerObj;
+      for (let i = val.data.length - 1; i >= 0; i--) {
+        stack.push({ source: val.data[i], target: arr, key: i, state: "enter" });
+      }
+      continue;
+    }
+
+    // Plain object
+    const clone: Record<string, any> = {};
+    Object.defineProperty(clone, '__original_ref_id', {
+      value: getObjectId(val),
+      enumerable: true
+    });
+    task.target[task.key] = clone;
+    
+    const keys = Object.keys(val);
+    for (let i = keys.length - 1; i >= 0; i--) {
+      const k = keys[i];
+      if (typeof val[k] !== "function") {
+        stack.push({ source: val[k], target: clone, key: k, state: "enter" });
+      }
+    }
   }
+
+  return resultContainer.val;
 }
 
 

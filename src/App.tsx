@@ -8,6 +8,8 @@ import Editor from './Pages/editor/Editor'
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import VisualPlatforms from './Pages/visualizer/VisualPlatforms'
 import Visualizer from './Pages/visualizer/Visualizer'
+import NotFound from './Pages/not-found'
+import { ErrorBoundary } from './components/ErrorBoundary'
 
 const Footer = () => {
   return (
@@ -87,7 +89,9 @@ const Footer = () => {
 };
 
 const App = () => {
-  const atRoot=useLocation().pathname=='/'?true:false
+  const location = useLocation();
+  const atRoot = location.pathname === '/'
+
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden bg-[var(--bg)] text-[var(--text)] antialiased relative selection:bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] selection:text-[var(--accent)]">
       
@@ -106,14 +110,20 @@ const App = () => {
           
           {/* We wrap Routes in a flex-1 container. This pushes the footer to the bottom even if the page content is short. */}
           <div className="flex-1 flex flex-col">
-            <Routes>
-              <Route path='/' element={<HomePage/>} />
-              <Route path='/editor' element={<Editor/>} />
-              <Route path='/algorithms' element={<AlgoDirector/>} />
-              <Route path='/algorithms/:topic/:subTopic?' element={<Algorithms/>} />
-              <Route path='/visualizer' element={<VisualPlatforms/>} />
-              <Route path='/visualizer/:platform/:qid?' element={<Visualizer/>} />
-            </Routes>
+            {/* key={location.pathname} remounts the boundary on every route
+                change, so a crash on one page doesn't linger as a stale
+                error screen after navigating away to a working page. */}
+            <ErrorBoundary key={location.pathname}>
+              <Routes>
+                <Route path='/' element={<HomePage/>} />
+                <Route path='/editor' element={<Editor/>} />
+                <Route path='/algorithms' element={<AlgoDirector/>} />
+                <Route path='/algorithms/:topic/:subTopic?' element={<Algorithms/>} />
+                <Route path='/visualizer' element={<VisualPlatforms/>} />
+                <Route path='/visualizer/:platform/:qid?' element={<Visualizer/>} />
+                <Route path='*' element={<NotFound/>}/>
+              </Routes>
+            </ErrorBoundary>
           </div>
 
           {/* Footer Component */}

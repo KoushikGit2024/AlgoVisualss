@@ -43,7 +43,7 @@ import { ScopeManager } from "./ScopeManager";
  *
  * Override via CallStack constructor or setMaxDepth() for testing.
  */
-const DEFAULT_MAX_RECURSION_DEPTH = 10_000;
+const DEFAULT_MAX_RECURSION_DEPTH = 2000;
 
 
 // ─── StackOverflowError ───────────────────────────────────────────────────────
