@@ -5,7 +5,7 @@ import { cn } from '../../lib/utils';
 export interface GraphNode {
   id: string;
   label?: string | number;
-  x: number; // 0–100 — used as initial seed, then overridden by force layout
+  x: number;
   y: number;
 }
 
@@ -30,11 +30,11 @@ export interface GraphProps {
   readEdges?: string[];
 }
 
-// ─── Tiny force-directed simulation (no d3 dependency) ───────────────────────
 interface Vec { x: number; y: number }
 
-function runConcentricLayout(
+function runForceLayout(
   nodes: GraphNode[],
+  edges: GraphEdge[],
   width: number,
   height: number
 ): Record<string, Vec> {
@@ -49,55 +49,95 @@ function runConcentricLayout(
     return pos;
   }
 
-  // Predefined concentric rings for typical layout
-  const rings = [
-    { count: 1, radius: 0 },
-    { count: 6, radius: 65 },
-    { count: 12, radius: 130 },
-    { count: 18, radius: 195 },
-    { count: 24, radius: 260 },
-  ];
+  nodes.forEach((node, i) => {
+    const angle = (2 * Math.PI * i) / nodes.length;
+    pos[node.id] = {
+      x: cx + Math.cos(angle) * (width * 0.2),
+      y: cy + Math.sin(angle) * (height * 0.2),
+    };
+  });
 
-  let nodeIdx = 0;
-  for (const ring of rings) {
-    if (nodeIdx >= nodes.length) break;
+  const area = width * height;
+  const k = Math.sqrt(area / nodes.length) * 0.6;
+  let temperature = width / 10;
+  const iterations = 150;
+  const PADDING = NODE_R + 12;
 
-    const remaining = nodes.length - nodeIdx;
-    const countInRing = Math.min(ring.count, remaining);
+  for (let iter = 0; iter < iterations; iter++) {
+    const disp: Record<string, Vec> = {};
+    for (const n of nodes) disp[n.id] = { x: 0, y: 0 };
 
-    for (let i = 0; i < countInRing; i++) {
-      const node = nodes[nodeIdx++];
-      if (ring.radius === 0) {
-        pos[node.id] = { x: cx, y: cy };
-      } else {
-        const angle = (2 * Math.PI * i) / countInRing;
-        pos[node.id] = {
-          x: cx + ring.radius * Math.cos(angle),
-          y: cy + ring.radius * Math.sin(angle),
-        };
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const u = nodes[i].id;
+        const v = nodes[j].id;
+        const dx = pos[u].x - pos[v].x;
+        const dy = pos[u].y - pos[v].y;
+        let dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist === 0) dist = 0.01;
+
+        const force = (k * k) / dist;
+        const dispX = (dx / dist) * force;
+        const dispY = (dy / dist) * force;
+
+        disp[u].x += dispX;
+        disp[u].y += dispY;
+        disp[v].x -= dispX;
+        disp[v].y -= dispY;
       }
     }
-  }
 
-  // If there are still nodes left, pack them in an outer circle
-  const remaining = nodes.length - nodeIdx;
-  if (remaining > 0) {
-    const radius = 320;
-    for (let i = 0; i < remaining; i++) {
-      const node = nodes[nodeIdx++];
-      const angle = (2 * Math.PI * i) / remaining;
-      pos[node.id] = {
-        x: cx + radius * Math.cos(angle),
-        y: cy + radius * Math.sin(angle),
-      };
+    for (const e of edges) {
+      const u = e.source;
+      const v = e.target;
+      if (!pos[u] || !pos[v]) continue;
+
+      const dx = pos[v].x - pos[u].x;
+      const dy = pos[v].y - pos[u].y;
+      let dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist === 0) dist = 0.01;
+
+      const force = (dist * dist) / k;
+      const dispX = (dx / dist) * force;
+      const dispY = (dy / dist) * force;
+
+      disp[u].x += dispX;
+      disp[u].y += dispY;
+      disp[v].x -= dispX;
+      disp[v].y -= dispY;
     }
+
+    for (const n of nodes) {
+      const u = n.id;
+      const dx = cx - pos[u].x;
+      const dy = cy - pos[u].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > 0) {
+        disp[u].x += (dx / dist) * (dist * 0.05);
+        disp[u].y += (dy / dist) * (dist * 0.05);
+      }
+    }
+
+    for (const n of nodes) {
+      const u = n.id;
+      const dLen = Math.sqrt(disp[u].x * disp[u].x + disp[u].y * disp[u].y);
+      if (dLen > 0) {
+        const limitedDist = Math.min(dLen, temperature);
+        pos[u].x += (disp[u].x / dLen) * limitedDist;
+        pos[u].y += (disp[u].y / dLen) * limitedDist;
+      }
+
+      pos[u].x = Math.max(PADDING, Math.min(width - PADDING, pos[u].x));
+      pos[u].y = Math.max(PADDING, Math.min(height - PADDING, pos[u].y));
+    }
+
+    temperature *= 0.95;
   }
 
   return pos;
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
-const NODE_R = 22; // radius in px — must match the w/h class below
+const NODE_R = 22;
 
 const Graph = ({
   nodes = [],
@@ -112,10 +152,9 @@ const Graph = ({
   readEdges = [],
 }: GraphProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [size, setSize]         = useState({ w: 380, h: 340 });
+  const [size, setSize] = useState({ w: 380, h: 340 });
   const [positions, setPositions] = useState<Record<string, Vec>>({});
 
-  // Observe container size
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -127,18 +166,15 @@ const Graph = ({
     return () => ro.disconnect();
   }, []);
 
-  // Re-run layout whenever the node set or container size changes
   const nodeKey = nodes.map(n => n.id).join(',');
+  const edgeKey = edges.map(e => `${e.source}-${e.target}`).join(',');
   useEffect(() => {
     if (nodes.length === 0) { setPositions({}); return; }
-    const result = runConcentricLayout(nodes, size.w, size.h);
+    const result = runForceLayout(nodes, edges, size.w, size.h);
     setPositions(result);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nodeKey, size.w, size.h]);
+  }, [nodeKey, edgeKey, size.w, size.h]);
 
-  // ─── Arrow markers (inline in the SVG so IDs are local) ──────────────────
-  // We define one marker per state so the arrowhead colour matches the stroke.
-  const markerDefs = (
+  const defs = (
     <defs>
       {[
         { id: 'arr-default',   cls: 'fill-border-2'  },
@@ -150,41 +186,48 @@ const Graph = ({
           key={id}
           id={id}
           viewBox="0 0 10 10"
-          refX="9"   // tip of arrow — we'll shorten the line to NODE_R + a gap
+          refX="9" 
           refY="5"
-          markerWidth="6"
-          markerHeight="6"
+          markerWidth="6.5"
+          markerHeight="6.5"
           orient="auto-start-reverse"
         >
-          <path d="M 0 0 L 10 5 L 0 10 z" className={cls} />
+          <path d="M 0 1 L 10 5 L 0 9 z" className={cls} />
         </marker>
       ))}
+
+      <filter id="edge-glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="2.2" result="blur" />
+        <feMerge>
+          <feMergeNode in="blur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
     </defs>
   );
 
   const nodeVariants: Variants = {
     hidden: { opacity: 0, scale: 0.5 },
-    show:   { opacity: 1, scale: 1, transition: { type: 'spring', stiffness: 300, damping: 20 } },
+    show:   { opacity: 1, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 22 } },
   };
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full min-w-[320px] min-h-[300px]"
+      className="relative w-full h-full min-w-[320px] min-h-[300px] rounded-2xl overflow-hidden"
     >
-      {/* ─── SVG layer: edges ─────────────────────────────────────────────── */}
-      <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none z-0">
-        {markerDefs}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
+        {defs}
+      </svg>
+
+      <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none z-[1]">
         <AnimatePresence>
           {[...edges].sort((a, b) => {
             const aRead = readEdges.includes(a.id) ? 1 : 0;
             const aHighlight = highLightEdges.includes(a.id) ? 1 : 0;
             const bRead = readEdges.includes(b.id) ? 1 : 0;
             const bHighlight = highLightEdges.includes(b.id) ? 1 : 0;
-            // Read > Highlight > Default
-            const aScore = aRead * 2 + aHighlight;
-            const bScore = bRead * 2 + bHighlight;
-            return aScore - bScore;
+            return (aRead * 2 + aHighlight) - (bRead * 2 + bHighlight);
           }).map(edge => {
             const src = positions[edge.source];
             const tgt = positions[edge.target];
@@ -192,57 +235,81 @@ const Graph = ({
 
             const isRead      = readEdges.includes(edge.id);
             const isHighlight = highLightEdges.includes(edge.id);
+            const isActive    = isRead || isHighlight;
 
-            let strokeCls  = 'stroke-border-2 opacity-60'; // Default with transparency to see covered edges
-            let strokeW    = 1.5;
-            let markerId   = 'arr-default';
+            let strokeCls = 'stroke-border-2 opacity-50';
+            let strokeW   = 1.5;
+            let markerId  = 'arr-default';
 
-            if (isRead)      { strokeCls = 'stroke-accent opacity-100';   strokeW = 2.5; markerId = 'arr-read';      }
+            if (isRead)        { strokeCls = 'stroke-accent opacity-100';   strokeW = 2.5; markerId = 'arr-read';      }
             else if (isHighlight) { strokeCls = 'stroke-accent-2 opacity-100'; strokeW = 2;   markerId = 'arr-highlight'; }
 
-            // Shorten the line so it ends at the node circle's edge (not center)
+            // Increased GAP slightly so the arrowhead doesn't clip into the node border
             const dx   = tgt.x - src.x;
             const dy   = tgt.y - src.y;
             const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-            const GAP  = NODE_R + 4; // stop the line GAP px before target center
+            const GAP  = NODE_R + 6.5; 
 
             const x1 = src.x + (dx / dist) * GAP;
             const y1 = src.y + (dy / dist) * GAP;
             const x2 = tgt.x - (dx / dist) * GAP;
             const y2 = tgt.y - (dy / dist) * GAP;
 
-            const midX = (src.x + tgt.x) / 2;
-            const midY = (src.y + tgt.y) / 2;
+            const isBidirectional = edge.isDirected && edges.some(
+              e => e.source === edge.target && e.target === edge.source
+            );
+
+            let midX = (src.x + tgt.x) / 2;
+            let midY = (src.y + tgt.y) / 2;
+            let pathD = `M ${x1} ${y1} L ${x2} ${y2}`;
+
+            if (isBidirectional) {
+              const nx = -dy / dist;
+              const ny = dx / dist;
+              const curveOffset = Math.min(28, Math.max(14, dist * 0.18));
+              const ctrlX = midX + nx * curveOffset;
+              const ctrlY = midY + ny * curveOffset;
+
+              pathD = `M ${x1} ${y1} Q ${ctrlX} ${ctrlY} ${x2} ${y2}`;
+              midX = (midX + ctrlX) / 2;
+              midY = (midY + ctrlY) / 2;
+            }
 
             return (
-              <g key={edge.id}>
-                <motion.line
+              <g key={edge.id} filter={isActive ? 'url(#edge-glow)' : undefined}>
+                <motion.path
                   initial={{ opacity: 0, pathLength: 0 }}
-                  animate={{ opacity: 1, pathLength: 1, strokeDashoffset: (isRead || isHighlight) ? [0, -20] : 0 }}
+                  animate={{ opacity: 1, pathLength: 1, strokeDashoffset: isActive ? [0, -20] : 0 }}
                   exit={{ opacity: 0 }}
-                  transition={{ 
-                    opacity: { duration: 0.5 }, 
+                  transition={{
+                    opacity: { duration: 0.4 },
                     pathLength: { duration: 0.5, ease: 'easeOut' },
-                    strokeDashoffset: { repeat: Infinity, duration: 1, ease: 'linear' } 
+                    strokeDashoffset: { repeat: Infinity, duration: 1.2, ease: 'linear' },
                   }}
-                  x1={x1} y1={y1}
-                  x2={x2} y2={y2}
-                  className={cn(`${strokeCls} transition-all duration-300`)}
+                  d={pathD}
+                  className={cn('fill-transparent transition-[stroke] duration-300', strokeCls)}
                   strokeWidth={strokeW}
-                  strokeDasharray={(isRead || isHighlight) ? '4 4' : '0'}
+                  strokeLinecap="round"
+                  strokeDasharray={isActive ? '4 4' : '0'}
                   markerEnd={edge.isDirected ? `url(#${markerId})` : undefined}
                 />
                 {edge.weight != null && (
-                  <motion.text
+                  <motion.g
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    x={midX} y={midY}
-                    dy="-5"
-                    textAnchor="middle"
-                    className="fill-muted font-mono text-[9px] font-bold"
-                    fontSize={9}
+                    transform={`translate(${midX}, ${midY})`}
                   >
-                    {edge.weight}
-                  </motion.text>
+                    <rect
+                      x={-12} y={-9} width={24} height={18} rx={6}
+                      className="fill-surface/90 backdrop-blur-sm stroke-border-2"
+                      strokeWidth={0.5}
+                    />
+                    <text
+                      textAnchor="middle" dy="3.5"
+                      className="fill-muted font-mono text-[10px] font-semibold tracking-wide"
+                    >
+                      {edge.weight}
+                    </text>
+                  </motion.g>
                 )}
               </g>
             );
@@ -250,33 +317,34 @@ const Graph = ({
         </AnimatePresence>
       </svg>
 
-      {/* ─── HTML layer: nodes ────────────────────────────────────────────── */}
       <div className="absolute inset-0 w-full h-full pointer-events-none z-10">
         <AnimatePresence mode="popLayout">
           {nodes.map(node => {
             const pos = positions[node.id];
             if (!pos) return null;
 
-            const isDelete   = deleteNodes.includes(node.id);
-            const isWrite    = writeNodes.includes(node.id);
-            const isCompare  = compareNodes.includes(node.id);
-            const isRead     = readNodes.includes(node.id);
+            const isDelete    = deleteNodes.includes(node.id);
+            const isWrite     = writeNodes.includes(node.id);
+            const isCompare   = compareNodes.includes(node.id);
+            const isRead      = readNodes.includes(node.id);
             const isHighlight = highLightNodes.includes(node.id);
+            const isActive    = isDelete || isWrite || isCompare || isRead || isHighlight;
 
             const cellPointers = pointers.filter(p => p.nodeId === node.id);
 
-            let bgCls     = 'bg-surface/60 backdrop-blur-[2px]'; // Increased transparency
+            // Using backdrop-blur-sm (4px) instead of [2px] for a cleaner frosted glass effect
+            let bgCls     = 'bg-surface/70 backdrop-blur-sm';
             let borderCls = 'border-border';
             let textCls   = 'text-text';
-            let shadowCls = 'shadow-sm';
+            let ringCls   = '';
             let scale     = 1;
             let zIdx      = 1;
 
-            if (isDelete)       { bgCls = 'bg-failure/20 backdrop-blur-[2px]'; borderCls = 'border-failure'; textCls = 'text-failure'; shadowCls = 'shadow-none'; scale = 0.95; zIdx = 10; }
-            else if (isWrite)   { bgCls = 'bg-success/25 backdrop-blur-[2px]'; borderCls = 'border-success';    textCls = 'text-success'; shadowCls = 'shadow-none'; scale = 1.05; zIdx = 20; }
-            else if (isCompare) { bgCls = 'bg-orange-500/25 backdrop-blur-[2px]'; borderCls = 'border-orange-500'; textCls = 'text-orange-500'; shadowCls = 'shadow-none'; scale = 1.02; zIdx = 15; }
-            else if (isRead)    { bgCls = 'bg-accent/25 backdrop-blur-[2px]';   borderCls = 'border-accent';    textCls = 'text-accent'; shadowCls = 'shadow-none'; scale = 1.02; zIdx = 10; }
-            else if (isHighlight) { bgCls = 'bg-accent-2/30 backdrop-blur-[2px]'; borderCls = 'border-accent-2'; textCls = 'text-accent-2'; zIdx = 5; }
+            if (isDelete)          { bgCls = 'bg-failure/20 backdrop-blur-sm';    borderCls = 'border-failure';    textCls = 'text-failure';    ringCls = 'ring-4 ring-failure/15';    scale = 0.94; zIdx = 10; }
+            else if (isWrite)      { bgCls = 'bg-success/25 backdrop-blur-sm';    borderCls = 'border-success';    textCls = 'text-success';    ringCls = 'ring-4 ring-success/20';    scale = 1.06; zIdx = 20; }
+            else if (isCompare)    { bgCls = 'bg-orange-500/25 backdrop-blur-sm'; borderCls = 'border-orange-500'; textCls = 'text-orange-500'; ringCls = 'ring-4 ring-orange-500/15'; scale = 1.04; zIdx = 15; }
+            else if (isRead)       { bgCls = 'bg-accent/25 backdrop-blur-sm';     borderCls = 'border-accent';     textCls = 'text-accent';     ringCls = 'ring-4 ring-accent/15';     scale = 1.04; zIdx = 10; }
+            else if (isHighlight)  { bgCls = 'bg-accent-2/30 backdrop-blur-sm';   borderCls = 'border-accent-2';   textCls = 'text-accent-2';   ringCls = 'ring-4 ring-accent-2/15';   zIdx = 5;  }
 
             return (
               <motion.div
@@ -285,48 +353,61 @@ const Graph = ({
                 initial="hidden"
                 animate={{ ...nodeVariants.show as object, x: pos.x, y: pos.y }}
                 exit="hidden"
-                className="absolute flex flex-col items-center justify-center -translate-x-1/2 -translate-y-1/2"
-                // position via animate so Framer interpolates smoothly on re-layout
+                className="absolute flex flex-col items-center justify-center -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
                 style={{ left: 0, top: 0 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 28 }}
+                transition={{ type: 'spring', stiffness: 220, damping: 26 }}
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.95 }}
               >
                 <motion.div
                   layout
                   initial={false}
                   animate={{ scale, zIndex: zIdx }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                  // w-11 h-11 = 44px ≈ NODE_R*2
-                  className={cn(`
-                    w-11 h-11 flex items-center justify-center font-mono text-[13px] font-bold
-                    rounded-full border transition-colors duration-200 shrink-0
-                    ${bgCls} ${borderCls} ${textCls} ${shadowCls}
-                  `)}
+                  transition={{ type: 'spring', stiffness: 340, damping: 22 }}
+                  className={cn(
+                    'w-11 h-11 flex items-center justify-center font-mono text-[13px] font-semibold tracking-wide',
+                    'rounded-full border-[1.5px] shrink-0 transition-colors duration-200 cursor-default',
+                    bgCls, borderCls, textCls, ringCls,
+                  )}
                 >
                   <AnimatePresence mode="wait">
                     <motion.span
                       key={`val-${node.label ?? node.id}`}
                       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                      transition={{ duration: 0.1 }}
+                      transition={{ duration: 0.15 }}
                     >
                       {node.label ?? node.id}
                     </motion.span>
                   </AnimatePresence>
                 </motion.div>
 
-                {/* Pointer badges */}
-                <div className="absolute top-0 right-0 flex flex-col gap-0.5 z-30 translate-x-[40%] -translate-y-[40%]">
+                {/* Pulse Ring — Smoothed out the expansion */}
+                <AnimatePresence>
+                  {isActive && (
+                    <motion.div
+                      key={`pulse-${node.id}-${isWrite ? 'w' : isDelete ? 'd' : isCompare ? 'c' : isRead ? 'r' : 'h'}`}
+                      initial={{ opacity: 0.5, scale: 0.85 }}
+                      animate={{ opacity: 0, scale: 1.8 }}
+                      transition={{ duration: 0.7, ease: 'easeOut' }}
+                      className={cn('absolute inset-0 rounded-full border-2 pointer-events-none', borderCls)}
+                    />
+                  )}
+                </AnimatePresence>
+
+                {/* Pointer badges - Centered perfectly to the corner */}
+                <div className="absolute top-0 right-0 flex flex-col items-end gap-1 z-30 translate-x-1/2 -translate-y-1/2 pointer-events-none">
                   <AnimatePresence>
                     {cellPointers.map(ptr => (
                       <motion.div
                         key={ptr.name}
                         layoutId={`pointer-graph-${ptr.name}`}
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
+                        initial={{ opacity: 0, scale: 0.5, y: -4 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.5 }}
                         transition={{ type: 'spring', stiffness: 400, damping: 25, mass: 0.8 }}
-                        className="bg-accent-3 text-white shadow-md border border-bg rounded-full px-1.5 py-[2px]"
+                        className="flex items-center bg-accent-3 text-white border border-bg rounded-full px-2 py-[3px]"
                       >
-                        <span className="text-[8px] font-mono font-bold leading-none uppercase tracking-wider">
+                        <span className="text-[9px] font-mono font-bold leading-none uppercase tracking-wider">
                           {ptr.name}
                         </span>
                       </motion.div>

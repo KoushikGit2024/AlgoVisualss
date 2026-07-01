@@ -73,9 +73,9 @@ export function DraggableWindow({
       pointerX < parentRect.left || pointerX > parentRect.right ||
       pointerY < parentRect.top  || pointerY > parentRect.bottom
     ) {
-      // Dragged fully outside the visible canvas — snap back to a safe corner
-      // instead of leaving it unreachable.
-      updateWindow({ snap: 'none', isMaximized: false });
+      // Dragged fully outside the visible canvas - minimize it so it can
+      // be recovered from the taskbar instead of becoming unreachable.
+      updateWindow({ snap: 'none', isMaximized: false, isMinimized: true });
     }
   };
 

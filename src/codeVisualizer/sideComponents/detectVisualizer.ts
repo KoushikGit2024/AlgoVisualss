@@ -347,28 +347,28 @@ function unrollPointerTrie(rootNode: any): any[] {
 
 // ─── PREFIX MATCHERS ────────────────────────────────────────────────────────
 
-const GRAPH_PREFIXES   = ['adj', 'graph', 'network'];
-const TREE_PREFIXES    = ['tree', 'bst', 'root', 'heap', 'forest'];
-const TRIE_PREFIXES    = ['trie', 'prefix_tree', 'ptree'];
+const GRAPH_PREFIXES   = ['adj', 'graph', 'network', 'edges', 'vertices', 'paths'];
+const TREE_PREFIXES    = ['tree', 'bst', 'root', 'heap', 'forest', 'leaves', 'nodes'];
+const TRIE_PREFIXES    = ['trie', 'prefix_tree', 'ptree', 'dictionary_tree', 'suffix_tree'];
 const MATRIX_PREFIXES  = [
-  'mat', 'grid', 'board', 'dp', 'table', 'matrix', 'vec2d', 'array2d',
-  'grid2d', 'matrix2d', 'table2d', 'res',
+  'mat', 'grid', 'board', 'table', 'matrix', 'vec2d', 'array2d', 'dp',
+  'grid2d', 'matrix2d', 'table2d', 'res', 'map2d', 'pixels', 'image', 'layout'
 ];
-const STACK_PREFIXES   = ['st_', 'stack', 'stk'];
-const QUEUE_PREFIXES   = ['q_', 'queue', 'deque', 'buffer_q'];
+const STACK_PREFIXES   = ['stack', 'stk', 'history', 'undo', 'frames'];
+const QUEUE_PREFIXES   = ['queue', 'deque', 'line', 'queue_nodes', 'tasks'];
 const ARRAY_PREFIXES   = [
-  'arr', 'vec', 'nums', 'seq', 'dp', 'list', 'buffer', 'cache', 'res',
-  'array', 'tuple', 'valarray', 'collection', 'items', 'elements',
+  'arr', 'vec', 'nums', 'seq', 'list', 'cache', 'res', 'dp',
+  'array', 'tuple', 'valarray', 'collection', 'items', 'elements', 'values', 'data', 'records', 'buffer'
 ];
 const MAP_PREFIXES     = [
   'map', 'dict', 'freq', 'count', 'hash', 'cache_map', 'memo', 'set',
-  'seen', 'visited',
+  'seen', 'visited', 'mapping', 'lookup', 'occurrences', 'frequencies', 'counter'
 ];
 const STRING_PREFIXES  = [
   'str', 'text', 'word', 'chars', 'msg', 'string', 'sentence', 'paragraph',
-  'pattern', 'substring', 'sub',
+  'pattern', 'substring', 'sub', 'letters', 'characters'
 ];
-const BITSET_PREFIXES  = ['mask', 'bits', 'flags', 'bitset', 'state_mask'];
+const BITSET_PREFIXES  = ['mask', 'bits', 'flags', 'bitset', 'state_mask', 'status_bits', 'binary_flags', 'bitmask'];
 const SCALAR_PREFIXES  = [
   'ans', 'sum', 'count', 'total', 'result', 'max_val', 'min_val', 'cnt',
   'res_val', 'diff', 'target',
@@ -1152,7 +1152,14 @@ export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[
         props: { value: val, pointers, readIndices: reads, writeIndices: writes },
       });
     } else if (typeof val === 'object') {
-      // Fallback for objects/structs: Render as Map
+      // Prevent structural nodes (like Linked List or Tree nodes) from randomly popping up as Maps
+      const isStructuralNode = 'next' in val || 'prev' in val || 'left' in val || 'right' in val || 
+                               ('children' in val && Array.isArray(val.children)) || 
+                               ('neighbors' in val && Array.isArray(val.neighbors));
+      
+      if (isStructuralNode) return;
+
+      // Fallback for generic objects/structs: Render as Map
       const entries = Object.entries(val).map(([k, v]) => [k, v]);
       consumedKeys.add(key);
       visualizers.push({

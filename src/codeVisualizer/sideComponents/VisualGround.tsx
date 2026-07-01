@@ -511,9 +511,9 @@ const VisualGround = ({
           style={{ flex: `${hSplit} 1 0%` }}
           className="shrink-0 flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden relative"
         >
-          <div className="bg-surface-2/50 border-b border-border px-2 py-1 flex items-center shrink-0">
+          {/* <div className="bg-surface-2/50 border-b border-border px-2 py-1 flex items-center shrink-0">
             <h4 className="text-[9px] uppercase tracking-widest text-accent font-bold">Stage</h4>
-          </div>
+          </div> */}
 
           {/* Layout Area — this is the DraggableWindow parent */}
           <div

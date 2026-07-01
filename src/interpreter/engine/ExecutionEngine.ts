@@ -1621,10 +1621,10 @@ export class ExecutionEngine {
     let unwoundByBreakpoint = false;
     try {
       walker.walkBlock(func.body);
-    } catch (e) {
-      if (e instanceof ReturnSignal) {
+    } catch (e: any) {
+      if (e instanceof ReturnSignal || e?.name === "ReturnSignal") {
         returnValue = e.value;
-      } else if (e instanceof BreakpointSignal) {
+      } else if (e instanceof BreakpointSignal || e?.name === "BreakpointSignal") {
         unwoundByBreakpoint = true;
         throw e;
       } else {
@@ -1795,9 +1795,9 @@ export class ExecutionEngine {
     let returnValue: CppValue = undefined;
     try {
       walker.walkBlock(methodDecl.body);
-    } catch (e) {
-      if (e instanceof ReturnSignal) returnValue = e.value;
-      else if (e instanceof BreakpointSignal) throw e;
+    } catch (e: any) {
+      if (e instanceof ReturnSignal || e?.name === "ReturnSignal") returnValue = e.value;
+      else if (e instanceof BreakpointSignal || e?.name === "BreakpointSignal") throw e;
       else throw e;
     } finally {
       // H2 (Review 2): Mirror static local values back to persistent storage,
@@ -1880,12 +1880,14 @@ export class ExecutionEngine {
         }
         const lambdaName = (lambdaExpr as any)._id;
         const definitionScope = this.callStack.peek().scopeManager;
+        
+        // D1 Fix: Capture all variables visible at definition time, not call time!
+        const captured = definitionScope.captureState();
 
         return ((...args: any[]) => {
           const lambdaFrame = this.callStack.push(lambdaName);
 
-          // Capture all variables visible at definition time (capture-by-value).
-          const captured = definitionScope.captureState();
+          // Restore captured variables into the lambda's base scope
           for (const [vName, vSym] of Object.entries(captured)) {
             lambdaFrame.scopeManager.defineVariable(vName, (vSym as any).type ?? "auto", (vSym as any).value);
           }
@@ -1914,7 +1916,7 @@ export class ExecutionEngine {
 
           let retVal: any = undefined;
           try { localWalker.walkBlock(lambdaExpr.body); }
-          catch (e) { if (e instanceof ReturnSignal) retVal = e.value; else throw e; }
+          catch (e: any) { if (e instanceof ReturnSignal || e?.name === "ReturnSignal") retVal = e.value; else throw e; }
           finally   { this.callStack.pop(); }
           return retVal;
         }) as unknown as CppValue;

@@ -137,6 +137,8 @@ const D1Array = ({
             }
 
             const safeValToDisplay = typeof val === 'object' ? JSON.stringify(val) : String(val);
+            const valLen = safeValToDisplay.length;
+            const fontSizeClass = valLen > 4 ? (valLen > 6 ? (valLen > 8 ? 'text-[8px]' : 'text-[9.5px]') : 'text-[11px]') : 'text-[14px]';
 
             return (
               <motion.div key={`cell-container-${idx}`} layout variants={cellVariants} className="flex flex-col items-center relative w-12 shrink-0">
@@ -150,12 +152,12 @@ const D1Array = ({
                   animate={{ scale: activeScale, zIndex: activeZIndex }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
                   className={cn(`
-                    w-full aspect-square px-1 flex items-center justify-center font-mono text-[14px] font-medium 
+                    w-full aspect-square px-1 flex items-center justify-center font-mono font-medium 
                     rounded-sm border transition-colors duration-200 shrink-0
                     ${bgClass} ${borderClass} ${textClass} ${shadowClass}
                   `)}
                 >
-                  <span className="truncate max-w-full">
+                  <span className={cn("break-all leading-tight text-center w-full", fontSizeClass)} style={{ wordBreak: 'break-word' }}>
                     {safeValToDisplay}
                   </span>
                 </motion.div>
