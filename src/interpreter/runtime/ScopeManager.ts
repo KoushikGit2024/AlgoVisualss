@@ -58,10 +58,18 @@ export class ScopeManager {
    */
   private staticNames: Set<string>;
 
-  constructor() {
+  /**
+   * Optional parent scope (used to chain frames to the global scope).
+   */
+  private parentScopeManager?: ScopeManager;
+  private onStaticAssign?: (name: string, value: CppValue) => void;
+
+  constructor(parentScopeManager?: ScopeManager, onStaticAssign?: (name: string, value: CppValue) => void) {
     // Every frame starts with exactly one base scope table.
     this.scopes = [new SymbolTable()];
     this.staticNames = new Set();
+    this.parentScopeManager = parentScopeManager;
+    this.onStaticAssign = onStaticAssign;
   }
 
 
@@ -247,11 +255,12 @@ export class ScopeManager {
    *
    * @returns A `Record<name, CppValue>` for every static variable in this frame.
    */
-  public getStaticSymbols(): Record<string, CppValue> {
-    const result: Record<string, CppValue> = {};
+  public getStaticSymbols(): Record<string, { type: CppType, value: CppValue }> {
+    const result: Record<string, { type: CppType, value: CppValue }> = {};
     for (const name of this.staticNames) {
       try {
-        result[name] = this.getVariable(name).value;
+        const sym = this.getVariable(name);
+        result[name] = { type: sym.type as CppType, value: sym.value };
       } catch {
         // Debug note: Should never happen — a name is only added to staticNames
         // when defineVariable/defineStatic successfully creates the symbol.
@@ -287,9 +296,19 @@ export class ScopeManager {
       if (this.scopes[i].has(name)) {
         // ConstAssignmentError thrown here propagates naturally to the caller.
         this.scopes[i].assign(name, value);
+        if (this.staticNames.has(name) && this.onStaticAssign) {
+          this.onStaticAssign(name, value);
+        }
         return;
       }
     }
+    
+    // Fall back to parent scope (globals)
+    if (this.parentScopeManager && this.parentScopeManager.hasVariable(name)) {
+      this.parentScopeManager.assignVariable(name, value);
+      return;
+    }
+
     throw new Error(
       `Memory Access Violation: Variable '${name}' is not defined in the current scope chain. ` +
       `Did you forget to declare it, or is it out of scope?`
@@ -322,6 +341,16 @@ export class ScopeManager {
         return this.scopes[i].get(name);
       }
     }
+
+    // Fall back to parent scope (globals)
+    if (this.parentScopeManager) {
+      try {
+        return this.parentScopeManager.getVariable(name);
+      } catch {
+        // Fall through to throw below
+      }
+    }
+
     throw new Error(
       `Memory Access Violation: Variable '${name}' is not defined. ` +
       `Check for typos, missing declarations, or use before initialisation.`
@@ -337,6 +366,7 @@ export class ScopeManager {
     for (let i = this.scopes.length - 1; i >= 0; i--) {
       if (this.scopes[i].has(name)) return true;
     }
+    if (this.parentScopeManager && this.parentScopeManager.hasVariable(name)) return true;
     return false;
   }
 
@@ -404,7 +434,13 @@ export class ScopeManager {
   public captureState(): Record<string, Symbol> {
     const state: Record<string, Symbol> = {};
 
-    // Outer → inner so that inner entries overwrite outer entries correctly.
+    // 1. Inherit parent state (globals) first, if it exists
+    if (this.parentScopeManager) {
+      const parentState = this.parentScopeManager.captureState();
+      Object.assign(state, parentState);
+    }
+
+    // 2. Overlay current scope chain, inner overwriting outer
     for (const scope of this.scopes) {
       for (const [name, symbol] of Object.entries(scope.getAll())) {
         // Filter out internal engine proxy symbols.

@@ -168,7 +168,7 @@ export class ExpressionEvaluator {
       case "Identifier": {
         // ── Sentinel identifiers intercepted before scope lookup ─────────
         if (expr.name === "cout")    return { __isCout: true } as unknown as CppValue;
-        if (expr.name === "cin")     return { __isCin:  true } as unknown as CppValue;  // v2
+        if (expr.name === "cin")     throw new Error(`Line ${expr.line}: 'cin' is not supported in this environment.`);  // v2
         if (expr.name === "nullptr" || expr.name === "NULL") return null;
         if (expr.name === "endl")    return "\n";
         if (expr.name === "true")    return true;
@@ -482,9 +482,8 @@ export class ExpressionEvaluator {
 
       default:
         throw new Error(
-          `Syntax Parsing Error: Unsupported expression kind '${(expr as any).kind}'. ` +
-          `This node type is not handled by ExpressionEvaluator — it may need ` +
-          `to be added to the switch in evaluate() or intercepted by the engine.`
+          `Line ${expr.line}: Unsupported expression kind '${(expr as any).kind}'. ` +
+          `This node type is not supported in this environment.`
         );
     }
   }

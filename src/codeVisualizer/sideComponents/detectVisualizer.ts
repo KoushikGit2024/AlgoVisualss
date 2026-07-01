@@ -470,7 +470,13 @@ function collectNodePointers(
           match = nodeArray.find(n => n.__raw === val);
           if (!match) {
             const valStr = JSON.stringify(val);
-            match = nodeArray.find(n => JSON.stringify(n.__raw) === valStr);
+            const matches = nodeArray.filter(n => JSON.stringify(n.__raw) === valStr);
+            if (matches.length === 1) {
+              match = matches[0];
+            } else if (matches.length > 1) {
+              console.warn(`[detectVisualizer] Ambiguous pointer match for '${key}': multiple nodes have identical content and no __original_ref_id is present.`);
+              // match remains undefined to prevent attaching to the wrong node
+            }
           }
         }
 

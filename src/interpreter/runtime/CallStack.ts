@@ -26,7 +26,7 @@
 // ============================================================================
 
 import { ScopeManager } from "./ScopeManager";
-
+import type { CppValue } from "../types";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -112,9 +112,9 @@ export class StackFrame {
   public readonly enteredAt:    number;
   public readonly callDepth:    number;
 
-  constructor(functionName: string, enteredAt: number = 0, callDepth: number = 1) {
+  constructor(functionName: string, enteredAt: number = 0, callDepth: number = 1, globalScopeManager?: ScopeManager, onStaticAssign?: (name: string, value: CppValue) => void) {
     this.functionName = functionName;
-    this.scopeManager = new ScopeManager();
+    this.scopeManager = new ScopeManager(globalScopeManager, onStaticAssign);
     this.enteredAt    = enteredAt;
     this.callDepth    = callDepth;
   }
@@ -189,7 +189,7 @@ export class CallStack {
    *   consistent state — getTrace() still reflects the call chain leading up
    *   to the overflow point.
    */
-  public push(functionName: string, enteredAt: number = 0): StackFrame {
+  public push(functionName: string, enteredAt: number = 0, globalScopeManager?: ScopeManager, onStaticAssign?: (name: string, value: CppValue) => void): StackFrame {
     // Depth check before mutating the stack so the error message can include
     // an accurate trace of the frames that led to overflow.
     if (this.frames.length >= this.maxDepth) {
@@ -197,7 +197,7 @@ export class CallStack {
     }
 
     const depth = this.frames.length + 1; // 1-based depth of the new frame
-    const frame = new StackFrame(functionName, enteredAt, depth);
+    const frame = new StackFrame(functionName, enteredAt, depth, globalScopeManager, onStaticAssign);
     this.frames.push(frame);
 
     // Update high-water mark.

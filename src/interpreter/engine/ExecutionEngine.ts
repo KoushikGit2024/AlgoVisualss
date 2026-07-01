@@ -139,7 +139,7 @@ export class ExecutionEngine {
    * Passed to StatementExecutor so it can detect "already initialised" statics.
    * Reset only when run() is called with resetStatics: true (default: false).
    */
-  private staticStorage:       Map<StaticStorageKey, CppValue>;
+  private staticStorage:       Map<StaticStorageKey, { type: CppType, value: CppValue }>;
 
   /**
    * v2: Queue of pre-supplied stdin tokens for `cin >>` interception.
@@ -540,24 +540,24 @@ export class ExecutionEngine {
       );
     }
 
-    // ── Evaluate global variables ─────────────────────────────────────────
+    // ── Evaluate global variables & enums ─────────────────────────────────
+    const globalFrame    = this.callStack.push("__global_init__");
+    const globalEval     = new ExpressionEvaluator(globalFrame.scopeManager, this.eventEmitter);
+    this.attachEvaluationInterceptor(globalEval);
+    globalEval.setInputProvider(() => this.provideInput());
+
+    const globalExecutor = new StatementExecutor(
+      globalFrame.scopeManager,
+      globalEval,
+      this.eventEmitter,
+      this.classBlueprints,
+      this.enumBlueprints,
+      this.typeAliases,
+      this.staticStorage,
+      "__global_init__",
+    );
+
     if (this.globalDeclarations.length > 0) {
-      const globalFrame    = this.callStack.push("__global_init__");
-      const globalEval     = new ExpressionEvaluator(globalFrame.scopeManager, this.eventEmitter);
-      this.attachEvaluationInterceptor(globalEval);
-      globalEval.setInputProvider(() => this.provideInput());
-
-      const globalExecutor = new StatementExecutor(
-        globalFrame.scopeManager,
-        globalEval,
-        this.eventEmitter,
-        this.classBlueprints,
-        this.enumBlueprints,
-        this.typeAliases,
-        this.staticStorage,
-        "__global_init__",
-      );
-
       for (const decl of this.globalDeclarations) {
         try {
           globalExecutor.executeVariableDeclaration(decl);
@@ -570,9 +570,15 @@ export class ExecutionEngine {
           );
         }
       }
-      this.globalScopeManager = globalFrame.scopeManager;
-      this.callStack.pop();
     }
+
+    // All enum members are visible in the global scope without qualification.
+    for (const [memberName, memberValue] of this.resolvedEnumValues) {
+      try { globalFrame.scopeManager.injectIntoBase(memberName, "int", memberValue, true, false); } catch { /* ok */ }
+    }
+
+    this.globalScopeManager = globalFrame.scopeManager;
+    this.callStack.pop();
 
     // ── Execute entry point ───────────────────────────────────────────────
     try {
@@ -1543,31 +1549,19 @@ export class ExecutionEngine {
     }
 
     const callerScope = this.callStack.isEmpty() ? null : this.callStack.peek().scopeManager;
-    const frame       = this.callStack.push(name);
+    const onStaticAssign = (varName: string, value: CppValue) => {
+      const sym = frame.scopeManager.getVariable(varName);
+      this.staticStorage.set(`${name}::${varName}` as StaticStorageKey, { type: sym.type as CppType, value });
+    };
+    const frame       = this.callStack.push(name, 0, this.globalScopeManager || undefined, onStaticAssign);
 
     this.eventEmitter.emit(func.line, EventType.FUNCTION_CALL, { function: name, args });
 
-    // ── Inject global variables ───────────────────────────────────────────
-    for (const [gName, gData] of this.globalVariables) {
-      try { 
-        frame.scopeManager.injectIntoBase(gName, gData.type, {
-           __ref: gName,
-           __callerScope: this.globalScopeManager
-        }); 
-      } catch { /* already present */ }
-    }
-
-    // ── Inject enum member constants (v2) ─────────────────────────────────
-    // All enum members are visible in every function scope without qualification.
-    for (const [memberName, memberValue] of this.resolvedEnumValues) {
-      try { frame.scopeManager.injectIntoBase(memberName, "int", memberValue, true, false); } catch { /* already present */ }
-    }
-
     // ── Re-inject static local variables from persistent storage (v2) ─────
-    for (const [key, value] of this.staticStorage) {
+    for (const [key, record] of this.staticStorage) {
       const [funcName, varName] = (key as string).split("::");
       if (funcName === name) {
-        try { frame.scopeManager.injectIntoBase(varName, "auto", value, false, true); } catch { /* ok */ }
+        try { frame.scopeManager.injectIntoBase(varName, record.type, record.value, false, true); } catch { /* ok */ }
       }
     }
 
@@ -1641,9 +1635,9 @@ export class ExecutionEngine {
         // v2: Mirror static variable values back to persistent storage.
         if (name !== "<lambda>" && name !== "__global_init__") {
           const statics = frame.scopeManager.getStaticSymbols();
-          for (const [varName, value] of Object.entries(statics)) {
+          for (const [varName, record] of Object.entries(statics)) {
             const key = `${name}::${varName}` as StaticStorageKey;
-            this.staticStorage.set(key, value);
+            this.staticStorage.set(key, record);
           }
         }
 
@@ -1722,40 +1716,27 @@ export class ExecutionEngine {
     methodDecl: IRFunctionDeclaration,
     args: CppValue[]
   ): CppValue {
-    const frame = this.callStack.push(`${typeName}::${methodDecl.name}`);
     // Qualified key prefix for static storage: "TypeName::methodName"
     // This avoids the key ambiguity that would arise from using bare typeName.
     const staticKeyPrefix = `${typeName}::${methodDecl.name}`;
+    const onStaticAssign = (varName: string, value: CppValue) => {
+      const sym = frame.scopeManager.getVariable(varName);
+      this.staticStorage.set(`${staticKeyPrefix}::${varName}` as StaticStorageKey, { type: sym.type as CppType, value });
+    };
+    const frame = this.callStack.push(`${typeName}::${methodDecl.name}`, 0, this.globalScopeManager || undefined, onStaticAssign);
 
     // Inject 'this' pointer (H1 Review 2: debug log removed).
     frame.scopeManager.defineVariable("this", typeName, instance);
 
-    // M3 / H2 (Review 1 + 2): Inject global variables so struct methods can
-    // read and write globals, just like free functions can.
-    for (const [gName, gData] of this.globalVariables) {
-      try {
-        frame.scopeManager.injectIntoBase(gName, gData.type, {
-          __ref: gName,
-          __callerScope: this.globalScopeManager,
-        });
-      } catch { /* already present */ }
-    }
-
-    // M3 / H2 (Review 1 + 2): Inject enum member constants so struct methods
-    // can reference enum values without qualification.
-    for (const [memberName, memberValue] of this.resolvedEnumValues) {
-      try { frame.scopeManager.injectIntoBase(memberName, "int", memberValue, true, false); } catch { /* ok */ }
-    }
-
     // H2 (Review 2): Re-inject static locals persisted from previous calls
     // so struct methods honour C++ static local semantics.
-    for (const [key, value] of this.staticStorage) {
+    for (const [key, record] of this.staticStorage) {
       const keyStr = key as string;
       // Keys for struct method statics have the form "TypeName::methodName::varName".
       const prefix = keyStr.split("::").slice(0, -1).join("::");
       const varName = keyStr.split("::").slice(-1)[0];
       if (prefix === staticKeyPrefix) {
-        try { frame.scopeManager.injectIntoBase(varName, "auto", value, false, true); } catch { /* ok */ }
+        try { frame.scopeManager.injectIntoBase(varName, record.type, record.value, false, true); } catch { /* ok */ }
       }
     }
 

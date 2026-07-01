@@ -57,7 +57,7 @@ import { ScopeManager }        from "../runtime/ScopeManager";
 import { EventEmitter }        from "../events/EventEmitter";
 import { ExpressionEvaluator } from "../evaluator/ExpressionEvaluator";
 import { EventType }           from "../types";
-import type { CppValue, StaticStorageKey } from "../types";
+import type { CppValue, CppType, StaticStorageKey } from "../types";
 import { ReturnSignal, ThrowSignal, cloneRuntimeValue, makeMockContainer }       from "../utils/helpers";
 
 
@@ -92,7 +92,7 @@ export class StatementExecutor {
      * across all StatementExecutor instances (one per frame).
      * The current function name is needed to form the key.
      */
-    private staticStorage?:   Map<StaticStorageKey, CppValue>,
+    private staticStorage?:   Map<StaticStorageKey, { type: CppType, value: CppValue }>,
     /**
      * v2: The name of the function this executor belongs to.
      * Used to form StaticStorageKey for static local variables.
@@ -152,7 +152,8 @@ export class StatementExecutor {
     if (isStatic && this.staticStorage && this.currentFunction) {
       const storageKey = `${this.currentFunction}::${node.name}` as StaticStorageKey;
       if (this.staticStorage.has(storageKey)) {
-        const persistedValue = this.staticStorage.get(storageKey)!;
+        const persistedRecord = this.staticStorage.get(storageKey)!;
+        const persistedValue = persistedRecord.value;
         this.scopeManager.defineStatic(node.name, resolvedType, persistedValue);
         this.eventEmitter.emit(node.line, EventType.DECLARE, {
           variable: node.name,
@@ -290,6 +291,10 @@ export class StatementExecutor {
     // ── Define in scope ────────────────────────────────────────────────────
     if (isStatic) {
       this.scopeManager.defineStatic(node.name, resolvedType, value);
+      // Persist to staticStorage immediately so recursive calls see it before this frame pops
+      if (this.staticStorage && this.currentFunction) {
+        this.staticStorage.set(`${this.currentFunction}::${node.name}` as StaticStorageKey, { type: resolvedType, value });
+      }
     } else {
       this.scopeManager.defineVariable(node.name, resolvedType, value, isConst, false);
     }
