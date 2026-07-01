@@ -1,4 +1,5 @@
-import {
+import { cn } from '../../lib/utils';
+import { 
   Network,
   GitMerge,
   Grid,
@@ -45,7 +46,6 @@ const DATA_STRUCTURES = [
     prefixes: [
       { prefix: "tree", example: "vector<TreeNode> tree_nodes" },
       { prefix: "bst", example: "vector<Node> bst_data" },
-      { prefix: "trie", example: "vector<TrieNode> trie_nodes" },
       { prefix: "root", example: "TreeNode* root" },
       { prefix: "heap", example: "vector<int> heap" },
       { prefix: "forest", example: "vector<TreeNode> forest" }
@@ -54,6 +54,22 @@ const DATA_STRUCTURES = [
     auxiliary: [
       { role: "Core pointers", trigger: "`root`, `curr`, `parent`, `temp`", notes: "Stores target node's `id`" },
       { role: "Branch pointers", trigger: "`left`, `right`", notes: "Badges attach above the target node" }
+    ]
+  },
+  {
+    title: "Tries — <TrieTree />",
+    icon: <Network className="text-ds-trie" size={18} />,
+    color: "border-ds-trie/30 bg-ds-trie/5",
+    textColor: "text-ds-trie",
+    description: "Renders an N-ary prefix tree (Trie). Auto-detects child mappings and terminal nodes.",
+    prefixes: [
+      { prefix: "trie", example: "vector<TrieNode> trie_nodes" },
+      { prefix: "prefix_tree", example: "TrieNode* prefix_tree" },
+      { prefix: "ptree", example: "TrieNode* ptree" }
+    ],
+    shape: "A struct containing a `children` map/array OR an array of objects with `id`, `value`, and `children`.",
+    auxiliary: [
+      { role: "Core pointers", trigger: "`curr`, `node`, `ptr`, `temp`", notes: "Stores target node's `id`" }
     ]
   },
   {
@@ -93,6 +109,7 @@ const DATA_STRUCTURES = [
       { prefix: "vec", example: "vector<string> vec_names" },
       { prefix: "nums", example: "vector<int> nums" },
       { prefix: "seq", example: "vector<float> seq" },
+      { prefix: "dp", example: "vector<int> dp_table" },
       { prefix: "list", example: "vector<int> list_items" },
       { prefix: "buffer", example: "char buffer[256]" },
       { prefix: "cache", example: "vector<int> cache_arr" },
@@ -163,9 +180,9 @@ const DATA_STRUCTURES = [
   },
   {
     title: "Strings \u2014 <StringVisualizer />",
-    icon: <Type className="text-emerald-500" size={18} />,
-    color: "border-emerald-500/30 bg-emerald-500/5",
-    textColor: "text-emerald-500",
+    icon: <Type className="text-ds-string" size={18} />,
+    color: "border-ds-string/30 bg-ds-string/5",
+    textColor: "text-ds-string",
     description: "Renders characters continuously with distinct text-specific styling.",
     prefixes: [
       { prefix: "str", example: "string str_val" },
@@ -208,26 +225,25 @@ const DATA_STRUCTURES = [
   },
   {
     title: "Bitsets & Masks \u2014 <BitsetVisualizer />",
-    icon: <Binary className="text-cyan-400" size={18} />,
-    color: "border-cyan-400/30 bg-cyan-400/5",
-    textColor: "text-cyan-400",
+    icon: <Binary className="text-ds-bitset" size={18} />,
+    color: "border-ds-bitset/30 bg-ds-bitset/5",
+    textColor: "text-ds-bitset",
     description: "Renders an integer or boolean array as a strip of glowing bits.",
     prefixes: [
       { prefix: "mask", example: "int mask = 5" },
       { prefix: "bits", example: "vector<bool> bits" },
       { prefix: "flags", example: "int flags" },
       { prefix: "bitset", example: "bitset<32> b" },
-      { prefix: "state_mask", example: "int state_mask" },
-      { prefix: "b", example: "int b" }
+      { prefix: "state_mask", example: "int state_mask" }
     ],
     shape: "Value must be a Javascript primitive number or an array of booleans.",
     auxiliary: []
   },
   {
     title: "Standalone Scalars \u2014 <ScalarVisualizer />",
-    icon: <Hash className="text-purple-400" size={18} />,
-    color: "border-purple-400/30 bg-purple-400/5",
-    textColor: "text-purple-400",
+    icon: <Hash className="text-ds-scalar" size={18} />,
+    color: "border-ds-scalar/30 bg-ds-scalar/5",
+    textColor: "text-ds-scalar",
     description: "Renders a large, prominent dashboard counter for crucial tracking variables.",
     prefixes: [
       { prefix: "ans", example: "int ans = 0" },
@@ -239,7 +255,8 @@ const DATA_STRUCTURES = [
       { prefix: "min_val", example: "int min_val" },
       { prefix: "cnt", example: "int cnt" },
       { prefix: "res_val", example: "int res_val" },
-      { prefix: "diff", example: "int diff" }
+      { prefix: "diff", example: "int diff" },
+      { prefix: "target", example: "int target" }
     ],
     shape: "Value must be a primitive number, string, or boolean.",
     auxiliary: []
@@ -292,15 +309,16 @@ export default function VisualizerNamingConventions() {
             <tbody>
               {[
                 { p: 1, c: "<Graph />", w: "Most specific prefix (`adj_`, `graph_`)" },
-                { p: 2, c: "<Tree />", w: "Requires `tree_`/`bst_` + node objects" },
-                { p: 3, c: "<D2Array />", w: "2D array shape (matrix)" },
-                { p: 4, c: "<LinkedList />", w: "Automatic structure detection (`value` + `next` fields)" },
-                { p: 5, c: "<Stack />", w: "Flat array with LIFO semantics" },
-                { p: 6, c: "<Queue />", w: "Flat array with FIFO semantics" },
-                { p: 7, c: "<D1Array />", w: "Generic flat array fallback" },
-                { p: 8, c: "<StringVisualizer />", w: "Specific text/string matching" },
-                { p: 9, c: "<BitsetVisualizer />", w: "Bitmask matching" },
-                { p: 10, c: "<ScalarVisualizer />", w: "Scalar matching" }
+                { p: 2, c: "<TrieTree />", w: "Specific N-ary tree check before binary trees" },
+                { p: 3, c: "<Tree />", w: "Requires `tree_`/`bst_` + node objects" },
+                { p: 4, c: "<D2Array />", w: "2D array shape (matrix)" },
+                { p: 5, c: "<LinkedList />", w: "Automatic structure detection (`value` + `next` fields)" },
+                { p: 6, c: "<Stack />", w: "Flat array with LIFO semantics" },
+                { p: 7, c: "<Queue />", w: "Flat array with FIFO semantics" },
+                { p: 8, c: "<D1Array />", w: "Generic flat array fallback" },
+                { p: 9, c: "<StringVisualizer />", w: "Specific text/string matching" },
+                { p: 10, c: "<BitsetVisualizer />", w: "Bitmask matching" },
+                { p: 11, c: "<ScalarVisualizer />", w: "Scalar matching" }
               ].map((row, i) => (
                 <tr key={i} className="border-b border-border last:border-b-0 even:bg-surface-2/30 hover:bg-surface-3 transition-colors">
                   <td className="px-4 py-2.5 border-r border-border text-muted font-mono">{row.p}</td>
@@ -316,9 +334,9 @@ export default function VisualizerNamingConventions() {
       {/* Data Structures */}
       <div className="flex flex-col gap-6">
         {DATA_STRUCTURES.map((ds, idx) => (
-          <section key={idx} className={`border rounded-xl overflow-hidden ${ds.color.split(" ")[0]} bg-surface`}>
+          <section key={idx} className={cn(`border rounded-xl overflow-hidden ${ds.color.split(" ")[0]} bg-surface`)}>
             {/* Header */}
-            <div className={`px-4 py-3 border-b ${ds.color.split(" ")[0]} ${ds.color.split(" ")[1]} flex items-center gap-2`}>
+            <div className={cn(`px-4 py-3 border-b ${ds.color.split(" ")[0]} ${ds.color.split(" ")[1]} flex items-center gap-2`)}>
               {ds.icon}
               <h2 className="font-bold text-[14px] text-text">{ds.title}</h2>
             </div>
@@ -332,7 +350,7 @@ export default function VisualizerNamingConventions() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {ds.prefixes.map((pref, i) => (
                     <div key={i} className="flex flex-col bg-surface-2 p-2.5 rounded-lg border border-border">
-                      <span className={`font-mono ${ds.textColor} text-[12px] font-semibold mb-1`}>{pref.prefix}</span>
+                      <span className={cn(`font-mono ${ds.textColor} text-[12px] font-semibold mb-1`)}>{pref.prefix}</span>
                       <code className="text-[11px] text-text bg-surface px-2 py-1 rounded border border-border/50">
                         {pref.example}
                       </code>
@@ -422,7 +440,8 @@ export default function VisualizerNamingConventions() {
             <tbody>
               {[
                 { c: "<Graph />", p: "adj, graph, network", s: "2D array", a: "*edge*, *visit*, node/curr/u/v" },
-                { c: "<Tree />", p: "tree, bst, trie, root, heap, forest", s: "Struct OR Array", a: "root, curr, parent, temp, left, right" },
+                { c: "<TrieTree />", p: "trie, prefix_tree, ptree", s: "Struct OR Array", a: "curr, node, ptr, temp" },
+                { c: "<Tree />", p: "tree, bst, root, heap, forest", s: "Struct OR Array", a: "root, curr, parent, temp, left, right" },
                 { c: "<D2Array />", p: "mat, grid, board, dp, table, matrix, res", s: "2D array (Jagged allowed)", a: "r/row/r_*, c/col/c_* (both req)" },
                 { c: "<D1Array />", p: "arr, vec, nums, seq, list, buffer, cache, res", s: "Flat array", a: "i, j, k, left, right, mid, curr, ptr" },
                 { c: "<LinkedList />", p: "(Any Name)", s: "Struct with `value` & `next`", a: "All node pointers automatically attach" },
@@ -447,14 +466,14 @@ export default function VisualizerNamingConventions() {
 
       {/* Engine Architecture & Limits */}
       <section className="bg-surface-2 p-5 rounded-xl border border-border mt-4">
-        <h2 className="text-lg font-bold text-emerald-400 mb-3 flex items-center gap-2">
+        <h2 className="text-lg font-bold text-ds-string mb-3 flex items-center gap-2">
           <Database size={20} />
           Engine Limits & Semantic Compression
         </h2>
         <p className="text-[13px] text-muted leading-relaxed mb-4">
           To prevent browser out-of-memory crashes on enormous algorithms (like backtracking), the VisualGround engine features a smart <strong className="text-text">Semantic Hierarchical Compression</strong> system.
         </p>
-        <ul className="flex flex-col gap-2 mb-4 text-[13px] text-muted list-disc list-inside marker:text-emerald-400">
+        <ul className="flex flex-col gap-2 mb-4 text-[13px] text-muted list-disc list-inside marker:text-ds-string">
           <li><strong>Max Execution Steps:</strong> The engine will halt execution if a single run exceeds <code className="text-text">2,000,000</code> operations to prevent infinite loops.</li>
           <li><strong>Smart Frame Dropping:</strong> If the visualizer accumulates over <code className="text-text">30,000</code> animation frames, it automatically begins dropping less-important events to save memory.</li>
           <li>It first drops <code className="text-text">READ</code> events (which usually make up 90% of a loop), keeping all your assignments, function calls, and console logs completely intact!</li>

@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '../../lib/utils';
 
 export interface BitsetVisualizerProps {
   value: number | boolean[] | number[];
@@ -49,7 +50,7 @@ const BitsetVisualizer = ({ value }: BitsetVisualizerProps) => {
                   layout
                   animate={{ scale: isActive ? 1.1 : 1 }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                  className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center font-mono font-bold rounded border transition-all duration-200 ${bgClass} ${borderClass} ${textClass} ${shadowClass}`}
+                  className={cn(`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center font-mono font-bold rounded border transition-all duration-200 ${bgClass} ${borderClass} ${textClass} ${shadowClass}`)}
                 >
                   {bit}
                 </motion.div>

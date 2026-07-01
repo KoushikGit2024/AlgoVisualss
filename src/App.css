@@ -15,11 +15,26 @@
   --color-success:   var(--success);
 
   /* Radius scale */
-  --radius-sm:   8px;
-  --radius-md:   12px;
-  --radius-lg:   16px;
-  --radius-xl:   24px;
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
   --radius-full: 9999px;
+
+  /* Visualizer specific */
+  --color-ds-read:   var(--ds-read);
+  --color-ds-write:  var(--ds-write);
+  --color-ds-graph:  var(--ds-graph);
+  --color-ds-tree:   var(--ds-tree);
+  --color-ds-trie:   var(--ds-trie);
+  --color-ds-matrix: var(--ds-matrix);
+  --color-ds-array:  var(--ds-array);
+  --color-ds-queue:  var(--ds-queue);
+  --color-ds-stack:  var(--ds-stack);
+  --color-ds-string: var(--ds-string);
+  --color-ds-map:    var(--ds-map);
+  --color-ds-bitset: var(--ds-bitset);
+  --color-ds-scalar: var(--ds-scalar);
 
   /* Font stack */
   --font-display: 'Geist', system-ui, sans-serif;
@@ -50,16 +65,31 @@
   --failure:  #D94949;
 
   /* Glow & shadows */
-  --glow:       rgba(99, 102, 241, 0.18);
-  --glow-soft:  rgba(99, 102, 241, 0.08);
-  --shadow-sm:  0 1px 3px rgba(13, 11, 20, 0.06);
-  --shadow-md:  0 4px 20px rgba(13, 11, 20, 0.10);
-  --shadow-lg:  0 8px 40px rgba(13, 11, 20, 0.12);
+  --glow:       rgba(99, 102, 241, 0.10);
+  --glow-soft:  rgba(99, 102, 241, 0.05);
+  --shadow-sm:  0 1px 2px rgba(13, 11, 20, 0.05);
+  --shadow-md:  0 4px 12px rgba(13, 11, 20, 0.08);
+  --shadow-lg:  0 8px 24px rgba(13, 11, 20, 0.10);
 
   /* Component-specific */
   --bar:       #C4BFFF;
   --grid-line: rgba(99, 102, 241, 0.08);
   --nav-bg:    rgba(245, 244, 255, 0.85);
+
+  /* Visualizer Structure Colors (Light) */
+  --ds-read:   #A855F7;
+  --ds-write:  #10B981;
+  --ds-graph:  #6366F1;
+  --ds-tree:   #10B981;
+  --ds-trie:   #E879F9;
+  --ds-matrix: #8B5CF6;
+  --ds-array:  #EC4899;
+  --ds-queue:  #8B5CF6;
+  --ds-stack:  #EC4899;
+  --ds-string: #10B981;
+  --ds-map:    #10B981;
+  --ds-bitset: #22D3EE;
+  --ds-scalar: #C084FC;
 }
 
 /* ─── Dark Mode Tokens ──────────────────────────────────────────────────────── */
@@ -85,16 +115,31 @@
   --failure:  #D94949;
 
   /* Glow & shadows */
-  --glow:       rgba(129, 140, 248, 0.22);
-  --glow-soft:  rgba(129, 140, 248, 0.08);
-  --shadow-sm:  0 1px 4px rgba(0, 0, 0, 0.3);
-  --shadow-md:  0 4px 24px rgba(0, 0, 0, 0.4);
-  --shadow-lg:  0 8px 48px rgba(0, 0, 0, 0.5);
+  --glow:       rgba(129, 140, 248, 0.15);
+  --glow-soft:  rgba(129, 140, 248, 0.05);
+  --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md:  0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-lg:  0 8px 32px rgba(0, 0, 0, 0.4);
 
   /* Component-specific */
   --bar:       #3730A3;
   --grid-line: rgba(129, 140, 248, 0.06);
   --nav-bg:    rgba(13, 11, 20, 0.85);
+
+  /* Visualizer Structure Colors (Dark) */
+  --ds-read:   #A855F7;
+  --ds-write:  #10B981;
+  --ds-graph:  #818CF8;
+  --ds-tree:   #34D399;
+  --ds-trie:   #E879F9;
+  --ds-matrix: #A78BFA;
+  --ds-array:  #F472B6;
+  --ds-queue:  #A78BFA;
+  --ds-stack:  #F472B6;
+  --ds-string: #34D399;
+  --ds-map:    #34D399;
+  --ds-bitset: #22D3EE;
+  --ds-scalar: #C084FC;
 }
 
 /* ─── Base Reset ────────────────────────────────────────────────────────────── */
@@ -140,21 +185,11 @@ a {
 
 /* Glass card */
 .glass {
-  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-}
-
-/* Glow effect on focused/hovered interactive elements */
-.glow-accent {
-  box-shadow: 0 0 0 0 var(--glow);
-  transition: box-shadow 0.3s ease;
-}
-.glow-accent:hover,
-.glow-accent:focus-visible {
-  box-shadow: 0 0 24px 4px var(--glow);
 }
 
 /* Gradient text utility */
@@ -177,14 +212,6 @@ a {
   border-radius: inherit;
   background: linear-gradient(135deg, var(--accent), var(--accent-2), var(--accent-3));
   z-index: -1;
-}
-
-/* Mesh gradient background for hero */
-.mesh-bg {
-  background:
-    radial-gradient(ellipse 80% 60% at 50% -10%, var(--glow), transparent 60%),
-    radial-gradient(ellipse 40% 40% at 90% 80%, rgba(139, 92, 246, 0.12), transparent 60%),
-    var(--bg);
 }
 
 /* Dotted grid pattern (subtler than lines) */

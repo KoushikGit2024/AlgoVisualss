@@ -1,4 +1,5 @@
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import { cn } from '../../lib/utils';
 
 export interface GridCoordinate { row: number; col: number; }
 export interface GridRange { startRow: number; endRow: number; startCol: number; endCol: number; }
@@ -147,26 +148,26 @@ const D2Array = ({
                   let activeZIndex = 1;
 
                   if (isFound) {
-                    bgClass = "bg-purple-500/20"; borderClass = "border-purple-500"; textClass = "text-purple-400";
-                    shadowClass = "shadow-[0_0_12px_#a855f7]"; activeScale = 1.1; activeZIndex = 30;
+                    bgClass = "bg-ds-read/20"; borderClass = "border-ds-read"; textClass = "text-ds-read";
+                    shadowClass = "shadow-none"; activeScale = 1.1; activeZIndex = 30;
                   } else if (isDelete) {
-                    bgClass = "bg-failure/10"; borderClass = "border-failure/80"; textClass = "text-failure";
-                    shadowClass = "shadow-[0_0_6px_var(--failure)]"; activeScale = 0.95; activeZIndex = 10;
+                    bgClass = "bg-failure/20"; borderClass = "border-failure"; textClass = "text-failure";
+                    shadowClass = "shadow-none"; activeScale = 0.95; activeZIndex = 10;
                   } else if (isSwap) {
-                    bgClass = "bg-accent-3/15"; borderClass = "border-accent-3"; textClass = "text-accent-3";
-                    shadowClass = "shadow-[0_0_6px_var(--accent-3)]"; activeScale = 1.05; activeZIndex = 20;
+                    bgClass = "bg-accent-3/20"; borderClass = "border-accent-3"; textClass = "text-accent-3";
+                    shadowClass = "shadow-none"; activeScale = 1.05; activeZIndex = 20;
                   } else if (isInsert) {
-                    bgClass = "bg-emerald-500/20"; borderClass = "border-emerald-500"; textClass = "text-emerald-500";
-                    shadowClass = "shadow-[0_0_8px_#10b981]"; activeScale = 1.08; activeZIndex = 25;
+                    bgClass = "bg-ds-write/20"; borderClass = "border-ds-write"; textClass = "text-ds-write";
+                    shadowClass = "shadow-none"; activeScale = 1.08; activeZIndex = 25;
                   } else if (isWrite) {
-                    bgClass = "bg-success/15"; borderClass = "border-success"; textClass = "text-success";
-                    shadowClass = "shadow-[0_0_6px_var(--success)]"; activeScale = 1.05; activeZIndex = 20;
+                    bgClass = "bg-success/20"; borderClass = "border-success"; textClass = "text-success";
+                    shadowClass = "shadow-none"; activeScale = 1.05; activeZIndex = 20;
                   } else if (isCompare) {
-                    bgClass = "bg-orange-500/15"; borderClass = "border-orange-500"; textClass = "text-orange-500";
-                    shadowClass = "shadow-[0_0_6px_#f97316]"; activeScale = 1.02; activeZIndex = 15;
+                    bgClass = "bg-orange-500/20"; borderClass = "border-orange-500"; textClass = "text-orange-500";
+                    shadowClass = "shadow-none"; activeScale = 1.02; activeZIndex = 15;
                   } else if (isRead) {
-                    bgClass = "bg-accent/15"; borderClass = "border-accent"; textClass = "text-accent";
-                    shadowClass = "shadow-[0_0_6px_var(--glow)]"; activeScale = 1.02; activeZIndex = 10;
+                    bgClass = "bg-accent/20"; borderClass = "border-accent"; textClass = "text-accent";
+                    shadowClass = "shadow-none"; activeScale = 1.02; activeZIndex = 10;
                   } else if (isHighlight) {
                     bgClass = "bg-accent-2/20"; borderClass = "border-accent-2"; textClass = "text-accent-2";
                     activeZIndex = 5;
@@ -183,11 +184,11 @@ const D2Array = ({
                         layout initial={false}
                         animate={{ scale: activeScale, zIndex: activeZIndex }}
                         transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                        className={`
+                        className={cn(`
                           w-full aspect-square px-1 flex items-center justify-center font-mono text-[14px] font-medium 
                           rounded-sm border transition-colors duration-200 shrink-0
                           ${bgClass} ${borderClass} ${textClass} ${shadowClass}
-                        `}
+                        `)}
                       >
                         <AnimatePresence mode="wait">
                           <motion.span key={`val-${safeValToDisplay}-${r}-${c}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }} className="truncate max-w-full">

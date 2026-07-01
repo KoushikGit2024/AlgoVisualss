@@ -1,5 +1,6 @@
-﻿import { useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { cn } from '../../lib/utils';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -269,13 +270,13 @@ const Tree = ({
               let scale  = 1;
               let zIdx   = 1;
 
-              if      (isFound)     { bg = "bg-purple-500/20";  border = "border-purple-500";  text = "text-purple-400";  shadow = "shadow-[0_0_12px_#a855f7]"; scale = 1.12; zIdx = 30; }
-              else if (isDelete)    { bg = "bg-failure/10";      border = "border-failure/80";  text = "text-failure";     shadow = "shadow-[0_0_6px_var(--failure)]"; scale = 0.93; zIdx = 10; }
-              else if (isSwap)      { bg = "bg-accent-3/15";     border = "border-accent-3";    text = "text-accent-3";    shadow = "shadow-[0_0_6px_var(--accent-3)]"; scale = 1.06; zIdx = 20; }
-              else if (isInsert)    { bg = "bg-emerald-500/20";  border = "border-emerald-500"; text = "text-emerald-400"; shadow = "shadow-[0_0_10px_#10b981]"; scale = 1.10; zIdx = 25; }
-              else if (isWrite)     { bg = "bg-success/15";      border = "border-success";     text = "text-success";     shadow = "shadow-[0_0_6px_var(--success)]"; scale = 1.06; zIdx = 20; }
-              else if (isCompare)   { bg = "bg-orange-500/15";   border = "border-orange-500";  text = "text-orange-400";  shadow = "shadow-[0_0_6px_#f97316]"; scale = 1.03; zIdx = 15; }
-              else if (isRead)      { bg = "bg-accent/15";       border = "border-accent";      text = "text-accent";      shadow = "shadow-[0_0_6px_var(--glow)]"; scale = 1.03; zIdx = 10; }
+              if      (isFound)     { bg = "bg-ds-read/20";  border = "border-ds-read";  text = "text-ds-read";  shadow = "shadow-none"; scale = 1.12; zIdx = 30; }
+              else if (isDelete)    { bg = "bg-failure/20";    border = "border-failure";    text = "text-failure";    shadow = "shadow-none"; scale = 0.95; zIdx = 10; }
+              else if (isSwap)      { bg = "bg-accent-3/20";     border = "border-accent-3";    text = "text-accent-3";    shadow = "shadow-none"; scale = 1.06; zIdx = 20; }
+              else if (isInsert)    { bg = "bg-ds-write/20";  border = "border-ds-write"; text = "text-ds-write"; shadow = "shadow-none"; scale = 1.10; zIdx = 25; }
+              else if (isWrite)     { bg = "bg-success/20";      border = "border-success";     text = "text-success";     shadow = "shadow-none"; scale = 1.06; zIdx = 20; }
+              else if (isCompare)   { bg = "bg-orange-500/20";   border = "border-orange-500";  text = "text-orange-500";  shadow = "shadow-none"; scale = 1.03; zIdx = 15; }
+              else if (isRead)      { bg = "bg-accent/20";       border = "border-accent";      text = "text-accent";      shadow = "shadow-none"; scale = 1.03; zIdx = 10; }
               else if (isHighlight) { border = "border-accent-2"; text = "text-accent-2"; zIdx = 5; }
 
               const pos      = getPos(node.id);
@@ -304,13 +305,13 @@ const Tree = ({
                     layout
                     animate={{ scale, zIndex: zIdx }}
                     transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                    className={`
+                    className={cn(`
                       ${nodeSize}
                       flex items-center justify-center font-mono font-bold
                       rounded-full border-[1.5px] transition-colors duration-200
                       backdrop-blur-sm shrink-0
                       ${bg} ${border} ${text} ${shadow}
-                    `}
+                    `)}
                   >
                     <AnimatePresence mode="wait">
                       <motion.span

@@ -3,10 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { Variants } from "framer-motion";
 import { useEffect, useState, useId } from "react";
 import { Menu, X,  Search, Command } from "lucide-react";
+import { cn } from '../../lib/utils';
+import SearchPalette from "./SearchPalette";
 
 const navItems = [
   { name: "Algorithms",    href: "/algorithms" },
   { name: "Visualizer",    href: "/visualizer" },
+  { name: "Editor",        href: "/editor" },
 ];
 
 // ─── Theme Toggle Icon ────────────────────────────────────────────────────────
@@ -154,11 +157,11 @@ function MobileDrawer({ open, onClose, pathname }: { open: boolean; onClose: () 
                     <Link
                       to={item.href}
                       onClick={onClose}
-                      className={`group relative flex w-full items-center px-5 py-4 rounded-[4px] text-base font-semibold transition-all duration-200 ease overflow-hidden ${
+                      className={cn(`group relative flex w-full items-center px-5 py-4 rounded-[4px] text-base font-semibold transition-all duration-200 ease overflow-hidden ${
                         isActive 
                           ? "bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] text-[var(--accent)]" 
                           : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
-                      }`}
+                      }`)}
                     >
                       {/* Animated Active Indicator */}
                       {isActive && (
@@ -170,7 +173,7 @@ function MobileDrawer({ open, onClose, pathname }: { open: boolean; onClose: () 
                       )}
                       
                       {/* Text with Hover Slide */}
-                      <span className={`transition-transform duration-200 ${isActive ? "translate-x-1" : "group-hover:translate-x-1"}`}>
+                      <span className={cn(`transition-transform duration-200 ${isActive ? "translate-x-1" : "group-hover:translate-x-1"}`)}>
                         {item.name}
                       </span>
                     </Link>
@@ -207,12 +210,14 @@ function MobileDrawer({ open, onClose, pathname }: { open: boolean; onClose: () 
   );
 }
 
+
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 export default function Navbar() {
   const pathname = useLocation().pathname;
   const [theme, setTheme]   = useState<"light" | "dark">("dark");
   const [mounted, setMounted] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const rawId      = useId().replace(/:/g, "");
   const gradId     = `nb-grad-${rawId}`;
@@ -242,6 +247,12 @@ export default function Navbar() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    const handleOpenSearch = () => setIsSearchOpen(true);
+    document.addEventListener("open-search", handleOpenSearch);
+    return () => document.removeEventListener("open-search", handleOpenSearch);
+  }, []);
+
   const toggleTheme = () => setTheme((t) => (t === "light" ? "dark" : "light"));
 
   return (
@@ -261,9 +272,9 @@ export default function Navbar() {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`relative flex items-center justify-center text-sm font-medium transition-colors duration-200 rounded-lg z-10 hover:text-[var(--text)] ${
+                    className={cn(`relative flex items-center justify-center text-sm font-medium transition-colors duration-200 rounded-lg z-10 hover:text-[var(--text)] ${
                       isActive ? "text-[var(--accent)]" : "text-[var(--muted)]"
-                    }`}
+                    }`)}
                   >
                     {isActive && (
                       <motion.span
@@ -284,7 +295,7 @@ export default function Navbar() {
               {/* Aesthetic Global Search Mockup (Desktop Only) */}
               <button 
                 className="hidden lg:flex items-center gap-3 px-3 py-1.5 h-[38px] rounded-[10px] bg-[color-mix(in_srgb,var(--surface)_50%,transparent)] border border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)] hover:border-[var(--muted)] transition-all duration-200"
-                onClick={() => console.log("Trigger Command Palette")}
+                onClick={() => setIsSearchOpen(true)}
               >
                 <div className="flex items-center gap-2 text-sm">
                   <Search size={15} />
@@ -333,6 +344,7 @@ export default function Navbar() {
       </nav>
 
       <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} pathname={pathname} />
+      <SearchPalette isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   );
 }

@@ -4,6 +4,7 @@ import Algorithms from './Pages/algorithms/Algorithms'
 import Navbar from './Pages/components/Navbar'
 import Sidebar from './Pages/components/Sidebar'
 import HomePage from './Pages/Home'
+import Editor from './Pages/editor/Editor'
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import VisualPlatforms from './Pages/visualizer/VisualPlatforms'
 import Visualizer from './Pages/visualizer/Visualizer'
@@ -107,6 +108,7 @@ const App = () => {
           <div className="flex-1 flex flex-col">
             <Routes>
               <Route path='/' element={<HomePage/>} />
+              <Route path='/editor' element={<Editor/>} />
               <Route path='/algorithms' element={<AlgoDirector/>} />
               <Route path='/algorithms/:topic/:subTopic?' element={<Algorithms/>} />
               <Route path='/visualizer' element={<VisualPlatforms/>} />

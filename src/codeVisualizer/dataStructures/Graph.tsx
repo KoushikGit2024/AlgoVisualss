@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import { cn } from '../../lib/utils';
 
 export interface GraphNode {
   id: string;
@@ -216,14 +217,19 @@ const Graph = ({
             return (
               <g key={edge.id}>
                 <motion.line
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  initial={{ opacity: 0, pathLength: 0 }}
+                  animate={{ opacity: 1, pathLength: 1, strokeDashoffset: (isRead || isHighlight) ? [0, -20] : 0 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ 
+                    opacity: { duration: 0.5 }, 
+                    pathLength: { duration: 0.5, ease: 'easeOut' },
+                    strokeDashoffset: { repeat: Infinity, duration: 1, ease: 'linear' } 
+                  }}
                   x1={x1} y1={y1}
                   x2={x2} y2={y2}
-                  className={`${strokeCls} transition-all duration-300`}
+                  className={cn(`${strokeCls} transition-all duration-300`)}
                   strokeWidth={strokeW}
+                  strokeDasharray={(isRead || isHighlight) ? '4 4' : '0'}
                   markerEnd={edge.isDirected ? `url(#${markerId})` : undefined}
                 />
                 {edge.weight != null && (
@@ -266,10 +272,10 @@ const Graph = ({
             let scale     = 1;
             let zIdx      = 1;
 
-            if (isDelete)       { bgCls = 'bg-failure/20 backdrop-blur-[2px]'; borderCls = 'border-failure/80'; textCls = 'text-failure'; shadowCls = 'shadow-[0_0_6px_var(--failure)]'; scale = 0.95; zIdx = 10; }
-            else if (isWrite)   { bgCls = 'bg-success/25 backdrop-blur-[2px]'; borderCls = 'border-success';    textCls = 'text-success'; shadowCls = 'shadow-[0_0_6px_var(--success)]'; scale = 1.05; zIdx = 20; }
-            else if (isCompare) { bgCls = 'bg-orange-500/25 backdrop-blur-[2px]'; borderCls = 'border-orange-500'; textCls = 'text-orange-500'; shadowCls = 'shadow-[0_0_6px_#f97316]'; scale = 1.02; zIdx = 15; }
-            else if (isRead)    { bgCls = 'bg-accent/25 backdrop-blur-[2px]';   borderCls = 'border-accent';    textCls = 'text-accent'; shadowCls = 'shadow-[0_0_6px_var(--glow)]'; scale = 1.02; zIdx = 10; }
+            if (isDelete)       { bgCls = 'bg-failure/20 backdrop-blur-[2px]'; borderCls = 'border-failure'; textCls = 'text-failure'; shadowCls = 'shadow-none'; scale = 0.95; zIdx = 10; }
+            else if (isWrite)   { bgCls = 'bg-success/25 backdrop-blur-[2px]'; borderCls = 'border-success';    textCls = 'text-success'; shadowCls = 'shadow-none'; scale = 1.05; zIdx = 20; }
+            else if (isCompare) { bgCls = 'bg-orange-500/25 backdrop-blur-[2px]'; borderCls = 'border-orange-500'; textCls = 'text-orange-500'; shadowCls = 'shadow-none'; scale = 1.02; zIdx = 15; }
+            else if (isRead)    { bgCls = 'bg-accent/25 backdrop-blur-[2px]';   borderCls = 'border-accent';    textCls = 'text-accent'; shadowCls = 'shadow-none'; scale = 1.02; zIdx = 10; }
             else if (isHighlight) { bgCls = 'bg-accent-2/30 backdrop-blur-[2px]'; borderCls = 'border-accent-2'; textCls = 'text-accent-2'; zIdx = 5; }
 
             return (
@@ -290,11 +296,11 @@ const Graph = ({
                   animate={{ scale, zIndex: zIdx }}
                   transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                   // w-11 h-11 = 44px ≈ NODE_R*2
-                  className={`
+                  className={cn(`
                     w-11 h-11 flex items-center justify-center font-mono text-[13px] font-bold
                     rounded-full border transition-colors duration-200 shrink-0
                     ${bgCls} ${borderCls} ${textCls} ${shadowCls}
-                  `}
+                  `)}
                 >
                   <AnimatePresence mode="wait">
                     <motion.span

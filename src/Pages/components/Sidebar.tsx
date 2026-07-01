@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
-import { Link, useLocation, useMatch } from "react-router-dom";
+import { Link, useLocation, useMatch, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { Search, X, ChevronRight, AlertCircle, Code, Database, Activity, Box, Cpu, FileText, MonitorPlay, BadgeInfo } from "lucide-react";
+import { Search, X, ChevronRight, AlertCircle, Code, Database, Activity, Box, Cpu, FileText, MonitorPlay, BadgeInfo, Settings, BookOpen, Code2 } from "lucide-react";
 import ALGODATA from "../algorithms/data/categories/AlgoData";
 import PLATFORMDATA from "../visualizer/data/PlatformData";
+import { cn } from '../../lib/utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type NavItem = {
@@ -131,14 +132,14 @@ function RecursiveNavNode({
     <div className="flex flex-col">
       <div
         onClick={handleClick}
-        className={`group relative w-full flex items-center py-2 rounded-[4px] cursor-pointer transition-all duration-200 ease-out outline-none my-[2px]
+        className={cn(`group relative w-full flex items-center py-2 rounded-[4px] cursor-pointer transition-all duration-200 ease-out outline-none my-[2px]
           ${collapsed ? "justify-center px-0" : "pr-3"}
           ${isActiveLink 
             ? "text-[var(--accent)] font-semibold" 
             : isTopLevel
               ? "text-[var(--text)] font-medium tracking-tight hover:bg-[var(--surface-2)]"
               : "text-[var(--muted)] font-normal hover:text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--surface-2)_40%,transparent)]"
-          }`}
+          }`)}
         style={{ paddingLeft: collapsed ? "0px" : `${16 + level * 12}px` }}
       >
         {/* Shared Layout Track Hover Ring & Pill System */}
@@ -151,8 +152,8 @@ function RecursiveNavNode({
           />
         )}
 
-        <div className={`relative z-10 flex items-center w-full gap-2 ${collapsed ? "justify-center" : "justify-between"}`}>
-          <div className={`flex items-center gap-2 truncate ${collapsed ? "justify-center w-full" : "w-9/10"} ${!isFolder && "justify-between"}`}>
+        <div className={cn(`relative z-10 flex items-center w-full gap-2 ${collapsed ? "justify-center" : "justify-between"}`)}>
+          <div className={cn(`flex items-center gap-2 flex-1 min-w-0 ${collapsed ? "justify-center" : ""}`)}>
             {/* SVG Swap magic driven by CSS classes */}
             {item.icon && (typeof item.icon !== "string") && (
               <div className="w-5 h-5 flex items-center justify-center shrink-0 text-[var(--muted)] group-hover:hidden transition-opacity">
@@ -168,20 +169,20 @@ function RecursiveNavNode({
             {/* Supress text and badges when collapsed */}
             {!collapsed && (
               <>
-                <Link to={item.url ? `${item.url}${search}` : "#"}>
-                  <span title={item.label} className={`truncate ${isTopLevel ? "text-[14px] font-semibold" : "text-[13px]"}`}>
+                <Link to={item.url ? `${item.url}${search}` : "#"} className="flex-1 min-w-0">
+                  <span title={item.label} className={cn(`block truncate ${isTopLevel ? "text-[14px] font-semibold" : "text-[13px]"}`)}>
                     <Highlighted text={item.label} query={query} />
                   </span>
                 </Link>
                 
                 {/* Difficulty Badge System */}
                 {item.badge && (
-                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-sm shrink-0 uppercase tracking-widest
+                  <span className={cn(`text-[9px] font-bold px-1.5 py-0.5 rounded-sm shrink-0 whitespace-nowrap uppercase tracking-widest
                     ${item.badge === 'Easy' ? 'text-[#34D399] bg-[#34D399]/10' :
                       item.badge === 'Medium' ? 'text-[#FBBF24] bg-[#FBBF24]/10' :
                       item.badge === 'Hard' ? 'text-[#EF4444] bg-[#EF4444]/10' :
                       'text-[var(--muted)] bg-[var(--surface-2)]'}
-                  `}>
+                  `)}>
                     {item.badge}
                   </span>
                 )}
@@ -193,7 +194,7 @@ function RecursiveNavNode({
           {isFolder && !collapsed && (
             <ChevronRight 
               size={14} 
-              className={`shrink-0 transition-transform duration-300 ease-out text-[var(--muted)] group-hover:text-[var(--text)] ${isExpanded ? "rotate-90" : ""}`} 
+              className={cn(`shrink-0 transition-transform duration-300 ease-out text-[var(--muted)] group-hover:text-[var(--text)] ${isExpanded ? "rotate-90" : ""}`)} 
             />
           )}
         </div>
@@ -241,7 +242,22 @@ export default function Sidebar() {
   const algoParams = useMatch("/algorithms/:topic/:subTopic?/*");
   
   const { platform } = visParams?.params || { platform: null };
-  const { topic: algoTopic } = algoParams?.params || { topic: null };
+  const { topic: algoTopic, subTopic } = algoParams?.params || { topic: null, subTopic: null };
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeView = searchParams.get("openCode") === "true" ? "visualizer" : "docs";
+
+  const handleViewChange = (view: "docs" | "visualizer") => {
+    const newParams = new URLSearchParams(searchParams);
+    if (view === "visualizer") {
+      newParams.set("openCode", "true");
+    } else {
+      newParams.delete("openCode");
+    }
+    setSearchParams(newParams, { replace: true });
+  };
+
+  const [showSettings, setShowSettings] = useState(false);
 
   // Resizing and Collapsing State
   const [collapsed, setCollapsed] = useState(false);
@@ -409,7 +425,7 @@ export default function Sidebar() {
       animate={{ width: collapsed ? 72 : sidebarWidth }}
       // Prevent Framer easing delay while actively resizing by setting duration: 0
       transition={isResizing ? { duration: 0 } : { type: "tween", bounce: 0, duration: 0.4 }}
-      className={`h-[calc(100vh-64px)] flex flex-col bg-[var(--surface)] border-r border-[var(--border)] z-20 shrink-0 sticky top-[64px] relative ${isResizing ? 'select-none' : ''}`}
+      className={cn(`h-[calc(100vh-64px)] flex flex-col bg-[var(--surface)] border-r border-[var(--border)] z-20 shrink-0 ${isResizing ? 'select-none' : ''}`)}
     >
       {/* Premium Main Topic Banner Header Section */}
       <AnimatePresence mode="wait">
@@ -519,6 +535,91 @@ export default function Sidebar() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* ─── Sidebar Footer ─── */}
+      <div className="shrink-0 flex flex-col border-t border-[var(--border)] bg-[var(--surface)] p-3 gap-3 relative z-30">
+        
+        {/* Toggle Docs/Visualizer */}
+        {isAlgo && subTopic && !collapsed && (
+          <div className="flex items-center bg-[var(--surface-2)] rounded-lg p-1 shadow-inner">
+            <button
+              onClick={() => handleViewChange("docs")}
+              className={cn(`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[12px] font-semibold transition-all duration-300 ${
+                activeView === "docs" 
+                  ? "bg-[var(--accent)] text-[#ffffff] shadow-sm" 
+                  : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--text)_5%,transparent)]"
+              }`)}
+            >
+              <BookOpen size={14} /> Theory
+            </button>
+            <button
+              onClick={() => handleViewChange("visualizer")}
+              className={cn(`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[12px] font-semibold transition-all duration-300 ${
+                activeView === "visualizer" 
+                  ? "bg-[var(--accent)] text-[#ffffff] shadow-sm" 
+                  : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--text)_5%,transparent)]"
+              }`)}
+            >
+              <Code2 size={14} /> Visualize
+            </button>
+          </div>
+        )}
+
+        {/* Settings Menu Popover */}
+        <AnimatePresence>
+          {showSettings && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className={cn(`absolute bottom-[calc(100%+8px)] ${collapsed ? "left-14" : "left-3 right-3"} bg-[var(--surface)] border border-[var(--border)] rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.4)] overflow-hidden z-50`)}
+              style={{ minWidth: collapsed ? "200px" : "auto" }}
+            >
+              <div className="flex items-center justify-between p-3 border-b border-[var(--border)] bg-[var(--surface-2)]">
+                <span className="text-[13px] font-bold text-[var(--text)]">Preferences</span>
+                <button onClick={() => setShowSettings(false)} className="text-[var(--muted)] hover:text-[var(--text)] transition-colors">
+                  <X size={14} />
+                </button>
+              </div>
+              <div className="p-4 flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <span className="text-[11px] font-bold text-[var(--muted)] uppercase tracking-wider">Font Size</span>
+                  <div className="flex items-center gap-2">
+                    <button className="flex-1 py-1.5 bg-[var(--surface-2)] rounded-md border border-[var(--border)] text-[12px] font-medium text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all">Sm</button>
+                    <button className="flex-1 py-1.5 bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] border border-[var(--accent)] text-[var(--accent)] rounded-md text-[12px] font-semibold transition-all">Md</button>
+                    <button className="flex-1 py-1.5 bg-[var(--surface-2)] rounded-md border border-[var(--border)] text-[12px] font-medium text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all">Lg</button>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <span className="text-[11px] font-bold text-[var(--muted)] uppercase tracking-wider">Theme</span>
+                  <div className="flex items-center gap-2">
+                    <button className="flex-1 py-1.5 bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] border border-[var(--accent)] text-[var(--accent)] rounded-md text-[12px] font-semibold transition-all">Dark</button>
+                    <button className="flex-1 py-1.5 bg-[var(--surface-2)] rounded-md border border-[var(--border)] text-[12px] font-medium text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all">Light</button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Footer Bar */}
+        <div className={cn(`flex items-center justify-between ${collapsed ? "flex-col gap-3 justify-center" : ""}`)}>
+          <button 
+            onClick={() => setShowSettings(!showSettings)}
+            className={cn(`flex items-center justify-center p-2 rounded-[8px] transition-colors ${showSettings ? "bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] text-[var(--accent)] shadow-sm" : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"}`)}
+            title="Settings"
+          >
+            <Settings size={16} />
+          </button>
+          
+          {!collapsed && (
+            <div className="text-[11px] font-medium text-[var(--muted)] opacity-60 px-2">
+              &copy; {new Date().getFullYear()} AlgoVisuals
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ─── Drag Handle ─── */}

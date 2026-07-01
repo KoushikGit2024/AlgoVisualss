@@ -12,6 +12,10 @@ import {
   Activity,
   Terminal,
   Cpu,
+  ChevronDown,
+  ChevronRight,
+  // PanelRightClose,
+  PanelRightOpen
 } from 'lucide-react';
 
 import Graph from '../dataStructures/Graph';
@@ -28,6 +32,7 @@ import BitsetVisualizer from '../dataStructures/BitsetVisualizer';
 import ScalarVisualizer from '../dataStructures/ScalarVisualizer';
 import { DraggableWindow, type WindowState } from './DraggableWindow';
 import { detectVisualizer, deepUnwrap, type CanvasState } from './detectVisualizer';
+import { cn } from '../../lib/utils';
 
 const VisualGround = ({
   code,
@@ -48,6 +53,20 @@ const VisualGround = ({
   const [hSplit, setHSplit] = useState<number>(65);
   const [vSplit, setVSplit] = useState<number>(30);
   const [draggingDiv, setDraggingDiv] = useState<'v' | 'h' | null>(null);
+
+  const [isCallStackCollapsed, setIsCallStackCollapsed] = useState(false);
+  const [isVariablesCollapsed, setIsVariablesCollapsed] = useState(false);
+  const [isConsoleCollapsed, setIsConsoleCollapsed] = useState(false);
+  const [expandedVars, setExpandedVars] = useState<Set<string>>(new Set());
+
+  const toggleVarExpand = (id: string) => {
+    const newSet = new Set(expandedVars);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setExpandedVars(newSet);
+  };
+
+  const isRightPanelCollapsed = isCallStackCollapsed && isVariablesCollapsed && isConsoleCollapsed;
 
   const mainContainerRef = useRef<HTMLDivElement>(null);
   const rightPanelRef = useRef<HTMLDivElement>(null);
@@ -231,8 +250,32 @@ const VisualGround = ({
         opStyle = 'bg-accent/20 text-accent border-accent/30 font-bold';
     }
 
-    let displayValue = typeof val === 'object' ? JSON.stringify(val) : String(val);
-    if (displayValue.length > 40) displayValue = displayValue.substring(0, 40) + '...';
+    const formatVariableValue = (v: any): string => {
+      if (v === null) return 'null';
+      if (v === undefined) return 'undefined';
+      if (typeof v === 'string') return v;
+      if (Array.isArray(v)) {
+          return '[' + v.map(item => formatVariableValue(item)).join(', ') + ']';
+      }
+      if (typeof v === 'object') {
+          if (v.__type === 'container' && Array.isArray(v.data)) {
+              return '[' + v.data.map((item: any) => formatVariableValue(item)).join(', ') + ']';
+          }
+          let typeName = v.__type || '';
+          let props: string[] = [];
+          for (let [k, propVal] of Object.entries(v)) {
+              if (k.startsWith('__')) continue;
+              if (typeof propVal === 'string' && propVal.startsWith('&')) continue;
+              if (propVal === null && (k === 'left' || k === 'right' || k === 'next')) continue;
+              props.push(k + ': ' + formatVariableValue(propVal));
+          }
+          let content = props.length > 0 ? '{ ' + props.join(', ') + ' }' : '{}';
+          return typeName ? typeName + ' ' + content : content;
+      }
+      return String(v);
+    };
+
+    let displayValue = formatVariableValue(val);
 
     overviewVars.push({
       id: name,
@@ -493,7 +536,7 @@ const VisualGround = ({
                   bringToFront={() => bringToFront(type)}
                   parentRef={layoutAreaRef}
                 >
-                  <div className={`flex flex-wrap gap-4 items-center justify-center p-2 ${isScalar ? '' : 'min-w-[40px] min-h-[150px]'}`}>
+                  <div className={cn(`flex flex-wrap gap-4 items-center justify-center p-2 ${isScalar ? '' : 'min-w-[40px] min-h-[150px]'}`)}>
                     {states.map((state) => (
                       <div
                         key={state.id}
@@ -541,14 +584,14 @@ const VisualGround = ({
                       bringToFront(type);
                     }
                   }}
-                  className={`px-3 py-1 border rounded-sm text-[10px] font-bold transition-all flex items-center gap-1.5 min-w-[80px] max-w-[150px] truncate justify-center hover:-translate-y-px active:translate-y-0
+                  className={cn(`px-3 py-1 border rounded-sm text-[10px] font-bold transition-all flex items-center gap-1.5 min-w-[80px] max-w-[150px] truncate justify-center hover:-translate-y-px active:translate-y-0
                     ${
                       isActive
                         ? 'bg-surface-3 border-accent/50 text-accent shadow-sm'
                         : ws.isMinimized
                         ? 'bg-bg border-border text-muted hover:bg-surface opacity-70'
                         : 'bg-surface border-border text-text hover:bg-surface-2'
-                    }`}
+                    }`)}
                 >
                   {type}s
                 </button>
@@ -563,14 +606,22 @@ const VisualGround = ({
         </div>
 
         {/* H-Divider */}
+        {!isRightPanelCollapsed && (
         <div
           onMouseDown={() => setDraggingDiv('h')}
           className="flex items-center justify-center w-1 cursor-col-resize z-10 shrink-0 hover:bg-surface-2 transition-colors"
         >
-          <div className="w-[2px] h-12 rounded-full bg-border" />
+          <div className="w-[1px] h-12 rounded-full bg-border" />
         </div>
+        )}
 
         {/* RIGHT PANE: Inspectors */}
+        {isRightPanelCollapsed ? (
+           <div className="flex flex-col items-center justify-start p-1 bg-surface-2 border-l border-border shrink-0 cursor-pointer hover:bg-surface-3 transition-colors z-10" onClick={() => { setIsCallStackCollapsed(false); setIsVariablesCollapsed(false); setIsConsoleCollapsed(false); }} title="Expand Inspectors">
+             <PanelRightOpen size={14} className="text-muted mb-4" />
+             <span className="text-[9px] font-semibold text-muted uppercase tracking-widest" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>Inspectors</span>
+           </div>
+        ) : (
         <div
           ref={rightPanelRef}
           style={{ flex: `${100 - hSplit} 1 0%` }}
@@ -578,14 +629,15 @@ const VisualGround = ({
         >
           {/* Call Stack */}
           <div
-            style={{ flex: `${vSplit} 1 0%` }}
-            className="w-full flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden min-h-[80px]"
+            style={isCallStackCollapsed ? { flex: '0 0 auto' } : { flex: isVariablesCollapsed ? '1 1 0%' : `${vSplit} 1 0%` }}
+            className={cn(`w-full flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden ${isCallStackCollapsed ? 'min-h-0' : 'min-h-[80px]'}`)}
           >
-            <div className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0">
-              <h4 className="text-[9px] uppercase tracking-widest text-muted font-semibold">
-                Call Stack
+            <div className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0 flex items-center justify-between cursor-pointer hover:bg-surface-3" onClick={() => setIsCallStackCollapsed(!isCallStackCollapsed)}>
+              <h4 className="text-[9px] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
+                {isCallStackCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />} Call Stack
               </h4>
             </div>
+            {!isCallStackCollapsed && (
             <div className="flex-1 overflow-y-auto styled-scrollbar pr-1 flex flex-col gap-1 p-1.5">
               {currentSnapshot?.state?.callStack
                 ?.slice()
@@ -595,12 +647,12 @@ const VisualGround = ({
                   return (
                     <div
                       key={idx}
-                      className={`px-2 py-1 rounded-sm border shadow-sm text-[9px] font-mono flex items-center justify-between
+                      className={cn(`px-2 py-1 rounded-sm border shadow-sm text-[9px] font-mono flex items-center justify-between
                         ${
                           isTop
-                            ? 'border-accent-3 bg-accent-3/10 glow-accent text-accent-3 font-bold'
+                            ? 'border-accent-3 bg-accent-3/10  text-accent-3 font-bold'
                             : 'border-border bg-surface text-muted opacity-70'
-                        }`}
+                        }`)}
                     >
                       <span>{frame}()</span>
                       {isTop && (
@@ -612,65 +664,110 @@ const VisualGround = ({
                   );
                 })}
             </div>
+            )}
           </div>
 
           {/* V-Divider */}
+          {!isCallStackCollapsed && !isVariablesCollapsed && (
           <div
             onMouseDown={() => setDraggingDiv('v')}
             className="flex items-center justify-center h-1 cursor-row-resize z-10 shrink-0 hover:bg-surface-2 transition-colors my-[-2px]"
           >
-            <div className="h-[2px] w-12 rounded-full bg-border" />
+            <div className="h-[1px] w-12 rounded-full bg-border" />
           </div>
+          )}
 
           {/* Variables + Console */}
           <div
-            style={{ flex: `${100 - vSplit} 1 0%` }}
-            className="w-full flex flex-col gap-1 overflow-hidden min-h-[120px]"
+            style={isVariablesCollapsed ? { flex: '0 0 auto' } : { flex: isCallStackCollapsed ? '1 1 0%' : `${100 - vSplit} 1 0%` }}
+            className={cn(`w-full flex flex-col gap-1 overflow-hidden ${isVariablesCollapsed ? 'min-h-0' : 'min-h-[120px]'}`)}
           >
             {/* Variables */}
             <div className="flex-1 flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden">
-              <div className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0">
-                <h4 className="text-[9px] uppercase tracking-widest text-muted font-semibold">
-                  Variables
+              <div className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0 flex items-center justify-between cursor-pointer hover:bg-surface-3" onClick={() => setIsVariablesCollapsed(!isVariablesCollapsed)}>
+                <h4 className="text-[9px] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
+                  {isVariablesCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />} Variables
                 </h4>
               </div>
+              {!isVariablesCollapsed && (
               <div className="flex-1 overflow-y-auto styled-scrollbar p-1">
-                <div className="flex flex-col-reverse gap-px">
+                <div className="flex flex-col gap-px">
                   {overviewVars.length === 0 && (
                     <span className="text-[9px] text-muted font-mono p-1">No locals.</span>
                   )}
-                  {overviewVars.map((v) => (
+                  {overviewVars.map((v) => {
+                    const isExp = expandedVars.has(v.id);
+                    let formattedVal = v.value;
+                    try {
+                       const parsed = JSON.parse(v.value);
+                       formattedVal = JSON.stringify(parsed, null, 2);
+                    } catch(e) {
+                       let indent = 0;
+                       let res = '';
+                       for(let i=0; i<v.value.length; i++) {
+                           const c = v.value[i];
+                           if(c === '{' || c === '[') {
+                               indent += 2;
+                               res += c + '\n' + ' '.repeat(indent);
+                           } else if(c === '}' || c === ']') {
+                               indent = Math.max(0, indent - 2);
+                               res += '\n' + ' '.repeat(indent) + c;
+                           } else if(c === ',') {
+                               res += ',\n' + ' '.repeat(indent);
+                           } else {
+                               res += c;
+                           }
+                       }
+                       formattedVal = res;
+                    }
+
+                    return (
                     <div
                       key={v.id}
-                      className={`flex items-center justify-between px-1.5 py-1 text-[10px] font-mono rounded-sm border border-transparent transition-colors ${v.opStyle}`}
+                      onClick={() => toggleVarExpand(v.id)}
+                      className={cn(`flex flex-col px-1.5 py-1 text-[10px] font-mono rounded-sm border border-transparent transition-colors cursor-pointer hover:bg-surface-3 ${v.opStyle}`)}
                     >
-                      <div className="flex items-center gap-1.5 overflow-hidden">
-                        <span className="text-accent-2 opacity-80 text-[8px] uppercase shrink-0">
-                          {v.type}
-                        </span>
-                        <span className="font-bold shrink-0">{v.name}</span>
-                        <span className="opacity-50 shrink-0">=</span>
-                        <span className="text-accent-3 font-bold truncate max-w-[100px]">
-                          {v.value}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 overflow-hidden">
+                          <span className="text-muted shrink-0">{isExp ? <ChevronDown size={10} /> : <ChevronRight size={10} />}</span>
+                          <span className="text-accent-2 opacity-80 text-[8px] uppercase shrink-0">
+                            {v.type}
+                          </span>
+                          <span className="font-bold shrink-0">{v.name}</span>
+                          <span className="opacity-50 shrink-0">=</span>
+                          {!isExp && (
+                            <span className="text-accent-3 font-bold truncate max-w-[150px]">
+                              {v.value}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[8px] text-muted opacity-50 shrink-0 ml-1">
+                          in {v.func}()
                         </span>
                       </div>
-                      <span className="text-[8px] text-muted opacity-50 shrink-0 ml-1">
-                        in {v.func}()
-                      </span>
+                      {isExp && (
+                        <div className="mt-1.5 w-full text-accent-3 font-bold whitespace-pre-wrap break-all bg-bg/80 p-2 rounded border border-border/50 h-auto overflow-visible shadow-inner">
+                          {formattedVal}
+                        </div>
+                      )}
                     </div>
-                  ))}
+                  );})}
                 </div>
               </div>
+              )}
             </div>
 
             {/* Console Output */}
-            <div className="h-28 shrink-0 flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden">
-              <div className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0 flex items-center gap-1">
-                <Terminal size={10} className="text-muted" />
-                <h4 className="text-[9px] uppercase tracking-widest text-muted font-semibold">
-                  Console Output
-                </h4>
+            <div className={cn(`shrink-0 flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden ${isConsoleCollapsed ? 'min-h-0 h-auto' : 'h-28'}`)}>
+              <div className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0 flex items-center justify-between cursor-pointer hover:bg-surface-3" onClick={() => setIsConsoleCollapsed(!isConsoleCollapsed)}>
+                <div className="flex items-center gap-1">
+                  <Terminal size={10} className="text-muted" />
+                  <h4 className="text-[9px] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
+                    {isConsoleCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />} Console Output
+                  </h4>
+                </div>
               </div>
+              {!isConsoleCollapsed && (
               <div
                 ref={outputRef}
                 className="flex-1 overflow-y-auto styled-scrollbar p-2 font-mono text-[10px] text-text whitespace-pre-wrap"
@@ -679,9 +776,11 @@ const VisualGround = ({
                   <span className="text-muted opacity-50 italic">No output...</span>
                 )}
               </div>
+              )}
             </div>
           </div>
         </div>
+        )}
       </div>
 
       {/* ─── CONTROLS BAR ─── */}
@@ -720,9 +819,9 @@ const VisualGround = ({
               onClick={handleSimulate}
               disabled={isCompiling}
               title="Compile & Simulate"
-              className={`px-2 py-1 text-white border border-transparent rounded-sm text-[9px] font-bold transition-all shadow-sm flex items-center gap-1 ${
+              className={cn(`px-2 py-1 text-white border border-transparent rounded-sm text-[9px] font-bold transition-all shadow-sm flex items-center gap-1 ${
                 isCompiling ? 'bg-accent/50 cursor-not-allowed' : 'bg-accent hover:bg-accent-2'
-              }`}
+              }`)}
             >
               {isCompiling ? (
                 <RefreshCw size={10} className="animate-spin" />
@@ -744,9 +843,9 @@ const VisualGround = ({
             <button
               disabled={snapshots.length === 0}
               onClick={() => setIsPlaying(!isPlaying)}
-              className={`p-1.5 rounded-sm text-white transition-all shadow-md disabled:opacity-50 ${
+              className={cn(`p-1.5 rounded-sm text-white transition-all shadow-md disabled:opacity-50 ${
                 isPlaying ? 'bg-orange-500 hover:bg-orange-600' : 'bg-success hover:bg-emerald-500'
-              }`}
+              }`)}
             >
               {isPlaying ? (
                 <Pause size={10} fill="currentColor" />
@@ -798,4 +897,4 @@ const VisualGround = ({
   );
 };
 
-export default VisualGround;
+export default React.memo(VisualGround);

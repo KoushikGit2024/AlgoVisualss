@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, useDragControls, type PanInfo } from 'framer-motion';
 import { Maximize2, Minimize2, Move } from 'lucide-react';
+import { cn } from '../../lib/utils';
 
 export interface WindowState {
   isMinimized: boolean;
@@ -122,9 +123,9 @@ export function DraggableWindow({
       onDragEnd={handleDragEnd}
       animate={animateProps}
       transition={{ type: 'spring', bounce: 0.05, duration: 0.3 }}
-      className={`absolute flex flex-col bg-bg/95 border border-border rounded-md shadow-xl overflow-hidden ${
+      className={cn(`absolute flex flex-col bg-bg/95 border border-border rounded-md shadow-xl overflow-hidden ${
         windowState.isMaximized ? 'inset-0' : 'min-w-[60px]'
-      }`}
+      }`)}
       style={{
         zIndex: windowState.zIndex,
         // Corner anchor: use CSS right/bottom instead of Framer's x/y
@@ -185,7 +186,7 @@ export function DraggableWindow({
       </div>
 
       {/* ─── Content Body ─── */}
-      <div className={`flex-1 overflow-auto styled-scrollbar p-2 relative flex flex-col ${!cornerAnchor && 'min-h-[100px]'}`}>
+      <div className={cn(`flex-1 overflow-auto styled-scrollbar p-2 relative flex flex-col ${!cornerAnchor && 'min-h-[100px]'}`)}>
         {/* m-auto centers when content fits; collapses to 0 when content overflows,
             left-aligning it so the left edge is never clipped */}
             

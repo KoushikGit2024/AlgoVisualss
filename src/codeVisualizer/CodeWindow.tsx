@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
 import CodeEditor from './sideComponents/CodeEditor';
 import VisualGround from './sideComponents/VisualGround';
-import { Info, X } from 'lucide-react';
+import { Info, X, ChevronLeft, ChevronRight, Code, MonitorPlay } from 'lucide-react';
 import VisualizerNamingConventions from './dataStructures/VisualizerNamingConventions';
 // import { ALGODATA } from '../Pages/algorithms/data/categories/AlgoData';
+import { cn } from '../lib/utils';
 
 const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
   const [lang, setLang] = useState<string>("c++");
@@ -11,8 +12,22 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
   const [highlightLine, setHighlightLine] = useState<number>(1);
   
   const [splitOffset, setSplitOffset] = useState<number>(35);
+  const [ghostOffset, setGhostOffset] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [isEditorCollapsed, setIsEditorCollapsed] = useState(false);
+  const [isVisualizerCollapsed, setIsVisualizerCollapsed] = useState(false);
+  const [hasViewedConventions, setHasViewedConventions] = useState(() => {
+    return localStorage.getItem('hasViewedConventions') === 'true';
+  });
+
+  const handleShowInfo = () => {
+    setShowInfo(true);
+    if (!hasViewedConventions) {
+      localStorage.setItem('hasViewedConventions', 'true');
+      setHasViewedConventions(true);
+    }
+  };
   const containerRef = useRef<HTMLDivElement>(null);
 
   // ✅ FIX 1: Only reset the code when the 'lang' tab changes!
@@ -37,10 +52,16 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
       if (newPercentage < 20) newPercentage = 20;
       if (newPercentage > 80) newPercentage = 80;
       
-      setSplitOffset(newPercentage);
+      setGhostOffset(newPercentage);
     };
 
-    const handleMouseUp = () => setIsDragging(false);
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setGhostOffset((prevGhost) => {
+        if (prevGhost !== null) setSplitOffset(prevGhost);
+        return null;
+      });
+    };
 
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
@@ -61,13 +82,23 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
   return (
     <div 
       ref={containerRef}
-      className="relative flex flex-col lg:flex-row items-stretch w-full h-full p-1 lg:p-2 bg-bg text-text overflow-hidden min-h-0"
+      className="relative flex flex-col lg:flex-row items-stretch w-full h-full p-1 bg-bg text-text overflow-hidden min-h-0"
     >
       
       {/* ─── Left Pane: Code Editor ────────────────────────────────────────── */}
+      {isEditorCollapsed ? (
+        <div 
+          className="flex flex-col items-center justify-start py-4 px-2 glass rounded-lg border border-border shrink-0 cursor-pointer hover:bg-surface-2 transition-colors z-10" 
+          onClick={() => setIsEditorCollapsed(false)}
+          title="Expand Editor"
+        >
+          <Code size={16} className="text-muted mb-4" />
+          <span className="text-[10px] font-semibold text-muted uppercase tracking-widest" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>Code Editor</span>
+        </div>
+      ) : (
       <div 
-        style={{ flex: lang === 'c++' ? `${splitOffset} 1 0%` : '1 1 0%' }} 
-        className="flex flex-col glass rounded-lg overflow-hidden shadow-lg border border-border min-h-0 min-w-0 max-h-screen transition-all duration-300"
+        style={{ flex: lang === 'c++' ? (isVisualizerCollapsed ? '1 1 0%' : `${splitOffset} 1 0%`) : '1 1 0%' }} 
+        className="flex flex-col glass rounded-sm overflow-hidden shadow-lg border border-border min-h-0 min-w-0 max-h-screen transition-all duration-300"
       >
         <div className="flex items-center justify-between px-3 py-1.5 bg-surface-2 border-b border-border shrink-0">
           <div className="flex items-center gap-1 bg-surface rounded-full p-0.5 border border-border shadow-sm max-w-1/2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] scrollbar-none">
@@ -75,25 +106,41 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
               <button
                 key={index}
                 onClick={() => setLang(item)}
-                className={`px-3 py-1 text-xs font-mono font-medium transition-all duration-200 cursor-pointer ${
+                className={cn(`px-3 py-1 text-xs font-mono font-medium transition-all duration-200 cursor-pointer ${
                   lang === item
                     ? 'nav-pill-active shadow-sm'
                     : 'text-muted hover:text-text hover:bg-surface-2 rounded-full'
-                }`}
+                }`)}
               >
                 {item.toUpperCase()}
               </button>
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setShowInfo(true)}
-              className="p-1 text-accent hover:bg-surface-3 rounded transition-colors"
-              title="Visualizer Naming Conventions"
-            >
-              <Info size={14} />
-            </button>
+            <div className="relative flex items-center justify-center">
+              {!hasViewedConventions && (
+                <span className="absolute inset-0 rounded-full border-[2px] border-amber-500 animate-ping opacity-75 pointer-events-none"></span>
+              )}
+              <button 
+                onClick={handleShowInfo}
+                className={cn(`p-1 rounded-full transition-colors relative z-10 ${
+                  !hasViewedConventions 
+                    ? 'text-amber-500 bg-amber-500/10 hover:bg-amber-500/20' 
+                    : 'text-accent hover:bg-surface-3'
+                }`)}
+                title="Visualizer Naming Conventions"
+              >
+                <Info size={14} />
+              </button>
+            </div>
             <span className="text-[10px] font-semibold text-muted uppercase tracking-wider">Editor</span>
+            <button 
+              onClick={() => setIsEditorCollapsed(true)} 
+              className="p-1 hover:bg-surface-3 rounded text-muted transition-colors ml-1"
+              title="Collapse Editor"
+            >
+              <ChevronLeft size={14} />
+            </button>
           </div>
         </div>
 
@@ -101,26 +148,39 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
           <CodeEditor code={code} lang={lang} highlightLine={highlightLine} setCode={setCode}/>
         </div>
       </div>
-
+      )}
       {/* ─── Expandable/Resizable Divider ──────────────────────────────────── */}
-      {lang === 'c++' && (
+      {lang === 'c++' && !isEditorCollapsed && !isVisualizerCollapsed && (
         <div 
-          onMouseDown={() => setIsDragging(true)}
-          className="flex items-center justify-center p-1 lg:p-0 lg:w-3 shrink-0 cursor-row-resize lg:cursor-col-resize group z-10"
+          onMouseDown={() => {
+            setIsDragging(true);
+            setGhostOffset(splitOffset);
+          }}
+          className="flex items-center justify-center p-px lg:p-0 lg:w-3 shrink-0 cursor-row-resize lg:cursor-col-resize group z-10"
         >
-          <div className={`
+          <div className={cn(`
             w-12 h-1 lg:w-1 lg:h-12 rounded-full transition-colors duration-200
             ${isDragging ? 'bg-accent' : 'bg-border group-hover:bg-accent-2'}
-          `} />
+          `)} />
         </div>
       )}
 
       {/* ─── Right Pane: Visual Ground ─────────────────────────────────────── */}
+      {isVisualizerCollapsed ? (
+        <div 
+          className="flex flex-col items-center justify-start py-4 px-2 glass rounded-lg border border-border shrink-0 cursor-pointer hover:bg-surface-2 transition-colors z-10" 
+          onClick={() => setIsVisualizerCollapsed(false)}
+          title="Expand Visualizer"
+        >
+          <MonitorPlay size={16} className="text-muted mb-4" />
+          <span className="text-[10px] font-semibold text-muted uppercase tracking-widest" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>Visual Output</span>
+        </div>
+      ) : (
       <div
         style={
           lang === "c++"
             ? {
-                flex: `${100 - splitOffset} 1 0%`,
+                flex: isEditorCollapsed ? "1 1 0%" : `${100 - splitOffset} 1 0%`,
                 position: "relative",
               }
             : {
@@ -130,16 +190,25 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
                 zIndex: 20,
               }
         }
-        className={`flex flex-col overflow-hidden glass rounded-lg shadow-lg border border-border transition-all duration-300 ${
+        className={cn(`flex flex-col overflow-hidden glass rounded-sm shadow-lg border border-border transition-all duration-300 ${
           lang === "c++"
             ? "min-h-0 min-w-0 max-h-screen"
             : "w-[calc(100vw-1rem)] sm:w-[320px] max-w-1/2 bg-surface/90 backdrop-blur-md"
-        }`}
+        }`)}
       >
         <div className="px-2.5 sm:px-3 py-1.5 bg-surface-2 border-b border-border flex items-center justify-between shrink-0">
-          <span className="text-[9px] sm:text-[10px] font-semibold text-muted uppercase tracking-wider font-display">
-            Visualizer Output
-          </span>
+          <div className="flex items-center gap-1">
+            <button 
+              onClick={() => setIsVisualizerCollapsed(true)} 
+              className="p-1 hover:bg-surface-3 rounded text-muted transition-colors"
+              title="Collapse Visualizer"
+            >
+              <ChevronRight size={14} />
+            </button>
+            <span className="text-[9px] sm:text-[10px] font-semibold text-muted uppercase tracking-wider font-display">
+              Visualizer Output
+            </span>
+          </div>
 
           <div className="flex items-center gap-2">
             <span className="text-[9px] sm:text-[10px] text-muted font-mono">
@@ -147,16 +216,16 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
             </span>
 
           <div
-              className={`w-2 h-2 rounded-full aspect-square shadow-sm ${
+              className={cn(`w-2 h-2 rounded-full aspect-square shadow-sm ${
                 lang === "c++"
-                  ? "bg-success animate-pulse glow-accent"
+                  ? "bg-success animate-pulse"
                   : "bg-red-400"
-              }`}
+              }`)}
             />
           </div>
         </div>
 
-        <div className="flex-1 relative bg-surface mesh-bg overflow-hidden flex flex-col min-h-0 min-w-0 p-2">
+        <div className="flex-1 relative bg-surface overflow-hidden flex flex-col min-h-0 min-w-0 p-1">
           <VisualGround
             code={code}
             lang={lang}
@@ -164,6 +233,7 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
           />
         </div>
       </div> 
+      )}
       {/* ─── Naming Conventions Modal ──────────────────────────────────────── */}
       {showInfo && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -176,11 +246,23 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
                 <X size={16} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-6 md:p-8 styled-scrollbar bg-bg">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 styled-scrollbar bg-bg">
               <VisualizerNamingConventions />
             </div>
           </div>
         </div>
+      )}
+
+      {/* ─── Ghost Drag Indicator (The "Feature") ────────────────────────── */}
+      {isDragging && ghostOffset !== null && (
+        <div 
+          className="absolute z-50 pointer-events-none transition-none shadow-[0_0_15px_rgba(var(--accent-rgb),0.6)] rounded-full bg-accent"
+          style={{
+            ...(window.innerWidth >= 1024 
+              ? { left: `${ghostOffset}%`, top: '10px', bottom: '10px', width: '3px', transform: 'translateX(-50%)' }
+              : { top: `${ghostOffset}%`, left: '10px', right: '10px', height: '3px', transform: 'translateY(-50%)' })
+          }}
+        />
       )}
     </div>
   );

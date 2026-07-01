@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import ALGODATA from "./data/categories/AlgoData";
 import "./AlgoDirector.css";
+import { cn } from '../../lib/utils';
 
 /* ─── Complexity filter config ──────────────────────────────────────────────── */
 type Algorithm = (typeof ALGODATA)[number];
@@ -98,11 +99,11 @@ export default function AlgoDirector() {
             {FILTERS.map((f) => (
               <button
                 key={f.label}
-                className={`font-['JetBrains_Mono','Fira_Code',monospace] text-[11px] px-[14px] py-[5px] rounded-[7px] border bg-transparent cursor-pointer transition-colors duration-150 tracking-[0.04em] hover:border-[var(--accent,#818CF8)] hover:text-[var(--accent,#818CF8)] ${
+                className={cn(`font-['JetBrains_Mono','Fira_Code',monospace] text-[11px] px-[14px] py-[5px] rounded-[7px] border bg-transparent cursor-pointer transition-colors duration-150 tracking-[0.04em] hover:border-[var(--accent,#818CF8)] hover:text-[var(--accent,#818CF8)] ${
                   activeFilter === f.label 
                     ? "bg-[rgba(129,140,248,0.10)] border-[var(--accent,#818CF8)] text-[var(--accent,#818CF8)]" 
                     : "border-[var(--border,#2A2445)] text-[var(--muted,#6B6487)]"
-                }`}
+                }`)}
                 onClick={() => setActiveFilter(f.label)}
                 aria-pressed={activeFilter === f.label}
               >

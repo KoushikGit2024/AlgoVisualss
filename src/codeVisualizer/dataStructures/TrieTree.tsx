@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import { cn } from '../../lib/utils';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -222,9 +223,9 @@ const TrieTree = ({
             let scale  = 1;
             let zIdx   = isRoot ? 5 : 1;
 
-            if      (isFound)   { bg = 'bg-purple-500/20';  border = 'border-purple-400';  text = 'text-purple-300';  shadow = 'shadow-[0_0_14px_#a855f7]'; scale = 1.18; zIdx = 30; }
+            if      (isFound)   { bg = 'bg-ds-read/20';  border = 'border-ds-read';  text = 'text-ds-read';  shadow = 'shadow-none'; scale = 1.18; zIdx = 30; }
             else if (isDelete)  { bg = 'bg-failure/10';     border = 'border-failure/80';  text = 'text-failure';     shadow = 'shadow-[0_0_8px_var(--failure)]';  scale = 0.9;  zIdx = 10; }
-            else if (isInsert)  { bg = 'bg-emerald-500/20'; border = 'border-emerald-400'; text = 'text-emerald-300'; shadow = 'shadow-[0_0_10px_#10b981]';  scale = 1.15; zIdx = 25; }
+            else if (isInsert)  { bg = 'bg-ds-write/20'; border = 'border-ds-write'; text = 'text-ds-write'; shadow = 'shadow-none';  scale = 1.15; zIdx = 25; }
             else if (isWrite)   { bg = 'bg-success/15';     border = 'border-success';     text = 'text-success';     shadow = 'shadow-[0_0_8px_var(--success)]';  scale = 1.1;  zIdx = 20; }
             else if (isCompare) { bg = 'bg-orange-500/15';  border = 'border-orange-400';  text = 'text-orange-300';  shadow = 'shadow-[0_0_8px_#f97316]';   scale = 1.05; zIdx = 15; }
             else if (isRead)    { bg = 'bg-accent/15';      border = 'border-accent';      text = 'text-accent';      shadow = 'shadow-[0_0_8px_var(--glow)]';     scale = 1.05; zIdx = 10; }
@@ -246,12 +247,12 @@ const TrieTree = ({
                   layout
                   animate={{ scale }}
                   transition={{ type: 'spring', stiffness: 380, damping: 24 }}
-                  className={`
+                  className={cn(`
                     w-10 h-10 flex items-center justify-center relative
                     font-mono text-[13px] rounded-full border-2 shrink-0
                     transition-colors duration-150
                     ${bg} ${border} ${text} ${shadow}
-                  `}
+                  `)}
                 >
                   <AnimatePresence mode="wait">
                     <motion.span

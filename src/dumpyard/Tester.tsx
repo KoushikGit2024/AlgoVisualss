@@ -76,7 +76,7 @@
 //           {/* Timeline Controls */}
 //           <div className="flex items-center gap-2 bg-surface p-1.5 rounded-md border border-border shadow-sm">
 //             <button onClick={() => { setIsPlaying1D(false); setStep1D(s => Math.max(0, s - 1)); }} disabled={step1D === 0} className="px-3 py-1.5 text-xs bg-surface-2 hover:bg-border rounded disabled:opacity-50 transition-colors">Prev</button>
-//             <button onClick={() => setIsPlaying1D(!isPlaying1D)} className={`px-4 py-1.5 text-xs font-bold text-white rounded transition-colors shadow-sm ${isPlaying1D ? 'bg-orange-500 hover:bg-orange-600' : 'bg-success hover:bg-emerald-500'}`}>
+//             <button onClick={() => setIsPlaying1D(!isPlaying1D)} className={cn(`px-4 py-1.5 text-xs font-bold text-white rounded transition-colors shadow-sm ${isPlaying1D ? 'bg-orange-500 hover:bg-orange-600' : 'bg-success hover:bg-emerald-500'}`)}>
 //               {isPlaying1D ? 'Pause' : 'Play'}
 //             </button>
 //             <button onClick={() => { setIsPlaying1D(false); setStep1D(s => Math.min(timeline1D.length - 1, s + 1)); }} disabled={step1D === timeline1D.length - 1} className="px-3 py-1.5 text-xs bg-surface-2 hover:bg-border rounded disabled:opacity-50 transition-colors">Next</button>
@@ -112,7 +112,7 @@
 //           {/* Timeline Controls */}
 //           <div className="flex items-center gap-2 bg-surface p-1.5 rounded-md border border-border shadow-sm">
 //             <button onClick={() => { setIsPlaying2D(false); setStep2D(s => Math.max(0, s - 1)); }} disabled={step2D === 0} className="px-3 py-1.5 text-xs bg-surface-2 hover:bg-border rounded disabled:opacity-50 transition-colors">Prev</button>
-//             <button onClick={() => setIsPlaying2D(!isPlaying2D)} className={`px-4 py-1.5 text-xs font-bold text-white rounded transition-colors shadow-sm ${isPlaying2D ? 'bg-orange-500 hover:bg-orange-600' : 'bg-success hover:bg-emerald-500'}`}>
+//             <button onClick={() => setIsPlaying2D(!isPlaying2D)} className={cn(`px-4 py-1.5 text-xs font-bold text-white rounded transition-colors shadow-sm ${isPlaying2D ? 'bg-orange-500 hover:bg-orange-600' : 'bg-success hover:bg-emerald-500'}`)}>
 //               {isPlaying2D ? 'Pause' : 'Play'}
 //             </button>
 //             <button onClick={() => { setIsPlaying2D(false); setStep2D(s => Math.min(timeline2D.length - 1, s + 1)); }} disabled={step2D === timeline2D.length - 1} className="px-3 py-1.5 text-xs bg-surface-2 hover:bg-border rounded disabled:opacity-50 transition-colors">Next</button>
@@ -145,6 +145,7 @@
 // export default DynamicTester;
 import { useState, useEffect } from 'react';
 import Graph, { type GraphNode, type GraphEdge } from '../codeVisualizer/dataStructures/Graph';
+import { cn } from '../lib/utils';
 
 // ─── Base Topology ──────────────────────────────────────────────────────────
 const baseNodes: GraphNode[] = [
@@ -227,7 +228,7 @@ const GraphTester = () => {
           
           <div className="flex items-center gap-2 bg-surface p-1.5 rounded-md border border-border shadow-sm">
             <button onClick={() => { setIsPlaying(false); setStep(s => Math.max(0, s - 1)); }} disabled={step === 0} className="px-3 py-1.5 text-xs bg-surface-2 hover:bg-border rounded disabled:opacity-50 transition-colors">Prev</button>
-            <button onClick={() => setIsPlaying(!isPlaying)} className={`px-4 py-1.5 text-xs font-bold text-white rounded transition-colors shadow-sm ${isPlaying ? 'bg-orange-500 hover:bg-orange-600' : 'bg-success hover:bg-emerald-500'}`}>
+            <button onClick={() => setIsPlaying(!isPlaying)} className={cn(`px-4 py-1.5 text-xs font-bold text-white rounded transition-colors shadow-sm ${isPlaying ? 'bg-orange-500 hover:bg-orange-600' : 'bg-success hover:bg-emerald-500'}`)}>
               {isPlaying ? 'Pause' : 'Play'}
             </button>
             <button onClick={() => { setIsPlaying(false); setStep(s => Math.min(timelineGraph.length - 1, s + 1)); }} disabled={step === timelineGraph.length - 1} className="px-3 py-1.5 text-xs bg-surface-2 hover:bg-border rounded disabled:opacity-50 transition-colors">Next</button>

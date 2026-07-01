@@ -1,3 +1,4 @@
+import { cn } from '../../../lib/utils';
 import {
   Lightbulb,
   AlertTriangle,
@@ -62,9 +63,9 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <h1
             key={index}
-            className={`text-xl font-bold text-accent mb-3 pb-2 border-b border-border ${
+            className={cn(`text-xl font-bold text-accent mb-3 pb-2 border-b border-border ${
               isInsideCard ? "mt-0" : "mt-6 first:mt-0"
-            }`}
+            }`)}
           >
             {node.text}
           </h1>
@@ -261,12 +262,12 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <div
             key={index}
-            className={`my-3 p-3 rounded-lg border ${c.classes} flex items-start gap-2.5`}
+            className={cn(`my-3 p-3 rounded-lg border ${c.classes} flex items-start gap-2.5`)}
           >
-            <div className={`${c.iconClass} shrink-0 mt-0.5`}>{c.icon}</div>
+            <div className={cn(`${c.iconClass} shrink-0 mt-0.5`)}>{c.icon}</div>
             <div>
               <span
-                className={`${c.labelClass} font-mono text-[10px] tracking-widest mr-2`}
+                className={cn(`${c.labelClass} font-mono text-[10px] tracking-widest mr-2`)}
               >
                 {c.label}
               </span>
@@ -343,11 +344,11 @@ const ComplexityCard = ({
   <section className="bg-surface border border-border rounded-lg overflow-hidden flex flex-col">
     {/* Card header */}
     <div className="bg-surface-2 px-4 py-2.5 border-b border-border flex items-center gap-2 shrink-0">
-      <span className={`${iconColorClass} shrink-0`}>{icon}</span>
+      <span className={cn(`${iconColorClass} shrink-0`)}>{icon}</span>
       <h3 className="font-semibold text-[13px] text-text">{title}</h3>
       {notation && (
         <span
-          className={`ml-auto font-mono text-[11px] px-2 py-0.5 rounded border ${notationColorClass}`}
+          className={cn(`ml-auto font-mono text-[11px] px-2 py-0.5 rounded border ${notationColorClass}`)}
         >
           {notation}
         </span>
@@ -405,9 +406,9 @@ const DocParser = ({ data }: { data: any }) => {
               </h1>
               {sub.type && (
                 <span
-                  className={`shrink-0 inline-block font-mono text-[10px] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border ${
+                  className={cn(`shrink-0 inline-block font-mono text-[10px] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border ${
                     TYPE_STYLES[sub.type] ?? TYPE_STYLES.Medium
-                  }`}
+                  }`)}
                 >
                   {sub.type.toUpperCase()}
                 </span>
@@ -417,9 +418,9 @@ const DocParser = ({ data }: { data: any }) => {
             // Fallback if no h1 at start
             sub.type && (
               <span
-                className={`inline-block font-mono text-[10px] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border mb-4 ${
+                className={cn(`inline-block font-mono text-[10px] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border mb-4 ${
                   TYPE_STYLES[sub.type] ?? TYPE_STYLES.Medium
-                }`}
+                }`)}
               >
                 {sub.type.toUpperCase()}
               </span>
