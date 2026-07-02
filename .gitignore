@@ -34,3 +34,4 @@ dist-ssr
 .aider*
 test.cpp
 test.exe
+tempObjFile.js

@@ -13,7 +13,7 @@
 
 export type VisualizerType =
   | 'graph' | 'matrix' | 'array' | 'linkedlist' | 'queue' | 'stack'
-  | 'tree'  | 'trie'   | 'map'   | 'string'     | 'bitset' | 'scalar'
+  | 'tree'  | 'trie'   | 'map'   | 'set' | 'string'     | 'bitset' | 'scalar'
   | 'none';
 
 export interface CanvasState {
@@ -361,9 +361,10 @@ const ARRAY_PREFIXES   = [
   'array', 'tuple', 'valarray', 'collection', 'items', 'elements', 'values', 'data', 'records', 'buffer'
 ];
 const MAP_PREFIXES     = [
-  'map', 'dict', 'freq', 'count', 'hash', 'cache_map', 'memo', 'set',
-  'seen', 'visited', 'mapping', 'lookup', 'occurrences', 'frequencies', 'counter'
+  'map', 'dict', 'freq', 'count', 'hash', 'cache_map', 'memo',
+  'mapping', 'lookup', 'occurrences', 'frequencies', 'counter'
 ];
+const SET_PREFIXES     = ['set', 'seen', 'visited', 'hash_set', 'unique'];
 const STRING_PREFIXES  = [
   'str', 'text', 'word', 'chars', 'msg', 'string', 'sentence', 'paragraph',
   'pattern', 'substring', 'sub', 'letters', 'characters'
@@ -1033,7 +1034,7 @@ export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[
     });
   });
 
-  // ── 9. MAP / SET ─────────────────────────────────────────────────────────
+  // ── 9. MAP ─────────────────────────────────────────────────────────
   keys.filter(k => matchesPrefix(k, MAP_PREFIXES)).forEach(mapKey => {
     if (consumedKeys.has(mapKey)) return;
     const mapVal = deepUnwrap(vars[mapKey]?.value);
@@ -1050,6 +1051,25 @@ export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[
       });
     }
   });
+
+  // ── 9b. SET ─────────────────────────────────────────────────────────
+  keys.filter(k => matchesPrefix(k, SET_PREFIXES)).forEach(setKey => {
+    if (consumedKeys.has(setKey)) return;
+    const setVal = deepUnwrap(vars[setKey]?.value);
+    if (
+      setVal &&
+      typeof setVal === 'object' &&
+      setVal.__type === 'set' &&
+      Array.isArray(setVal.values)
+    ) {
+      consumedKeys.add(setKey);
+      visualizers.push({
+        id: setKey, type: 'set', usedKeys: [setKey],
+        props: { values: setVal.values },
+      });
+    }
+  });
+
 
   // ── 10. STRING ───────────────────────────────────────────────────────────
   keys.filter(k => matchesPrefix(k, STRING_PREFIXES)).forEach(stringKey => {

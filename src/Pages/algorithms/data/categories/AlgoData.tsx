@@ -63,7 +63,7 @@ const ARRAYS_SECTION = {
         headers: ["Pattern", "Core Idea", "Typical Time", "Typical Space"],
         rows: [
             ["Two Pointers", "Two indices converge or co-traverse to avoid nested loops", "O(n)", "O(1)"],
-            ["Kadane's Algorithm", "Track best running sum, resetting when it turns negative", "O(n)", "O(1)"],
+            ["Kadane's Algorithm", "Track the best sum ending at each position, restarting whenever the running total drops below the current element", "O(n)", "O(1)"],
             ["Sliding Window", "Maintain a contiguous range, expanding/contracting its bounds", "O(n)", "O(1) – O(k)"],
             ["Boyer-Moore Majority Vote", "Cancel out non-majority votes against a running candidate", "O(n)", "O(1)"],
             ["Prefix Sum", "Precompute cumulative sums for O(1) range-sum queries", "O(n) build", "O(n)"],
@@ -1730,7 +1730,8 @@ if __name__ == "__main__":
     arr_prefix = build_prefix_sum(nums)
     
     print(f"Sum [0, 2]: {sum_range(arr_prefix, 0, 2)}")
-    print(f"Sum [2, 5]: {sum_range(arr_prefix, 2, 5)}")`,
+    print(f"Sum [2, 5]: {sum_range(arr_prefix, 2, 5)}")
+    print(f"Sum [0, 5]: {sum_range(arr_prefix, 0, 5)}")`,
 
         "java": `public class Main {
     public static int[] buildPrefixSum(int[] nums) {
@@ -1751,6 +1752,7 @@ if __name__ == "__main__":
         
         System.out.println("Sum [0, 2]: " + sumRange(arr_prefix, 0, 2));
         System.out.println("Sum [2, 5]: " + sumRange(arr_prefix, 2, 5));
+        System.out.println("Sum [0, 5]: " + sumRange(arr_prefix, 0, 5));
     }
 }`,
 
@@ -1770,7 +1772,8 @@ const nums = [-2, 0, 3, -5, 2, -1];
 const arr_prefix = buildPrefixSum(nums);
 
 console.log("Sum [0, 2]:", sumRange(arr_prefix, 0, 2));
-console.log("Sum [2, 5]:", sumRange(arr_prefix, 2, 5));`,
+console.log("Sum [2, 5]:", sumRange(arr_prefix, 2, 5));
+console.log("Sum [0, 5]:", sumRange(arr_prefix, 0, 5));`,
 
         "c": `#include <stdio.h>
 #include <stdlib.h>
@@ -1794,6 +1797,7 @@ int main() {
     
     printf("Sum [0, 2]: %d\\n", sumRange(arr_prefix, 0, 2));
     printf("Sum [2, 5]: %d\\n", sumRange(arr_prefix, 2, 5));
+    printf("Sum [0, 5]: %d\\n", sumRange(arr_prefix, 0, 5));
     
     free(arr_prefix);
     return 0;
@@ -1820,6 +1824,7 @@ class Program {
         
         Console.WriteLine($"Sum [0, 2]: {SumRange(arr_prefix, 0, 2)}");
         Console.WriteLine($"Sum [2, 5]: {SumRange(arr_prefix, 2, 5)}");
+        Console.WriteLine($"Sum [0, 5]: {SumRange(arr_prefix, 0, 5)}");
     }
 }`,
 
@@ -1839,7 +1844,8 @@ let nums = [-2, 0, 3, -5, 2, -1]
 let arr_prefix = buildPrefixSum(nums)
 
 print("Sum [0, 2]: \\(sumRange(arr_prefix, 0, 2))")
-print("Sum [2, 5]: \\(sumRange(arr_prefix, 2, 5))")`,
+print("Sum [2, 5]: \\(sumRange(arr_prefix, 2, 5))")
+print("Sum [0, 5]: \\(sumRange(arr_prefix, 0, 5))")`,
 
         "kotlin": `fun buildPrefixSum(nums: IntArray): IntArray {
     val arr_prefix = IntArray(nums.size + 1)
@@ -1859,6 +1865,7 @@ fun main() {
     
     println("Sum [0, 2]: \${sumRange(arr_prefix, 0, 2)}")
     println("Sum [2, 5]: \${sumRange(arr_prefix, 2, 5)}")
+    println("Sum [0, 5]: \${sumRange(arr_prefix, 0, 5)}")
 }`,
 
         "scala": `object Main extends App {
@@ -1879,6 +1886,7 @@ fun main() {
     
     println(s"Sum [0, 2]: \${sumRange(arr_prefix, 0, 2)}")
     println(s"Sum [2, 5]: \${sumRange(arr_prefix, 2, 5)}")
+    println(s"Sum [0, 5]: \${sumRange(arr_prefix, 0, 5)}")
 }`,
 
         "go": `package main
@@ -1903,6 +1911,7 @@ func main() {
     
     fmt.Printf("Sum [0, 2]: %d\\n", sumRange(arr_prefix, 0, 2))
     fmt.Printf("Sum [2, 5]: %d\\n", sumRange(arr_prefix, 2, 5))
+    fmt.Printf("Sum [0, 5]: %d\\n", sumRange(arr_prefix, 0, 5))
 }`,
 
         "rust": `fn build_prefix_sum(nums: &[i32]) -> Vec<i32> {
@@ -1923,6 +1932,7 @@ fn main() {
     
     println!("Sum [0, 2]: {}", sum_range(&arr_prefix, 0, 2));
     println!("Sum [2, 5]: {}", sum_range(&arr_prefix, 2, 5));
+    println!("Sum [0, 5]: {}", sum_range(&arr_prefix, 0, 5));
 }`
             }
         },
@@ -2340,7 +2350,12 @@ func main() {
     let mut left = 0usize;
     let mut mid = 0usize;
     let mut right = nums.len() - 1;
-    
+
+    // NOTE: 'right' is a usize (unsigned), so it cannot safely go below 0
+    // the way a signed int could. The explicit bounds check below prevents
+    // an underflow panic when the very last element resolves to color "2" —
+    // every other language here relies on a signed int naturally reaching -1
+    // to end the loop, which is not a safe option in Rust.
     while mid <= right {
         if nums[mid] == 0 {
             nums.swap(left, mid);
@@ -2369,6 +2384,8 @@ fn main() {
     complexity: "O(n)",
     featured: true,
 };
+
+// ─────────────────────────────────────────────────────────────────────────── ^
 
 const SORTING_SECTION = {
   name: "Sorting",
@@ -18450,34 +18467,359 @@ const HEAP_SECTION = {
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: after processing any prefix of the input, the heap contains exactly the k largest elements seen SO FAR (or fewer than k, if fewer than k elements have been processed yet). This holds by induction: each new element is unconditionally added, and if this would exceed k elements, the single smallest among the current k+1 candidates is removed — correctly restoring the invariant, since removing the smallest of (top-k-so-far plus the new element) is exactly how to determine the new top-k set. By induction, after all n elements are processed, the heap holds exactly the true k largest elements of the entire array, and since it's a min-heap, its root is the smallest of those k — which, by definition, is the Kth largest element overall." }
       ],
-      codes:{
-        "c++":`#include <iostream>
+      codes: {
+        "c++": `#include <iostream>
 #include <vector>
 #include <queue>
 
 using namespace std;
 
 int findKthLargest(const vector<int>& nums, int k) {
-    priority_queue<int> q_heapArr;
+    priority_queue<int, vector<int>, greater<int>> minHeap;
 
     for (int num : nums) {
-        q_heapArr.push(num);
+        minHeap.push(num);
+        if ((int)minHeap.size() > k) {
+            minHeap.pop();
+        }
     }
-    
-    // Pop k-1 times to reach the kth largest element
-    for (int i = 1; i < k; i++) {
-        q_heapArr.pop();
-    }
-    
-    return q_heapArr.top();
+
+    return minHeap.top();
 }
 
 int main() {
     vector<int> nums = {3, 2, 1, 5, 6, 4};
     int k = 2;
-    
-    cout << "The " << k << "nd largest element is: " << findKthLargest(nums, k) << endl;
+
+    cout << "The " << k << "th largest element is: " << findKthLargest(nums, k) << endl;
     return 0;
+}
+`,
+        "python": `import heapq
+
+def find_kth_largest(nums, k):
+    min_heap = []
+
+    for num in nums:
+        heapq.heappush(min_heap, num)
+        if len(min_heap) > k:
+            heapq.heappop(min_heap)
+
+    return min_heap[0]
+
+if __name__ == "__main__":
+    nums = [3, 2, 1, 5, 6, 4]
+    k = 2
+    print(f"The {k}th largest element is: {find_kth_largest(nums, k)}")
+`,
+        "java": `import java.util.PriorityQueue;
+
+public class Main {
+    public static int findKthLargest(int[] nums, int k) {
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+
+        for (int num : nums) {
+            minHeap.offer(num);
+            if (minHeap.size() > k) {
+                minHeap.poll();
+            }
+        }
+
+        return minHeap.peek();
+    }
+
+    public static void main(String[] args) {
+        int[] nums = {3, 2, 1, 5, 6, 4};
+        int k = 2;
+        System.out.println("The " + k + "th largest element is: " + findKthLargest(nums, k));
+    }
+}
+`,
+        "js": `function findKthLargest(nums, k) {
+    // Simple array-backed min-heap via sorted insertion is O(n) per op;
+    // for clarity we use a binary-heap-backed min-heap here.
+    const minHeap = [];
+
+    const siftUp = (heap) => {
+        let i = heap.length - 1;
+        while (i > 0) {
+            const parent = (i - 1) >> 1;
+            if (heap[parent] <= heap[i]) break;
+            [heap[parent], heap[i]] = [heap[i], heap[parent]];
+            i = parent;
+        }
+    };
+
+    const siftDown = (heap) => {
+        let i = 0;
+        const n = heap.length;
+        while (true) {
+            let smallest = i;
+            const left = 2 * i + 1;
+            const right = 2 * i + 2;
+            if (left < n && heap[left] < heap[smallest]) smallest = left;
+            if (right < n && heap[right] < heap[smallest]) smallest = right;
+            if (smallest === i) break;
+            [heap[i], heap[smallest]] = [heap[smallest], heap[i]];
+            i = smallest;
+        }
+    };
+
+    const push = (heap, val) => {
+        heap.push(val);
+        siftUp(heap);
+    };
+
+    const pop = (heap) => {
+        const top = heap[0];
+        const last = heap.pop();
+        if (heap.length > 0) {
+            heap[0] = last;
+            siftDown(heap);
+        }
+        return top;
+    };
+
+    for (const num of nums) {
+        push(minHeap, num);
+        if (minHeap.length > k) {
+            pop(minHeap);
+        }
+    }
+
+    return minHeap[0];
+}
+
+const nums = [3, 2, 1, 5, 6, 4];
+const k = 2;
+console.log(\`The \${k}th largest element is: \${findKthLargest(nums, k)}\`);
+`,
+        "c": `#include <stdio.h>
+
+// Simple min-heap of fixed capacity k, implemented as an array.
+void siftUp(int* heap, int i) {
+    while (i > 0) {
+        int parent = (i - 1) / 2;
+        if (heap[parent] <= heap[i]) break;
+        int temp = heap[parent]; heap[parent] = heap[i]; heap[i] = temp;
+        i = parent;
+    }
+}
+
+void siftDown(int* heap, int size) {
+    int i = 0;
+    while (1) {
+        int smallest = i;
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+        if (left < size && heap[left] < heap[smallest]) smallest = left;
+        if (right < size && heap[right] < heap[smallest]) smallest = right;
+        if (smallest == i) break;
+        int temp = heap[i]; heap[i] = heap[smallest]; heap[smallest] = temp;
+        i = smallest;
+    }
+}
+
+int findKthLargest(int* nums, int numsSize, int k) {
+    int* heap = (int*)malloc(k * sizeof(int));
+    int heapSize = 0;
+
+    for (int i = 0; i < numsSize; i++) {
+        if (heapSize < k) {
+            heap[heapSize++] = nums[i];
+            siftUp(heap, heapSize - 1);
+        } else if (nums[i] > heap[0]) {
+            heap[0] = nums[i];
+            siftDown(heap, heapSize);
+        }
+    }
+
+    int result = heap[0];
+    free(heap);
+    return result;
+}
+
+int main() {
+    int nums[] = {3, 2, 1, 5, 6, 4};
+    int numsSize = 6;
+    int k = 2;
+    printf("The %dth largest element is: %d\\n", k, findKthLargest(nums, numsSize, k));
+    return 0;
+}
+`,
+        "c#": `using System;
+using System.Collections.Generic;
+
+class Program {
+    static int FindKthLargest(int[] nums, int k) {
+        var minHeap = new SortedSet<(int val, int id)>();
+        int id = 0;
+
+        foreach (int num in nums) {
+            minHeap.Add((num, id++));
+            if (minHeap.Count > k) {
+                var smallest = minHeap.Min;
+                minHeap.Remove(smallest);
+            }
+        }
+
+        return minHeap.Min.val;
+    }
+
+    static void Main() {
+        int[] nums = {3, 2, 1, 5, 6, 4};
+        int k = 2;
+        Console.WriteLine($"The {k}th largest element is: {FindKthLargest(nums, k)}");
+    }
+}
+`,
+        "swift": `func findKthLargest(_ nums: [Int], _ k: Int) -> Int {
+    var minHeap: [Int] = []
+
+    func siftUp() {
+        var i = minHeap.count - 1
+        while i > 0 {
+            let parent = (i - 1) / 2
+            if minHeap[parent] <= minHeap[i] { break }
+            minHeap.swapAt(parent, i)
+            i = parent
+        }
+    }
+
+    func siftDown() {
+        var i = 0
+        let n = minHeap.count
+        while true {
+            var smallest = i
+            let left = 2 * i + 1
+            let right = 2 * i + 2
+            if left < n && minHeap[left] < minHeap[smallest] { smallest = left }
+            if right < n && minHeap[right] < minHeap[smallest] { smallest = right }
+            if smallest == i { break }
+            minHeap.swapAt(i, smallest)
+            i = smallest
+        }
+    }
+
+    for num in nums {
+        minHeap.append(num)
+        siftUp()
+        if minHeap.count > k {
+            minHeap[0] = minHeap.removeLast()
+            siftDown()
+        }
+    }
+
+    return minHeap[0]
+}
+
+let nums = [3, 2, 1, 5, 6, 4]
+let k = 2
+print("The \\(k)th largest element is: \\(findKthLargest(nums, k))")
+`,
+        "kotlin": `import java.util.PriorityQueue
+
+fun findKthLargest(nums: IntArray, k: Int): Int {
+    val minHeap = PriorityQueue<Int>()
+
+    for (num in nums) {
+        minHeap.offer(num)
+        if (minHeap.size > k) {
+            minHeap.poll()
+        }
+    }
+
+    return minHeap.peek()
+}
+
+fun main() {
+    val nums = intArrayOf(3, 2, 1, 5, 6, 4)
+    val k = 2
+    println("The \${k}th largest element is: \${findKthLargest(nums, k)}")
+}
+`,
+        "scala": `import scala.collection.mutable
+
+object Main extends App {
+    def findKthLargest(nums: Array[Int], k: Int): Int = {
+        val minHeap = mutable.PriorityQueue[Int]()(Ordering.Int.reverse)
+
+        for (num <- nums) {
+            minHeap.enqueue(num)
+            if (minHeap.size > k) {
+                minHeap.dequeue()
+            }
+        }
+
+        minHeap.head
+    }
+
+    val nums = Array(3, 2, 1, 5, 6, 4)
+    val k = 2
+    println(s"The \${k}th largest element is: \${findKthLargest(nums, k)}")
+}
+`,
+        "go": `package main
+
+import (
+    "container/heap"
+    "fmt"
+)
+
+type IntMinHeap []int
+
+func (h IntMinHeap) Len() int            { return len(h) }
+func (h IntMinHeap) Less(i, j int) bool  { return h[i] < h[j] }
+func (h IntMinHeap) Swap(i, j int)       { h[i], h[j] = h[j], h[i] }
+func (h *IntMinHeap) Push(x interface{}) { *h = append(*h, x.(int)) }
+func (h *IntMinHeap) Pop() interface{} {
+    old := *h
+    n := len(old)
+    x := old[n-1]
+    *h = old[:n-1]
+    return x
+}
+
+func findKthLargest(nums []int, k int) int {
+    minHeap := &IntMinHeap{}
+    heap.Init(minHeap)
+
+    for _, num := range nums {
+        heap.Push(minHeap, num)
+        if minHeap.Len() > k {
+            heap.Pop(minHeap)
+        }
+    }
+
+    return (*minHeap)[0]
+}
+
+func main() {
+    nums := []int{3, 2, 1, 5, 6, 4}
+    k := 2
+    fmt.Printf("The %dth largest element is: %d\\n", k, findKthLargest(nums, k))
+}
+`,
+        "rust": `use std::collections::BinaryHeap;
+use std::cmp::Reverse;
+
+fn find_kth_largest(nums: &[i32], k: usize) -> i32 {
+    let mut min_heap: BinaryHeap<Reverse<i32>> = BinaryHeap::new();
+
+    for &num in nums {
+        min_heap.push(Reverse(num));
+        if min_heap.len() > k {
+            min_heap.pop();
+        }
+    }
+
+    min_heap.peek().unwrap().0
+}
+
+fn main() {
+    let nums = vec![3, 2, 1, 5, 6, 4];
+    let k = 2;
+    println!("The {}th largest element is: {}", k, find_kth_largest(&nums, k));
 }
 `
       }
@@ -18586,48 +18928,48 @@ int main() {
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: at every point, the heap contains exactly the current 'front' node of every list that still has unprocessed elements, and everything already appended to the result is correctly sorted and represents exactly the globally smallest (length-so-far) elements available across all k lists' remaining portions. Each iteration correctly extends this invariant: the heap's minimum is, by construction, the smallest among all k lists' current fronts — and since every individual list is itself sorted, no list's LATER elements could possibly be smaller than its own current front, so the heap's global minimum really is the smallest element available from the combination of everything not yet merged. By induction over the N total extraction steps, the final result is fully and correctly sorted." }
       ],
-      codes:{
-        "c++":`#include <iostream>
+      codes: {
+        "c++": `#include <iostream>
 #include <vector>
+#include <queue>
 
 using namespace std;
 
-// Standard Linked List Node
 struct ListNode {
     int val;
     ListNode* next;
     ListNode(int x) : val(x), next(nullptr) {}
 };
 
+struct Compare {
+    bool operator()(ListNode* a, ListNode* b) {
+        return a->val > b->val;
+    }
+};
+
 ListNode* mergeKLists(vector<ListNode*>& lists) {
+    priority_queue<ListNode*, vector<ListNode*>, Compare> minHeap;
+
+    for (ListNode* node : lists) {
+        if (node != nullptr) minHeap.push(node);
+    }
+
     ListNode dummy(0);
-    ListNode* curr = &dummy;
+    ListNode* tail = &dummy;
 
-    while (true) {
-        int minIdx = -1;
-        int minVal = 1000000; // Infinity placeholder
+    while (!minHeap.empty()) {
+        ListNode* smallest = minHeap.top();
+        minHeap.pop();
 
-        // Find the list with the smallest current node
-        for (int i = 0; i < lists.size(); i++) {
-            if (lists[i] != nullptr && lists[i]->val < minVal) {
-                minVal = lists[i]->val;
-                minIdx = i;
-            }
-        }
+        tail->next = smallest;
+        tail = tail->next;
 
-        // If all lists are exhausted
-        if (minIdx == -1) break;
-
-        // Append the smallest node to our result list
-        curr->next = lists[minIdx];
-        curr = curr->next;
-        lists[minIdx] = lists[minIdx]->next;
+        if (smallest->next != nullptr) minHeap.push(smallest->next);
     }
 
     return dummy.next;
 }
 
-// Helper function to create a linked list from an array
 ListNode* createList(const vector<int>& vals) {
     ListNode dummy(0);
     ListNode* curr = &dummy;
@@ -18643,7 +18985,7 @@ void printList(ListNode* head) {
         cout << head->val << " -> ";
         head = head->next;
     }
-    cout << "NULL"<<endl;
+    cout << "NULL" << endl;
 }
 
 int main() {
@@ -18653,13 +18995,750 @@ int main() {
     lists.push_back(createList({2, 6}));
 
     ListNode* mergedHead = mergeKLists(lists);
-    
+
     cout << "Merged List: ";
     printList(mergedHead);
-    
+
     return 0;
 }
+`,
+        "python": `import heapq
 
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def merge_k_lists(lists):
+    min_heap = []
+    for i, node in enumerate(lists):
+        if node is not None:
+            heapq.heappush(min_heap, (node.val, i, node))
+
+    dummy = ListNode(0)
+    tail = dummy
+
+    while min_heap:
+        val, i, smallest = heapq.heappop(min_heap)
+        tail.next = smallest
+        tail = tail.next
+
+        if smallest.next is not None:
+            heapq.heappush(min_heap, (smallest.next.val, i, smallest.next))
+
+    return dummy.next
+
+def create_list(vals):
+    dummy = ListNode(0)
+    curr = dummy
+    for v in vals:
+        curr.next = ListNode(v)
+        curr = curr.next
+    return dummy.next
+
+def print_list(head):
+    result = []
+    while head:
+        result.append(str(head.val))
+        head = head.next
+    print(" -> ".join(result) + " -> NULL")
+
+if __name__ == "__main__":
+    lists = [create_list([1, 4, 5]), create_list([1, 3, 4]), create_list([2, 6])]
+    merged_head = merge_k_lists(lists)
+    print("Merged List: ", end="")
+    print_list(merged_head)
+`,
+        "java": `import java.util.PriorityQueue;
+
+public class Main {
+    static class ListNode {
+        int val;
+        ListNode next;
+        ListNode(int x) { val = x; }
+    }
+
+    static ListNode mergeKLists(ListNode[] lists) {
+        PriorityQueue<ListNode> minHeap = new PriorityQueue<>((a, b) -> a.val - b.val);
+
+        for (ListNode node : lists) {
+            if (node != null) minHeap.offer(node);
+        }
+
+        ListNode dummy = new ListNode(0);
+        ListNode tail = dummy;
+
+        while (!minHeap.isEmpty()) {
+            ListNode smallest = minHeap.poll();
+            tail.next = smallest;
+            tail = tail.next;
+
+            if (smallest.next != null) minHeap.offer(smallest.next);
+        }
+
+        return dummy.next;
+    }
+
+    static ListNode createList(int[] vals) {
+        ListNode dummy = new ListNode(0);
+        ListNode curr = dummy;
+        for (int v : vals) {
+            curr.next = new ListNode(v);
+            curr = curr.next;
+        }
+        return dummy.next;
+    }
+
+    static void printList(ListNode head) {
+        StringBuilder sb = new StringBuilder();
+        while (head != null) {
+            sb.append(head.val).append(" -> ");
+            head = head.next;
+        }
+        sb.append("NULL");
+        System.out.println(sb);
+    }
+
+    public static void main(String[] args) {
+        ListNode[] lists = {
+            createList(new int[]{1, 4, 5}),
+            createList(new int[]{1, 3, 4}),
+            createList(new int[]{2, 6})
+        };
+
+        ListNode mergedHead = mergeKLists(lists);
+        System.out.print("Merged List: ");
+        printList(mergedHead);
+    }
+}
+`,
+        "js": `class ListNode {
+    constructor(val, next = null) {
+        this.val = val;
+        this.next = next;
+    }
+}
+
+function mergeKLists(lists) {
+    // Simple binary min-heap keyed by node.val
+    const heap = [];
+
+    const siftUp = () => {
+        let i = heap.length - 1;
+        while (i > 0) {
+            const parent = (i - 1) >> 1;
+            if (heap[parent].val <= heap[i].val) break;
+            [heap[parent], heap[i]] = [heap[i], heap[parent]];
+            i = parent;
+        }
+    };
+
+    const siftDown = () => {
+        let i = 0;
+        const n = heap.length;
+        while (true) {
+            let smallest = i;
+            const left = 2 * i + 1;
+            const right = 2 * i + 2;
+            if (left < n && heap[left].val < heap[smallest].val) smallest = left;
+            if (right < n && heap[right].val < heap[smallest].val) smallest = right;
+            if (smallest === i) break;
+            [heap[i], heap[smallest]] = [heap[smallest], heap[i]];
+            i = smallest;
+        }
+    };
+
+    const push = (node) => {
+        heap.push(node);
+        siftUp();
+    };
+
+    const pop = () => {
+        const top = heap[0];
+        const last = heap.pop();
+        if (heap.length > 0) {
+            heap[0] = last;
+            siftDown();
+        }
+        return top;
+    };
+
+    for (const node of lists) {
+        if (node !== null) push(node);
+    }
+
+    const dummy = new ListNode(0);
+    let tail = dummy;
+
+    while (heap.length > 0) {
+        const smallest = pop();
+        tail.next = smallest;
+        tail = tail.next;
+
+        if (smallest.next !== null) push(smallest.next);
+    }
+
+    return dummy.next;
+}
+
+function createList(vals) {
+    const dummy = new ListNode(0);
+    let curr = dummy;
+    for (const v of vals) {
+        curr.next = new ListNode(v);
+        curr = curr.next;
+    }
+    return dummy.next;
+}
+
+function printList(head) {
+    const parts = [];
+    while (head !== null) {
+        parts.push(head.val);
+        head = head.next;
+    }
+    console.log(parts.join(" -> ") + " -> NULL");
+}
+
+const lists = [createList([1, 4, 5]), createList([1, 3, 4]), createList([2, 6])];
+const mergedHead = mergeKLists(lists);
+process.stdout.write("Merged List: ");
+printList(mergedHead);
+`,
+        "c": `#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct ListNode {
+    int val;
+    struct ListNode* next;
+} ListNode;
+
+ListNode* createNode(int val) {
+    ListNode* node = (ListNode*)malloc(sizeof(ListNode));
+    node->val = val;
+    node->next = NULL;
+    return node;
+}
+
+// Simple array-backed min-heap of ListNode pointers.
+void siftUp(ListNode** heap, int i) {
+    while (i > 0) {
+        int parent = (i - 1) / 2;
+        if (heap[parent]->val <= heap[i]->val) break;
+        ListNode* temp = heap[parent]; heap[parent] = heap[i]; heap[i] = temp;
+        i = parent;
+    }
+}
+
+void siftDown(ListNode** heap, int size) {
+    int i = 0;
+    while (1) {
+        int smallest = i;
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+        if (left < size && heap[left]->val < heap[smallest]->val) smallest = left;
+        if (right < size && heap[right]->val < heap[smallest]->val) smallest = right;
+        if (smallest == i) break;
+        ListNode* temp = heap[i]; heap[i] = heap[smallest]; heap[smallest] = temp;
+        i = smallest;
+    }
+}
+
+ListNode* mergeKLists(ListNode** lists, int k) {
+    ListNode** heap = (ListNode**)malloc(k * sizeof(ListNode*));
+    int heapSize = 0;
+
+    for (int i = 0; i < k; i++) {
+        if (lists[i] != NULL) {
+            heap[heapSize++] = lists[i];
+            siftUp(heap, heapSize - 1);
+        }
+    }
+
+    ListNode dummy; dummy.next = NULL;
+    ListNode* tail = &dummy;
+
+    while (heapSize > 0) {
+        ListNode* smallest = heap[0];
+        heap[0] = heap[heapSize - 1];
+        heapSize--;
+        siftDown(heap, heapSize);
+
+        tail->next = smallest;
+        tail = tail->next;
+
+        if (smallest->next != NULL) {
+            heap[heapSize++] = smallest->next;
+            siftUp(heap, heapSize - 1);
+        }
+    }
+
+    free(heap);
+    return dummy.next;
+}
+
+ListNode* createList(int* vals, int n) {
+    ListNode dummy; dummy.next = NULL;
+    ListNode* curr = &dummy;
+    for (int i = 0; i < n; i++) {
+        curr->next = createNode(vals[i]);
+        curr = curr->next;
+    }
+    return dummy.next;
+}
+
+void printList(ListNode* head) {
+    while (head != NULL) {
+        printf("%d -> ", head->val);
+        head = head->next;
+    }
+    printf("NULL\\n");
+}
+
+int main() {
+    int a[] = {1, 4, 5};
+    int b[] = {1, 3, 4};
+    int c[] = {2, 6};
+
+    ListNode* lists[3];
+    lists[0] = createList(a, 3);
+    lists[1] = createList(b, 3);
+    lists[2] = createList(c, 2);
+
+    ListNode* mergedHead = mergeKLists(lists, 3);
+    printf("Merged List: ");
+    printList(mergedHead);
+
+    return 0;
+}
+`,
+        "c#": `using System;
+using System.Collections.Generic;
+
+class ListNode {
+    public int Val;
+    public ListNode Next;
+    public ListNode(int val) { Val = val; }
+}
+
+class Program {
+    static ListNode MergeKLists(List<ListNode> lists) {
+        var minHeap = new SortedSet<(int val, int id, ListNode node)>();
+        int id = 0;
+
+        foreach (var node in lists) {
+            if (node != null) minHeap.Add((node.Val, id++, node));
+        }
+
+        var dummy = new ListNode(0);
+        var tail = dummy;
+
+        while (minHeap.Count > 0) {
+            var smallestEntry = minHeap.Min;
+            minHeap.Remove(smallestEntry);
+            var smallest = smallestEntry.node;
+
+            tail.Next = smallest;
+            tail = tail.Next;
+
+            if (smallest.Next != null) minHeap.Add((smallest.Next.Val, id++, smallest.Next));
+        }
+
+        return dummy.Next;
+    }
+
+    static ListNode CreateList(int[] vals) {
+        var dummy = new ListNode(0);
+        var curr = dummy;
+        foreach (int v in vals) {
+            curr.Next = new ListNode(v);
+            curr = curr.Next;
+        }
+        return dummy.Next;
+    }
+
+    static void PrintList(ListNode head) {
+        var parts = new List<string>();
+        while (head != null) {
+            parts.Add(head.Val.ToString());
+            head = head.Next;
+        }
+        Console.WriteLine(string.Join(" -> ", parts) + " -> NULL");
+    }
+
+    static void Main() {
+        var lists = new List<ListNode> {
+            CreateList(new[] {1, 4, 5}),
+            CreateList(new[] {1, 3, 4}),
+            CreateList(new[] {2, 6})
+        };
+
+        var mergedHead = MergeKLists(lists);
+        Console.Write("Merged List: ");
+        PrintList(mergedHead);
+    }
+}
+`,
+        "swift": `class ListNode {
+    var val: Int
+    var next: ListNode?
+    init(_ val: Int) { self.val = val }
+}
+
+func mergeKLists(_ lists: [ListNode?]) -> ListNode? {
+    var heap: [ListNode] = []
+
+    func siftUp() {
+        var i = heap.count - 1
+        while i > 0 {
+            let parent = (i - 1) / 2
+            if heap[parent].val <= heap[i].val { break }
+            heap.swapAt(parent, i)
+            i = parent
+        }
+    }
+
+    func siftDown() {
+        var i = 0
+        let n = heap.count
+        while true {
+            var smallest = i
+            let left = 2 * i + 1
+            let right = 2 * i + 2
+            if left < n && heap[left].val < heap[smallest].val { smallest = left }
+            if right < n && heap[right].val < heap[smallest].val { smallest = right }
+            if smallest == i { break }
+            heap.swapAt(i, smallest)
+            i = smallest
+        }
+    }
+
+    func push(_ node: ListNode) {
+        heap.append(node)
+        siftUp()
+    }
+
+    func pop() -> ListNode {
+        let top = heap[0]
+        let last = heap.removeLast()
+        if !heap.isEmpty {
+            heap[0] = last
+            siftDown()
+        }
+        return top
+    }
+
+    for node in lists {
+        if let node = node { push(node) }
+    }
+
+    let dummy = ListNode(0)
+    var tail = dummy
+
+    while !heap.isEmpty {
+        let smallest = pop()
+        tail.next = smallest
+        tail = smallest
+
+        if let next = smallest.next { push(next) }
+    }
+
+    return dummy.next
+}
+
+func createList(_ vals: [Int]) -> ListNode? {
+    let dummy = ListNode(0)
+    var curr = dummy
+    for v in vals {
+        curr.next = ListNode(v)
+        curr = curr.next!
+    }
+    return dummy.next
+}
+
+func printList(_ head: ListNode?) {
+    var parts: [String] = []
+    var node = head
+    while let n = node {
+        parts.append(String(n.val))
+        node = n.next
+    }
+    print(parts.joined(separator: " -> ") + " -> NULL")
+}
+
+let lists = [createList([1, 4, 5]), createList([1, 3, 4]), createList([2, 6])]
+let mergedHead = mergeKLists(lists)
+print("Merged List: ", terminator: "")
+printList(mergedHead)
+`,
+        "kotlin": `import java.util.PriorityQueue
+
+class ListNode(var value: Int) {
+    var next: ListNode? = null
+}
+
+fun mergeKLists(lists: List<ListNode?>): ListNode? {
+    val minHeap = PriorityQueue<ListNode>(compareBy { it.value })
+
+    for (node in lists) {
+        if (node != null) minHeap.offer(node)
+    }
+
+    val dummy = ListNode(0)
+    var tail = dummy
+
+    while (minHeap.isNotEmpty()) {
+        val smallest = minHeap.poll()
+        tail.next = smallest
+        tail = smallest
+
+        smallest.next?.let { minHeap.offer(it) }
+    }
+
+    return dummy.next
+}
+
+fun createList(vals: List<Int>): ListNode? {
+    val dummy = ListNode(0)
+    var curr = dummy
+    for (v in vals) {
+        curr.next = ListNode(v)
+        curr = curr.next!!
+    }
+    return dummy.next
+}
+
+fun printList(head: ListNode?) {
+    val parts = mutableListOf<String>()
+    var node = head
+    while (node != null) {
+        parts.add(node.value.toString())
+        node = node.next
+    }
+    println(parts.joinToString(" -> ") + " -> NULL")
+}
+
+fun main() {
+    val lists = listOf(createList(listOf(1, 4, 5)), createList(listOf(1, 3, 4)), createList(listOf(2, 6)))
+    val mergedHead = mergeKLists(lists)
+    print("Merged List: ")
+    printList(mergedHead)
+}
+`,
+        "scala": `import scala.collection.mutable
+
+class ListNode(var value: Int, var next: ListNode = null)
+
+object Main extends App {
+    def mergeKLists(lists: List[ListNode]): ListNode = {
+        val ord = Ordering.by[ListNode, Int](_.value).reverse
+        val minHeap = mutable.PriorityQueue[ListNode]()(ord)
+
+        for (node <- lists if node != null) minHeap.enqueue(node)
+
+        val dummy = new ListNode(0)
+        var tail = dummy
+
+        while (minHeap.nonEmpty) {
+            val smallest = minHeap.dequeue()
+            tail.next = smallest
+            tail = smallest
+
+            if (smallest.next != null) minHeap.enqueue(smallest.next)
+        }
+
+        dummy.next
+    }
+
+    def createList(vals: List[Int]): ListNode = {
+        val dummy = new ListNode(0)
+        var curr = dummy
+        for (v <- vals) {
+            curr.next = new ListNode(v)
+            curr = curr.next
+        }
+        dummy.next
+    }
+
+    def printList(head: ListNode): Unit = {
+        val parts = mutable.ListBuffer[String]()
+        var node = head
+        while (node != null) {
+            parts += node.value.toString
+            node = node.next
+        }
+        println(parts.mkString(" -> ") + " -> NULL")
+    }
+
+    val lists = List(createList(List(1, 4, 5)), createList(List(1, 3, 4)), createList(List(2, 6)))
+    val mergedHead = mergeKLists(lists)
+    print("Merged List: ")
+    printList(mergedHead)
+}
+`,
+        "go": `package main
+
+import (
+    "container/heap"
+    "fmt"
+)
+
+type ListNode struct {
+    Val  int
+    Next *ListNode
+}
+
+type NodeHeap []*ListNode
+
+func (h NodeHeap) Len() int            { return len(h) }
+func (h NodeHeap) Less(i, j int) bool  { return h[i].Val < h[j].Val }
+func (h NodeHeap) Swap(i, j int)       { h[i], h[j] = h[j], h[i] }
+func (h *NodeHeap) Push(x interface{}) { *h = append(*h, x.(*ListNode)) }
+func (h *NodeHeap) Pop() interface{} {
+    old := *h
+    n := len(old)
+    x := old[n-1]
+    *h = old[:n-1]
+    return x
+}
+
+func mergeKLists(lists []*ListNode) *ListNode {
+    minHeap := &NodeHeap{}
+    heap.Init(minHeap)
+
+    for _, node := range lists {
+        if node != nil {
+            heap.Push(minHeap, node)
+        }
+    }
+
+    dummy := &ListNode{}
+    tail := dummy
+
+    for minHeap.Len() > 0 {
+        smallest := heap.Pop(minHeap).(*ListNode)
+        tail.Next = smallest
+        tail = tail.Next
+
+        if smallest.Next != nil {
+            heap.Push(minHeap, smallest.Next)
+        }
+    }
+
+    return dummy.Next
+}
+
+func createList(vals []int) *ListNode {
+    dummy := &ListNode{}
+    curr := dummy
+    for _, v := range vals {
+        curr.Next = &ListNode{Val: v}
+        curr = curr.Next
+    }
+    return dummy.Next
+}
+
+func printList(head *ListNode) {
+    for head != nil {
+        fmt.Printf("%d -> ", head.Val)
+        head = head.Next
+    }
+    fmt.Println("NULL")
+}
+
+func main() {
+    lists := []*ListNode{
+        createList([]int{1, 4, 5}),
+        createList([]int{1, 3, 4}),
+        createList([]int{2, 6}),
+    }
+
+    mergedHead := mergeKLists(lists)
+    fmt.Print("Merged List: ")
+    printList(mergedHead)
+}
+`,
+        "rust": `use std::cmp::Ordering;
+use std::collections::BinaryHeap;
+
+#[derive(Eq, PartialEq)]
+struct ListNode {
+    val: i32,
+    next: Option<Box<ListNode>>,
+}
+
+impl ListNode {
+    fn new(val: i32) -> Self {
+        ListNode { val, next: None }
+    }
+}
+
+// Reverse ordering so BinaryHeap (a max-heap) behaves as a min-heap.
+struct HeapEntry(i32, Box<ListNode>);
+
+impl Eq for HeapEntry {}
+impl PartialEq for HeapEntry {
+    fn eq(&self, other: &Self) -> bool { self.0 == other.0 }
+}
+impl Ord for HeapEntry {
+    fn cmp(&self, other: &Self) -> Ordering { other.0.cmp(&self.0) }
+}
+impl PartialOrd for HeapEntry {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> { Some(self.cmp(other)) }
+}
+
+fn merge_k_lists(lists: Vec<Option<Box<ListNode>>>) -> Option<Box<ListNode>> {
+    let mut heap: BinaryHeap<HeapEntry> = BinaryHeap::new();
+
+    for node in lists.into_iter().flatten() {
+        let val = node.val;
+        heap.push(HeapEntry(val, node));
+    }
+
+    let mut dummy = Box::new(ListNode::new(0));
+    let mut tail: &mut Box<ListNode> = &mut dummy;
+
+    while let Some(HeapEntry(_, mut smallest)) = heap.pop() {
+        if let Some(next) = smallest.next.take() {
+            heap.push(HeapEntry(next.val, next));
+        }
+        tail.next = Some(smallest);
+        tail = tail.next.as_mut().unwrap();
+    }
+
+    dummy.next
+}
+
+fn create_list(vals: &[i32]) -> Option<Box<ListNode>> {
+    let mut dummy = Box::new(ListNode::new(0));
+    let mut tail = &mut dummy;
+    for &v in vals {
+        tail.next = Some(Box::new(ListNode::new(v)));
+        tail = tail.next.as_mut().unwrap();
+    }
+    dummy.next
+}
+
+fn print_list(mut head: Option<&Box<ListNode>>) {
+    let mut parts = vec![];
+    while let Some(node) = head {
+        parts.push(node.val.to_string());
+        head = node.next.as_ref();
+    }
+    println!("{} -> NULL", parts.join(" -> "));
+}
+
+fn main() {
+    let lists = vec![
+        create_list(&[1, 4, 5]),
+        create_list(&[1, 3, 4]),
+        create_list(&[2, 6]),
+    ];
+
+    let merged_head = merge_k_lists(lists);
+    print!("Merged List: ");
+    print_list(merged_head.as_ref());
+}
 `
       }
     },
@@ -18766,66 +19845,476 @@ int main() {
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Phase 1's correctness is immediate: a hash map correctly and exactly counts the occurrences of every distinct value with a single pass. Phase 2's correctness follows from the exact same invariant argument as Kth Largest Element, applied to frequency instead of raw value: after processing any prefix of the distinct (value, frequency) pairs, the heap contains exactly the k highest-frequency elements seen so far, since each new candidate is added and, if it would exceed size k, the lowest-frequency entry among the current top-(k+1) is correctly evicted. By induction, after processing all distinct elements, the heap holds exactly the true k most frequent elements of the original input." }
       ],
-      codes:{
-        "c++":`#include <iostream>
+      codes: {
+        "c++": `#include <iostream>
 #include <vector>
 #include <unordered_map>
+#include <queue>
 
 using namespace std;
 
 vector<int> topKFrequent(const vector<int>& nums, int k) {
-    // freqMap will beautifully visualize as a Map!
     unordered_map<int, int> freqMap;
-    // arrUniqueNums will beautifully visualize as a 1D Array!
-    vector<int> arrUniqueNums;
-    
     for (int num : nums) {
-        // Increment FIRST. The engine handles undefined -> 1 perfectly.
         freqMap[num]++;
-        
-        // If it's exactly 1, this is the very first time we've seen it!
-        if (freqMap[num] == 1) {
-            arrUniqueNums.push_back(num);
+    }
+
+    // Min-heap of (frequency, value) pairs, ordered by frequency.
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> minHeap;
+
+    for (const auto& [value, freq] : freqMap) {
+        minHeap.push({freq, value});
+        if ((int)minHeap.size() > k) {
+            minHeap.pop();
         }
     }
 
-    vector<int> res;
-    // Extract top K elements using a visual maximum search
-    for (int i = 0; i < k; i++) {
-        int bestNum = -1;
-        int maxFreq = -1;
-        
-        for (int num : arrUniqueNums) {
-            // Since all nums in arrUniqueNums exist in the map, 
-            // freqMap[num] will always safely return a number.
-            if (freqMap[num] > maxFreq) {
-                maxFreq = freqMap[num];
-                bestNum = num;
-            }
-        }
-        
-        res.push_back(bestNum);
-        freqMap[bestNum] = -1; // Mark as extracted so it isn't picked again
+    vector<int> result;
+    while (!minHeap.empty()) {
+        result.push_back(minHeap.top().second);
+        minHeap.pop();
     }
-    
-    return res;
+
+    return result;
 }
 
 int main() {
     vector<int> nums = {1, 1, 1, 2, 2, 3};
     int k = 2;
-    
+
     vector<int> res = topKFrequent(nums, k);
-    
+
     cout << "Top " << k << " frequent elements: ";
     for (int num : res) {
         cout << num << " ";
     }
     cout << endl;
-    
+
     return 0;
 }
+`,
+        "python": `import heapq
+from collections import Counter
 
+def top_k_frequent(nums, k):
+    freq_map = Counter(nums)
+    min_heap = []
+
+    for value, freq in freq_map.items():
+        heapq.heappush(min_heap, (freq, value))
+        if len(min_heap) > k:
+            heapq.heappop(min_heap)
+
+    return [value for freq, value in min_heap]
+
+if __name__ == "__main__":
+    nums = [1, 1, 1, 2, 2, 3]
+    k = 2
+    res = top_k_frequent(nums, k)
+    print(f"Top {k} frequent elements: {res}")
+`,
+        "java": `import java.util.*;
+
+public class Main {
+    public static List<Integer> topKFrequent(int[] nums, int k) {
+        Map<Integer, Integer> freqMap = new HashMap<>();
+        for (int num : nums) {
+            freqMap.merge(num, 1, Integer::sum);
+        }
+
+        PriorityQueue<int[]> minHeap = new PriorityQueue<>((a, b) -> a[1] - b[1]);
+
+        for (Map.Entry<Integer, Integer> entry : freqMap.entrySet()) {
+            minHeap.offer(new int[]{entry.getKey(), entry.getValue()});
+            if (minHeap.size() > k) {
+                minHeap.poll();
+            }
+        }
+
+        List<Integer> result = new ArrayList<>();
+        while (!minHeap.isEmpty()) {
+            result.add(minHeap.poll()[0]);
+        }
+
+        return result;
+    }
+
+    public static void main(String[] args) {
+        int[] nums = {1, 1, 1, 2, 2, 3};
+        int k = 2;
+        List<Integer> res = topKFrequent(nums, k);
+        System.out.println("Top " + k + " frequent elements: " + res);
+    }
+}
+`,
+        "js": `function topKFrequent(nums, k) {
+    const freqMap = new Map();
+    for (const num of nums) {
+        freqMap.set(num, (freqMap.get(num) || 0) + 1);
+    }
+
+    // Binary min-heap of [freq, value] pairs, ordered by freq.
+    const heap = [];
+
+    const siftUp = () => {
+        let i = heap.length - 1;
+        while (i > 0) {
+            const parent = (i - 1) >> 1;
+            if (heap[parent][0] <= heap[i][0]) break;
+            [heap[parent], heap[i]] = [heap[i], heap[parent]];
+            i = parent;
+        }
+    };
+
+    const siftDown = () => {
+        let i = 0;
+        const n = heap.length;
+        while (true) {
+            let smallest = i;
+            const left = 2 * i + 1;
+            const right = 2 * i + 2;
+            if (left < n && heap[left][0] < heap[smallest][0]) smallest = left;
+            if (right < n && heap[right][0] < heap[smallest][0]) smallest = right;
+            if (smallest === i) break;
+            [heap[i], heap[smallest]] = [heap[smallest], heap[i]];
+            i = smallest;
+        }
+    };
+
+    const push = (entry) => {
+        heap.push(entry);
+        siftUp();
+    };
+
+    const pop = () => {
+        const top = heap[0];
+        const last = heap.pop();
+        if (heap.length > 0) {
+            heap[0] = last;
+            siftDown();
+        }
+        return top;
+    };
+
+    for (const [value, freq] of freqMap.entries()) {
+        push([freq, value]);
+        if (heap.length > k) {
+            pop();
+        }
+    }
+
+    return heap.map(([freq, value]) => value);
+}
+
+const nums = [1, 1, 1, 2, 2, 3];
+const k = 2;
+const res = topKFrequent(nums, k);
+console.log(\`Top \${k} frequent elements: \${res}\`);
+`,
+        "c": `#include <stdio.h>
+#include <stdlib.h>
+
+// Simple linear-scan frequency map (bounded input range) + array min-heap of size k.
+typedef struct { int value; int freq; } Entry;
+
+void siftUp(Entry* heap, int i) {
+    while (i > 0) {
+        int parent = (i - 1) / 2;
+        if (heap[parent].freq <= heap[i].freq) break;
+        Entry temp = heap[parent]; heap[parent] = heap[i]; heap[i] = temp;
+        i = parent;
+    }
+}
+
+void siftDown(Entry* heap, int size) {
+    int i = 0;
+    while (1) {
+        int smallest = i;
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+        if (left < size && heap[left].freq < heap[smallest].freq) smallest = left;
+        if (right < size && heap[right].freq < heap[smallest].freq) smallest = right;
+        if (smallest == i) break;
+        Entry temp = heap[i]; heap[i] = heap[smallest]; heap[smallest] = temp;
+        i = smallest;
+    }
+}
+
+int main() {
+    int nums[] = {1, 1, 1, 2, 2, 3};
+    int n = 6;
+    int k = 2;
+
+    // Frequency count via a small hash-free lookup (values assumed small/non-negative here).
+    int maxVal = 0;
+    for (int i = 0; i < n; i++) if (nums[i] > maxVal) maxVal = nums[i];
+    int* freq = (int*)calloc(maxVal + 1, sizeof(int));
+    for (int i = 0; i < n; i++) freq[nums[i]]++;
+
+    Entry* heap = (Entry*)malloc(k * sizeof(Entry));
+    int heapSize = 0;
+
+    for (int v = 0; v <= maxVal; v++) {
+        if (freq[v] == 0) continue;
+        Entry e = {v, freq[v]};
+        if (heapSize < k) {
+            heap[heapSize++] = e;
+            siftUp(heap, heapSize - 1);
+        } else if (e.freq > heap[0].freq) {
+            heap[0] = e;
+            siftDown(heap, heapSize);
+        }
+    }
+
+    printf("Top %d frequent elements: ", k);
+    for (int i = 0; i < heapSize; i++) {
+        printf("%d ", heap[i].value);
+    }
+    printf("\\n");
+
+    free(freq);
+    free(heap);
+    return 0;
+}
+`,
+        "c#": `using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program {
+    static List<int> TopKFrequent(int[] nums, int k) {
+        var freqMap = new Dictionary<int, int>();
+        foreach (int num in nums) {
+            freqMap[num] = freqMap.GetValueOrDefault(num, 0) + 1;
+        }
+
+        var minHeap = new SortedSet<(int freq, int value)>();
+
+        foreach (var kvp in freqMap) {
+            minHeap.Add((kvp.Value, kvp.Key));
+            if (minHeap.Count > k) {
+                minHeap.Remove(minHeap.Min);
+            }
+        }
+
+        return minHeap.Select(entry => entry.value).ToList();
+    }
+
+    static void Main() {
+        int[] nums = {1, 1, 1, 2, 2, 3};
+        int k = 2;
+        var res = TopKFrequent(nums, k);
+        Console.WriteLine($"Top {k} frequent elements: [{string.Join(", ", res)}]");
+    }
+}
+`,
+        "swift": `func topKFrequent(_ nums: [Int], _ k: Int) -> [Int] {
+    var freqMap: [Int: Int] = [:]
+    for num in nums {
+        freqMap[num, default: 0] += 1
+    }
+
+    var heap: [(freq: Int, value: Int)] = []
+
+    func siftUp() {
+        var i = heap.count - 1
+        while i > 0 {
+            let parent = (i - 1) / 2
+            if heap[parent].freq <= heap[i].freq { break }
+            heap.swapAt(parent, i)
+            i = parent
+        }
+    }
+
+    func siftDown() {
+        var i = 0
+        let n = heap.count
+        while true {
+            var smallest = i
+            let left = 2 * i + 1
+            let right = 2 * i + 2
+            if left < n && heap[left].freq < heap[smallest].freq { smallest = left }
+            if right < n && heap[right].freq < heap[smallest].freq { smallest = right }
+            if smallest == i { break }
+            heap.swapAt(i, smallest)
+            i = smallest
+        }
+    }
+
+    for (value, freq) in freqMap {
+        heap.append((freq, value))
+        siftUp()
+        if heap.count > k {
+            heap[0] = heap.removeLast()
+            siftDown()
+        }
+    }
+
+    return heap.map { $0.value }
+}
+
+let nums = [1, 1, 1, 2, 2, 3]
+let k = 2
+let res = topKFrequent(nums, k)
+print("Top \\(k) frequent elements: \\(res)")
+`,
+        "kotlin": `import java.util.PriorityQueue
+
+fun topKFrequent(nums: IntArray, k: Int): List<Int> {
+    val freqMap = HashMap<Int, Int>()
+    for (num in nums) {
+        freqMap[num] = (freqMap[num] ?: 0) + 1
+    }
+
+    val minHeap = PriorityQueue<Pair<Int, Int>>(compareBy { it.second }) // (value, freq)
+
+    for ((value, freq) in freqMap) {
+        minHeap.offer(value to freq)
+        if (minHeap.size > k) {
+            minHeap.poll()
+        }
+    }
+
+    return minHeap.map { it.first }
+}
+
+fun main() {
+    val nums = intArrayOf(1, 1, 1, 2, 2, 3)
+    val k = 2
+    val res = topKFrequent(nums, k)
+    println("Top $k frequent elements: $res")
+}
+`,
+        "scala": `import scala.collection.mutable
+
+object Main extends App {
+    def topKFrequent(nums: Array[Int], k: Int): List[Int] = {
+        val freqMap = mutable.Map[Int, Int]()
+        for (num <- nums) {
+            freqMap(num) = freqMap.getOrElse(num, 0) + 1
+        }
+
+        val ord = Ordering.by[(Int, Int), Int](_._2).reverse // order by freq, min on top
+        val minHeap = mutable.PriorityQueue[(Int, Int)]()(ord)
+
+        for ((value, freq) <- freqMap) {
+            minHeap.enqueue((value, freq))
+            if (minHeap.size > k) {
+                minHeap.dequeue()
+            }
+        }
+
+        minHeap.map(_._1).toList
+    }
+
+    val nums = Array(1, 1, 1, 2, 2, 3)
+    val k = 2
+    val res = topKFrequent(nums, k)
+    println(s"Top $k frequent elements: $res")
+}
+`,
+        "go": `package main
+
+import (
+    "container/heap"
+    "fmt"
+)
+
+type Entry struct {
+    value int
+    freq  int
+}
+
+type EntryHeap []Entry
+
+func (h EntryHeap) Len() int            { return len(h) }
+func (h EntryHeap) Less(i, j int) bool  { return h[i].freq < h[j].freq }
+func (h EntryHeap) Swap(i, j int)       { h[i], h[j] = h[j], h[i] }
+func (h *EntryHeap) Push(x interface{}) { *h = append(*h, x.(Entry)) }
+func (h *EntryHeap) Pop() interface{} {
+    old := *h
+    n := len(old)
+    x := old[n-1]
+    *h = old[:n-1]
+    return x
+}
+
+func topKFrequent(nums []int, k int) []int {
+    freqMap := make(map[int]int)
+    for _, num := range nums {
+        freqMap[num]++
+    }
+
+    minHeap := &EntryHeap{}
+    heap.Init(minHeap)
+
+    for value, freq := range freqMap {
+        heap.Push(minHeap, Entry{value, freq})
+        if minHeap.Len() > k {
+            heap.Pop(minHeap)
+        }
+    }
+
+    result := make([]int, minHeap.Len())
+    for i := len(result) - 1; i >= 0; i-- {
+        result[i] = heap.Pop(minHeap).(Entry).value
+    }
+
+    return result
+}
+
+func main() {
+    nums := []int{1, 1, 1, 2, 2, 3}
+    k := 2
+    res := topKFrequent(nums, k)
+    fmt.Printf("Top %d frequent elements: %v\\n", k, res)
+}
+`,
+        "rust": `use std::cmp::Ordering;
+use std::collections::{BinaryHeap, HashMap};
+
+#[derive(Eq, PartialEq)]
+struct Entry {
+    freq: i32,
+    value: i32,
+}
+
+// Reverse ordering so BinaryHeap behaves as a min-heap on frequency.
+impl Ord for Entry {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other.freq.cmp(&self.freq)
+    }
+}
+impl PartialOrd for Entry {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+fn top_k_frequent(nums: &[i32], k: usize) -> Vec<i32> {
+    let mut freq_map: HashMap<i32, i32> = HashMap::new();
+    for &num in nums {
+        *freq_map.entry(num).or_insert(0) += 1;
+    }
+
+    let mut min_heap: BinaryHeap<Entry> = BinaryHeap::new();
+
+    for (&value, &freq) in freq_map.iter() {
+        min_heap.push(Entry { freq, value });
+        if min_heap.len() > k {
+            min_heap.pop();
+        }
+    }
+
+    min_heap.into_iter().map(|e| e.value).collect()
+}
+
+fn main() {
+    let nums = vec![1, 1, 1, 2, 2, 3];
+    let k = 2;
+    let res = top_k_frequent(&nums, k);
+    println!("Top {} frequent elements: {:?}", k, res);
+}
 `
       }
     },
@@ -18936,49 +20425,699 @@ int main() {
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The core invariant — every value in lowerHalf is ≤ every value in upperHalf, and the two heaps' sizes differ by at most 1 — is maintained on every insertion by the explicit rebalancing step, and this invariant is exactly what's needed to guarantee correctness: it means lowerHalf contains precisely the smaller half (or smaller-half-plus-one, if odd) of ALL values seen, and upperHalf contains precisely the larger half. Given this partition, the median is, by definition, either the boundary element (lowerHalf's maximum, when there's an odd total count and lowerHalf holds the extra element) or the average of the two boundary elements (when the count is even and the true median lies between them) — exactly what findMedian computes, using only the O(1)-accessible roots of both heaps." }
       ],
-      codes:{
-        "c++":`#include <iostream>
+      codes: {
+        "c++": `#include <iostream>
 #include <queue>
 
 using namespace std;
 
-priority_queue<int> arrLower;
-priority_queue<int> arrUpper;
+class MedianFinder {
+public:
+    priority_queue<int> lowerHalf;                                  // max-heap
+    priority_queue<int, vector<int>, greater<int>> upperHalf;        // min-heap
 
-void addNumber(int num) {
-    arrLower.push(num);
-    arrUpper.push(-arrLower.top());
-    arrLower.pop();
+    void addNum(int num) {
+        if (lowerHalf.empty() || num <= lowerHalf.top()) {
+            lowerHalf.push(num);
+        } else {
+            upperHalf.push(num);
+        }
 
-    if (arrLower.size() < arrUpper.size()) {
-        arrLower.push(-arrUpper.top());
-        arrUpper.pop();
+        if (lowerHalf.size() > upperHalf.size() + 1) {
+            upperHalf.push(lowerHalf.top());
+            lowerHalf.pop();
+        } else if (upperHalf.size() > lowerHalf.size()) {
+            lowerHalf.push(upperHalf.top());
+            upperHalf.pop();
+        }
+    }
+
+    double findMedian() {
+        if (lowerHalf.size() > upperHalf.size()) {
+            return lowerHalf.top();
+        }
+        return (lowerHalf.top() + upperHalf.top()) / 2.0;
+    }
+};
+
+int main() {
+    MedianFinder mf;
+
+    mf.addNum(1);
+    mf.addNum(2);
+    cout << "Median after adding 1, 2: " << mf.findMedian() << endl;
+
+    mf.addNum(3);
+    cout << "Median after adding 3: " << mf.findMedian() << endl;
+
+    mf.addNum(10);
+    mf.addNum(20);
+    cout << "Median after adding 10, 20: " << mf.findMedian() << endl;
+
+    return 0;
+}
+`,
+        "python": `import heapq
+
+class MedianFinder:
+    def __init__(self):
+        self.lower_half = []  # max-heap (store negated values)
+        self.upper_half = []  # min-heap
+
+    def add_num(self, num):
+        if not self.lower_half or num <= -self.lower_half[0]:
+            heapq.heappush(self.lower_half, -num)
+        else:
+            heapq.heappush(self.upper_half, num)
+
+        if len(self.lower_half) > len(self.upper_half) + 1:
+            heapq.heappush(self.upper_half, -heapq.heappop(self.lower_half))
+        elif len(self.upper_half) > len(self.lower_half):
+            heapq.heappush(self.lower_half, -heapq.heappop(self.upper_half))
+
+    def find_median(self):
+        if len(self.lower_half) > len(self.upper_half):
+            return -self.lower_half[0]
+        return (-self.lower_half[0] + self.upper_half[0]) / 2.0
+
+if __name__ == "__main__":
+    mf = MedianFinder()
+
+    mf.add_num(1)
+    mf.add_num(2)
+    print(f"Median after adding 1, 2: {mf.find_median()}")
+
+    mf.add_num(3)
+    print(f"Median after adding 3: {mf.find_median()}")
+
+    mf.add_num(10)
+    mf.add_num(20)
+    print(f"Median after adding 10, 20: {mf.find_median()}")
+`,
+        "java": `import java.util.PriorityQueue;
+import java.util.Collections;
+
+public class Main {
+    static class MedianFinder {
+        PriorityQueue<Integer> lowerHalf = new PriorityQueue<>(Collections.reverseOrder()); // max-heap
+        PriorityQueue<Integer> upperHalf = new PriorityQueue<>();                            // min-heap
+
+        void addNum(int num) {
+            if (lowerHalf.isEmpty() || num <= lowerHalf.peek()) {
+                lowerHalf.offer(num);
+            } else {
+                upperHalf.offer(num);
+            }
+
+            if (lowerHalf.size() > upperHalf.size() + 1) {
+                upperHalf.offer(lowerHalf.poll());
+            } else if (upperHalf.size() > lowerHalf.size()) {
+                lowerHalf.offer(upperHalf.poll());
+            }
+        }
+
+        double findMedian() {
+            if (lowerHalf.size() > upperHalf.size()) {
+                return lowerHalf.peek();
+            }
+            return (lowerHalf.peek() + upperHalf.peek()) / 2.0;
+        }
+    }
+
+    public static void main(String[] args) {
+        MedianFinder mf = new MedianFinder();
+
+        mf.addNum(1);
+        mf.addNum(2);
+        System.out.println("Median after adding 1, 2: " + mf.findMedian());
+
+        mf.addNum(3);
+        System.out.println("Median after adding 3: " + mf.findMedian());
+
+        mf.addNum(10);
+        mf.addNum(20);
+        System.out.println("Median after adding 10, 20: " + mf.findMedian());
+    }
+}
+`,
+        "js": `class MedianFinder {
+    constructor() {
+        this.lowerHalf = []; // max-heap (store negated values)
+        this.upperHalf = []; // min-heap
+    }
+
+    static siftUp(heap) {
+        let i = heap.length - 1;
+        while (i > 0) {
+            const parent = (i - 1) >> 1;
+            if (heap[parent] <= heap[i]) break;
+            [heap[parent], heap[i]] = [heap[i], heap[parent]];
+            i = parent;
+        }
+    }
+
+    static siftDown(heap) {
+        let i = 0;
+        const n = heap.length;
+        while (true) {
+            let smallest = i;
+            const left = 2 * i + 1;
+            const right = 2 * i + 2;
+            if (left < n && heap[left] < heap[smallest]) smallest = left;
+            if (right < n && heap[right] < heap[smallest]) smallest = right;
+            if (smallest === i) break;
+            [heap[i], heap[smallest]] = [heap[smallest], heap[i]];
+            i = smallest;
+        }
+    }
+
+    static push(heap, val) {
+        heap.push(val);
+        MedianFinder.siftUp(heap);
+    }
+
+    static pop(heap) {
+        const top = heap[0];
+        const last = heap.pop();
+        if (heap.length > 0) {
+            heap[0] = last;
+            MedianFinder.siftDown(heap);
+        }
+        return top;
+    }
+
+    addNum(num) {
+        if (this.lowerHalf.length === 0 || num <= -this.lowerHalf[0]) {
+            MedianFinder.push(this.lowerHalf, -num);
+        } else {
+            MedianFinder.push(this.upperHalf, num);
+        }
+
+        if (this.lowerHalf.length > this.upperHalf.length + 1) {
+            MedianFinder.push(this.upperHalf, -MedianFinder.pop(this.lowerHalf));
+        } else if (this.upperHalf.length > this.lowerHalf.length) {
+            MedianFinder.push(this.lowerHalf, -MedianFinder.pop(this.upperHalf));
+        }
+    }
+
+    findMedian() {
+        if (this.lowerHalf.length > this.upperHalf.length) {
+            return -this.lowerHalf[0];
+        }
+        return (-this.lowerHalf[0] + this.upperHalf[0]) / 2;
     }
 }
 
-double getMedian() {
-    if (arrLower.size() > arrUpper.size()) {
-        return arrLower.top();
-    } else {
-        return (arrLower.top() + (-arrUpper.top())) * 0.5; 
+const mf = new MedianFinder();
+
+mf.addNum(1);
+mf.addNum(2);
+console.log(\`Median after adding 1, 2: \${mf.findMedian()}\`);
+
+mf.addNum(3);
+console.log(\`Median after adding 3: \${mf.findMedian()}\`);
+
+mf.addNum(10);
+mf.addNum(20);
+console.log(\`Median after adding 10, 20: \${mf.findMedian()}\`);
+`,
+        "c": `#include <stdio.h>
+
+// Fixed-capacity array-backed heaps for demonstration purposes.
+#define MAX_N 1000
+
+int lowerHalf[MAX_N]; // max-heap
+int lowerSize = 0;
+int upperHalf[MAX_N]; // min-heap
+int upperSize = 0;
+
+void siftUpMax(int* heap, int i) {
+    while (i > 0) {
+        int parent = (i - 1) / 2;
+        if (heap[parent] >= heap[i]) break;
+        int t = heap[parent]; heap[parent] = heap[i]; heap[i] = t;
+        i = parent;
     }
+}
+
+void siftDownMax(int* heap, int size) {
+    int i = 0;
+    while (1) {
+        int largest = i, left = 2 * i + 1, right = 2 * i + 2;
+        if (left < size && heap[left] > heap[largest]) largest = left;
+        if (right < size && heap[right] > heap[largest]) largest = right;
+        if (largest == i) break;
+        int t = heap[i]; heap[i] = heap[largest]; heap[largest] = t;
+        i = largest;
+    }
+}
+
+void siftUpMin(int* heap, int i) {
+    while (i > 0) {
+        int parent = (i - 1) / 2;
+        if (heap[parent] <= heap[i]) break;
+        int t = heap[parent]; heap[parent] = heap[i]; heap[i] = t;
+        i = parent;
+    }
+}
+
+void siftDownMin(int* heap, int size) {
+    int i = 0;
+    while (1) {
+        int smallest = i, left = 2 * i + 1, right = 2 * i + 2;
+        if (left < size && heap[left] < heap[smallest]) smallest = left;
+        if (right < size && heap[right] < heap[smallest]) smallest = right;
+        if (smallest == i) break;
+        int t = heap[i]; heap[i] = heap[smallest]; heap[smallest] = t;
+        i = smallest;
+    }
+}
+
+void addNum(int num) {
+    if (lowerSize == 0 || num <= lowerHalf[0]) {
+        lowerHalf[lowerSize++] = num;
+        siftUpMax(lowerHalf, lowerSize - 1);
+    } else {
+        upperHalf[upperSize++] = num;
+        siftUpMin(upperHalf, upperSize - 1);
+    }
+
+    if (lowerSize > upperSize + 1) {
+        int moved = lowerHalf[0];
+        lowerHalf[0] = lowerHalf[--lowerSize];
+        siftDownMax(lowerHalf, lowerSize);
+        upperHalf[upperSize++] = moved;
+        siftUpMin(upperHalf, upperSize - 1);
+    } else if (upperSize > lowerSize) {
+        int moved = upperHalf[0];
+        upperHalf[0] = upperHalf[--upperSize];
+        siftDownMin(upperHalf, upperSize);
+        lowerHalf[lowerSize++] = moved;
+        siftUpMax(lowerHalf, lowerSize - 1);
+    }
+}
+
+double findMedian() {
+    if (lowerSize > upperSize) {
+        return lowerHalf[0];
+    }
+    return (lowerHalf[0] + upperHalf[0]) / 2.0;
 }
 
 int main() {
-    addNumber(1);
-    addNumber(2);
-    cout << "Median after adding 1, 2: " << getMedian() << endl;
-    
-    addNumber(3);
-    cout << "Median after adding 3: " << getMedian() << endl; 
-    
-    addNumber(10);
-    addNumber(20);
-    cout << "Median after adding 10, 20: " << getMedian() << endl;
-    
+    addNum(1);
+    addNum(2);
+    printf("Median after adding 1, 2: %.1f\\n", findMedian());
+
+    addNum(3);
+    printf("Median after adding 3: %.1f\\n", findMedian());
+
+    addNum(10);
+    addNum(20);
+    printf("Median after adding 10, 20: %.1f\\n", findMedian());
+
     return 0;
 }
+`,
+        "c#": `using System;
+using System.Collections.Generic;
+using System.Linq;
 
+class MedianFinder {
+    List<int> lowerHalf = new List<int>(); // max-heap semantics via sorted list
+    List<int> upperHalf = new List<int>(); // min-heap semantics via sorted list
+
+    void InsertSorted(List<int> list, int val, bool descending) {
+        int idx = list.BinarySearch(val, descending
+            ? Comparer<int>.Create((a, b) => b.CompareTo(a))
+            : Comparer<int>.Default);
+        if (idx < 0) idx = ~idx;
+        list.Insert(idx, val);
+    }
+
+    public void AddNum(int num) {
+        if (lowerHalf.Count == 0 || num <= lowerHalf[0]) {
+            InsertSorted(lowerHalf, num, true);
+        } else {
+            InsertSorted(upperHalf, num, false);
+        }
+
+        if (lowerHalf.Count > upperHalf.Count + 1) {
+            int moved = lowerHalf[0];
+            lowerHalf.RemoveAt(0);
+            InsertSorted(upperHalf, moved, false);
+        } else if (upperHalf.Count > lowerHalf.Count) {
+            int moved = upperHalf[0];
+            upperHalf.RemoveAt(0);
+            InsertSorted(lowerHalf, moved, true);
+        }
+    }
+
+    public double FindMedian() {
+        if (lowerHalf.Count > upperHalf.Count) {
+            return lowerHalf[0];
+        }
+        return (lowerHalf[0] + upperHalf[0]) / 2.0;
+    }
+}
+
+class Program {
+    static void Main() {
+        var mf = new MedianFinder();
+
+        mf.AddNum(1);
+        mf.AddNum(2);
+        Console.WriteLine($"Median after adding 1, 2: {mf.FindMedian()}");
+
+        mf.AddNum(3);
+        Console.WriteLine($"Median after adding 3: {mf.FindMedian()}");
+
+        mf.AddNum(10);
+        mf.AddNum(20);
+        Console.WriteLine($"Median after adding 10, 20: {mf.FindMedian()}");
+    }
+}
+`,
+        "swift": `final class MedianFinder {
+    private var lowerHalf: [Int] = [] // max-heap (store negated values)
+    private var upperHalf: [Int] = [] // min-heap
+
+    private func siftUp(_ heap: inout [Int]) {
+        var i = heap.count - 1
+        while i > 0 {
+            let parent = (i - 1) / 2
+            if heap[parent] <= heap[i] { break }
+            heap.swapAt(parent, i)
+            i = parent
+        }
+    }
+
+    private func siftDown(_ heap: inout [Int]) {
+        var i = 0
+        let n = heap.count
+        while true {
+            var smallest = i
+            let left = 2 * i + 1
+            let right = 2 * i + 2
+            if left < n && heap[left] < heap[smallest] { smallest = left }
+            if right < n && heap[right] < heap[smallest] { smallest = right }
+            if smallest == i { break }
+            heap.swapAt(i, smallest)
+            i = smallest
+        }
+    }
+
+    private func push(_ heap: inout [Int], _ val: Int) {
+        heap.append(val)
+        siftUp(&heap)
+    }
+
+    private func pop(_ heap: inout [Int]) -> Int {
+        let top = heap[0]
+        let last = heap.removeLast()
+        if !heap.isEmpty {
+            heap[0] = last
+            siftDown(&heap)
+        }
+        return top
+    }
+
+    func addNum(_ num: Int) {
+        if lowerHalf.isEmpty || num <= -lowerHalf[0] {
+            push(&lowerHalf, -num)
+        } else {
+            push(&upperHalf, num)
+        }
+
+        if lowerHalf.count > upperHalf.count + 1 {
+            push(&upperHalf, -pop(&lowerHalf))
+        } else if upperHalf.count > lowerHalf.count {
+            push(&lowerHalf, -pop(&upperHalf))
+        }
+    }
+
+    func findMedian() -> Double {
+        if lowerHalf.count > upperHalf.count {
+            return Double(-lowerHalf[0])
+        }
+        return Double(-lowerHalf[0] + upperHalf[0]) / 2.0
+    }
+}
+
+let mf = MedianFinder()
+
+mf.addNum(1)
+mf.addNum(2)
+print("Median after adding 1, 2: \\(mf.findMedian())")
+
+mf.addNum(3)
+print("Median after adding 3: \\(mf.findMedian())")
+
+mf.addNum(10)
+mf.addNum(20)
+print("Median after adding 10, 20: \\(mf.findMedian())")
+`,
+        "kotlin": `import java.util.PriorityQueue
+import java.util.Collections
+
+class MedianFinder {
+    private val lowerHalf = PriorityQueue<Int>(Collections.reverseOrder()) // max-heap
+    private val upperHalf = PriorityQueue<Int>()                          // min-heap
+
+    fun addNum(num: Int) {
+        if (lowerHalf.isEmpty() || num <= lowerHalf.peek()) {
+            lowerHalf.offer(num)
+        } else {
+            upperHalf.offer(num)
+        }
+
+        if (lowerHalf.size > upperHalf.size + 1) {
+            upperHalf.offer(lowerHalf.poll())
+        } else if (upperHalf.size > lowerHalf.size) {
+            lowerHalf.offer(upperHalf.poll())
+        }
+    }
+
+    fun findMedian(): Double {
+        return if (lowerHalf.size > upperHalf.size) {
+            lowerHalf.peek().toDouble()
+        } else {
+            (lowerHalf.peek() + upperHalf.peek()) / 2.0
+        }
+    }
+}
+
+fun main() {
+    val mf = MedianFinder()
+
+    mf.addNum(1)
+    mf.addNum(2)
+    println("Median after adding 1, 2: \${mf.findMedian()}")
+
+    mf.addNum(3)
+    println("Median after adding 3: \${mf.findMedian()}")
+
+    mf.addNum(10)
+    mf.addNum(20)
+    println("Median after adding 10, 20: \${mf.findMedian()}")
+}
+`,
+        "scala": `import scala.collection.mutable
+
+class MedianFinder {
+    private val lowerHalf = mutable.PriorityQueue[Int]() // max-heap by default
+    private val upperHalf = mutable.PriorityQueue[Int]()(Ordering.Int.reverse) // min-heap
+
+    def addNum(num: Int): Unit = {
+        if (lowerHalf.isEmpty || num <= lowerHalf.head) {
+            lowerHalf.enqueue(num)
+        } else {
+            upperHalf.enqueue(num)
+        }
+
+        if (lowerHalf.size > upperHalf.size + 1) {
+            upperHalf.enqueue(lowerHalf.dequeue())
+        } else if (upperHalf.size > lowerHalf.size) {
+            lowerHalf.enqueue(upperHalf.dequeue())
+        }
+    }
+
+    def findMedian(): Double = {
+        if (lowerHalf.size > upperHalf.size) {
+            lowerHalf.head.toDouble
+        } else {
+            (lowerHalf.head + upperHalf.head) / 2.0
+        }
+    }
+}
+
+object Main extends App {
+    val mf = new MedianFinder()
+
+    mf.addNum(1)
+    mf.addNum(2)
+    println(s"Median after adding 1, 2: \${mf.findMedian()}")
+
+    mf.addNum(3)
+    println(s"Median after adding 3: \${mf.findMedian()}")
+
+    mf.addNum(10)
+    mf.addNum(20)
+    println(s"Median after adding 10, 20: \${mf.findMedian()}")
+}
+`,
+        "go": `package main
+
+import (
+    "container/heap"
+    "fmt"
+)
+
+// MaxHeap for the lower half.
+type MaxHeap []int
+
+func (h MaxHeap) Len() int            { return len(h) }
+func (h MaxHeap) Less(i, j int) bool  { return h[i] > h[j] }
+func (h MaxHeap) Swap(i, j int)       { h[i], h[j] = h[j], h[i] }
+func (h *MaxHeap) Push(x interface{}) { *h = append(*h, x.(int)) }
+func (h *MaxHeap) Pop() interface{} {
+    old := *h
+    n := len(old)
+    x := old[n-1]
+    *h = old[:n-1]
+    return x
+}
+
+// MinHeap for the upper half.
+type MinHeap []int
+
+func (h MinHeap) Len() int            { return len(h) }
+func (h MinHeap) Less(i, j int) bool  { return h[i] < h[j] }
+func (h MinHeap) Swap(i, j int)       { h[i], h[j] = h[j], h[i] }
+func (h *MinHeap) Push(x interface{}) { *h = append(*h, x.(int)) }
+func (h *MinHeap) Pop() interface{} {
+    old := *h
+    n := len(old)
+    x := old[n-1]
+    *h = old[:n-1]
+    return x
+}
+
+type MedianFinder struct {
+    lowerHalf *MaxHeap
+    upperHalf *MinHeap
+}
+
+func NewMedianFinder() *MedianFinder {
+    lower := &MaxHeap{}
+    upper := &MinHeap{}
+    heap.Init(lower)
+    heap.Init(upper)
+    return &MedianFinder{lowerHalf: lower, upperHalf: upper}
+}
+
+func (mf *MedianFinder) AddNum(num int) {
+    if mf.lowerHalf.Len() == 0 || num <= (*mf.lowerHalf)[0] {
+        heap.Push(mf.lowerHalf, num)
+    } else {
+        heap.Push(mf.upperHalf, num)
+    }
+
+    if mf.lowerHalf.Len() > mf.upperHalf.Len()+1 {
+        moved := heap.Pop(mf.lowerHalf).(int)
+        heap.Push(mf.upperHalf, moved)
+    } else if mf.upperHalf.Len() > mf.lowerHalf.Len() {
+        moved := heap.Pop(mf.upperHalf).(int)
+        heap.Push(mf.lowerHalf, moved)
+    }
+}
+
+func (mf *MedianFinder) FindMedian() float64 {
+    if mf.lowerHalf.Len() > mf.upperHalf.Len() {
+        return float64((*mf.lowerHalf)[0])
+    }
+    return float64((*mf.lowerHalf)[0]+(*mf.upperHalf)[0]) / 2.0
+}
+
+func main() {
+    mf := NewMedianFinder()
+
+    mf.AddNum(1)
+    mf.AddNum(2)
+    fmt.Printf("Median after adding 1, 2: %.1f\\n", mf.FindMedian())
+
+    mf.AddNum(3)
+    fmt.Printf("Median after adding 3: %.1f\\n", mf.FindMedian())
+
+    mf.AddNum(10)
+    mf.AddNum(20)
+    fmt.Printf("Median after adding 10, 20: %.1f\\n", mf.FindMedian())
+}
+`,
+        "rust": `use std::cmp::Reverse;
+use std::collections::BinaryHeap;
+
+struct MedianFinder {
+    lower_half: BinaryHeap<i32>,         // max-heap
+    upper_half: BinaryHeap<Reverse<i32>>, // min-heap
+}
+
+impl MedianFinder {
+    fn new() -> Self {
+        MedianFinder {
+            lower_half: BinaryHeap::new(),
+            upper_half: BinaryHeap::new(),
+        }
+    }
+
+    fn add_num(&mut self, num: i32) {
+        let goes_in_lower = match self.lower_half.peek() {
+            None => true,
+            Some(&top) => num <= top,
+        };
+
+        if goes_in_lower {
+            self.lower_half.push(num);
+        } else {
+            self.upper_half.push(Reverse(num));
+        }
+
+        if self.lower_half.len() > self.upper_half.len() + 1 {
+            if let Some(moved) = self.lower_half.pop() {
+                self.upper_half.push(Reverse(moved));
+            }
+        } else if self.upper_half.len() > self.lower_half.len() {
+            if let Some(Reverse(moved)) = self.upper_half.pop() {
+                self.lower_half.push(moved);
+            }
+        }
+    }
+
+    fn find_median(&self) -> f64 {
+        if self.lower_half.len() > self.upper_half.len() {
+            *self.lower_half.peek().unwrap() as f64
+        } else {
+            let lower_top = *self.lower_half.peek().unwrap();
+            let upper_top = self.upper_half.peek().unwrap().0;
+            (lower_top + upper_top) as f64 / 2.0
+        }
+    }
+}
+
+fn main() {
+    let mut mf = MedianFinder::new();
+
+    mf.add_num(1);
+    mf.add_num(2);
+    println!("Median after adding 1, 2: {}", mf.find_median());
+
+    mf.add_num(3);
+    println!("Median after adding 3: {}", mf.find_median());
+
+    mf.add_num(10);
+    mf.add_num(20);
+    println!("Median after adding 10, 20: {}", mf.find_median());
+}
 `
       }
     }
@@ -18988,6 +21127,8 @@ int main() {
   complexity: "O(log n)",
   featured: true
 };
+
+// ─────────────────────────────────────────────────────────────────────────── ^
 
 const RECURSION_SECTION = {
   name: "Recursion",

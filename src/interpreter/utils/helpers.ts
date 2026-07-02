@@ -129,7 +129,8 @@ export function deepCloneCppValue(rootValue: any): any {
 
     if (val instanceof Set) {
       const arr: any[] = [];
-      task.target[task.key] = arr;
+      const setObj = { __type: "set", values: arr };
+      task.target[task.key] = setObj;
       const values = Array.from(val.values());
       for (let i = values.length - 1; i >= 0; i--) {
         stack.push({ source: values[i], target: arr, key: i, state: "enter" });

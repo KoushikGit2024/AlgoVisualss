@@ -27,6 +27,7 @@ import Stack from '../dataStructures/Stack';
 import Tree from '../dataStructures/Tree';
 import TrieTree from '../dataStructures/TrieTree';
 import { MapVisualizer } from '../dataStructures/MapVisualizer';
+import { SetVisualizer } from '../dataStructures/SetVisualizer';
 import StringVisualizer from '../dataStructures/StringVisualizer';
 import BitsetVisualizer from '../dataStructures/BitsetVisualizer';
 import ScalarVisualizer from '../dataStructures/ScalarVisualizer';
@@ -575,6 +576,7 @@ const VisualGround = ({
                           {state.type === 'tree'       && <Tree        {...(state.props as any)} />}
                           {state.type === 'trie'       && <TrieTree    {...(state.props as any)} />}
                           {state.type === 'map'        && <MapVisualizer {...(state.props as any)} />}
+                          {state.type === 'set'        && <SetVisualizer {...(state.props as any)} />}
                           {state.type === 'string'     && <StringVisualizer {...(state.props as any)} />}
                           {state.type === 'bitset'     && <BitsetVisualizer {...(state.props as any)} />}
                           {state.type === 'scalar'     && <ScalarVisualizer {...(state.props as any)} />}

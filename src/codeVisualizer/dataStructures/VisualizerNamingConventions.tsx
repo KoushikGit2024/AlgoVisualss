@@ -223,21 +223,18 @@ const DATA_STRUCTURES = [
     ]
   },
   {
-    title: "Maps & Sets — <MapVisualizer />",
+    title: "Maps — <MapVisualizer />",
     icon: <Database className="text-success" size={18} />,
     color: "border-success/30 bg-success/5",
     textColor: "text-success",
-    description: "Renders key-value pairs or set elements.",
+    description: "Renders key-value pairs.",
     prefixes: [
       { prefix: "map", example: "unordered_map<int, int> map_freq" },
       { prefix: "dict", example: "map<string, int> dict" },
       { prefix: "freq", example: "unordered_map<char, int> freq" },
       { prefix: "count", example: "unordered_map<int, int> count" },
-      { prefix: "hash", example: "unordered_set<int> hash_set" },
-      { prefix: "seen", example: "unordered_set<int> seen" },
-      { prefix: "visited", example: "unordered_set<int> visited_nodes" },
+      { prefix: "hash", example: "unordered_map<int, int> hash" },
       { prefix: "memo", example: "unordered_map<int, int> memo" },
-      { prefix: "set", example: "unordered_set<int> set_data" },
       { prefix: "cache_map", example: "unordered_map<int, int> cache_map" },
       { prefix: "mapping", example: "unordered_map<int, int> mapping" },
       { prefix: "lookup", example: "unordered_map<int, int> lookup" },
@@ -245,7 +242,23 @@ const DATA_STRUCTURES = [
       { prefix: "frequencies", example: "unordered_map<int, int> frequencies" },
       { prefix: "counter", example: "unordered_map<int, int> counter" }
     ],
-    shape: "Value must be a map or set object internally emitted by the engine.",
+    shape: "Value must be a map object internally emitted by the engine.",
+    auxiliary: []
+  },
+  {
+    title: "Sets — <SetVisualizer />",
+    icon: <Database className="text-success" size={18} />,
+    color: "border-success/30 bg-success/5",
+    textColor: "text-success",
+    description: "Renders unique set elements as distinct badges.",
+    prefixes: [
+      { prefix: "set", example: "unordered_set<int> set_data" },
+      { prefix: "seen", example: "unordered_set<int> seen" },
+      { prefix: "visited", example: "unordered_set<int> visited_nodes" },
+      { prefix: "hash_set", example: "unordered_set<int> hash_set" },
+      { prefix: "unique", example: "unordered_set<int> unique_vals" }
+    ],
+    shape: "Value must be a set object internally emitted by the engine.",
     auxiliary: []
   },
   {
@@ -344,9 +357,11 @@ export default function VisualizerNamingConventions() {
                 { p: 6, c: "<Stack />", w: "Flat array with LIFO semantics" },
                 { p: 7, c: "<Queue />", w: "Flat array with FIFO semantics" },
                 { p: 8, c: "<D1Array />", w: "Generic flat array fallback" },
-                { p: 9, c: "<StringVisualizer />", w: "Specific text/string matching" },
-                { p: 10, c: "<BitsetVisualizer />", w: "Bitmask matching" },
-                { p: 11, c: "<ScalarVisualizer />", w: "Scalar matching" }
+                { p: 9, c: "<MapVisualizer />", w: "Checks for internal `__type === 'map'`" },
+                { p: 10, c: "<SetVisualizer />", w: "Checks for internal `__type === 'set'`" },
+                { p: 11, c: "<StringVisualizer />", w: "Specific text/string matching" },
+                { p: 12, c: "<BitsetVisualizer />", w: "Bitmask matching" },
+                { p: 13, c: "<ScalarVisualizer />", w: "Scalar matching" }
               ].map((row, i) => (
                 <tr key={i} className="border-b border-border last:border-b-0 even:bg-surface-2/30 hover:bg-surface-3 transition-colors">
                   <td className="px-4 py-2.5 border-r border-border text-muted font-mono">{row.p}</td>
@@ -481,7 +496,8 @@ export default function VisualizerNamingConventions() {
                 { c: "<LinkedList />", p: "(Any Name)", s: "Struct with `value` & `next`", a: "All node pointers automatically attach" },
                 { c: "<Queue />", p: "queue, deque, line, queue_nodes, tasks", s: "Flat array", a: "front, back, rear, head, tail, curr" },
                 { c: "<Stack />", p: "stack, stk, history, undo, frames", s: "Flat array", a: "top, peek" },
-                { c: "<MapVisualizer />", p: "map, dict, freq, count, hash, cache_map, memo, set, seen, visited", s: "Map/Set Object", a: "None" },
+                { c: "<MapVisualizer />", p: "map, dict, freq, count, hash, cache_map, memo, mapping, lookup, occurrences, frequencies, counter", s: "Map Object", a: "None" },
+                { c: "<SetVisualizer />", p: "set, seen, visited, hash_set, unique", s: "Set Object", a: "None" },
                 { c: "<StringVisualizer />", p: "str, text, word, chars, msg, string, sentence, paragraph, pattern, substring, sub, letters, characters", s: "String / Char Array", a: "i, j, k, left, right, mid, curr, ptr" },
                 { c: "<BitsetVisualizer />", p: "mask, bits, flags, bitset, state_mask, status_bits, binary_flags, bitmask", s: "Number / Bool Array", a: "None" },
                 { c: "<ScalarVisualizer />", p: "ans, sum, count, total, result, max_val, min_val, cnt, res_val, diff, target", s: "Primitive", a: "None" }
