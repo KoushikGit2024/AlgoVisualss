@@ -56,6 +56,7 @@ export default function VisualPlatforms() {
               platform={platform} 
               index={i} 
               mounted={mounted} 
+              featured={platform.featured}
             />
           ))}
         </div>
@@ -66,10 +67,10 @@ export default function VisualPlatforms() {
 }
 
 /* ─── Card sub-component ─────────────────────────────────────────────────────── */
-function PlatformCard({ platform, index, mounted }: { platform: any, index: number, mounted: boolean }) {
+function PlatformCard({ platform, index, mounted, featured }: { platform: any, index: number, mounted: boolean, featured: boolean }) {
   return (
     <Link
-      to={platform.href}
+      to={featured ? platform.href: "#"}
       className="group relative flex flex-col h-full bg-[var(--surface,#13101F)] border border-[var(--border,#2A2445)] rounded-2xl p-6 md:py-8 md:px-7 cursor-pointer overflow-hidden opacity-0 no-underline transition-all duration-300 ease-in-out hover:border-[var(--brand-color)] hover:bg-[var(--surface-2,#1A1630)] hover:-translate-y-1 hover:shadow-[0_12px_40px_color-mix(in_srgb,var(--brand-color)_15%,transparent)]"
       style={{
         '--brand-color': platform.color,
@@ -94,11 +95,16 @@ function PlatformCard({ platform, index, mounted }: { platform: any, index: numb
         </div>
       </div>
 
-      <div className="flex gap-1.5 mb-3">
-        <span className="font-['JetBrains_Mono','Fira_Code',monospace] text-[9px] uppercase tracking-[0.12em] text-[#34D399] border border-[rgba(52,211,153,0.3)] bg-[rgba(52,211,153,0.05)] py-[3px] px-2 rounded">
-          Live Sync
-        </span>
-      </div>
+      {/* Tags List */}
+      {
+        !platform.featured && (
+          <div className="flex gap-1.5 mb-3">
+            <span className="font-['JetBrains_Mono','Fira_Code',monospace] text-[9px] uppercase tracking-[0.12em] text-[#d38634] border border-[rgba(187,62,4,0.3)] bg-[rgba(52,211,153,0.05)] py-[3px] px-2 rounded">
+              Under Developement
+            </span>
+          </div>
+        )
+      }
 
       {/* Name with Dynamic Underline */}
       <div className="mb-2">

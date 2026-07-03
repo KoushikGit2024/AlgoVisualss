@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import ALGODATA from "./data/categories/AlgoData";
+import ALGODATA from "./data/AlgoData";
 import "./AlgoDirector.css";
 import { cn } from '../../lib/utils';
 

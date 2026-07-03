@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Command, CornerDownLeft, Compass, ArrowRight } from "lucide-react";
-import ALGODATA from "../algorithms/data/categories/AlgoData";
+import ALGODATA from "../algorithms/data/AlgoData";
 import { cn } from "../../lib/utils";
 
 // Helper to extract plain text from ContentNodes

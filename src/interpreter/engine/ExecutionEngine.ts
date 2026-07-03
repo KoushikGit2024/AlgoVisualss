@@ -663,9 +663,37 @@ export class ExecutionEngine {
   ): CppValue {
     const fn = callNode.callee;
 
+    // ── 0. Implicit method calls (this->method()) ─────────────────────────
+    if (!this.callStack.isEmpty()) {
+      const activeScope = this.callStack.peek().scopeManager;
+      try {
+        const thisObj = activeScope.getVariable("this")?.value;
+        if (thisObj && typeof thisObj === "object" && (thisObj as any).__type) {
+          const structDef = this.classBlueprints.get((thisObj as any).__type);
+          if (structDef && structDef.methods && structDef.methods.some(m => m.name === fn)) {
+            return this.invokeMethodCall({
+              kind: "MethodCall",
+              line: callNode.line,
+              object: { kind: "Identifier", name: "this", line: callNode.line } as any,
+              method: fn,
+              arrow: true,
+              arguments: callNode.arguments
+            }, currentEvaluator);
+          }
+        }
+      } catch { /* 'this' not found, normal function call */ }
+    }
+
     // ── 1. std::swap ──────────────────────────────────────────────────────
     if (fn === "swap" && callNode.arguments.length === 2) {
       return this.nativeSwap(callNode, currentEvaluator);
+    }
+
+    // ── 1.1 __delete (Memory Deallocation) ────────────────────────────────
+    if (fn === "__delete") {
+      // In JS, memory is garbage collected, so manual deallocation is a no-op.
+      // We could optionally emit an event here if we wanted to visualize the deletion.
+      return undefined;
     }
 
     // ── 1.5 User-defined functions / lambdas ──────────────────────────────
@@ -921,15 +949,45 @@ export class ExecutionEngine {
   // SECTION 6 — STL Algorithm Implementations
   // ==========================================================================
 
+  private getContainerObject(callNode: IRFunctionCall, currentEvaluator: ExpressionEvaluator, argIndex: number = 0): any {
+    const arg = callNode.arguments[argIndex];
+    if (!arg || arg.kind !== "MethodCall") return null;
+    return currentEvaluator.evaluate((arg as any).object);
+  }
+
+  private updateStringInScope(callNode: IRFunctionCall, ev: ExpressionEvaluator, newVal: string, argIndex: number = 0): void {
+    const arg = callNode.arguments[argIndex];
+    if (arg && arg.kind === "MethodCall") {
+      const targetObj = (arg as any).object;
+      if (targetObj && targetObj.kind === "Identifier") {
+        try {
+          this.callStack.peek().scopeManager.assignVariable(targetObj.name, newVal);
+          this.eventEmitter.emit(callNode.line, EventType.ASSIGNMENT, { variable: targetObj.name, value: newVal });
+        } catch {}
+      } else if (targetObj && targetObj.kind === "SubscriptExpression") {
+          // e.g. sort(words[i].begin(), words[i].end())
+          // We don't have a simple assignVariable for subscripts easily exposed here without duplicating evaluate logic,
+          // but we can evaluate the array and index and assign it directly.
+          const arrObj = ev.evaluate((targetObj as any).object);
+          const idx = ev.evaluate((targetObj as any).index) as number;
+          const targetArr = Array.isArray(arrObj) ? arrObj : (arrObj as any)?.data;
+          if (targetArr) {
+              targetArr[idx] = newVal;
+              const name = (targetObj as any).object?.name || "array";
+              this.eventEmitter.emit(callNode.line, EventType.ASSIGNMENT, { variable: `${name}[${idx}]`, value: newVal });
+          }
+      }
+    }
+  }
+
   /** Resolves a begin-iterator MethodCall argument to the backing JS array. */
   private resolveContainerArray(
     callNode:         IRFunctionCall,
     currentEvaluator: ExpressionEvaluator,
     argIndex:         number = 0,
   ): any[] | null {
-    const arg = callNode.arguments[argIndex];
-    if (!arg || arg.kind !== "MethodCall") return null;
-    const obj = currentEvaluator.evaluate((arg as any).object);
+    const obj = this.getContainerObject(callNode, currentEvaluator, argIndex);
+    if (typeof obj === "string") return obj.split('');
     return Array.isArray(obj) ? obj : (obj as any)?.data ?? null;
   }
 
@@ -980,9 +1038,14 @@ export class ExecutionEngine {
   }
 
   private nativeContainerAlgorithm(fn: string, callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const isStr = typeof this.getContainerObject(callNode, ev) === "string";
     const arr = this.resolveContainerArray(callNode, ev);
     if (!arr) return undefined;
-    if (fn === "reverse")     { arr.reverse(); return undefined; }
+    if (fn === "reverse") { 
+        arr.reverse(); 
+        if (isStr) this.updateStringInScope(callNode, ev, arr.join(''));
+        return undefined; 
+    }
     if (fn === "max_element") return Math.max(...arr);
     if (fn === "min_element") return Math.min(...arr);
     if (fn === "accumulate")  {
@@ -993,6 +1056,7 @@ export class ExecutionEngine {
   }
 
   private nativeSort(fn: string, callNode: IRFunctionCall, ev: ExpressionEvaluator): CppValue {
+    const isStr = typeof this.getContainerObject(callNode, ev) === "string";
     const arr = this.resolveContainerArray(callNode, ev);
     if (!arr) return undefined;
     if (callNode.arguments.length >= 3) {
@@ -1020,6 +1084,7 @@ export class ExecutionEngine {
         return (a as any) - (b as any);
       });
     }
+    if (isStr) this.updateStringInScope(callNode, ev, arr.join(''));
     this.eventEmitter.emit(callNode.line, EventType.FUNCTION_CALL,   { function: fn, args: [] });
     this.eventEmitter.emit(callNode.line, EventType.FUNCTION_RETURN, { function: fn, returnValue: undefined });
     return undefined;
@@ -1322,7 +1387,7 @@ export class ExecutionEngine {
         case "erase": case "remove":    result = m.delete(args[0]); break;
         case "count":
         case "contains":                result = m.has(args[0]) ? 1 : 0; break;
-        case "find":                    result = m.has(args[0]) ? args[0] : null; break;
+        case "find":                    result = m.has(args[0]) ? { first: args[0], second: m.get(args[0]) } : null; break;
         case "at":                      result = m.get(args[0]); break;
         case "size": case "length":     result = m.size; break;
         case "empty":                   result = m.size === 0; break;
@@ -1432,16 +1497,40 @@ export class ExecutionEngine {
         case "at":                      result = targetArr[args[0] as number]; break;
         case "find": case "search":     result = targetArr.indexOf(args[0]); break;
         case "contains":                result = targetArr.includes(args[0]); break;
-        case "begin":                   result = 0; break;
-        case "end":                     result = targetArr.length; break;
+        case "begin":
+          result = { 
+            __isListIter: true, 
+            __iterValue: targetArr[0], 
+            valueOf() { return 0; },
+            toString() { return String(this.__iterValue); }
+          }; 
+          break;
+        case "end":
+          result = { 
+            __isListIter: true, 
+            __iterValue: undefined, 
+            valueOf() { return targetArr.length; },
+            toString() { return "undefined"; }
+          }; 
+          break;
         case "insert":
           if (args.length === 1) targetArr.push(cloneRuntimeValue(args[0]));
-          else if (typeof args[0] === "number") targetArr.splice(args[0] as number, 0, cloneRuntimeValue(args[1]));
+          else if (typeof args[0] === "number" || (args[0] && typeof args[0] === "object" && (args[0] as any).__isListIter)) {
+            const pos = Number(args[0]);
+            targetArr.splice(pos, 0, cloneRuntimeValue(args[1]));
+          }
           break;
         case "erase": {
-          const idx = typeof args[0] === "number" ? args[0] as number : targetArr.indexOf(args[0]);
-          if (idx >= 0 && idx < targetArr.length) { targetArr.splice(idx, 1); result = true; }
-          else result = false;
+          if (args[0] && typeof args[0] === "object" && (args[0] as any).__isListIter) {
+            const idx = targetArr.indexOf((args[0] as any).__iterValue);
+            if (idx !== -1) { targetArr.splice(idx, 1); result = true; break; }
+          }
+          const num = Number(args[0]);
+          if (!isNaN(num) && num >= 0 && num < targetArr.length) { targetArr.splice(num, 1); result = true; }
+          else {
+            const ri = targetArr.indexOf(args[0]);
+            if (ri !== -1) { targetArr.splice(ri, 1); result = true; } else result = false;
+          }
           break;
         }
         case "remove": {
@@ -1668,7 +1757,11 @@ export class ExecutionEngine {
    */
   private defaultForFieldType(type: string): CppValue {
     const t = type.toLowerCase();
-    if (t.includes("[]")) return [];
+    if (t.includes("unordered_map") || t.includes("map")) return new Map();
+    if (t.includes("unordered_set") || t.includes("set")) return new Set();
+    if (t.includes("vector") || t.includes("list") || t.includes("deque") || 
+        t.includes("stack") || t.includes("queue") || t.includes("priority_queue") || 
+        t.includes("array") || t.includes("[]")) return [];
     if (t === "string" || t === "std::string" || t === "wstring") return "";
     if (t.includes("bool")) return false;
     if (t.includes("*") || t.includes("nullptr")) return null;

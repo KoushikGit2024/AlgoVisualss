@@ -140,11 +140,14 @@ export class IRBuilder {
             break;
 
           case "enum_specifier":          // v2
+          case "scoped_enum_specifier":   // v2: `enum class`
             enums.push(this.buildEnumDeclaration(child));
             break;
 
           case "type_alias_declaration":  // v2: `using ll = long long;`
+          case "alias_declaration":       // tree-sitter-cpp generic alias
           case "typedef_declaration":     // v2: `typedef vector<int> vi;`
+          case "type_definition":         // tree-sitter generic typedef
             aliases.push(this.buildTypeAlias(child));
             break;
 
@@ -445,6 +448,35 @@ export class IRBuilder {
     }
     const bodyNode = node.namedChildren.find(c => c.type === "compound_statement");
 
+    // Parse constructor field_initializer_list
+    const initializerList = node.namedChildren.find(c => c.type === "field_initializer_list");
+    const initializerStatements: IRNode[] = [];
+    if (initializerList) {
+      for (const initNode of initializerList.namedChildren) {
+        if (initNode.type === "field_initializer") {
+          const fieldName = initNode.child(0)?.text;
+          const argList = initNode.namedChildren.find(c => c.type === "argument_list");
+          if (fieldName && argList) {
+            const args: IRExpression[] = [ { kind: "Literal", type: "string", value: `"${fieldName}"`, line: initNode.startPosition.row + 1 } as any ];
+            for (const argNode of argList.namedChildren) {
+              if (argNode.type === "(" || argNode.type === ")" || argNode.type === ",") continue;
+              args.push(this.buildExpression(argNode));
+            }
+            initializerStatements.push({
+              kind: "ExpressionStatement",
+              line: initNode.startPosition.row + 1,
+              expression: {
+                kind: "FunctionCall",
+                line: initNode.startPosition.row + 1,
+                callee: "__init_field",
+                arguments: args
+              }
+            });
+          }
+        }
+      }
+    }
+
     if (!declaratorNode || !bodyNode) {
       throw new Error(
         `Compilation Error at line ${node.startPosition.row + 1}: ` +
@@ -526,13 +558,18 @@ export class IRBuilder {
       }
     }
 
+    const bodyBlock = this.buildBlock(bodyNode);
+    if (initializerStatements.length > 0) {
+      bodyBlock.statements.unshift(...initializerStatements);
+    }
+
     return {
       kind:       "FunctionDeclaration",
       line:       node.startPosition.row + 1,
       returnType: typeNode?.text ?? "void",
       name:       functionName,
       parameters,
-      body:       this.buildBlock(bodyNode),
+      body:       bodyBlock,
     };
   }
 
@@ -597,6 +634,13 @@ export class IRBuilder {
    */
   private buildStatement(node: SyntaxNode): IRNode | IRNode[] {
     switch (node.type) {
+      case "ERROR":
+      case "MISSING":
+        throw new Error(
+          `Syntax error at line ${node.startPosition.row + 1}: Unrecognized or incomplete code. ` +
+          `Tree-Sitter failed to parse node text: "${node.text}"`
+        );
+
       case "declaration":
         return this.buildVariableDeclaration(node);
 
@@ -650,6 +694,7 @@ export class IRBuilder {
         return { kind: "EmptyStatement", line: node.startPosition.row + 1 } as IREmptyStatement;
 
       case "compound_statement":
+      case "function_try_block":
         // Standalone blocks: `{ int x = 0; x++; }` appearing as a statement.
         return this.buildBlock(node);
 
@@ -663,6 +708,40 @@ export class IRBuilder {
           `Tree-sitter encountered an unrecognised token sequence. ` +
           `Check for missing semicolons, mismatched braces, or unsupported C++ syntax.`
         );
+
+      // ── Unsupported Edge-Cases (Safely Fallback/Bypass) ───────────────────
+      case "co_yield_statement":
+      case "co_return_statement":
+      case "seh_leave_statement":
+      case "seh_try_statement":
+      case "seh_except_clause":
+      case "seh_finally_clause":
+      case "expansion_statement":
+      case "preproc_if":
+      case "preproc_ifdef":
+      case "preproc_function_def":
+      case "preproc_call":
+      case "preproc_else":
+      case "preproc_elif":
+      case "preproc_elifdef":
+      case "namespace_definition":
+      case "concept_definition":
+      case "namespace_alias_definition":
+      case "static_assert_declaration":
+      case "consteval_block_declaration":
+      case "template_instantiation":
+      case "module_declaration":
+      case "export_declaration":
+      case "import_declaration":
+      case "global_module_fragment_declaration":
+      case "private_module_fragment_declaration":
+      case "linkage_specification":
+      case "type_definition":
+      case "alias_declaration":
+      case "attributed_statement":
+      case "union_specifier":
+      case "old_style_function_definition":
+        return { kind: "EmptyStatement", line: node.startPosition.row + 1 } as IREmptyStatement;
 
       default:
         console.warn(
@@ -1486,7 +1565,9 @@ export class IRBuilder {
       case "false":
         return { kind: "Literal", line: node.startPosition.row + 1, valueType: "bool", value: false };
 
-      case "string_literal": {
+      case "string_literal":
+      case "raw_string_literal":
+      case "concatenated_string": {
         const unescaped = node.text
           .slice(1, -1)
           .replace(/\\n/g, "\n")
@@ -1517,6 +1598,10 @@ export class IRBuilder {
       case "type_identifier":       // User-defined type names in expression position
       case "primitive_type":        // `int` in sizeof(int)
       case "sized_type_specifier":  // `long long` in expression context
+      case "scoped_identifier":
+      case "scoped_type_identifier":
+      case "scoped_namespace_identifier":
+      case "field_identifier":
         return { kind: "Identifier", line: node.startPosition.row + 1, name: node.text };
 
       // ── `this` keyword ────────────────────────────────────────────────────
@@ -1627,6 +1712,7 @@ export class IRBuilder {
       // ── Initializer list ─────────────────────────────────────────────────
       case "initializer_list":
       case "parameter_pack_expansion":
+      case "designated_initializer_list":
         return {
           kind:     "InitializerList",
           line:     node.startPosition.row + 1,
@@ -1782,6 +1868,52 @@ export class IRBuilder {
           `Tree-sitter could not parse this expression. ` +
           `Common causes: complex C++ templates, SFINAE, or ambiguous pointer syntax.`
         );
+
+      // ── Unsupported Edge-Cases (Safely Fallback/Bypass) ───────────────────
+      case "delete_expression":
+        return {
+          kind:      "FunctionCall",
+          line:      node.startPosition.row + 1,
+          callee:    "__delete",
+          arguments: [this.buildExpression(node.child(1) ?? node)],
+        } as IRFunctionCall;
+      
+      case "alignof_expression":
+      case "offsetof_expression":
+      case "user_defined_literal":
+      case "gnu_asm_expression":
+      case "fold_expression":
+        return { kind: "Literal", line: node.startPosition.row + 1, valueType: "int", value: 0 };
+      
+      case "requires_expression":
+        return { kind: "Literal", line: node.startPosition.row + 1, valueType: "bool", value: true };
+
+      case "typeid_expression":
+        return { kind: "Literal", line: node.startPosition.row + 1, valueType: "string", value: "typeid" };
+
+      case "co_await_expression":
+      case "compound_literal_expression":
+      case "generic_expression":
+      case "parameter_pack_expansion":
+      case "pack_expansion_expression":
+      case "sizeof_pack_expression":
+      case "type_trait":
+      case "reflect_expression":
+      case "splice_expression":
+      case "_alignof_expression":
+      case "designated_initializer_list":
+      case "designated_initializer_clause":
+      case "designator":
+      case "dynamic_exception_specification":
+      case "type_parameter_pack_expansion":
+      case "new_declarator":
+      case "type_descriptor":
+        // Bypass wrapper and parse inner argument safely
+        return this.buildExpression(node.namedChildren[0] ?? node.child(0) ?? node);
+
+      case "condition_declaration":
+        // Treat `if (int x = 5)` as the assignment `x = 5` returning 5 for the condition.
+        return this.buildExpression(node.namedChildren.find(c => c.type !== "primitive_type" && c.type !== "type_identifier") ?? node);
 
       default:
         // Emit a warning but return a safe null literal so the surrounding

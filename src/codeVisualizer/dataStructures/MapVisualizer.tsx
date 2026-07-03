@@ -5,6 +5,17 @@ interface MapVisualizerProps {
   entries: [any, any][];
 }
 
+const formatValue = (v: any): string => {
+  if (v === null) return 'null';
+  if (v === undefined) return 'undefined';
+  if (typeof v !== 'object') return String(v);
+  if (Array.isArray(v)) return `[${v.map(formatValue).join(', ')}]`;
+  if (v.__type === 'container' && Array.isArray(v.data)) return `[${v.data.map(formatValue).join(', ')}]`;
+  if (v.__type === 'map' && Array.isArray(v.entries)) return `{${v.entries.map((e: any) => `${formatValue(e[0])}:${formatValue(e[1])}`).join(', ')}}`;
+  if (v.__type === 'set' && Array.isArray(v.values)) return `{${v.values.map(formatValue).join(', ')}}`;
+  return '{...}';
+};
+
 export function MapVisualizer({ entries = [] }: MapVisualizerProps) {
   if (!entries || entries.length === 0) {
     return (
@@ -27,7 +38,7 @@ export function MapVisualizer({ entries = [] }: MapVisualizerProps) {
           {/* Key Node */}
           <div className="flex-1 flex justify-end">
             <span className="px-2 py-0.5 bg-accent/20 text-accent font-bold font-mono text-[11px] rounded shrink-0 border border-accent/30 max-w-[100px] truncate" title={String(k)}>
-              {typeof k === 'object' ? JSON.stringify(k) : String(k)}
+              {formatValue(k)}
             </span>
           </div>
           
@@ -39,7 +50,7 @@ export function MapVisualizer({ entries = [] }: MapVisualizerProps) {
           {/* Value Node */}
           <div className="flex-1 flex justify-start">
             <span className="px-2 py-0.5 bg-success/20 text-success font-bold font-mono text-[11px] rounded shrink-0 border border-success/30 max-w-[100px] truncate" title={String(v)}>
-              {typeof v === 'object' ? JSON.stringify(v) : String(v)}
+              {formatValue(v)}
             </span>
           </div>
         </motion.div>

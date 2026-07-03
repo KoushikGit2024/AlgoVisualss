@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import CodeWindow from "../../codeVisualizer/CodeWindow";
 import DocParser from "../../codeVisualizer/sideComponents/parsers/DocParser";
 import { useParams, useSearchParams } from "react-router-dom";
-import ALGODATA from "./data/categories/AlgoData";
+import ALGODATA from "./data/AlgoData";
 // import { BookOpen, Code2 } from "lucide-react";
 type ALGODATAITEM = (typeof ALGODATA)[number];
 type subTopicItems = ALGODATAITEM["items"][number];

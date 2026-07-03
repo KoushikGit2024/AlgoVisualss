@@ -20,7 +20,8 @@ const PLATFORMDATA = [
       { name: "15. 3Sum", href: "/visualizer/leetcode/15", type: "Medium" },
       { name: "42. Trapping Rain Water", href: "/visualizer/leetcode/42", type: "Hard" },
       { name: "206. Reverse Linked List", href: "/visualizer/leetcode/206", type: "Easy" },
-    ]
+    ],
+    featured: false
   },
   {
     name: "Codeforces",
@@ -44,7 +45,8 @@ const PLATFORMDATA = [
       { name: "4A. Watermelon", href: "/visualizer/codeforces/4A", type: "Easy" },
       { name: "158A. Next Round", href: "/visualizer/codeforces/158A", type: "Easy" },
       { name: "71A. Way Too Long Words", href: "/visualizer/codeforces/71A", type: "Easy" },
-    ]
+    ],
+    featured: false
   },
   {
     name: "CodeChef",
@@ -65,7 +67,8 @@ const PLATFORMDATA = [
     items: [
       { name: "1068. Weird Algorithm", href: "/visualizer/codechef/1068", type: "Easy" },
       { name: "1083. Missing Number", href: "/visualizer/codechef/1083", type: "Easy" },
-    ]
+    ],
+    featured: false
   },
 ];
 

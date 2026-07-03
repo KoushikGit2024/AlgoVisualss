@@ -1,10 +1,3 @@
-/* ══════════════════════════════════════════════════════════════════════
-   DYNAMIC PROGRAMMING SECTION — PART 1 of 4
-   Items 1-2: 0/1 Knapsack, Matrix Chain Multiplication
-   (Section wrapper opens here; continues in Parts 2-4; do not close the
-    `items: [ ... ]` array or the outer object until the final part.)
-══════════════════════════════════════════════════════════════════════ */
-
 const DYNAMIC_PROGRAMMING_SECTION = {
   name: "Dynamic Programming",
   href: "/algorithms/dynamic_programming",

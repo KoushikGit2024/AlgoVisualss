@@ -202,7 +202,22 @@ export class StatementExecutor {
         }
         // vector / list / deque / stack / queue / priority_queue / array (n, fill).
         else if (this.isContainerType(typeLower)) {
-            if (size >= 0) {
+            const arg0Node = node.constructorArgs[0] as any;
+            const isRange = node.constructorArgs.length >= 2 && 
+                            (arg0Node?.method === "begin" || arg0Node?.function?.property === "begin");
+            
+            if (isRange) {
+              let elements: any[] = [];
+              const targetNode = arg0Node.object || arg0Node.function?.object;
+              if (targetNode) {
+                try {
+                  const container = this.evaluator.evaluate(targetNode);
+                  if (container && Array.isArray(container)) elements = container;
+                  else if (container && (container as any).data && Array.isArray((container as any).data)) elements = (container as any).data;
+                } catch (e) {}
+              }
+              value = this.createMockContainer([...elements], typeLower);
+            } else if (size >= 0) {
               let fillVal = arg1;
               if (fillVal === undefined) {
                 const innerMatch = typeLower.match(/<(.*)>/);
@@ -225,6 +240,42 @@ export class StatementExecutor {
               value = this.createMockContainer([], typeLower);
             }
           }
+        // Set / unordered_set
+        else if (typeLower.includes("unordered_set") || typeLower.includes("set")) {
+          let elements: any[] = [];
+          if (node.constructorArgs && node.constructorArgs.length >= 2) {
+            const arg0Node = node.constructorArgs[0] as any;
+            if (arg0Node?.method === "begin" || arg0Node?.function?.property === "begin") {
+              const targetNode = arg0Node.object || arg0Node.function?.object;
+              if (targetNode) {
+                try {
+                  const container = this.evaluator.evaluate(targetNode);
+                  if (container && Array.isArray(container)) elements = container;
+                  else if (container && (container as any).data && Array.isArray((container as any).data)) elements = (container as any).data;
+                } catch (e) {}
+              }
+            }
+          }
+          value = new Set(elements);
+        }
+        // Map / unordered_map
+        else if (typeLower.includes("unordered_map") || typeLower.includes("map")) {
+          let elements: any[] = [];
+          if (node.constructorArgs && node.constructorArgs.length >= 2) {
+            const arg0Node = node.constructorArgs[0] as any;
+            if (arg0Node?.method === "begin" || arg0Node?.function?.property === "begin") {
+              const targetNode = arg0Node.object || arg0Node.function?.object;
+              if (targetNode) {
+                try {
+                  const container = this.evaluator.evaluate(targetNode);
+                  if (container && Array.isArray(container)) elements = container;
+                  else if (container && (container as any).data && Array.isArray((container as any).data)) elements = (container as any).data;
+                } catch (e) {}
+              }
+            }
+          }
+          value = new Map(elements);
+        }
         // pair<T,U> p(a, b) → [a, b]
         else if (typeLower.includes("pair")) {
           value = [arg0, arg1 !== undefined ? arg1 : 0];
@@ -467,7 +518,13 @@ export class StatementExecutor {
         instance[field.name] = this.evaluator.evaluate(field.defaultValue);
       } else {
         const t = field.type.toLowerCase();
-        if (t.includes("[]")) instance[field.name] = [];
+        console.log(`[DEBUG] instantiateStruct field: ${field.name}, type: ${field.type}, t: ${t}`);
+        if (t.includes("unordered_map") || t.includes("map")) instance[field.name] = new Map();
+        else if (t.includes("unordered_set") || t.includes("set")) instance[field.name] = new Set();
+        else if (t.includes("vector") || t.includes("list") || t.includes("deque") || t.includes("queue") || t.includes("stack")) {
+          instance[field.name] = this.createMockContainer([], t);
+        }
+        else if (t.includes("[]")) instance[field.name] = [];
         else if (t === "string" || t === "std::string" || t === "wstring") instance[field.name] = "";
         else if (t.includes("bool")) instance[field.name] = false;
         else if (t.includes("*") || t.includes("nullptr")) instance[field.name] = null;
@@ -558,8 +615,13 @@ export class StatementExecutor {
         return false;
       },
       erase(val: any) {
-        if (typeof val === "number" && val >= 0 && val < this.data.length) {
-          this.data.splice(val, 1);
+        if (val && typeof val === "object" && val.__isListIter) {
+          const idx = this.data.indexOf(val.__iterValue);
+          if (idx !== -1) { this.data.splice(idx, 1); return; }
+        }
+        const num = Number(val);
+        if (!isNaN(num) && num >= 0 && num < this.data.length) {
+          this.data.splice(num, 1);
         } else {
           const idx = this.data.indexOf(val);
           if (idx !== -1) this.data.splice(idx, 1);
@@ -946,6 +1008,46 @@ export class StatementExecutor {
    * expressions (`i++`), and any expression not elevated to a specific IR kind.
    */
   public executeExpressionStatement(stmt: IRExpressionStatement): void {
+    if (stmt.expression.kind === "FunctionCall" && stmt.expression.callee === "__init_field") {
+      const call = stmt.expression as any;
+      const fieldName = (call.arguments[0] as any).value.replace(/"/g, "");
+      const args = call.arguments.slice(1).map((a: any) => this.evaluator.evaluate(a));
+      
+      const thisObj = this.scopeManager.getVariable("this")?.value;
+      if (thisObj && typeof thisObj === "object" && (thisObj as any).__type) {
+        const blueprint = this.classBlueprints!.get((thisObj as any).__type);
+        const fieldDef = blueprint?.fields.find((f: any) => f.name === fieldName);
+        if (fieldDef) {
+          const typeLower = fieldDef.type.toLowerCase();
+          if (this.isContainerType(typeLower)) {
+            const size = args[0] || 0;
+            let fillVal = args[1];
+            if (fillVal === undefined) {
+               const innerMatch = typeLower.match(/<(.*)>/);
+               if (innerMatch) {
+                 fillVal = this.defaultValueForType(innerMatch[1], innerMatch[1].toLowerCase(), []);
+               } else {
+                 fillVal = 0;
+               }
+            }
+            (thisObj as any)[fieldName] = this.createMockContainer(
+              Array.from({ length: size }, () =>
+                Array.isArray(fillVal) ? [...fillVal] :
+                (fillVal && typeof fillVal === "object" && Array.isArray((fillVal as any).data))
+                  ? { ...(fillVal as any), data: [...(fillVal as any).data] }
+                  : fillVal
+              ),
+              typeLower
+            );
+          } else {
+            (thisObj as any)[fieldName] = args[0];
+          }
+          this.eventEmitter.emit(stmt.line, EventType.ASSIGNMENT, { variable: `this->${fieldName}`, value: (thisObj as any)[fieldName] });
+        }
+      }
+      return;
+    }
+
     this.evaluator.evaluate(stmt.expression);
   }
 

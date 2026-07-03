@@ -360,11 +360,7 @@ const ARRAY_PREFIXES   = [
   'arr', 'vec', 'nums', 'seq', 'list', 'cache', 'res', 'dp',
   'array', 'tuple', 'valarray', 'collection', 'items', 'elements', 'values', 'data', 'records', 'buffer'
 ];
-const MAP_PREFIXES     = [
-  'map', 'dict', 'freq', 'count', 'hash', 'cache_map', 'memo',
-  'mapping', 'lookup', 'occurrences', 'frequencies', 'counter'
-];
-const SET_PREFIXES     = ['set', 'seen', 'visited', 'hash_set', 'unique'];
+
 const STRING_PREFIXES  = [
   'str', 'text', 'word', 'chars', 'msg', 'string', 'sentence', 'paragraph',
   'pattern', 'substring', 'sub', 'letters', 'characters'
@@ -1035,7 +1031,7 @@ export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[
   });
 
   // ── 9. MAP ─────────────────────────────────────────────────────────
-  keys.filter(k => matchesPrefix(k, MAP_PREFIXES)).forEach(mapKey => {
+  keys.forEach(mapKey => {
     if (consumedKeys.has(mapKey)) return;
     const mapVal = deepUnwrap(vars[mapKey]?.value);
     if (
@@ -1053,7 +1049,7 @@ export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[
   });
 
   // ── 9b. SET ─────────────────────────────────────────────────────────
-  keys.filter(k => matchesPrefix(k, SET_PREFIXES)).forEach(setKey => {
+  keys.forEach(setKey => {
     if (consumedKeys.has(setKey)) return;
     const setVal = deepUnwrap(vars[setKey]?.value);
     if (
@@ -1179,13 +1175,19 @@ export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[
       
       if (isStructuralNode) return;
 
-      // Fallback for generic objects/structs: Render as Map
-      const entries = Object.entries(val).map(([k, v]) => [k, v]);
+      // REMOVED: Fallback for generic objects/structs. 
+      // This prevents internal structs (like LFUCache) and their nested maps 
+      // from randomly popping up in the visualizer as generic Maps.
+      /*
+      const entries = Object.entries(val)
+        .filter(([k]) => !k.startsWith('__'))
+        .map(([k, v]) => [k, v]);
       consumedKeys.add(key);
       visualizers.push({
         id: key, type: 'map', usedKeys: [key],
         props: { entries },
       });
+      */
     }
   });
 
