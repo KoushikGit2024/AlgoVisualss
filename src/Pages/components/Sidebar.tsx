@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Link, useLocation, useMatch, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { Search, X, ChevronRight, AlertCircle, Code, Database, Activity, Box, Cpu, FileText, MonitorPlay, BadgeInfo, Settings, BookOpen, Code2, Sparkles } from "lucide-react";
+import { Search, X, ChevronRight, AlertCircle, BadgeInfo, Settings, BookOpen, Sparkles, Code2 } from "lucide-react";
 import ALGODATA from "../algorithms/data/AlgoData";
 import PLATFORMDATA from "../visualizer/data/PlatformData";
 import { cn } from '../../lib/utils';
@@ -19,24 +19,6 @@ export type NavItem = {
 };
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
-function getTopicHeroIcon(topicName: string | null) {
-  const norm = topicName?.toLowerCase() || "";
-  if (norm.includes("visualizer") || norm.includes("leetcode")) return <MonitorPlay className="w-6 h-6 text-[#EC4899]" />;
-  if (norm.includes("algo")) return <Box className="w-6 h-6 text-[#8B5CF6]" />;
-  if (norm.includes("cpp") || norm.includes("c++")) return <Code className="w-6 h-6 text-[#34D399]" />;
-  if (norm.includes("javascript") || norm.includes("js")) return <Code className="w-6 h-6 text-[#FBBF24]" />;
-  if (norm.includes("python")) return <Code className="w-6 h-6 text-[#60A5FA]" />;
-  if (norm.includes("react")) return <Cpu className="w-6 h-6 text-[#38BDF8]" />;
-  if (norm.includes("tailwind")) return <Box className="w-6 h-6 text-[#06B6D4]" />;
-  if (norm.includes("node")) return <Cpu className="w-6 h-6 text-[#4ADE80]" />;
-  if (norm.includes("express")) return <Activity className="w-6 h-6 text-[#9CA3AF]" />;
-  if (norm.includes("socket")) return <Activity className="w-6 h-6 text-[#FCD34D]" />;
-  if (norm.includes("mongo")) return <Database className="w-6 h-6 text-[#22C55E]" />;
-  if (norm.includes("postgres")) return <Database className="w-6 h-6 text-[#60A5FA]" />;
-  if (norm.includes("redis")) return <Database className="w-6 h-6 text-[#EF4444]" />;
-  if (norm.includes("tensorflow")) return <Cpu className="w-6 h-6 text-[#F97316]" />;
-  return <FileText className="w-6 h-6 text-[var(--accent)]" />;
-}
 
 function Highlighted({ text, query }: { text: string; query: string }) {
   if (!query) return <>{text}</>;
@@ -274,7 +256,7 @@ export default function Sidebar() {
   
   const isSidebarPage = isAlgo || isVis;
   
-  const currentTopic = isAlgo ? (algoTopic || "algorithms") : (platform || "visualizer");
+  // const currentTopic = isAlgo ? (algoTopic || "algorithms") : (platform || "visualizer");
 
   const normalizedTopic = algoTopic?.toLowerCase().replace(/_/g, ' ');
   const normalizedPlatform = platform?.toLowerCase().replace(/_/g, ' ');
@@ -666,8 +648,8 @@ export default function Sidebar() {
           </button>
           
           {!collapsed && (
-            <div className="text-[11px] font-medium text-[var(--muted)] opacity-60 px-2">
-              &copy; {new Date().getFullYear()} AlgoVisuals
+            <div className="text-[10px] font-medium text-[var(--muted)] px-1 truncate">
+              Crafted with passion by <span className="text-[var(--text)] font-bold">Koushik</span>
             </div>
           )}
         </div>

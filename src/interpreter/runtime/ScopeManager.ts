@@ -34,6 +34,7 @@
 import { SymbolTable } from "./SymbolTable";
 import type { Symbol } from "./SymbolTable";
 import type { CppType, CppValue } from "../types";
+import { logStepToConsole } from "../utils/helpers";
 
 
 export class ScopeManager {
@@ -101,9 +102,6 @@ export class ScopeManager {
    */
   public exitScope(): void {
     if (this.scopes.length <= 1) {
-      // Debug note: If this fires, check IRWalker for unbalanced enterScope /
-      // exitScope pairs. Common cause: a walkBlock() that returns early without
-      // hitting its finally block (should never happen with correct try/finally).
       throw new Error(
         "Fatal: Cannot exit the root scope of this execution frame. " +
         "This indicates an unbalanced enterScope/exitScope pair in IRWalker."
@@ -262,10 +260,7 @@ export class ScopeManager {
         const sym = this.getVariable(name);
         result[name] = { type: sym.type as CppType, value: sym.value };
       } catch {
-        // Debug note: Should never happen — a name is only added to staticNames
-        // when defineVariable/defineStatic successfully creates the symbol.
-        // If this fires, a static symbol was deleted from scope mid-execution.
-        console.warn(`[ScopeManager.getStaticSymbols] Static variable '${name}' not found during mirror.`);
+        logStepToConsole(`[ScopeManager.getStaticSymbols] Static variable '${name}' not found during mirror.`);
       }
     }
     return result;

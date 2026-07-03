@@ -147,7 +147,7 @@ const CodeEditor = ({
     <div className="flex-1 h-full w-full relative group">
       <style>{`
         .active-line-highlight {
-          background: var(--glow-soft);
+          background: color-mix(in srgb, var(--accent) 15%, transparent);
         }
 
         .active-line-gutter {

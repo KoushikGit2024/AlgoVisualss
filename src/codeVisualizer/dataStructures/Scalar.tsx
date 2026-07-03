@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion';
 
-export interface ScalarVisualizerProps {
+export interface ScalarProps {
   name: string;
   value: string | number | boolean;
 }
 
-const ScalarVisualizer = ({ value }: ScalarVisualizerProps) => {
+const Scalar = ({ value }: ScalarProps) => {
   const displayValue = typeof value === 'boolean' ? (value ? "true" : "false") : String(value);
 
   return (
@@ -20,7 +20,7 @@ const ScalarVisualizer = ({ value }: ScalarVisualizerProps) => {
         initial={{ scale: 0.9, opacity: 0, filter: 'blur(4px)' }}
         animate={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
         transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-        className="flex items-center justify-center bg-surface-2 border border-accent/40 rounded-md min-w-[3rem] h-12 px-3 shadow-[0_0_12px_rgba(var(--accent-rgb),0.12)] relative overflow-hidden shrink-0"
+        className="flex items-center justify-center bg-surface-2 border border-accent/40 rounded-md min-w-[3rem] h-12 px-3 relative overflow-hidden shrink-0"
       >
         {/* Subtle background glow effect that triggers on value change */}
         <motion.div 
@@ -45,4 +45,4 @@ const ScalarVisualizer = ({ value }: ScalarVisualizerProps) => {
   );
 };
 
-export default ScalarVisualizer;
+export default Scalar;

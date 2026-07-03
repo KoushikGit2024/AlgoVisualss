@@ -133,9 +133,6 @@ export class SymbolTable {
     isStatic: boolean = false,
   ): void {
     if (this.symbols.has(name)) {
-      // Debug note: If this fires unexpectedly, check whether StatementExecutor
-      // is calling defineVariable twice for the same declaration (e.g. in a
-      // loop where the for-init scope is not being correctly isolated).
       throw new Error(
         `Compiler Error: Variable '${name}' is already defined in this scope. ` +
         `Redeclaration in the same block is not permitted in C++.`

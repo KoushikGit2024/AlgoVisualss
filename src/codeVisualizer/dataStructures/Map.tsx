@@ -1,7 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-interface MapVisualizerProps {
+interface MapProps {
   entries: [any, any][];
 }
 
@@ -16,7 +16,7 @@ const formatValue = (v: any): string => {
   return '{...}';
 };
 
-export function MapVisualizer({ entries = [] }: MapVisualizerProps) {
+export default function Map({ entries = [] }: MapProps) {
   if (!entries || entries.length === 0) {
     return (
       <div className="flex items-center justify-center p-4 text-muted text-[10px] font-mono opacity-50">

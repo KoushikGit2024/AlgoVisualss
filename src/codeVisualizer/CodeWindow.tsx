@@ -5,11 +5,28 @@ import { Info, X, ChevronLeft, ChevronRight, Code, MonitorPlay } from 'lucide-re
 import VisualizerNamingConventions from './dataStructures/VisualizerNamingConventions';
 // import { ALGODATA } from '../Pages/algorithms/data/categories/AlgoData';
 import { cn } from '../lib/utils';
+import { useSearchParams } from 'react-router-dom';
 
 const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
-  const [lang, setLang] = useState<string>("c++");
-  const [code, setCode] = useState<string>(codeObject["c++"]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlLang = searchParams.get('lang');
+  
+  // Initialize with URL lang if valid, otherwise fallback to "c++" (or first available)
+  const initialLang = urlLang && codeObject[urlLang] ? urlLang : (codeObject["c++"] ? "c++" : Object.keys(codeObject)[0]);
+  
+  const [lang, setLang] = useState<string>(initialLang);
+  const [code, setCode] = useState<string>(codeObject[initialLang] || "");
   const [highlightLine, setHighlightLine] = useState<number>(1);
+
+  // Sync language selection to URL
+  useEffect(() => {
+    if (lang !== searchParams.get('lang')) {
+      setSearchParams(prev => {
+        prev.set("lang", lang);
+        return prev;
+      }, { replace: true });
+    }
+  }, [lang, searchParams, setSearchParams]);
   
   const [splitOffset, setSplitOffset] = useState<number>(35);
   const [ghostOffset, setGhostOffset] = useState<number | null>(null);
@@ -19,6 +36,9 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
   const [isVisualizerCollapsed, setIsVisualizerCollapsed] = useState(false);
   const [hasViewedConventions, setHasViewedConventions] = useState(() => {
     return localStorage.getItem('hasViewedConventions') === 'true';
+  });
+  const [hideMobileWarning, setHideMobileWarning] = useState(() => {
+    return localStorage.getItem('hideMobileWarning') === 'true';
   });
 
   const handleShowInfo = () => {
@@ -30,9 +50,8 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
   };
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // ✅ FIX 1: Only reset the code when the 'lang' tab changes!
   useEffect(() => {
-    // console.log(codeObject)
+    // Initialize highlight indices
     setCode(codeObject[lang] as string);
   }, [lang,codeObject]);
 
@@ -80,10 +99,28 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
   const langArray: string[] = Object.keys(codeObject);
   
   return (
-    <div 
-      ref={containerRef}
-      className="relative flex flex-col lg:flex-row items-stretch w-full h-full p-1 bg-bg text-text overflow-hidden min-h-0"
-    >
+      <div 
+        ref={containerRef}
+        className="relative flex flex-col lg:flex-row items-stretch w-full h-full p-1 bg-bg text-text overflow-hidden min-h-0"
+      >
+      {/* Small Screen Warning Banner */}
+      {!hideMobileWarning && (
+        <div className="lg:hidden w-full flex items-center justify-between gap-2 px-3 py-2 bg-orange-500/10 border border-orange-500/20 text-orange-500 text-[11px] font-medium shrink-0 rounded-sm mb-1 z-20">
+          <div className="flex items-center gap-2">
+            <MonitorPlay className="w-4 h-4 shrink-0" />
+            <span>This visualizer is optimized for desktop. For the best experience, please use a larger screen.</span>
+          </div>
+          <button 
+            onClick={() => {
+              setHideMobileWarning(true);
+              localStorage.setItem('hideMobileWarning', 'true');
+            }}
+            className="p-1 hover:bg-orange-500/20 rounded shrink-0 transition-colors"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
       
       {/* ─── Left Pane: Code Editor ────────────────────────────────────────── */}
       {isEditorCollapsed ? (
@@ -264,7 +301,7 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
           }}
         />
       )}
-    </div>
+      </div>
   );
 };
 

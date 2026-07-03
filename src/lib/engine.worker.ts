@@ -44,9 +44,8 @@ self.onmessage = async (e) => {
     // 5. Send snapshot count as a sanity check, then post
     // NOTE: Do NOT console.log(snapshots) here — logging thousands of deeply
     // nested objects in a Worker thread causes the browser to OOM before
-    // postMessage can fire.
-    console.log(`[Worker] Done: ${snapshots.length} snapshots`);
-
+    // graphs when stringified for PostMessage.
+    
     self.postMessage({ success: true, snapshots });
 
   } catch (error: any) {

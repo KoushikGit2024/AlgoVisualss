@@ -71,6 +71,8 @@ import type {
 
 // ─── Tree-sitter Adapter ──────────────────────────────────────────────────────
 
+import { logStepToConsole } from "../utils/helpers";
+
 /**
  * Minimal interface over a Tree-sitter SyntaxNode.
  * Kept intentionally thin to decouple the builder from any specific
@@ -183,7 +185,7 @@ export class IRBuilder {
       } catch (e) {
         // A fatal parse error in one top-level node should not prevent the
         // rest of the program from being compiled. Log and continue.
-        console.warn(
+        logStepToConsole(
           `[IRBuilder.build] Skipping top-level node '${child.type}' at line ` +
           `${child.startPosition.row + 1} due to parse error: ${(e as Error).message}`
         );
@@ -236,20 +238,20 @@ export class IRBuilder {
             try {
               const funcDecl = this.buildFunctionDeclaration(field);
               if (funcDecl.name === name) {
-                console.log(`[DEBUG] Pushed constructor ${funcDecl.name} to ${name}`);
+                logStepToConsole(`[DEBUG] Pushed constructor ${funcDecl.name} to ${name}`);
                 constructors.push(funcDecl);
               } else {
                 methods.push(funcDecl);
               }
             } catch (e) {
-              console.warn(`[IRBuilder] Skipping struct method parse error: ${(e as Error).message}`);
+              logStepToConsole(`[IRBuilder] Skipping struct method parse error: ${(e as Error).message}`);
             }
             continue;
           }
         }
 
         if (field.type !== "field_declaration") {
-          console.log(`[IRBuilder] Skipping struct field type: ${field.type}`);
+          logStepToConsole(`[IRBuilder] Skipping struct field type: ${field.type}`);
           continue;
         }
 
@@ -604,7 +606,7 @@ export class IRBuilder {
         else statements.push(stmt);
       } catch (e) {
         // A parse failure in one statement should not abort the whole block.
-        console.warn(
+        logStepToConsole(
           `[IRBuilder.buildBlock] Skipping statement '${child.type}' at line ` +
           `${child.startPosition.row + 1}: ${(e as Error).message}`
         );
@@ -744,7 +746,7 @@ export class IRBuilder {
         return { kind: "EmptyStatement", line: node.startPosition.row + 1 } as IREmptyStatement;
 
       default:
-        console.warn(
+        logStepToConsole(
           `[IRBuilder.buildStatement] Skipping unsupported node type '${node.type}' ` +
           `at line ${node.startPosition.row + 1}.`
         );
@@ -1610,7 +1612,7 @@ export class IRBuilder {
       // `this->field` and `this.field` member assignments resolve correctly.
       case "this":
       case "this_expression":
-        console.log(`[IRBuilder DEBUG] ✅ '${node.type}' hit at line ${node.startPosition.row + 1} → mapping to Identifier 'this'`);
+        logStepToConsole(`[IRBuilder DEBUG] ✅ '${node.type}' hit at line ${node.startPosition.row + 1} → mapping to Identifier 'this'`);
         return { kind: "Identifier", line: node.startPosition.row + 1, name: "this" };
 
       // ── Sizeof expression ─────────────────────────────────────────────────
@@ -1918,7 +1920,7 @@ export class IRBuilder {
       default:
         // Emit a warning but return a safe null literal so the surrounding
         // statement can still compile rather than aborting the whole function.
-        console.warn(
+        logStepToConsole(
           `[IRBuilder.buildExpression] ❌ Unsupported expression type '${node.type}' ` +
           `at line ${node.startPosition.row + 1}. Substituting null. TEXT: '${node.text}'`
         );

@@ -224,11 +224,11 @@ const TrieTree = ({
             let zIdx   = isRoot ? 5 : 1;
 
             if      (isFound)   { bg = 'bg-ds-read/20';  border = 'border-ds-read';  text = 'text-ds-read';  shadow = 'shadow-none'; scale = 1.18; zIdx = 30; }
-            else if (isDelete)  { bg = 'bg-failure/10';     border = 'border-failure/80';  text = 'text-failure';     shadow = 'shadow-[0_0_8px_var(--failure)]';  scale = 0.9;  zIdx = 10; }
+            else if (isDelete)  { bg = 'bg-failure/10';     border = 'border-failure/80';  text = 'text-failure';     shadow = 'shadow-none';  scale = 0.9;  zIdx = 10; }
             else if (isInsert)  { bg = 'bg-ds-write/20'; border = 'border-ds-write'; text = 'text-ds-write'; shadow = 'shadow-none';  scale = 1.15; zIdx = 25; }
-            else if (isWrite)   { bg = 'bg-success/15';     border = 'border-success';     text = 'text-success';     shadow = 'shadow-[0_0_8px_var(--success)]';  scale = 1.1;  zIdx = 20; }
-            else if (isCompare) { bg = 'bg-orange-500/15';  border = 'border-orange-400';  text = 'text-orange-300';  shadow = 'shadow-[0_0_8px_#f97316]';   scale = 1.05; zIdx = 15; }
-            else if (isRead)    { bg = 'bg-accent/15';      border = 'border-accent';      text = 'text-accent';      shadow = 'shadow-[0_0_8px_var(--glow)]';     scale = 1.05; zIdx = 10; }
+            else if (isWrite)   { bg = 'bg-success/15';     border = 'border-success';     text = 'text-success';     shadow = 'shadow-none';  scale = 1.1;  zIdx = 20; }
+            else if (isCompare) { bg = 'bg-orange-500/15';  border = 'border-orange-400';  text = 'text-orange-300';  shadow = 'shadow-none';   scale = 1.05; zIdx = 15; }
+            else if (isRead)    { bg = 'bg-accent/15';      border = 'border-accent';      text = 'text-accent';      shadow = 'shadow-none';     scale = 1.05; zIdx = 10; }
             else if (isHigh)    { bg = 'bg-accent-2/20';    border = 'border-accent-2';    text = 'text-accent-2';    zIdx = 5; }
 
             const cellPtrs = pointers.filter(p => p.nodeId === node.id);

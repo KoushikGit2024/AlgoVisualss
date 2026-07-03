@@ -1,7 +1,7 @@
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { cn } from '../../lib/utils';
 
-export interface StringVisualizerProps {
+export interface StringProps {
   value: string | (number | string)[];
   pointers?: { name: string; index: number }[];
   highLightIndices?: number[];
@@ -15,7 +15,7 @@ export interface StringVisualizerProps {
   highLightRange?: [number, number][];
 }
 
-const StringVisualizer = ({
+const StringComponent = ({
   value = [],
   pointers = [],
   highLightIndices = [],
@@ -27,7 +27,7 @@ const StringVisualizer = ({
   insertIndices = [],
   foundIndices = [],
   highLightRange = [],
-}: StringVisualizerProps) => {
+}: StringProps) => {
   
   // Convert string to array of chars, or use array as is
   const safeValue = typeof value === 'string' ? value.split('') : Array.isArray(value) ? value : [];
@@ -175,4 +175,4 @@ const StringVisualizer = ({
   );
 };
 
-export default StringVisualizer;
+export default StringComponent;

@@ -51,9 +51,8 @@ export function DraggableWindow({
     }
   };
 
-  // FIX 1 ─ Framer Motion calls onDragEnd as (event, info).
-  // The old code had only one parameter so `info` was actually the DOM
-  // MouseEvent, making info.point.x always undefined → snap never worked.
+  // Framer Motion calls onDragEnd as (event, info).
+  // We use info.point.x / info.point.y (the global page coordinates).
   const handleDragEnd = (
     _event: MouseEvent | TouchEvent | PointerEvent,
     info: PanInfo
@@ -79,10 +78,8 @@ export function DraggableWindow({
     }
   };
 
-  // FIX 2 ─ Build the animate object without ever setting x/y to `undefined`.
-  // When free-floating (snap:'none', not maximized) we deliberately omit x & y
-  // so Framer Motion's drag engine owns those axes.
-  // Passing `x: undefined` alongside `drag` causes a hard crash in newer FM.
+  // Build the animate object without ever setting x/y to `undefined`.
+  // undefined causes framer-motion to jump back to layout bounds.
   const animateProps: any = {
     opacity: windowState.isMinimized ? 0 : 1,
     scale:   windowState.isMinimized ? 0.8 : 1,
@@ -101,30 +98,27 @@ export function DraggableWindow({
     animateProps.x = '100%';
     animateProps.y = 0;
   }
-  // else: free-floating → x & y omitted entirely, drag physics takes over
 
-  // FIX 3 ─ Disable drag when maximized OR minimized.
-  // Maximized: already had this.
-  // Minimized: pointerEvents:none handles interaction, but explicitly disabling
-  // drag prevents Framer Motion from registering stale drag-start events
-  // that fire once the window re-appears.
+  // Disable drag when maximized OR minimized.
   const isDraggable = !windowState.isMaximized && !windowState.isMinimized;
-// {console.log(cornerAnchor)}
+
   return (
     <motion.div
-      // FIX 4 ─ id must be bound so Framer Motion can track instances
+      // id must be bound so Framer Motion can track instances
       // across re-renders (prevents "lost drag" on hot re-renders).
       id={id}
       onMouseDownCapture={bringToFront}
       onTouchStartCapture={bringToFront}
       drag={isDraggable}
       dragControls={dragControls}
-      // FIX 5 ─ dragListener:false means we only start the drag from the
-      // title-bar pointer-down, preventing content scroll conflicts.
+      // dragListener:false means we only start the drag from the
+      // title bar (which explicitly calls dragControls.start).
+      // This allows clicking inside the window content without dragging it.
       dragListener={false}
       dragMomentum={false}
-      // FIX 6 ─ No dragConstraints. Adding them while a window spawns
-      // outside the bounding box causes FM to violently lock pointer-events.
+      // No dragConstraints. Adding them while a window spawns
+      // off-screen (due to manual overlapping logic) forces it to snap.
+      // Free-dragging is fine for these floating tools.
       initial={defaultPosition}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}

@@ -9,16 +9,16 @@ import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import VisualPlatforms from './Pages/visualizer/VisualPlatforms'
 import Visualizer from './Pages/visualizer/Visualizer'
 import NotFound from './Pages/not-found'
-import { ErrorBoundary } from './components/ErrorBoundary'
+import { ErrorBoundary } from './Pages/components/ErrorBoundary'
 
 const Footer = () => {
   return (
     <footer className="w-full mt-auto border-t border-[var(--border)] bg-[var(--surface)] text-[14px]">
       <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
         
-        {/* Left Side: Copyright or Brand */}
-        <div className="text-[var(--muted)]">
-          &copy; {new Date().getFullYear()} AlgoVisuals. All rights reserved.
+        {/* Left Side: Brand & Creator */}
+        <div className="text-[var(--muted)] font-medium flex items-center gap-1.5 text-xs sm:text-sm"> 
+          <span>Crafted with passion by <span className="text-[var(--text)] font-bold">Koushik</span></span>
         </div>
 
         {/* Right Side: Links & Socials */}
@@ -90,7 +90,10 @@ const Footer = () => {
 
 const App = () => {
   const location = useLocation();
-  const atRoot = location.pathname === '/'
+  
+  const isCodeWindowOpen = 
+    location.pathname === '/editor' || 
+    (location.pathname.startsWith('/algorithms'));
 
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden bg-[var(--bg)] text-[var(--text)] antialiased relative selection:bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] selection:text-[var(--accent)]">
@@ -105,14 +108,7 @@ const App = () => {
         
         <main className="flex-1 min-w-0 overflow-y-auto relative styled-scrollbar scroll-smooth flex flex-col">          
           
-          {/* Top Gradient */}
-          {/* <div className="sticky top-0 left-0 right-0 h-6 bg-gradient-to-b from-[var(--bg)] to-transparent pointer-events-none z-10 shrink-0" /> */}
-          
-          {/* We wrap Routes in a flex-1 container. This pushes the footer to the bottom even if the page content is short. */}
           <div className="flex-1 flex flex-col">
-            {/* key={location.pathname} remounts the boundary on every route
-                change, so a crash on one page doesn't linger as a stale
-                error screen after navigating away to a working page. */}
             <ErrorBoundary key={location.pathname}>
               <Routes>
                 <Route path='/' element={<HomePage/>} />
@@ -127,12 +123,8 @@ const App = () => {
           </div>
 
           {/* Footer Component */}
-          {
-            atRoot &&<Footer />
-          }
+          {!isCodeWindowOpen && <Footer />}
 
-          {/* Bottom Gradient (Optional/Commented out) */}
-          {/* <div className="sticky bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-[var(--bg)] to-transparent pointer-events-none z-10 shrink-0" /> */}
         
         </main>
       </div>

@@ -14,9 +14,7 @@ export default function VisualPlatforms() {
   return (
     <div className="min-h-screen bg-[var(--bg,#0D0B14)] text-[var(--text,#F8FAFC)] font-['Syne',system-ui,sans-serif] relative overflow-x-hidden">
       
-      {/* Subtle dot-grid background */}
-      <div className="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(circle,rgba(129,140,248,0.05)_1px,transparent_1px)] bg-[size:32px_32px]" />
-
+      {/* Background */}
       <div className="relative z-10 max-w-[1280px] mx-auto px-5 pt-8 pb-16 md:px-7 md:pt-12 md:pb-[100px]">
         
         {/* ── Header ── */}

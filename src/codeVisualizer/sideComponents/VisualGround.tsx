@@ -26,11 +26,12 @@ import Queue from '../dataStructures/Queue';
 import Stack from '../dataStructures/Stack';
 import Tree from '../dataStructures/Tree';
 import TrieTree from '../dataStructures/TrieTree';
-import { MapVisualizer } from '../dataStructures/MapVisualizer';
-import { SetVisualizer } from '../dataStructures/SetVisualizer';
-import StringVisualizer from '../dataStructures/StringVisualizer';
-import BitsetVisualizer from '../dataStructures/BitsetVisualizer';
-import ScalarVisualizer from '../dataStructures/ScalarVisualizer';
+import MapComponent from '../dataStructures/Map';
+import SetComponent from '../dataStructures/Set';
+import StringComponent from '../dataStructures/String';
+import Bitset from '../dataStructures/Bitset';
+import Scalar from '../dataStructures/Scalar';
+import SortBars from '../dataStructures/SortBars';
 import { DraggableWindow, type WindowState } from './DraggableWindow';
 import { detectVisualizer, deepUnwrap, type CanvasState } from './detectVisualizer';
 import { cn } from '../../lib/utils';
@@ -123,7 +124,7 @@ const VisualGround = ({
     setIsPlaying(false);
     setSnapshots([]);
 
-    // FIX 7 ─ Reset window layout on every new simulation.
+    // Reset window layout on every new simulation.
     // Without this, stale WindowState entries from the previous run linger
     // and the initial-layout logic (which triggers on first-seen keys) never
     // fires again for data structures that appeared in the previous run.
@@ -134,13 +135,12 @@ const VisualGround = ({
     workerRef.current = worker;
 
     worker.onmessage = (e) => {
-      // M3 (Review 2): Staleness guard — if another Simulate was clicked
-      // before this response arrived, discard it to prevent state corruption.
+      // Staleness guard — if another Simulate was clicked
+      // before this async engine finished, ignore this result to prevent state corruption.
       if (workerRef.current !== worker) return;
 
       const { success, snapshots, error } = e.data;
       if (success) {
-        console.log(`[Main] Received ${snapshots.length} snapshots`);
         setSnapshots(snapshots);
         setCurrentStep(0);
       } else {
@@ -153,7 +153,7 @@ const VisualGround = ({
     };
 
     worker.onerror = (err) => {
-      // M3 (Review 2): Staleness guard.
+      // Staleness guard.
       if (workerRef.current !== worker) return;
       console.error('Worker Thread Error:', err);
       setError('A fatal worker error occurred (Out of Memory / Timeout).');
@@ -295,21 +295,13 @@ const VisualGround = ({
   });
   
   // ─── TERMINAL OUTPUT ───
-  // H3 (Review 1): Replace O(n²) forward scan with a backward scan.
-  // Each snapshot carries state.output which is a cumulative string of all
-  // WRITE events up to and including that snapshot (built by the engine during
-  // run()). Walking back to the latest WRITE snapshot at or before currentStep
-  // and reading its state.output is therefore O(steps-since-last-write)
-  // instead of O(currentStep), making slider scrubbing effectively O(1).
-  // If no snapshot in the range has state.output (old engine builds), we fall
-  // back to the O(n) forward accumulation so the component stays compatible.
   const consoleOutput = useMemo(() => {
     // Fast path: walk backward to find the most recent snapshot with cumulative output.
     for (let i = currentStep; i >= 0; i--) {
       const snap = snapshots[i];
       if (snap?.state?.output !== undefined) return snap.state.output as string;
     }
-    // Fallback: accumulate from scratch (for engine builds without state.output).
+    // Fallback: accumulate from scratch.
     let out = '';
     for (let i = 0; i <= currentStep; i++) {
       if (snapshots[i]?.event?.type === 'WRITE' && snapshots[i].event.payload?.output) {
@@ -337,19 +329,6 @@ const VisualGround = ({
   }, [canvasStates]);
 
   // ─── WINDOW LAYOUT INITIALISATION ───
-  // FIX 8 ─ Replaced the `initializedLayout` boolean flag with a smarter
-  // effect that handles two distinct cases:
-  //
-  //   Case A — First appearance (windowStates is empty):
-  //     Apply the "opinionated" initial tiling: maximise for 1 window,
-  //     snap-left / snap-right for 2 windows, free-float for 3+.
-  //
-  //   Case B — New key discovered mid-simulation (e.g., a graph only appears
-  //     at step 40 when the variable comes into scope):
-  //     Give it a free-floating position without touching existing windows.
-  //
-  // The old `initializedLayout = true` flag caused Case B windows to never
-  // receive an initial WindowState at all, making them invisible.
   useEffect(() => {
     const keys = Object.keys(groupedStates);
     if (keys.length === 0) return;
@@ -383,9 +362,7 @@ const VisualGround = ({
               zIndex: z,
             };
           } else {
-            // FIX 9 ─ Stagger diagonally in small steps so windows never
-            // spawn off-screen (old code used idx * 360px which pushed the
-            // 3rd window to x=720 — off-screen on most monitors).
+            // Stagger diagonally so windows don't completely eclipse each other.
             next[key] = { isMinimized: false, isMaximized: false, snap: 'none', zIndex: z };
           }
         });
@@ -512,10 +489,6 @@ const VisualGround = ({
           style={{ flex: `${hSplit} 1 0%` }}
           className="shrink-0 flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden relative"
         >
-          {/* <div className="bg-surface-2/50 border-b border-border px-2 py-1 flex items-center shrink-0">
-            <h4 className="text-[9px] uppercase tracking-widest text-accent font-bold">Stage</h4>
-          </div> */}
-
           {/* Layout Area — this is the DraggableWindow parent */}
           <div
             ref={layoutAreaRef}
@@ -536,9 +509,8 @@ const VisualGround = ({
                 zIndex: 20,
               };
 
-              // FIX 9 (continued) ─ Small diagonal stagger so the 3rd, 4th…
-              // windows never spawn off-screen. Each is offset by 40px from
-              // the previous one, capped at 4 positions with modulo.
+              // Small diagonal stagger so the windows don't hide everything. 
+              // Each is offset by 40px from the previous one, capped at 4 positions.
               const defaultX = (idx % 4) * 40 + 20;
               const defaultY = (idx % 4) * 40 + 20;
               // Scalars: pin to bottom-right corner
@@ -575,11 +547,12 @@ const VisualGround = ({
                           {state.type === 'stack'      && <Stack       {...(state.props as any)} />}
                           {state.type === 'tree'       && <Tree        {...(state.props as any)} />}
                           {state.type === 'trie'       && <TrieTree    {...(state.props as any)} />}
-                          {state.type === 'map'        && <MapVisualizer {...(state.props as any)} />}
-                          {state.type === 'set'        && <SetVisualizer {...(state.props as any)} />}
-                          {state.type === 'string'     && <StringVisualizer {...(state.props as any)} />}
-                          {state.type === 'bitset'     && <BitsetVisualizer {...(state.props as any)} />}
-                          {state.type === 'scalar'     && <ScalarVisualizer {...(state.props as any)} />}
+                          {state.type === 'map'        && <MapComponent {...(state.props as any)} />}
+                          {state.type === 'set'        && <SetComponent {...(state.props as any)} />}
+                          {state.type === 'string'     && <StringComponent {...(state.props as any)} />}
+                          {state.type === 'bitset'     && <Bitset {...(state.props as any)} />}
+                          {state.type === 'scalar'     && <Scalar {...(state.props as any)} />}
+                          {state.type === 'sortbars'   && <SortBars {...(state.props as any)} />}
                         </div>
                       </div>
                     ))}

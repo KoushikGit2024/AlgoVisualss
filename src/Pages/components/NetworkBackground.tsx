@@ -179,8 +179,7 @@ export default function NetworkBackground() {
   return (
     <div className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden opacity-[0.25] sm:opacity-[0.35]">
       <canvas ref={canvasRef} className="w-full h-full block" />
-      <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-[var(--bg)] to-transparent" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_35%_at_50%_18%,color-mix(in_srgb,var(--accent)_6%,transparent),transparent)]" />
+
     </div>
   );
 }

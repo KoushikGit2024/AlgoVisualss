@@ -144,6 +144,20 @@ const DATA_STRUCTURES = [
     ]
   },
   {
+    title: "Sorting Bars — <SortBars />",
+    icon: <List className="text-accent" size={18} />,
+    color: "border-accent/30 bg-accent/5",
+    textColor: "text-accent",
+    description: "Renders an array as vertical bars proportional to their value. Automatically triggered instead of <D1Array /> when the variable is exactly named `arr` and the current page is a sorting algorithm.",
+    prefixes: [
+      { prefix: "arr", example: "vector<int> arr" }
+    ],
+    shape: "Flat numeric array. Triggers automatically based on URL routing (`/algorithms/sorting`).",
+    auxiliary: [
+      { role: "Pointers", trigger: "`i`, `j`, `k`, `left`, `right`, `curr`", notes: "" }
+    ]
+  },
+  {
     title: "Linked Lists — <LinkedList />",
     icon: <LinkIcon className="text-accent" size={18} />,
     color: "border-accent/30 bg-accent/5",
@@ -197,7 +211,7 @@ const DATA_STRUCTURES = [
     ]
   },
   {
-    title: "Strings \u2014 <StringVisualizer />",
+    title: "Strings \u2014 <String />",
     icon: <Type className="text-ds-string" size={18} />,
     color: "border-ds-string/30 bg-ds-string/5",
     textColor: "text-ds-string",
@@ -223,7 +237,7 @@ const DATA_STRUCTURES = [
     ]
   },
   {
-    title: "Maps — <MapVisualizer />",
+    title: "Maps — <Map />",
     icon: <Database className="text-success" size={18} />,
     color: "border-success/30 bg-success/5",
     textColor: "text-success",
@@ -246,7 +260,7 @@ const DATA_STRUCTURES = [
     auxiliary: []
   },
   {
-    title: "Sets — <SetVisualizer />",
+    title: "Sets — <Set />",
     icon: <Database className="text-success" size={18} />,
     color: "border-success/30 bg-success/5",
     textColor: "text-success",
@@ -262,7 +276,7 @@ const DATA_STRUCTURES = [
     auxiliary: []
   },
   {
-    title: "Bitsets & Masks \u2014 <BitsetVisualizer />",
+    title: "Bitsets & Masks \u2014 <Bitset />",
     icon: <Binary className="text-ds-bitset" size={18} />,
     color: "border-ds-bitset/30 bg-ds-bitset/5",
     textColor: "text-ds-bitset",
@@ -281,7 +295,7 @@ const DATA_STRUCTURES = [
     auxiliary: []
   },
   {
-    title: "Standalone Scalars \u2014 <ScalarVisualizer />",
+    title: "Standalone Scalars \u2014 <Scalar />",
     icon: <Hash className="text-ds-scalar" size={18} />,
     color: "border-ds-scalar/30 bg-ds-scalar/5",
     textColor: "text-ds-scalar",
@@ -357,11 +371,11 @@ export default function VisualizerNamingConventions() {
                 { p: 6, c: "<Stack />", w: "Flat array with LIFO semantics" },
                 { p: 7, c: "<Queue />", w: "Flat array with FIFO semantics" },
                 { p: 8, c: "<D1Array />", w: "Generic flat array fallback" },
-                { p: 9, c: "<MapVisualizer />", w: "Checks for internal `__type === 'map'`" },
-                { p: 10, c: "<SetVisualizer />", w: "Checks for internal `__type === 'set'`" },
-                { p: 11, c: "<StringVisualizer />", w: "Specific text/string matching" },
-                { p: 12, c: "<BitsetVisualizer />", w: "Bitmask matching" },
-                { p: 13, c: "<ScalarVisualizer />", w: "Scalar matching" }
+                { p: 9, c: "<Map />", w: "Checks for internal `__type === 'map'`" },
+                { p: 10, c: "<Set />", w: "Checks for internal `__type === 'set'`" },
+                { p: 11, c: "<String />", w: "Specific text/string matching" },
+                { p: 12, c: "<Bitset />", w: "Bitmask matching" },
+                { p: 13, c: "<Scalar />", w: "Scalar matching" }
               ].map((row, i) => (
                 <tr key={i} className="border-b border-border last:border-b-0 even:bg-surface-2/30 hover:bg-surface-3 transition-colors">
                   <td className="px-4 py-2.5 border-r border-border text-muted font-mono">{row.p}</td>
@@ -493,14 +507,15 @@ export default function VisualizerNamingConventions() {
                 { c: "<Tree />", p: "tree, bst, root, heap, forest", s: "Struct OR Array", a: "root, curr, parent, temp, left, right" },
                 { c: "<D2Array />", p: "mat, grid, board, dp, table, matrix, res", s: "2D array (Jagged allowed)", a: "r/row/r_*, c/col/c_* (both req)" },
                 { c: "<D1Array />", p: "arr, vec, nums, seq, dp, list, buffer, cache, res", s: "Flat array", a: "i, j, k, left, right, mid, curr, ptr" },
+                { c: "<SortBars />", p: "arr", s: "Numeric array on sorting pages", a: "i, j, k" },
                 { c: "<LinkedList />", p: "(Any Name)", s: "Struct with `value` & `next`", a: "All node pointers automatically attach" },
                 { c: "<Queue />", p: "queue, deque, line, queue_nodes, tasks", s: "Flat array", a: "front, back, rear, head, tail, curr" },
                 { c: "<Stack />", p: "stack, stk, history, undo, frames", s: "Flat array", a: "top, peek" },
-                { c: "<MapVisualizer />", p: "map, dict, freq, count, hash, cache_map, memo, mapping, lookup, occurrences, frequencies, counter", s: "Map Object", a: "None" },
-                { c: "<SetVisualizer />", p: "set, seen, visited, hash_set, unique", s: "Set Object", a: "None" },
-                { c: "<StringVisualizer />", p: "str, text, word, chars, msg, string, sentence, paragraph, pattern, substring, sub, letters, characters", s: "String / Char Array", a: "i, j, k, left, right, mid, curr, ptr" },
-                { c: "<BitsetVisualizer />", p: "mask, bits, flags, bitset, state_mask, status_bits, binary_flags, bitmask", s: "Number / Bool Array", a: "None" },
-                { c: "<ScalarVisualizer />", p: "ans, sum, count, total, result, max_val, min_val, cnt, res_val, diff, target", s: "Primitive", a: "None" }
+                { c: "<Map />", p: "map, dict, freq, count, hash, cache_map, memo, mapping, lookup, occurrences, frequencies, counter", s: "Map Object", a: "None" },
+                { c: "<Set />", p: "set, seen, visited, hash_set, unique", s: "Set Object", a: "None" },
+                { c: "<String />", p: "str, text, word, chars, msg, string, sentence, paragraph, pattern, substring, sub, letters, characters", s: "String / Char Array", a: "i, j, k, left, right, mid, curr, ptr" },
+                { c: "<Bitset />", p: "mask, bits, flags, bitset, state_mask, status_bits, binary_flags, bitmask", s: "Number / Bool Array", a: "None" },
+                { c: "<Scalar />", p: "ans, sum, count, total, result, max_val, min_val, cnt, res_val, diff, target", s: "Primitive", a: "None" }
               ].map((row, i) => (
                 <tr key={i} className="border-b border-border last:border-b-0 hover:bg-surface-2 transition-colors">
                   <td className="px-3 py-2 border-r border-border text-text font-mono whitespace-nowrap">{row.c}</td>

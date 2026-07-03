@@ -312,7 +312,7 @@ export function createSnapshot(
       perFrameVariables.push(frameVars);
     }
   } else {
-    console.warn("[createSnapshot] CallStack.getAllFrames() unavailable — falling back to active scope only.");
+    logStepToConsole("[createSnapshot] CallStack.getAllFrames() unavailable — falling back to active scope only.");
     const rawVariables = activeScopeManager.captureState();
     for (const [key, symbol] of Object.entries(rawVariables)) {
       if (key.startsWith("__")) continue;
@@ -422,4 +422,51 @@ export function makeMockContainer(initialData: any[]): Record<string, any> {
     front() { return this.data[0]; },
     back() { return this.data[this.data.length - 1]; },
   };
+}
+
+// ============================================================================
+// SECTION 5 — DEVELOPER TOOLS
+// ============================================================================
+
+export function unwrapObject(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj !== "object") return obj;
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => unwrapObject(item));
+  }
+
+  if ("__circular_ref" in obj) return `[Circular *${obj.__circular_ref}]`;
+  
+  if (obj instanceof Map) {
+    const mapObj = new Map();
+    obj.forEach((v, k) => mapObj.set(unwrapObject(k), unwrapObject(v)));
+    return mapObj;
+  }
+  
+  if (obj instanceof Set) {
+    const setObj = new Set();
+    obj.forEach(v => setObj.add(unwrapObject(v)));
+    return setObj;
+  }
+
+  const result: any = {};
+  for (const key of Object.keys(obj)) {
+    result[key] = unwrapObject(obj[key]);
+  }
+  return result;
+}
+
+export function logStepToConsole(stepObj: any, stepNumber?: number): void {
+  if (typeof window !== "undefined" && window.localStorage.getItem("ALGO_DEV_CONSOLE") === "true") {
+    if (stepNumber !== undefined) {
+      console.log(`--- Step ${stepNumber} ---`);
+    }
+    
+    if (typeof stepObj === "string") {
+      console.log(stepObj);
+    } else {
+      console.dir(unwrapObject(stepObj), { depth: null });
+    }
+  }
 }

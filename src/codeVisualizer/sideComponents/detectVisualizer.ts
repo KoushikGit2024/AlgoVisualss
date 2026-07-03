@@ -14,7 +14,7 @@
 export type VisualizerType =
   | 'graph' | 'matrix' | 'array' | 'linkedlist' | 'queue' | 'stack'
   | 'tree'  | 'trie'   | 'map'   | 'set' | 'string'     | 'bitset' | 'scalar'
-  | 'none';
+  | 'none' | 'sortbars';
 
 export interface CanvasState {
   id:       string;
@@ -755,10 +755,10 @@ export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[
 
   // ── 2. TRIE DETECTION (must come BEFORE binary-tree detection) ──────────
   //
-  // FIX: Tries are now detected via their own TRIE_PREFIXES list, or by the
-  //      presence of 'trie' anywhere in the variable name, BEFORE the generic
-  //      TREE_PREFIXES loop.  The two paths also properly produce TrieNodeData
-  //      (with children: string[]) rather than BinaryTreeNode (left/right).
+  // Tries are now detected via their own TRIE_PREFIXES list, or by the
+  // presence of 'trie' anywhere in the variable name, BEFORE the generic
+  // TREE_PREFIXES loop. The two paths also properly produce TrieNodeData
+  // (with children: string[]) rather than BinaryTreeNode (left/right).
   keys.forEach(trieKey => {
     if (consumedKeys.has(trieKey)) return;
 
@@ -1024,8 +1024,13 @@ export function detectVisualizer(vars: VarMap, currentEvent?: any): CanvasState[
     const usedKeys = [arrayKey, ...ptrKeys];
     const { reads, writes } = extractEventIndices(arrayKey, false);
     usedKeys.forEach(k => consumedKeys.add(k));
+    let arrayType: VisualizerType = 'array';
+    if (typeof window !== 'undefined' && window.location.href.includes('/algorithms/sorting') && arrayKey === 'arr') {
+      arrayType = 'sortbars';
+    }
+
     visualizers.push({
-      id: arrayKey, type: 'array', usedKeys,
+      id: arrayKey, type: arrayType, usedKeys,
       props: { value: arrayVal, pointers, readIndices: reads, writeIndices: writes },
     });
   });

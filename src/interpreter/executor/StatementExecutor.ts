@@ -56,6 +56,7 @@ import type {
 import { ScopeManager }        from "../runtime/ScopeManager";
 import { EventEmitter }        from "../events/EventEmitter";
 import { ExpressionEvaluator } from "../evaluator/ExpressionEvaluator";
+import { logStepToConsole } from "../utils/helpers";
 import { EventType }           from "../types";
 import type { CppValue, CppType, StaticStorageKey } from "../types";
 import { ReturnSignal, ThrowSignal, cloneRuntimeValue, makeMockContainer }       from "../utils/helpers";
@@ -174,7 +175,7 @@ export class StatementExecutor {
       try {
         value = this.evaluator.evaluate(node.initializer);
       } catch (e) {
-        console.warn(
+        logStepToConsole(
           `[StatementExecutor] Failed to evaluate initializer for '${node.name}': ` +
           `${(e as Error).message}`
         );
@@ -289,7 +290,7 @@ export class StatementExecutor {
           value = arg0;
         }
       } catch (e) {
-        console.warn(
+        logStepToConsole(
           `[StatementExecutor] Failed to evaluate constructor args for '${node.name}': ` +
           `${(e as Error).message}`
         );
@@ -518,7 +519,7 @@ export class StatementExecutor {
         instance[field.name] = this.evaluator.evaluate(field.defaultValue);
       } else {
         const t = field.type.toLowerCase();
-        console.log(`[DEBUG] instantiateStruct field: ${field.name}, type: ${field.type}, t: ${t}`);
+        logStepToConsole(`[DEBUG] instantiateStruct field: ${field.name}, type: ${field.type}, t: ${t}`);
         if (t.includes("unordered_map") || t.includes("map")) instance[field.name] = new Map();
         else if (t.includes("unordered_set") || t.includes("set")) instance[field.name] = new Set();
         else if (t.includes("vector") || t.includes("list") || t.includes("deque") || t.includes("queue") || t.includes("stack")) {
@@ -775,8 +776,6 @@ export class StatementExecutor {
         // Re-throw ConstAssignmentError — it is a user-visible error.
         if (e?.constructor?.name === "ConstAssignmentError") throw e;
         // Auto-recovery: variable not declared. Define it implicitly.
-        // Debug note: This fires when the IR missed a declaration (e.g. Tree-sitter
-        // emitted a function_declarator that was not caught as a variable decl).
         resolvedValue = newValue;
         targetScopeManager.defineVariable(targetVarName, "auto", resolvedValue);
       }

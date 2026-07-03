@@ -1,5 +1,5 @@
 import React, { Component, type ReactNode } from 'react';
-import GlobalError from '../Pages/error';
+import GlobalError from '../error';
 
 interface Props {
   children: ReactNode;

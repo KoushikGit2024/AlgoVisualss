@@ -88,6 +88,7 @@ import {
   cloneRuntimeValue,
   resetGlobalIdCounter,
   makeMockContainer,
+  logStepToConsole,
 } from "../utils/helpers";
 
 
@@ -220,14 +221,14 @@ export class ExecutionEngine {
         if (shouldCapture) {
           this.stepsSinceLastSnapshot++;
           if (this.stepsSinceLastSnapshot >= this.snapshotSkipFactor) {
-            this.snapshots.push(
-              createSnapshot(
-                event,
-                this.callStack,
-                activeFrame.scopeManager,
-                this.accumulatedOutput,
-              )
-            );
+            const snapshot = createSnapshot(
+            event,
+            this.callStack,
+            activeFrame.scopeManager,
+            this.accumulatedOutput,
+          );
+            this.snapshots.push(snapshot);
+            logStepToConsole(snapshot, this.steps);
             this.stepsSinceLastSnapshot = 0;
 
             // Hierarchical compression: drop less important events first to stay under memory limits
@@ -334,11 +335,7 @@ export class ExecutionEngine {
           try {
             memberValue = this.evaluateEnumConstant(member.value);
           } catch {
-            // Debug note: If this fires, the enum member's value uses a
-            // non-literal expression (e.g. NORTH = OTHER_ENUM + 1). It will
-            // default to the auto-incremented value. Full expression support
-            // would require deferring resolution to runtime.
-            console.warn(
+            logStepToConsole(
               `[ExecutionEngine.loadProgram] Could not resolve enum member ` +
               `'${enumDecl.name}::${member.name}' — using auto-increment value ${nextValue}.`
             );
@@ -564,7 +561,7 @@ export class ExecutionEngine {
           const sym = globalFrame.scopeManager.getVariable(decl.name);
           this.globalVariables.set(decl.name, { type: sym.type as CppType, value: sym.value });
         } catch (e) {
-          console.warn(
+          logStepToConsole(
             `[ExecutionEngine.run] Failed to initialise global '${decl.name}': ` +
             `${(e as Error).message}`
           );
@@ -1561,7 +1558,6 @@ export class ExecutionEngine {
         }
         case "print":
           result = `[${targetArr.join(" -> ")}]`;
-          console.log(result);
           break;
         default: handled = false;
       }

@@ -56,6 +56,7 @@ import type {
 import { ScopeManager }  from "../runtime/ScopeManager";
 import { EventEmitter }  from "../events/EventEmitter";
 import { EventType }     from "../types";
+import { logStepToConsole } from "../utils/helpers";
 import type { CppValue } from "../types";
 import { cloneRuntimeValue } from "../utils/helpers";
 
@@ -548,9 +549,9 @@ export class ExpressionEvaluator {
       if (left && typeof left === "object" && (left as any).__isCout) {
         const outStr = right !== null && right !== undefined ? String(right) : "";
         if (outStr === "\n") {
-          console.log("");
+          logStepToConsole("");
         } else {
-          console.log(`[C++]: ${outStr}`);
+          logStepToConsole(`[C++]: ${outStr}`);
         }
         this.eventEmitter.emit(expr.line, EventType.WRITE, { output: outStr });
         // Return proxy so chaining works: `cout << a << b`.
@@ -736,9 +737,7 @@ export class ExpressionEvaluator {
     const rawToken = this.inputProvider?.();
     if (rawToken === undefined || rawToken === null) {
       // No input available — leave variable unchanged.
-      // Debug note: If the program hangs or produces wrong output, ensure
-      // ExecutionEngine.setInputValues() was called with enough tokens before run().
-      console.warn(
+      logStepToConsole(
         `[ExpressionEvaluator] cin >> ${targetName}: input queue is empty. ` +
         `Variable retains its current value. ` +
         `Call ExecutionEngine.setInputValues() to supply stdin before run().`

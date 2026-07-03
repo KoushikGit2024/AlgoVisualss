@@ -66,13 +66,7 @@ export default function NotFound() {
       className="relative flex h-full min-h-[60vh] flex-col items-center justify-center px-6 text-center overflow-hidden"
       style={{ background: "var(--bg)" }}
     >
-      {/* Mesh glow */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: "radial-gradient(ellipse 60% 50% at 50% 50%, var(--glow-soft), transparent 70%)",
-        }}
-      />
+
 
       <motion.div
         initial={{ opacity: 0, y: -8 }}
@@ -121,7 +115,7 @@ export default function NotFound() {
       >
         <Link
           to="/"
-          className="group relative px-5 py-2.5 rounded-full text-sm font-semibold text-white transition-shadow duration-200 hover:shadow-[0_0_24px_6px_var(--glow)]"
+          className="group relative px-5 py-2.5 rounded-full text-sm font-semibold text-white transition-shadow duration-200"
           style={{ background: "var(--accent)" }}
         >
           Go home

@@ -1,11 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../lib/utils';
 
-export interface BitsetVisualizerProps {
+export interface BitsetProps {
   value: number | boolean[] | number[];
 }
 
-const BitsetVisualizer = ({ value }: BitsetVisualizerProps) => {
+const Bitset = ({ value }: BitsetProps) => {
   let bits: number[] = [];
   
   if (typeof value === 'number') {
@@ -63,4 +63,4 @@ const BitsetVisualizer = ({ value }: BitsetVisualizerProps) => {
     </div>
   );
 };
-export default BitsetVisualizer;
+export default Bitset;

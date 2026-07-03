@@ -1,4 +1,4 @@
-const TREES_SECTIONfx = {
+const TREES_SECTION = {
   name: "Trees",
   href: "/algorithms/trees",
     icon: (
@@ -4868,1065 +4868,6 @@ fn main() {
     },
 
     /* ════════════════════════════════════════════════════════════════════
-    5. RED-BLACK TREES
-   ════════════════════════════════════════════════════════════════════ */
-    {
-        name: "Red-Black Trees",
-        href: "/algorithms/trees/red-black",
-        type: "Hard",
-
-        about: [
-            { tag: "h1", text: "Red-Black Trees" },
-            { tag: "p", text: "A Red-Black Tree is a self-balancing BST where every node is colored either red or black, and a set of coloring rules guarantees the tree's height never exceeds roughly 2 log₂(n+1) — looser than AVL's stricter balance, but cheaper to maintain. Invented by Rudolf Bayer in 1972 (originally as 'symmetric binary B-trees'), it's the most widely deployed self-balancing tree structure in real-world software." },
-            { tag: "p", text: "The five defining rules are: (1) every node is red or black, (2) the root is always black, (3) every leaf (null/nil) is considered black, (4) a red node never has a red child ('no two reds in a row'), and (5) every path from a given node to any of its descendant null leaves passes through the same number of black nodes ('black-height' is consistent). These rules together guarantee no root-to-leaf path is ever more than twice as long as any other, which is what bounds the height to O(log n)." },
-            { tag: "h2", text: "When to reach for it" },
-            { tag: "ul", items: [
-            "Write-heavy workloads — Red-Black trees require fewer rotations per insertion/deletion than AVL trees, making writes cheaper at a small cost to lookup speed",
-            "Implementing language standard library ordered containers — this is what backs C++'s std::map/std::set, Java's TreeMap/TreeSet, and the Linux kernel's completely fair scheduler (CFS)",
-            "Any general-purpose balanced BST need where you don't have a strong reason to prefer AVL's stricter balance",
-            "Interval trees (used for efficient overlap queries) are commonly built as an augmented Red-Black tree"
-            ]},
-            { tag: "table",
-            headers: ["Property", "AVL Tree", "Red-Black Tree"],
-            rows: [
-                ["Balance strictness", "Height difference ≤ 1 (strict)", "Height difference ≤ 2x (looser)"],
-                ["Lookup speed", "Slightly faster (more balanced)", "Slightly slower"],
-                ["Insert/delete speed", "Slower (more rotations)", "Faster (fewer rotations, O(1) amortised recoloring)"],
-                ["Typical use", "Read-heavy", "Write-heavy / general-purpose"]
-            ]
-            },
-            { tag: "note", variant: "info", text: "Red-Black trees are also the structural basis for 2-3-4 trees (a type of B-tree) — there's a direct, well-known correspondence between the two, which is part of why the coloring-based balance rules work at all." }
-        ],
-
-        timeComplexityCalculation: {
-            notation: "O(log n)",
-            best: [
-            { tag: "h2", text: "Best Case — O(log n)" },
-            { tag: "p", text: "Just like AVL trees, the height guarantee is structural and unconditional, so even the most favourable single query is still classified by the algorithm's guaranteed bound, not by luck." }
-            ],
-            average: [
-            { tag: "h2", text: "Average Case — O(log n)" },
-            { tag: "p", text: "Because the coloring invariants are actively maintained after every modification, there's no input sequence that produces a worse average shape than the guaranteed bound." }
-            ],
-            worst: [
-            { tag: "h2", text: "Worst Case — O(log n)" },
-            { tag: "p", text: "Like AVL trees, this is the entire purpose of the structure: no input sequence can ever produce a Red-Black tree taller than its proven bound." }
-            ]
-        },
-
-        spaceComplexityCalculation: {
-            notation: "O(n)",
-            best: [
-            { tag: "h2", text: "Best Case Space — O(n)" },
-            { tag: "p", text: "Storing n nodes requires O(n) space, plus a single extra bit per node to store its color — a much smaller per-node overhead than AVL's integer height/balance-factor field." }
-            ],
-            average: [
-            { tag: "h2", text: "Average Case Space — O(n)" }
-            ],
-            worst: [
-            { tag: "h2", text: "Worst Case Space — O(n)" }
-            ]
-        },
-
-        pseudoCodeandStepexplanation: [
-            { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-            { tag: "p", text: "High-level insertion logic (full rotation/recoloring case analysis is extensive):" },
-            { tag: "code", language: "text", text:
-        `function insert(tree, key):
-            newNode ← new Node(key, color = RED)
-            bstInsert(tree, newNode)             // standard BST insertion
-            fixInsertViolations(tree, newNode)
-
-        function fixInsertViolations(tree, node):
-            while node.parent.color == RED:
-                if node.parent == node.grandparent.left:
-                    uncle ← node.grandparent.right
-                    if uncle.color == RED:
-                        // Case 1: uncle is red — recolor and move up
-                        node.parent.color ← BLACK
-                        uncle.color ← BLACK
-                        node.grandparent.color ← RED
-                        node ← node.grandparent
-                    else:
-                        if node == node.parent.right:
-                            // Case 2: triangle shape — rotate to make it a line
-                            node ← node.parent
-                            rotateLeft(tree, node)
-                        // Case 3: line shape — rotate and recolor
-                        node.parent.color ← BLACK
-                        node.grandparent.color ← RED
-                        rotateRight(tree, node.grandparent)
-                else: // mirror logic for right side
-                    ...
-
-            tree.root.color ← BLACK` }
-        ],
-
-        codes: {
-            "c++": `#include <iostream>\nusing namespace std;\n\nstruct TreeNode { int value; bool red; TreeNode *left, *right, *parent; TreeNode(int v) : value(v), red(true), left(nullptr), right(nullptr), parent(nullptr) {} };\n\nTreeNode* leftRotate(TreeNode* root, TreeNode* node) { /*...*/ return root; }\nTreeNode* rightRotate(TreeNode* root, TreeNode* node) { /*...*/ return root; }\nvoid flipColors(TreeNode* node) { node->red = !node->red; if(node->left) node->left->red = !node->left->red; if(node->right) node->right->red = !node->right->red; }\n\nint main() { TreeNode* root = new TreeNode(20); root->red = false; /*...*/ return 0; }`,
-            "python": `class TreeNode:\n    def __init__(self, val): self.val = val; self.red = True; self.left = None; self.right = None; self.parent = None\n\ndef rotate_left(node): pass\ndef rotate_right(node): pass\ndef flip_colors(node): node.red = not node.red; node.left.red = not node.left.red; node.right.red = not node.right.red\n\nif __name__ == "__main__": root = TreeNode(20); root.red = False; print("RBT Logic Ready")`,
-            "java": `class Node { int val; boolean red; Node left, right, parent; Node(int v) { val = v; red = true; } }\n\npublic class RBT { \n    void rotateLeft(Node n) {} \n    void flip(Node n) { n.red = !n.red; n.left.red = !n.left.red; n.right.red = !n.right.red; }\n    public static void main(String[] args) { System.out.println("RBT Logic Ready"); } }`,
-            "js": `class Node { constructor(val) { this.val = val; this.red = true; this.left = null; this.right = null; this.parent = null; } }\n\nfunction rotateLeft(node) {}\nfunction flip(node) { node.red = !node.red; node.left.red = !node.left.red; node.right.red = !node.right.red; }\n\nconsole.log("RBT Logic Ready");`,
-            "c": `typedef struct Node { int val; int red; struct Node *left, *right, *parent; } Node;\n\nvoid rotateLeft(Node* n) {} \nvoid flip(Node* n) { n->red = !n->red; n->left->red = !n->left->red; n->right->red = !n->right->red; }\n\nint main() { printf("RBT Logic Ready\\n"); return 0; }`,
-            "c#": `class Node { public int val; public bool red; public Node left, right, parent; }\n\nclass RBT { \n    static void RotateLeft(Node n) {} \n    static void Flip(Node n) { n.red = !n.red; n.left.red = !n.left.red; n.right.red = !n.right.red; }\n    static void Main() { Console.WriteLine("RBT Logic Ready"); } }`,
-            "swift": `class Node { var val: Int; var red = true; var left: Node?; var right: Node?; weak var parent: Node?\n    init(_ v: Int) { val = v } }\n\nfunc rotateLeft(_ node: Node) {}\nfunc flip(_ node: Node) { node.red = !node.red; node.left?.red = !node.left!.red; node.right?.red = !node.right!.red }\nprint("RBT Logic Ready")`,
-            "kotlin": `class Node(val v: Int) { var red = true; var left: Node? = null; var right: Node? = null; var parent: Node? = null }\n\nfun rotateLeft(n: Node) {}\nfun flip(n: Node) { n.red = !n.red; n.left?.red = !n.left!!.red; n.right?.red = !n.right!!.red }\nfun main() { println("RBT Logic Ready") }`,
-            "scala": `class Node(val v: Int) { var red = true; var left: Node = null; var right: Node = null; var parent: Node = null }\n\ndef rotateLeft(n: Node): Unit = {}\ndef flip(n: Node): Unit = { n.red = !n.red; n.left.red = !n.left.red; n.right.red = !n.right.red }\nprintln("RBT Logic Ready")`,
-            "go": `type Node struct { val int; red bool; left, right, parent *Node }\n\nfunc rotateLeft(n *Node) {} \nfunc flip(n *Node) { n.red = !n.red; n.left.red = !n.left.red; n.right.red = !n.right.red }\nfunc main() { fmt.Println("RBT Logic Ready") }`,
-            "rust": `struct Node { val: i32, red: bool, left: Option<Box<Node>>, right: Option<Box<Node>> }\n\nfn rotate_left(node: &mut Node) {} \nfn flip(node: &mut Node) { node.red = !node.red; node.left.as_mut().unwrap().red = !node.left.as_mut().unwrap().red; }\nfn main() { println!("RBT Logic Ready"); }`
-        }
-    }
-  ],
-  desc: "BST, AVL, segment tree, traversals",
-  complexity: "O(log n)",
-  featured: true,
-};
-
-const TREES_SECTION = {
-  name: "Trees",
-  href: "/algorithms/trees",
-    icon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <circle cx="32" cy="12" r="5"/>
-        <circle cx="18" cy="32" r="5"/>
-        <circle cx="46" cy="32" r="5"/>
-        <circle cx="10" cy="52" r="5"/>
-        <circle cx="26" cy="52" r="5"/>
-        <circle cx="38" cy="52" r="5"/>
-        <circle cx="54" cy="52" r="5"/>
-        <line x1="32" y1="17" x2="18" y2="27"/>
-        <line x1="32" y1="17" x2="46" y2="27"/>
-        <line x1="18" y1="37" x2="10" y2="47"/>
-        <line x1="18" y1="37" x2="26" y2="47"/>
-        <line x1="46" y1="37" x2="38" y2="47"/>
-        <line x1="46" y1="37" x2="54" y2="47"/>
-      </svg>
-    ),
-    hoverIcon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <circle cx="32" cy="12" r="5" stroke="#34D399" fill="#34D399"/>
-        <circle cx="18" cy="32" r="5" stroke="#34D399" fill="#34D399"/>
-        <circle cx="46" cy="32" r="5"/>
-        <circle cx="10" cy="52" r="5" stroke="#34D399" fill="#34D399"/>
-        <circle cx="26" cy="52" r="5"/>
-        <circle cx="38" cy="52" r="5"/>
-        <circle cx="54" cy="52" r="5"/>
-        <line x1="32" y1="17" x2="18" y2="27" stroke="#34D399" strokeWidth="4"/>
-        <line x1="32" y1="17" x2="46" y2="27"/>
-        <line x1="18" y1="37" x2="10" y2="47" stroke="#34D399" strokeWidth="4"/>
-        <line x1="18" y1="37" x2="26" y2="47"/>
-        <line x1="46" y1="37" x2="38" y2="47"/>
-        <line x1="46" y1="37" x2="54" y2="47"/>
-      </svg>
-    ),
-
-  about: [
-    { tag: "h1", text: "Trees" },
-    { tag: "p", text: "A tree is a connected, acyclic graph with a designated root, where every other vertex has exactly one parent — this hierarchical structure makes trees the natural representation for anything with nested relationships: file systems, organisation charts, expression parsing, and the indexing structures behind nearly every database." },
-    { tag: "p", text: "The single number that governs almost every tree algorithm's performance is its height h — the length of the longest path from root to leaf. A perfectly balanced binary tree has h = O(log n), giving fast O(log n) search, insert, and delete. But an unbalanced tree (e.g. one built by inserting already-sorted data into a plain BST) can degrade to h = O(n), turning every operation into a linear scan. This single fact — that height, not node count, determines speed — is why self-balancing trees (AVL, Red-Black) exist at all." },
-    { tag: "h2", text: "Why self-balancing trees exist" },
-    { tag: "p", text: "A plain Binary Search Tree gives no guarantee about its own shape — it's entirely a function of insertion order. AVL trees and Red-Black trees both solve this by enforcing a structural invariant after every insertion and deletion (rotations to restore balance), guaranteeing h = O(log n) no matter what order operations arrive in. The trade-off between them is rebalancing frequency vs. rebalancing cost — AVL trees are more rigidly balanced (faster lookups) but rebalance more often (slower writes); Red-Black trees are more loosely balanced (slightly slower lookups) but rebalance less often (faster writes)." },
-    { tag: "table",
-      headers: ["Structure", "Guarantee", "Lookup", "Insert/Delete", "Typical Use"],
-      rows: [
-        ["Plain BST", "None — height depends on insertion order", "O(log n) avg / O(n) worst", "O(log n) avg / O(n) worst", "Simple ordered maps, teaching"],
-        ["AVL Tree", "Strictly balanced: height difference of subtrees ≤ 1", "O(log n) guaranteed", "O(log n) guaranteed", "Read-heavy workloads"],
-        ["Red-Black Tree", "Loosely balanced via coloring rules", "O(log n) guaranteed", "O(log n) guaranteed, fewer rotations", "Write-heavy workloads (most language standard libraries)"],
-        ["Tree Traversals", "N/A — visits every node", "O(n) to visit all nodes", "N/A", "Serialisation, expression evaluation, search"],
-        ["Lowest Common Ancestor", "Depends on tree type", "O(log n) for BST, O(n) general", "N/A", "Family-tree/version-control-style ancestry queries"]
-      ]
-    },
-    { tag: "note", variant: "tip", text: "If you're asked for a self-balancing tree but don't know which kind, Red-Black is almost always the right default — it's what backs C++'s std::map, Java's TreeMap, and the Linux kernel's process scheduler, precisely because of its cheaper rebalancing." }
-  ],
-
-  items: [
-
-    /* ════════════════════════════════════════════════════════════════════
-       1. AVL TREES
-    ════════════════════════════════════════════════════════════════════ */
-    {
-      name: "AVL Trees",
-      href: "/algorithms/trees/avl",
-      type: "Hard",
-
-      about: [
-        { tag: "h1", text: "AVL Trees" },
-        { tag: "p", text: "An AVL tree, named after its inventors Georgy Adelson-Velsky and Evgenii Landis (1962), is a self-balancing Binary Search Tree where, for every node, the heights of its left and right subtrees differ by at most 1. This 'balance factor' constraint is checked and restored after every insertion or deletion, guaranteeing the tree's height never exceeds O(log n) regardless of the order operations occur in." },
-        { tag: "p", text: "Balance is restored using rotations — single (left or right) and double (left-right or right-left) — applied at the lowest unbalanced ancestor of a newly inserted or deleted node. AVL trees were the first self-balancing BST structure ever invented and remain the standard example for teaching how local structural fixes can maintain a global height guarantee." },
-        { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Read-heavy workloads where lookups vastly outnumber insertions/deletions — AVL's stricter balance gives slightly faster average lookup than Red-Black trees",
-          "Applications needing a hard guarantee on worst-case search time, such as real-time systems",
-          "Database indexing and in-memory ordered maps where query latency matters more than update throughput",
-          "Anywhere a plain BST is being considered but insertion order can't be guaranteed to be random (e.g. data could arrive pre-sorted, which would degrade a plain BST to O(n))"
-        ]},
-        { tag: "table",
-          headers: ["Rotation Type", "Trigger Condition", "Fix Applied"],
-          rows: [
-            ["Left-Left (LL)", "Imbalance in the left subtree's left child", "Single right rotation"],
-            ["Right-Right (RR)", "Imbalance in the right subtree's right child", "Single left rotation"],
-            ["Left-Right (LR)", "Imbalance in the left subtree's right child", "Left rotation on child, then right rotation on node"],
-            ["Right-Left (RL)", "Imbalance in the right subtree's left child", "Right rotation on child, then left rotation on node"]
-          ]
-        },
-        { tag: "note", variant: "info", text: "AVL trees rebalance more aggressively than Red-Black trees, which is why they're favoured when lookups dominate — but that same aggressiveness means more rotations per write, which is why write-heavy systems usually prefer Red-Black trees instead." }
-      ],
-
-      timeComplexityCalculation: {
-        notation: "O(log n)",
-        best: [
-          { tag: "h2", text: "Best Case — O(log n)" },
-          { tag: "p", text: "Even in the most favourable scenario (e.g. searching for the root itself), the asymptotic classification remains O(log n) because the algorithm's structure guarantees this bound for the tree's height regardless of which specific node is targeted." },
-          { tag: "ul", items: [
-            "AVL's height invariant guarantees h = O(log n) at all times, for any sequence of insertions/deletions",
-            "Searching, inserting, or deleting always follows a root-to-leaf path bounded by this height",
-            "Best case (target found near the root): still classified O(log n) since the guarantee is structural, not value-dependent"
-          ]}
-        ],
-        average: [
-          { tag: "h2", text: "Average Case — O(log n)" },
-          { tag: "p", text: "Because the balance invariant is actively enforced after every modification, there's no 'typical' input that produces a worse shape than the guaranteed bound — average case equals the guaranteed worst case." },
-          { tag: "ul", items: [
-            "Search: traverse from root to a leaf, comparing at each level — O(h) = O(log n)",
-            "Insert: search for the insertion point (O(log n)), then rebalance along the path back to the root, performing at most O(log n) rotations — but each rotation is O(1), so total insert cost is O(log n)",
-            "Delete: similarly O(log n) for the search plus O(log n) for rebalancing"
-          ]}
-        ],
-        worst: [
-          { tag: "h2", text: "Worst Case — O(log n)" },
-          { tag: "p", text: "This is AVL's entire purpose: unlike a plain BST, there is no input sequence that can degrade an AVL tree's height beyond its mathematically proven bound." },
-          { tag: "ul", items: [
-            "Provable bound: an AVL tree of height h has at least F(h+2) − 1 nodes, where F is the Fibonacci sequence — inverting this gives h ≤ 1.44 log₂(n+2), i.e. O(log n)",
-            "Search/insert/delete all stay strictly within this bound — there is no adversarial sequence of operations that produces a degenerate (linear-height) shape",
-            "This is the key advantage over a plain BST, whose worst case is O(n)"
-          ]}
-        ]
-      },
-
-      spaceComplexityCalculation: {
-        notation: "O(n)",
-        best: [
-          { tag: "h2", text: "Best Case Space — O(n)" },
-          { tag: "p", text: "Storing n nodes always requires O(n) space for the node data itself, plus a small constant overhead per node for the balance factor (or height) field used to maintain the invariant." },
-          { tag: "ul", items: ["n node objects, each with left/right/parent pointers + a balance factor field: O(n)"] }
-        ],
-        average: [
-          { tag: "h2", text: "Average Case Space — O(n)" },
-          { tag: "p", text: "Total stored data is fixed by n regardless of the tree's exact shape, since the guaranteed-balanced structure doesn't change how many nodes need to be stored." },
-          { tag: "ul", items: ["O(n) for node storage", "O(log n) for the recursion stack during operations, due to the guaranteed logarithmic height"] }
-        ],
-        worst: [
-          { tag: "h2", text: "Worst Case Space — O(n)" },
-          { tag: "p", text: "No insertion/deletion sequence increases storage beyond the fixed per-node overhead — this is a hallmark difference from time complexity, since space doesn't depend on tree shape, only on node count." },
-          { tag: "ul", items: [
-            "O(n) total node storage, identical to a plain BST",
-            "O(log n) recursion/call-stack depth during any single operation — guaranteed by the height bound, unlike a plain BST's potential O(n) worst-case stack depth"
-          ]}
-        ]
-      },
-
-      pseudoCodeandStepexplanation: [
-        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function insert(node, key):
-    if node is null:
-        return new Node(key)
-
-    if key < node.key:
-        node.left ← insert(node.left, key)
-    else if key > node.key:
-        node.right ← insert(node.right, key)
-    else:
-        return node                          // duplicate key, no-op
-
-    updateHeight(node)
-    balance ← getBalanceFactor(node)         // height(left) − height(right)
-
-    // Left-Left case
-    if balance > 1 and key < node.left.key:
-        return rotateRight(node)
-    // Right-Right case
-    if balance < −1 and key > node.right.key:
-        return rotateLeft(node)
-    // Left-Right case
-    if balance > 1 and key > node.left.key:
-        node.left ← rotateLeft(node.left)
-        return rotateRight(node)
-    // Right-Left case
-    if balance < −1 and key < node.right.key:
-        node.right ← rotateRight(node.right)
-        return rotateLeft(node)
-
-    return node                              // already balanced
-
-function rotateRight(y):
-    x ← y.left
-    T2 ← x.right
-    x.right ← y
-    y.left ← T2
-    updateHeight(y)
-    updateHeight(x)
-    return x                                 // new subtree root` },
-        { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Insert exactly like a standard BST insertion: recurse left or right based on key comparison until reaching a null spot, then place the new node there.",
-          "As the recursion unwinds back up the path to the root, update each ancestor's height and compute its balance factor (left subtree height − right subtree height).",
-          "If any node's balance factor exceeds ±1, the AVL invariant has been violated at that node — identify which of the four imbalance cases applies (LL, RR, LR, RL) by comparing the inserted key against the unbalanced node's children.",
-          "Apply the corresponding rotation(s) to restore the height invariant at that node. A single rotation suffices for LL/RR cases; a double rotation (rotate the child, then the node) is needed for LR/RL cases.",
-          "Because rotations are O(1) and the path back to the root has length O(log n) (the tree's guaranteed height), at most O(log n) rotations are checked, with provably at most 2 actual rotations needed to fully rebalance after any single insertion."
-        ]},
-        { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Each rotation is a local, BST-order-preserving restructuring: a right rotation around node y promotes y's left child x to take y's place, while preserving the in-order traversal sequence of all affected nodes (this can be verified by checking that the rotated subtree's in-order traversal is identical before and after). Since BST order is preserved by every rotation, search correctness is never compromised. The height-rebalancing guarantee follows from a classical proof: an AVL tree's minimum node count for height h grows according to the Fibonacci recurrence N(h) = N(h-1) + N(h-2) + 1, and solving this recurrence shows h = O(log n) is the only possibility consistent with the balance-factor-≤1 invariant being maintained after every single insertion or deletion." }
-      ],
-      codes:{
-        "c++":`#include <iostream>
-#include <algorithm>
-using namespace std;
-
-struct TreeNode {
-    int value;
-    int height;
-    TreeNode* left;
-    TreeNode* right;
-
-    TreeNode(int value) {
-        this->value = value;
-        height = 1;
-        left = nullptr;
-        right = nullptr;
-    }
-};
-
-int getHeight(TreeNode* node) {
-    if (node == nullptr)
-        return 0;
-    return node->height;
-}
-
-int getBalance(TreeNode* node) {
-    if (node == nullptr)
-        return 0;
-    return getHeight(node->left) - getHeight(node->right);
-}
-
-TreeNode* rightRotate(TreeNode* node) {
-    TreeNode* left = node->left;
-    TreeNode* temp = left->right;
-
-    left->right = node;
-    node->left = temp;
-
-    node->height = max(getHeight(node->left), getHeight(node->right)) + 1;
-    left->height = max(getHeight(left->left), getHeight(left->right)) + 1;
-
-    return left;
-}
-
-TreeNode* leftRotate(TreeNode* node) {
-    TreeNode* right = node->right;
-    TreeNode* temp = right->left;
-
-    right->left = node;
-    node->right = temp;
-
-    node->height = max(getHeight(node->left), getHeight(node->right)) + 1;
-    right->height = max(getHeight(right->left), getHeight(right->right)) + 1;
-
-    return right;
-}
-
-TreeNode* insert(TreeNode* node, int value) {
-    if (node == nullptr)
-        return new TreeNode(value);
-
-    TreeNode* curr = node;
-
-    if (value < curr->value)
-        curr->left = insert(curr->left, value);
-    else if (value > curr->value)
-        curr->right = insert(curr->right, value);
-    else
-        return curr;
-
-    curr->height = max(getHeight(curr->left), getHeight(curr->right)) + 1;
-
-    int balance = getBalance(curr);
-
-    if (balance > 1 && value < curr->left->value)
-        return rightRotate(curr);
-
-    if (balance < -1 && value > curr->right->value)
-        return leftRotate(curr);
-
-    if (balance > 1 && value > curr->left->value) {
-        curr->left = leftRotate(curr->left);
-        return rightRotate(curr);
-    }
-
-    if (balance < -1 && value < curr->right->value) {
-        curr->right = rightRotate(curr->right);
-        return leftRotate(curr);
-    }
-
-    return curr;
-}
-
-void inorder(TreeNode* node) {
-    if (node == nullptr)
-        return;
-
-    inorder(node->left);
-    cout << node->value << " ";
-    inorder(node->right);
-}
-
-int main() {
-    TreeNode* root = nullptr;
-
-    root = insert(root, 45);
-    root = insert(root, 20);
-    root = insert(root, 10);
-    root = insert(root, 30);
-    root = insert(root, 5);
-    root = insert(root, 15);
-    root = insert(root, 25);
-    root = insert(root, 35);
-    root = insert(root, 50);
-    root = insert(root, 58);
-    root = insert(root, 65);
-    root = insert(root, 80);
-
-    inorder(root);
-    cout << endl;
-
-    return 0;
-}
-`
-      }
-    },
-
-    /* ════════════════════════════════════════════════════════════════════
-       2. TREE TRAVERSALS
-    ════════════════════════════════════════════════════════════════════ */
-    {
-      name: "Tree Traversals",
-      href: "/algorithms/trees/traversals",
-      type: "Easy",
-
-      about: [
-        { tag: "h1", text: "Tree Traversals" },
-        { tag: "p", text: "A tree traversal visits every node in a tree exactly once, in a specific order. The three classic depth-first orderings — pre-order, in-order, and post-order — differ only in WHEN the current node is processed relative to its children, while breadth-first (level-order) traversal visits nodes layer by layer using a queue, exactly like graph BFS." },
-        { tag: "p", text: "The choice of traversal order isn't arbitrary — each one corresponds to a specific real-world need. In-order traversal of a Binary Search Tree visits nodes in sorted order (a uniquely useful property). Pre-order naturally serialises a tree in a way that can reconstruct its exact shape. Post-order is the only safe order for deleting a tree node-by-node, since it processes children before their parent." },
-        { tag: "h2", text: "The four traversal orders" },
-        { tag: "table",
-          headers: ["Traversal", "Order", "Key Use Case"],
-          rows: [
-            ["Pre-order", "Node → Left → Right", "Serialising a tree's structure for later reconstruction; copying a tree"],
-            ["In-order", "Left → Node → Right", "Retrieving BST elements in sorted order"],
-            ["Post-order", "Left → Right → Node", "Safely deleting a tree (children before parent); evaluating expression trees"],
-            ["Level-order (BFS)", "Layer by layer, left to right", "Finding shortest depth to a node; printing a tree level by level"]
-          ]
-        },
-        { tag: "note", variant: "tip", text: "In-order traversal of a BST always produces sorted output — this single fact underlies many BST algorithms, including validating whether a tree is a correct BST in the first place." }
-      ],
-
-      timeComplexityCalculation: {
-        notation: "O(n)",
-        best: [
-          { tag: "h2", text: "Best Case — O(n)" },
-          { tag: "p", text: "Every traversal order must visit all n nodes to be complete — there is no early-exit shortcut for a full traversal, regardless of the tree's shape." },
-          { tag: "ul", items: [
-            "Each node is visited exactly once: O(n)",
-            "Each visit does O(1) work (process the node, recurse into children/enqueue them)",
-            "Total: O(n), even in the most favourably-shaped tree"
-          ]}
-        ],
-        average: [
-          { tag: "h2", text: "Average Case — O(n)" },
-          { tag: "p", text: "Visiting every node exactly once with O(1) work per node is a structural property of the traversal, completely independent of the tree's shape or balance." },
-          { tag: "ul", items: [
-            "n node visits × O(1) work each = O(n)",
-            "Tree shape (balanced vs. skewed) affects auxiliary space, not the total time, since every node is still visited exactly once regardless"
-          ]}
-        ],
-        worst: [
-          { tag: "h2", text: "Worst Case — O(n)" },
-          { tag: "p", text: "No tree shape increases the time complexity beyond visiting every node once — a maximally skewed tree (essentially a linked list) still only requires n visits, just with worse space behaviour (see below)." },
-          { tag: "ul", items: [
-            "Worst case matches best/average exactly: O(n)",
-            "This matches the trivial lower bound: a complete traversal must examine every node at least once"
-          ]}
-        ]
-      },
-
-      spaceComplexityCalculation: {
-        notation: "O(h)",
-        best: [
-          { tag: "h2", text: "Best Case Space — O(log n)" },
-          { tag: "p", text: "For a perfectly balanced tree, the recursion stack (for DFS-style traversals) only ever needs to hold one root-to-leaf path, which is O(log n) deep in a balanced tree." },
-          { tag: "ul", items: ["Recursion stack depth = tree height h = O(log n) for a balanced tree", "Level-order traversal's queue can hold up to O(n/2) nodes at the widest level, regardless of balance"] }
-        ],
-        average: [
-          { tag: "h2", text: "Average Case Space — O(h)" },
-          { tag: "p", text: "For DFS-style traversals, space is governed entirely by tree height h, not by the total node count n — this is the key distinction from BFS-style traversal." },
-          { tag: "ul", items: ["Pre/in/post-order recursion stack: O(h), where h depends on the tree's actual shape", "For a random/typical BST, h is usually O(log n) in practice"] }
-        ],
-        worst: [
-          { tag: "h2", text: "Worst Case Space — O(n)" },
-          { tag: "p", text: "A maximally skewed tree (every node has only one child, forming a linked-list shape) has height h = n − 1, so the recursion stack for DFS traversals can grow to O(n)." },
-          { tag: "ul", items: [
-            "DFS recursion stack: O(h), which can be as bad as O(n) for a degenerate skewed tree",
-            "Level-order (BFS) traversal's queue: up to O(n) at the widest level of a wide/bushy tree, independent of height",
-            "This is why an iterative traversal with an explicit stack (rather than recursion) is preferred for very deep or unbalanced trees, to avoid native call-stack overflow"
-          ]}
-        ]
-      },
-
-      pseudoCodeandStepexplanation: [
-        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function preOrder(node):
-    if node is null: return
-    process(node)
-    preOrder(node.left)
-    preOrder(node.right)
-
-function inOrder(node):
-    if node is null: return
-    inOrder(node.left)
-    process(node)
-    inOrder(node.right)
-
-function postOrder(node):
-    if node is null: return
-    postOrder(node.left)
-    postOrder(node.right)
-    process(node)
-
-function levelOrder(root):
-    if root is null: return
-    queue ← [root]
-    while queue is not empty:
-        node ← dequeue(queue)
-        process(node)
-        if node.left:  enqueue(queue, node.left)
-        if node.right: enqueue(queue, node.right)` },
-        { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Pre-order: process the current node first, then recurse left, then recurse right — the node is always 'visited' before either of its subtrees.",
-          "In-order: recurse left first, then process the current node, then recurse right — for a BST this guarantees sorted output, since everything in the left subtree is smaller and everything in the right subtree is larger.",
-          "Post-order: recurse left, then recurse right, then process the current node last — both children are fully handled before the parent, which is why it's the safe order for deletion.",
-          "Level-order: use a queue instead of recursion. Start with the root in the queue; repeatedly dequeue a node, process it, then enqueue its children — this naturally produces a layer-by-layer visiting order, identical in mechanism to graph BFS."
-        ]},
-        { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "For the three DFS orders, correctness follows directly from the recursive definition: by induction on subtree size, each recursive call correctly traverses its entire subtree in the specified order (process/left/right in some sequence), and since the function is called on the left and right subtrees of every node, every node in the tree is eventually visited exactly once. For level-order, the queue's FIFO property guarantees that all nodes at depth d are dequeued (and their children enqueued) before any node at depth d+1 is dequeued, by the same inductive argument used to prove BFS correctness on graphs." }
-      ],
-      codes:{
-        "c++": `#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int id;
-    int value;
-    TreeNode* left;
-    TreeNode* right;
-
-    TreeNode(int id, int value) {
-        this->id = id;
-        this->value = value;
-        left = nullptr;
-        right = nullptr;
-    }
-};
-
-void inorder(TreeNode* node) {
-    if (node == nullptr)
-        return;
-
-    TreeNode* curr = node;
-
-    inorder(curr->left);
-
-    cout << curr->value << " ";
-
-    inorder(curr->right);
-}
-
-void preorder(TreeNode* node) {
-    if (node == nullptr)
-        return;
-
-    TreeNode* curr = node;
-
-    cout << curr->value << " ";
-
-    preorder(curr->left);
-    preorder(curr->right);
-}
-
-void postorder(TreeNode* node) {
-    if (node == nullptr)
-        return;
-
-    TreeNode* curr = node;
-
-    postorder(curr->left);
-    postorder(curr->right);
-
-    cout << curr->value << " ";
-}
-
-int main() {
-    TreeNode* root = new TreeNode(1, 10);
-
-    root->left = new TreeNode(2, 5);
-    root->right = new TreeNode(3, 20);
-
-    root->left->left = new TreeNode(4, 2);
-    root->left->right = new TreeNode(5, 8);
-
-    root->right->left = new TreeNode(6, 15);
-    root->right->right = new TreeNode(7, 30);
-
-    inorder(root);
-    cout << endl;
-
-    preorder(root);
-    cout << endl;
-
-    postorder(root);
-    cout << endl;
-
-    return 0;
-}`
-      }
-    },
-
-    /* ════════════════════════════════════════════════════════════════════
-       3. BINARY SEARCH TREE
-    ════════════════════════════════════════════════════════════════════ */
-    {
-      name: "Binary Search Tree",
-      href: "/algorithms/trees/bst",
-      type: "Medium",
-
-      about: [
-        { tag: "h1", text: "Binary Search Tree (BST)" },
-        { tag: "p", text: "A Binary Search Tree maintains the invariant that for every node, all keys in its left subtree are smaller, and all keys in its right subtree are larger. This ordering property allows search, insertion, and deletion to eliminate half the remaining search space at each step — the same logarithmic principle as binary search on a sorted array, but adapted to a dynamic structure that supports efficient insertion and deletion." },
-        { tag: "p", text: "Unlike a sorted array, a BST doesn't guarantee O(log n) operations — its performance depends entirely on the tree's height, which depends entirely on insertion order. A BST built from already-sorted input degenerates into what is effectively a linked list, with O(n) operations. This exact weakness is what motivates self-balancing variants like AVL and Red-Black trees." },
-        { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "You need an ordered dynamic collection supporting fast search, insert, delete, and in-order (sorted) iteration",
-          "Implementing a simple ordered map/set when insertion order is known to be sufficiently randomised (avoiding the degenerate worst case)",
-          "As the conceptual foundation before reaching for a self-balancing variant (AVL, Red-Black) in production code",
-          "Range queries: 'find all keys between X and Y' is naturally efficient via a BST traversal that prunes subtrees outside the range"
-        ]},
-        { tag: "note", variant: "warning", text: "A plain BST gives no balance guarantee — inserting already-sorted data produces a degenerate O(n)-height tree, silently turning every 'O(log n)' operation into O(n). Production code should use a self-balancing variant unless insertion order is provably randomised." }
-      ],
-
-      timeComplexityCalculation: {
-        notation: "O(log n) avg / O(n) worst",
-        best: [
-          { tag: "h2", text: "Best Case — O(1)" },
-          { tag: "p", text: "The best case for any single operation occurs when the target happens to be the root itself, requiring just one comparison — though this is a property of the specific query, not a structural guarantee of the algorithm." },
-          { tag: "ul", items: [
-            "Searching for the root: 1 comparison — O(1)",
-            "This best case applies per-operation and doesn't reflect the tree's overall behaviour across many operations"
-          ]}
-        ],
-        average: [
-          { tag: "h2", text: "Average Case — O(log n)" },
-          { tag: "p", text: "For a BST built from randomly-ordered insertions, the expected height is provably O(log n) — a well-known result from random BST analysis (the expected height of a randomly built BST on n keys is approximately 2 ln n ≈ 1.39 log₂ n)." },
-          { tag: "ul", items: [
-            "Search/insert/delete all follow a single root-to-leaf path, costing O(h) where h is the current height",
-            "For random insertion order, E[h] = O(log n), giving expected O(log n) per operation",
-            "This is a probabilistic guarantee, not a worst-case one — it depends on the assumption of randomised insertion order"
-          ]}
-        ],
-        worst: [
-          { tag: "h2", text: "Worst Case — O(n)" },
-          { tag: "p", text: "If keys are inserted in already-sorted (or reverse-sorted) order, every new node becomes the rightmost (or leftmost) child of the previous one, producing a tree that is structurally identical to a linked list." },
-          { tag: "ul", items: [
-            "Sorted-order insertion produces a tree of height n − 1",
-            "Every search/insert/delete in this degenerate tree costs O(n), since the 'tree' is effectively a single chain",
-            "This is the fundamental motivation for self-balancing BST variants (AVL, Red-Black), which provably cap height at O(log n) regardless of insertion order"
-          ]}
-        ]
-      },
-
-      spaceComplexityCalculation: {
-        notation: "O(n)",
-        best: [
-          { tag: "h2", text: "Best Case Space — O(n)" },
-          { tag: "p", text: "Storing n nodes requires O(n) space for the node data itself, regardless of the tree's shape — this is identical across all cases since it only depends on node count." },
-          { tag: "ul", items: ["n node objects, each with key + left/right pointers: O(n)"] }
-        ],
-        average: [
-          { tag: "h2", text: "Average Case Space — O(n)" },
-          { tag: "p", text: "Total node storage is fixed by n alone, while the recursion stack used during operations scales with the tree's height, which is O(log n) on average for randomly-built trees." },
-          { tag: "ul", items: ["O(n) node storage", "O(log n) expected recursion stack depth for random insertion order"] }
-        ],
-        worst: [
-          { tag: "h2", text: "Worst Case Space — O(n)" },
-          { tag: "p", text: "In a degenerate (linked-list-shaped) tree, the recursion stack during search/insert/delete can grow to O(n), matching the tree's worst-case height." },
-          { tag: "ul", items: [
-            "O(n) node storage, identical to best/average case",
-            "O(n) recursion stack depth in a degenerate, maximally-skewed tree — this is the same root cause as the O(n) worst-case time complexity"
-          ]}
-        ]
-      },
-
-      pseudoCodeandStepexplanation: [
-        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function search(node, key):
-    if node is null or node.key == key:
-        return node
-    if key < node.key:
-        return search(node.left, key)
-    else:
-        return search(node.right, key)
-
-function insert(node, key):
-    if node is null:
-        return new Node(key)
-    if key < node.key:
-        node.left ← insert(node.left, key)
-    else if key > node.key:
-        node.right ← insert(node.right, key)
-    // duplicate keys: no-op (or handle per requirements)
-    return node
-
-function delete(node, key):
-    if node is null:
-        return null
-    if key < node.key:
-        node.left ← delete(node.left, key)
-    else if key > node.key:
-        node.right ← delete(node.right, key)
-    else:
-        // Found the node to delete
-        if node.left is null:  return node.right
-        if node.right is null: return node.left
-        // Two children: replace with in-order successor
-        successor ← findMin(node.right)
-        node.key ← successor.key
-        node.right ← delete(node.right, successor.key)
-    return node` },
-        { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Search: compare the target key against the current node; if smaller, recurse left; if larger, recurse right; if equal, found. Each comparison eliminates one entire subtree from consideration.",
-          "Insert: follow the same comparison path as search until reaching a null spot, then attach the new node there — this always preserves the BST ordering invariant.",
-          "Delete (leaf node): simply remove it — no children to reattach.",
-          "Delete (one child): replace the node with its single child, splicing it directly into the parent's link.",
-          "Delete (two children): find the in-order successor (the smallest key in the right subtree, found by following left-child pointers from node.right), copy its key into the node being deleted, then recursively delete the successor from the right subtree (which is now an easier 0-or-1-child deletion)."
-        ]},
-        { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Search correctness follows directly from the BST invariant: if key < node.key, every key in the right subtree is guaranteed larger than key (by the invariant), so it cannot contain the target — recursing left is safe and complete. Insertion correctness follows because the new node is always placed at a position consistent with the invariant (smaller keys to the left, larger to the right of every ancestor on its path). Deletion's two-child case is the subtle one: replacing the deleted key with its in-order successor (the smallest key greater than it) preserves the invariant, because the successor is guaranteed to be larger than everything in the original left subtree and smaller than everything remaining in the right subtree — exactly the ordering position the deleted node occupied." }
-      ],
-      codes:{
-        "c++":`#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int id;
-    int value;
-    TreeNode* left;
-    TreeNode* right;
-
-    TreeNode(int id, int value) {
-        this->id = id;
-        this->value = value;
-        left = nullptr;
-        right = nullptr;
-    }
-};
-
-TreeNode* insert(TreeNode* node, int id, int value) {
-    if (node == nullptr)
-        return new TreeNode(id, value);
-
-    TreeNode* curr = node;
-
-    if (value < curr->value)
-        curr->left = insert(curr->left, id, value);
-    else
-        curr->right = insert(curr->right, id, value);
-
-    return curr;
-}
-
-bool search(TreeNode* node, int target) {
-    TreeNode* curr = node;
-
-    while (curr != nullptr) {
-        if (curr->value == target)
-            return true;
-
-        if (target < curr->value)
-            curr = curr->left;
-        else
-            curr = curr->right;
-    }
-
-    return false;
-}
-
-TreeNode* findMin(TreeNode* node) {
-    TreeNode* curr = node;
-
-    while (curr->left != nullptr)
-        curr = curr->left;
-
-    return curr;
-}
-
-TreeNode* deleteNode(TreeNode* node, int target) {
-    if (node == nullptr)
-        return nullptr;
-
-    TreeNode* curr = node;
-
-    if (target < curr->value)
-        curr->left = deleteNode(curr->left, target);
-    else if (target > curr->value)
-        curr->right = deleteNode(curr->right, target);
-    else {
-        if (curr->left == nullptr) {
-            TreeNode* temp = curr->right;
-            delete curr;
-            return temp;
-        }
-
-        if (curr->right == nullptr) {
-            TreeNode* temp = curr->left;
-            delete curr;
-            return temp;
-        }
-
-        TreeNode* temp = findMin(curr->right);
-        curr->value = temp->value;
-        curr->id = temp->id;
-        curr->right = deleteNode(curr->right, temp->value);
-    }
-
-    return curr;
-}
-
-void inorder(TreeNode* node) {
-    if (node == nullptr)
-        return;
-
-    inorder(node->left);
-    cout << node->value << " ";
-    inorder(node->right);
-}
-
-int main() {
-    TreeNode* root = nullptr;
-
-    root = insert(root, 1, 10);
-    root = insert(root, 2, 5);
-    root = insert(root, 3, 15);
-    root = insert(root, 4, 3);
-    root = insert(root, 5, 8);
-    root = insert(root, 6, 12);
-    root = insert(root, 7, 20);
-
-    cout << "Inorder : ";
-    inorder(root);
-    cout << endl;
-
-    cout << "Search 8 : " << search(root, 8) << endl;
-    cout << "Search 25 : " << search(root, 25) << endl;
-
-    root = deleteNode(root, 5);
-
-    cout << "After deleting 5 : ";
-    inorder(root);
-    cout << endl;
-
-    root = deleteNode(root, 15);
-
-    cout << "After deleting 15 : ";
-    inorder(root);
-    cout << endl;
-
-    return 0;
-}
-        
-`
-      }
-    },
-
-    /* ════════════════════════════════════════════════════════════════════
-       4. LOWEST COMMON ANCESTOR
-    ════════════════════════════════════════════════════════════════════ */
-    {
-      name: "Lowest Common Ancestor",
-      href: "/algorithms/trees/lca",
-      type: "Medium",
-
-      about: [
-        { tag: "h1", text: "Lowest Common Ancestor (LCA)" },
-        { tag: "p", text: "The Lowest Common Ancestor of two nodes u and v in a tree is the deepest node that has both u and v as descendants (a node is considered a descendant of itself for this definition). It's a fundamental query that comes up anywhere hierarchical relationships matter: finding the common ancestor of two commits in a version-control history graph, the common category of two items in a taxonomy, or the meeting point of two file paths." },
-        { tag: "p", text: "The right algorithm depends heavily on the tree type and query pattern. For a general binary tree with a single query, a recursive post-order approach works in O(n). For a Binary Search Tree specifically, the ordering property allows a much faster O(h) approach that doesn't need to explore both subtrees. For many repeated queries on a static tree, preprocessing techniques (binary lifting, Euler tour + sparse table) achieve O(log n) or even O(1) per query after O(n log n) preprocessing." },
-        { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Finding the common ancestor of two nodes in any tree structure (file systems, org charts, phylogenetic trees)",
-          "Computing the distance between two nodes in a tree: distance(u, v) = depth(u) + depth(v) − 2 × depth(LCA(u, v))",
-          "Git's merge-base computation (finding the common ancestor commit of two branches) is conceptually an LCA query on the commit DAG",
-          "Range/path queries on trees, where many algorithms first reduce the problem to 'find the LCA, then process the path through it'"
-        ]},
-        { tag: "note", variant: "tip", text: "Don't use the general O(n) binary-tree algorithm on a BST — exploiting the BST ordering property gives O(h) instead, often a dramatic speedup, since you never need to explore the subtree that can't contain either target." }
-      ],
-
-      timeComplexityCalculation: {
-        notation: "O(n)",
-        best: [
-          { tag: "h2", text: "Best Case — O(1)" },
-          { tag: "p", text: "If one of the two target nodes happens to be an ancestor of the other and is found immediately at the root, the search can terminate in constant time — though this depends on the specific tree and query, not a structural guarantee." },
-          { tag: "ul", items: [
-            "If root itself is one of the two targets, it's immediately known to be the LCA (since a node is its own potential ancestor): O(1)",
-            "This is a favourable-input case, not the typical algorithmic guarantee"
-          ]}
-        ],
-        average: [
-          { tag: "h2", text: "Average Case — O(n)" },
-          { tag: "p", text: "The general binary-tree LCA algorithm must, in the average case, still explore a substantial fraction of the tree to confirm both targets are found and correctly determine their meeting point, since it doesn't exploit any ordering property." },
-          { tag: "ul", items: [
-            "Post-order recursive search: each node is visited once to check if it equals either target, or to combine results from its children",
-            "On average, a significant portion of the tree must be explored before both targets are located: O(n)",
-            "For a BST specifically, the average case improves to O(log n) by exploiting the ordering invariant, identical to BST search's average case"
-          ]}
-        ],
-        worst: [
-          { tag: "h2", text: "Worst Case — O(n)" },
-          { tag: "p", text: "If the two target nodes are deep in different subtrees (or the entire tree must be searched to locate them), the general algorithm visits every node exactly once in the worst case." },
-          { tag: "ul", items: [
-            "Every node is visited exactly once in a post-order traversal: O(n)",
-            "For a BST, the worst case is O(h), which is O(n) for a degenerate unbalanced tree but O(log n) for a balanced one — same height dependency as plain BST operations",
-            "With O(n) preprocessing (binary lifting / Euler tour + sparse table), each individual query afterward drops to O(log n) or O(1), trading preprocessing cost for fast repeated queries"
-          ]}
-        ]
-      },
-
-      spaceComplexityCalculation: {
-        notation: "O(h)",
-        best: [
-          { tag: "h2", text: "Best Case Space — O(1)" },
-          { tag: "p", text: "If the LCA is found immediately at the root with no recursion needed, no additional stack space beyond the initial call is used." },
-          { tag: "ul", items: ["Single function call, no recursion: O(1)"] }
-        ],
-        average: [
-          { tag: "h2", text: "Average Case Space — O(h)" },
-          { tag: "p", text: "The recursive post-order search uses a call stack bounded by the tree's height, since the recursion follows root-to-leaf paths." },
-          { tag: "ul", items: ["Recursion stack depth: O(h), where h is the tree's height — O(log n) for a balanced tree"] }
-        ],
-        worst: [
-          { tag: "h2", text: "Worst Case Space — O(n)" },
-          { tag: "p", text: "For a degenerate, maximally-skewed tree, the recursion stack can grow to O(n), matching the tree's worst-case height." },
-          { tag: "ul", items: [
-            "Recursion stack: O(h), which is O(n) for a degenerate tree",
-            "Preprocessing-based approaches (binary lifting) trade this for O(n log n) upfront space in exchange for O(log n) query time regardless of tree shape"
-          ]}
-        ]
-      },
-
-      pseudoCodeandStepexplanation: [
-        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "p", text: "General binary tree LCA (works for any binary tree, not just a BST):" },
-        { tag: "code", language: "text", text:
-`function lowestCommonAncestor(root, p, q):
-    if root is null or root == p or root == q:
-        return root
-
-    left  ← lowestCommonAncestor(root.left, p, q)
-    right ← lowestCommonAncestor(root.right, p, q)
-
-    if left is not null and right is not null:
-        return root          // p and q found in different subtrees — root is the LCA
-    return left if left is not null else right` },
-        { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Base case: if the current node is null, or matches either target node, return it immediately — this is the signal that propagates 'I found one of the targets here' up through the recursion.",
-          "Recurse into both the left and right subtrees, searching for either target in each.",
-          "If both the left and right recursive calls return a non-null result, that means p was found in one subtree and q in the other — the current node is exactly where their paths diverge, making it the LCA.",
-          "If only one side returned a non-null result, that side contains either one or both targets — propagate that result upward unchanged, since the true LCA must be at or above that point.",
-          "The call on the original root eventually returns the LCA once the recursion fully unwinds."
-        ]},
-        { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Correctness follows from a key invariant: a non-null return value from a subtree's recursive call means that subtree contains at least one of the two target nodes (possibly both, if it's already found their LCA internally). When a node receives non-null results from BOTH its left and right recursive calls, this proves the two targets are split across its two subtrees — meaning this node is precisely the deepest node with both as descendants, satisfying the definition of LCA. If a node already equals one of the targets, it's correctly returned immediately, since (by definition) any node is its own ancestor, covering the edge case where one target is an ancestor of the other." }
-      ],
-      codes:{
-        "c++":`#include <iostream>
-using namespace std;
-
-struct TreeNode {
-    int id;
-    int value;
-    TreeNode* left;
-    TreeNode* right;
-
-    TreeNode(int id, int value) {
-        this->id = id;
-        this->value = value;
-        left = nullptr;
-        right = nullptr;
-    }
-};
-
-TreeNode* lowestCommonAncestor(TreeNode* node, int p, int q) {
-    if (node == nullptr)
-        return nullptr;
-
-    TreeNode* curr = node;
-
-    if (curr->value == p || curr->value == q)
-        return curr;
-
-    TreeNode* left = lowestCommonAncestor(curr->left, p, q);
-    TreeNode* right = lowestCommonAncestor(curr->right, p, q);
-
-    if (left != nullptr && right != nullptr)
-        return curr;
-
-    if (left != nullptr)
-        return left;
-
-    return right;
-}
-
-int main() {
-    TreeNode* root = new TreeNode(1, 3);
-
-    root->left = new TreeNode(2, 5);
-    root->right = new TreeNode(3, 1);
-
-    root->left->left = new TreeNode(4, 6);
-    root->left->right = new TreeNode(5, 2);
-
-    root->right->left = new TreeNode(6, 0);
-    root->right->right = new TreeNode(7, 8);
-
-    root->left->right->left = new TreeNode(8, 7);
-    root->left->right->right = new TreeNode(9, 4);
-
-    TreeNode* ans = lowestCommonAncestor(root, 5, 1);
-
-    cout << ans->value << endl;
-
-    ans = lowestCommonAncestor(root, 5, 4);
-
-    cout << ans->value << endl;
-
-    return 0;
-}
-`
-      }
-    },
-
-    /* ════════════════════════════════════════════════════════════════════
        5. RED-BLACK TREES
     ════════════════════════════════════════════════════════════════════ */
     {
@@ -6011,23 +4952,30 @@ int main() {
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "p", text: "High-level insertion logic (full rotation/recoloring case analysis is extensive; the core structure is shown here):" },
+        { tag: "p", text: "A NIL sentinel node (always colored black) is used in place of null pointers, which avoids special-casing null children when checking colors or performing rotations:" },
         { tag: "code", language: "text", text:
 `function insert(tree, key):
-    newNode ← new Node(key, color = RED)
-    bstInsert(tree, newNode)              // standard BST insertion
+    newNode ← new Node(key, color = RED, left = NIL, right = NIL)
+    bstInsert(tree, newNode)              // standard BST insertion using NIL as the leaf marker
+
+    if newNode.parent == NIL:
+        newNode.color ← BLACK              // inserted as the root
+        return
+    if newNode.parent.parent == NIL:
+        return                             // parent is the root; root is already black, no violation possible
+
     fixInsertViolations(tree, newNode)
 
 function fixInsertViolations(tree, node):
     while node.parent.color == RED:
-        if node.parent == node.grandparent.left:
-            uncle ← node.grandparent.right
+        if node.parent == node.parent.parent.left:
+            uncle ← node.parent.parent.right
             if uncle.color == RED:
                 // Case 1: uncle is red — recolor and move up
                 node.parent.color ← BLACK
                 uncle.color ← BLACK
-                node.grandparent.color ← RED
-                node ← node.grandparent
+                node.parent.parent.color ← RED
+                node ← node.parent.parent
             else:
                 if node == node.parent.right:
                     // Case 2: triangle shape — rotate to make it a line
@@ -6035,11 +4983,26 @@ function fixInsertViolations(tree, node):
                     rotateLeft(tree, node)
                 // Case 3: line shape — rotate and recolor
                 node.parent.color ← BLACK
-                node.grandparent.color ← RED
-                rotateRight(tree, node.grandparent)
+                node.parent.parent.color ← RED
+                rotateRight(tree, node.parent.parent)
         else:
-            // mirror image of the above, swapping left/right
-            ...
+            // mirror image of the above, swapping left/right throughout
+            uncle ← node.parent.parent.left
+            if uncle.color == RED:
+                node.parent.color ← BLACK
+                uncle.color ← BLACK
+                node.parent.parent.color ← RED
+                node ← node.parent.parent
+            else:
+                if node == node.parent.left:
+                    node ← node.parent
+                    rotateRight(tree, node)
+                node.parent.color ← BLACK
+                node.parent.parent.color ← RED
+                rotateLeft(tree, node.parent.parent)
+
+        if node == tree.root:
+            break
 
     tree.root.color ← BLACK                // rule: root is always black` },
         { tag: "h2", text: "Step-by-step reasoning" },
@@ -6047,134 +5010,2162 @@ function fixInsertViolations(tree, node):
           "Insert the new node exactly like a standard BST insertion, but always color it red initially — this never violates the black-height rule (rule 5), since a new red leaf doesn't add to any path's black-node count.",
           "Coloring the new node red CAN violate rule 4 (no two reds in a row) if its parent is also red — this is the only possible violation after a plain BST insertion, and it's fixed by examining the new node's 'uncle' (its grandparent's other child).",
           "If the uncle is red: recolor the parent and uncle to black and the grandparent to red, then continue the fix-up process treating the grandparent as the new 'node' — this can propagate the red-red violation further up the tree.",
-          "If the uncle is black (or absent): rotations are needed. A 'triangle' shape (node is on the opposite side of its parent than the parent is of the grandparent) is first rotated into a 'line' shape, then a single rotation plus a recolor of the parent/grandparent resolves the violation completely without needing to propagate further up.",
+          "If the uncle is black (or is the NIL sentinel, which counts as black): rotations are needed. A 'triangle' shape (node is on the opposite side of its parent than the parent is of the grandparent) is first rotated into a 'line' shape, then a single rotation plus a recolor of the parent/grandparent resolves the violation completely without needing to propagate further up.",
           "Finally, the root is always recolored black, satisfying rule 2 unconditionally — this can never violate the black-height rule, since lowering one red root to black only ever increases (or leaves unchanged) the black count of paths through it, uniformly across the whole tree."
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "The five Red-Black invariants together force a provable height bound: rule 4 (no two consecutive reds) means that on any root-to-leaf path, red nodes can never make up more than half the path, so the longest path is at most twice the length of the shortest. Rule 5 (equal black-height on every path) is what makes 'shortest path' a well-defined, consistent quantity. The fix-up procedure is correct because each of its three cases either resolves the violation completely (cases 2 and 3, via rotation) or provably preserves all other invariants while pushing the violation strictly higher up the tree (case 1, recoloring) — and since the tree has finite height, this propagation must terminate, either by reaching a black parent (no violation) or by reaching the root (which is then simply recolored black, always a safe final fix)." }
       ],
-      codes:{
-        "c++":`#include <iostream>
+      codes: {
+        "c++": `#include <iostream>
 using namespace std;
 
-struct TreeNode {
-    int value;
-    bool red;
-    TreeNode* left;
-    TreeNode* right;
-    TreeNode* parent;
+enum RedBlackColor { RED, BLACK };
 
-    TreeNode(int value) {
-        this->value = value;
-        red = true;
-        left = nullptr;
-        right = nullptr;
-        parent = nullptr;
-    }
+// A Red-Black tree node. A shared NIL sentinel (always black) is used in
+// place of null pointers, which lets every rotation and color check treat
+// "no child" uniformly, without extra null-guards scattered everywhere.
+struct RedBlackNode {
+    int value;
+    RedBlackColor color;
+    RedBlackNode* left;
+    RedBlackNode* right;
+    RedBlackNode* parent;
 };
 
-TreeNode* leftRotate(TreeNode* root, TreeNode* node) {
-    TreeNode* right = node->right;
+RedBlackNode* nilSentinel; // shared "null" node, always black
+RedBlackNode* treeRoot;
 
-    node->right = right->left;
-
-    if (right->left != nullptr)
-        right->left->parent = node;
-
-    right->parent = node->parent;
-
-    if (node->parent == nullptr)
-        root = right;
-    else if (node == node->parent->left)
-        node->parent->left = right;
-    else
-        node->parent->right = right;
-
-    right->left = node;
-    node->parent = right;
-
-    return root;
+// Allocates a new node. Newly inserted nodes always start red — this can
+// only ever violate the "no two reds in a row" rule, never the black-height
+// rule, which keeps the set of possible violations small and manageable.
+RedBlackNode* createNode(int value) {
+    RedBlackNode* node = new RedBlackNode();
+    node->value = value;
+    node->color = RED;
+    node->left = nilSentinel;
+    node->right = nilSentinel;
+    node->parent = nilSentinel;
+    return node;
 }
 
-TreeNode* rightRotate(TreeNode* root, TreeNode* node) {
-    TreeNode* left = node->left;
+// Rotates the subtree rooted at 'pivot' to the left, promoting its right
+// child to take its place.
+void rotateLeft(RedBlackNode* pivot) {
+    RedBlackNode* newSubtreeRoot = pivot->right;
+    pivot->right = newSubtreeRoot->left;
 
-    node->left = left->right;
+    if (newSubtreeRoot->left != nilSentinel) {
+        newSubtreeRoot->left->parent = pivot;
+    }
+    newSubtreeRoot->parent = pivot->parent;
 
-    if (left->right != nullptr)
-        left->right->parent = node;
+    if (pivot->parent == nilSentinel) {
+        treeRoot = newSubtreeRoot;
+    } else if (pivot == pivot->parent->left) {
+        pivot->parent->left = newSubtreeRoot;
+    } else {
+        pivot->parent->right = newSubtreeRoot;
+    }
 
-    left->parent = node->parent;
-
-    if (node->parent == nullptr)
-        root = left;
-    else if (node == node->parent->left)
-        node->parent->left = left;
-    else
-        node->parent->right = left;
-
-    left->right = node;
-    node->parent = left;
-
-    return root;
+    newSubtreeRoot->left = pivot;
+    pivot->parent = newSubtreeRoot;
 }
 
-void flipColors(TreeNode* node) {
-    node->red = !node->red;
+// Rotates the subtree rooted at 'pivot' to the right, promoting its left
+// child to take its place. Mirror image of rotateLeft.
+void rotateRight(RedBlackNode* pivot) {
+    RedBlackNode* newSubtreeRoot = pivot->left;
+    pivot->left = newSubtreeRoot->right;
 
-    if (node->left != nullptr)
-        node->left->red = !node->left->red;
+    if (newSubtreeRoot->right != nilSentinel) {
+        newSubtreeRoot->right->parent = pivot;
+    }
+    newSubtreeRoot->parent = pivot->parent;
 
-    if (node->right != nullptr)
-        node->right->red = !node->right->red;
+    if (pivot->parent == nilSentinel) {
+        treeRoot = newSubtreeRoot;
+    } else if (pivot == pivot->parent->right) {
+        pivot->parent->right = newSubtreeRoot;
+    } else {
+        pivot->parent->left = newSubtreeRoot;
+    }
+
+    newSubtreeRoot->right = pivot;
+    pivot->parent = newSubtreeRoot;
 }
 
-void inorder(TreeNode* node) {
-    if (node == nullptr)
+// Restores the Red-Black invariants after inserting 'currentNode', which
+// was just colored red by a plain BST insertion. Implements the standard
+// three-case fix-up (red uncle / triangle / line), mirrored for whichever
+// side the parent is on.
+void fixInsertViolations(RedBlackNode* currentNode) {
+    while (currentNode->parent->color == RED) {
+        if (currentNode->parent == currentNode->parent->parent->left) {
+            RedBlackNode* uncle = currentNode->parent->parent->right;
+
+            if (uncle->color == RED) {
+                // Case 1: uncle is red -- recolor and move the violation up.
+                currentNode->parent->color = BLACK;
+                uncle->color = BLACK;
+                currentNode->parent->parent->color = RED;
+                currentNode = currentNode->parent->parent;
+            } else {
+                if (currentNode == currentNode->parent->right) {
+                    // Case 2: triangle shape -- rotate to turn it into a line.
+                    currentNode = currentNode->parent;
+                    rotateLeft(currentNode);
+                }
+                // Case 3: line shape -- rotate and recolor to finish.
+                currentNode->parent->color = BLACK;
+                currentNode->parent->parent->color = RED;
+                rotateRight(currentNode->parent->parent);
+            }
+        } else {
+            // Mirror image: parent is a right child of the grandparent.
+            RedBlackNode* uncle = currentNode->parent->parent->left;
+
+            if (uncle->color == RED) {
+                currentNode->parent->color = BLACK;
+                uncle->color = BLACK;
+                currentNode->parent->parent->color = RED;
+                currentNode = currentNode->parent->parent;
+            } else {
+                if (currentNode == currentNode->parent->left) {
+                    currentNode = currentNode->parent;
+                    rotateRight(currentNode);
+                }
+                currentNode->parent->color = BLACK;
+                currentNode->parent->parent->color = RED;
+                rotateLeft(currentNode->parent->parent);
+            }
+        }
+
+        if (currentNode == treeRoot) break;
+    }
+
+    treeRoot->color = BLACK; // rule: the root is always black
+}
+
+// Inserts 'value' into the tree, then restores the Red-Black invariants.
+void insert(int value) {
+    RedBlackNode* newNode = createNode(value);
+    RedBlackNode* parent = nilSentinel;
+    RedBlackNode* current = treeRoot;
+
+    // Standard BST insertion search, using nilSentinel instead of null.
+    while (current != nilSentinel) {
+        parent = current;
+        if (newNode->value < current->value) {
+            current = current->left;
+        } else {
+            current = current->right;
+        }
+    }
+
+    newNode->parent = parent;
+    if (parent == nilSentinel) {
+        treeRoot = newNode;
+    } else if (newNode->value < parent->value) {
+        parent->left = newNode;
+    } else {
+        parent->right = newNode;
+    }
+
+    // If this is the very first node, it's the root: color it black and stop.
+    if (newNode->parent == nilSentinel) {
+        newNode->color = BLACK;
         return;
+    }
+    // If the parent is the root, the parent is already black -- no violation possible.
+    if (newNode->parent->parent == nilSentinel) {
+        return;
+    }
 
-    inorder(node->left);
+    fixInsertViolations(newNode);
+}
 
-    cout << node->value;
-
-    if (node->red)
-        cout << "(R) ";
-    else
-        cout << "(B) ";
-
-    inorder(node->right);
+// Prints the tree's values in ascending order, annotated with each node's
+// color (R for red, B for black).
+void printInOrder(RedBlackNode* node) {
+    if (node == nilSentinel) return;
+    printInOrder(node->left);
+    cout << node->value << (node->color == RED ? "R " : "B ");
+    printInOrder(node->right);
 }
 
 int main() {
-    TreeNode* root = new TreeNode(20);
-    root->red = false;
+    nilSentinel = new RedBlackNode();
+    nilSentinel->color = BLACK;
+    nilSentinel->left = nilSentinel;
+    nilSentinel->right = nilSentinel;
+    nilSentinel->parent = nilSentinel;
+    treeRoot = nilSentinel;
 
-    root->left = new TreeNode(10);
-    root->left->parent = root;
+    int valuesToInsert[] = {10, 20, 30, 15, 25, 5, 1, 40, 35, 22, 18, 8};
+    int valueCount = 12;
+    for (int i = 0; i < valueCount; i++) {
+        insert(valuesToInsert[i]);
+    }
 
-    root->right = new TreeNode(30);
-    root->right->parent = root;
-
-    root->right->right = new TreeNode(40);
-    root->right->right->parent = root->right;
-
-    cout << "Before Rotation:" << endl;
-    inorder(root);
+    cout << "In-order traversal (value + color): ";
+    printInOrder(treeRoot);
     cout << endl;
 
-    root = leftRotate(root, root);
-
-    cout << "After Left Rotation:" << endl;
-    inorder(root);
-    cout << endl;
-
-    flipColors(root);
-
-    cout << "After Color Flip:" << endl;
-    inorder(root);
-    cout << endl;
+    cout << "Root value: " << treeRoot->value << endl;
+    cout << "Root color: " << (treeRoot->color == BLACK ? "Black (required by rule 2)" : "Red (invalid!)") << endl;
 
     return 0;
+}
+`,
+        "python": `class Color:
+    """Simple enum-like constants for a node's color."""
+    RED = "RED"
+    BLACK = "BLACK"
+
+
+class RedBlackNode:
+    """A Red-Black tree node. A shared NIL sentinel (always black) is used
+    in place of None, which lets every rotation and color check treat
+    "no child" uniformly, without extra None-guards scattered everywhere."""
+
+    def __init__(self, value):
+        self.value = value
+        self.color = Color.RED  # newly inserted nodes always start red
+        self.left = None
+        self.right = None
+        self.parent = None
+
+
+class RedBlackTree:
+    def __init__(self):
+        self.nil = RedBlackNode(None)
+        self.nil.color = Color.BLACK
+        self.nil.left = self.nil
+        self.nil.right = self.nil
+        self.nil.parent = self.nil
+        self.root = self.nil
+
+    def rotate_left(self, pivot):
+        """Rotates the subtree rooted at 'pivot' to the left, promoting its
+        right child to take its place."""
+        new_subtree_root = pivot.right
+        pivot.right = new_subtree_root.left
+
+        if new_subtree_root.left is not self.nil:
+            new_subtree_root.left.parent = pivot
+        new_subtree_root.parent = pivot.parent
+
+        if pivot.parent is self.nil:
+            self.root = new_subtree_root
+        elif pivot is pivot.parent.left:
+            pivot.parent.left = new_subtree_root
+        else:
+            pivot.parent.right = new_subtree_root
+
+        new_subtree_root.left = pivot
+        pivot.parent = new_subtree_root
+
+    def rotate_right(self, pivot):
+        """Rotates the subtree rooted at 'pivot' to the right, promoting its
+        left child to take its place. Mirror image of rotate_left."""
+        new_subtree_root = pivot.left
+        pivot.left = new_subtree_root.right
+
+        if new_subtree_root.right is not self.nil:
+            new_subtree_root.right.parent = pivot
+        new_subtree_root.parent = pivot.parent
+
+        if pivot.parent is self.nil:
+            self.root = new_subtree_root
+        elif pivot is pivot.parent.right:
+            pivot.parent.right = new_subtree_root
+        else:
+            pivot.parent.left = new_subtree_root
+
+        new_subtree_root.right = pivot
+        pivot.parent = new_subtree_root
+
+    def fix_insert_violations(self, current_node):
+        """Restores the Red-Black invariants after inserting 'current_node',
+        which was just colored red by a plain BST insertion. Implements the
+        standard three-case fix-up (red uncle / triangle / line), mirrored
+        for whichever side the parent is on."""
+        while current_node.parent.color == Color.RED:
+            if current_node.parent is current_node.parent.parent.left:
+                uncle = current_node.parent.parent.right
+
+                if uncle.color == Color.RED:
+                    # Case 1: uncle is red -- recolor and move the violation up.
+                    current_node.parent.color = Color.BLACK
+                    uncle.color = Color.BLACK
+                    current_node.parent.parent.color = Color.RED
+                    current_node = current_node.parent.parent
+                else:
+                    if current_node is current_node.parent.right:
+                        # Case 2: triangle shape -- rotate into a line.
+                        current_node = current_node.parent
+                        self.rotate_left(current_node)
+                    # Case 3: line shape -- rotate and recolor to finish.
+                    current_node.parent.color = Color.BLACK
+                    current_node.parent.parent.color = Color.RED
+                    self.rotate_right(current_node.parent.parent)
+            else:
+                # Mirror image: parent is a right child of the grandparent.
+                uncle = current_node.parent.parent.left
+
+                if uncle.color == Color.RED:
+                    current_node.parent.color = Color.BLACK
+                    uncle.color = Color.BLACK
+                    current_node.parent.parent.color = Color.RED
+                    current_node = current_node.parent.parent
+                else:
+                    if current_node is current_node.parent.left:
+                        current_node = current_node.parent
+                        self.rotate_right(current_node)
+                    current_node.parent.color = Color.BLACK
+                    current_node.parent.parent.color = Color.RED
+                    self.rotate_left(current_node.parent.parent)
+
+            if current_node is self.root:
+                break
+
+        self.root.color = Color.BLACK  # rule: the root is always black
+
+    def insert(self, value):
+        """Inserts 'value' into the tree, then restores the Red-Black
+        invariants."""
+        new_node = RedBlackNode(value)
+        new_node.left = self.nil
+        new_node.right = self.nil
+        new_node.parent = self.nil
+
+        parent = self.nil
+        current = self.root
+
+        # Standard BST insertion search, using self.nil instead of None.
+        while current is not self.nil:
+            parent = current
+            if new_node.value < current.value:
+                current = current.left
+            else:
+                current = current.right
+
+        new_node.parent = parent
+        if parent is self.nil:
+            self.root = new_node
+        elif new_node.value < parent.value:
+            parent.left = new_node
+        else:
+            parent.right = new_node
+
+        # If this is the very first node, it's the root: color it black and stop.
+        if new_node.parent is self.nil:
+            new_node.color = Color.BLACK
+            return
+        # If the parent is the root, the parent is already black -- no violation possible.
+        if new_node.parent.parent is self.nil:
+            return
+
+        self.fix_insert_violations(new_node)
+
+    def collect_in_order(self, node, output):
+        """Collects the tree's values in ascending order, annotated with
+        each node's color (R for red, B for black)."""
+        if node is self.nil:
+            return
+        self.collect_in_order(node.left, output)
+        output.append(f"{node.value}{'R' if node.color == Color.RED else 'B'}")
+        self.collect_in_order(node.right, output)
+
+
+if __name__ == "__main__":
+    tree = RedBlackTree()
+
+    values_to_insert = [10, 20, 30, 15, 25, 5, 1, 40, 35, 22, 18, 8]
+    for value in values_to_insert:
+        tree.insert(value)
+
+    in_order_result = []
+    tree.collect_in_order(tree.root, in_order_result)
+    print("In-order traversal (value + color):", " ".join(in_order_result))
+
+    print("Root value:", tree.root.value)
+    print("Root color:", "Black (required by rule 2)" if tree.root.color == Color.BLACK else "Red (invalid!)")
+`,
+        "java": `public class RedBlackTree {
+
+    enum Color { RED, BLACK }
+
+    // A Red-Black tree node. A shared NIL sentinel (always black) is used
+    // in place of null, which lets every rotation and color check treat
+    // "no child" uniformly, without extra null-guards scattered everywhere.
+    static class RedBlackNode {
+        int value;
+        Color color;
+        RedBlackNode left;
+        RedBlackNode right;
+        RedBlackNode parent;
+
+        RedBlackNode(int value) {
+            this.value = value;
+            this.color = Color.RED; // newly inserted nodes always start red
+        }
+    }
+
+    static RedBlackNode nilSentinel;
+    static RedBlackNode treeRoot;
+
+    // Rotates the subtree rooted at 'pivot' to the left, promoting its
+    // right child to take its place.
+    static void rotateLeft(RedBlackNode pivot) {
+        RedBlackNode newSubtreeRoot = pivot.right;
+        pivot.right = newSubtreeRoot.left;
+
+        if (newSubtreeRoot.left != nilSentinel) {
+            newSubtreeRoot.left.parent = pivot;
+        }
+        newSubtreeRoot.parent = pivot.parent;
+
+        if (pivot.parent == nilSentinel) {
+            treeRoot = newSubtreeRoot;
+        } else if (pivot == pivot.parent.left) {
+            pivot.parent.left = newSubtreeRoot;
+        } else {
+            pivot.parent.right = newSubtreeRoot;
+        }
+
+        newSubtreeRoot.left = pivot;
+        pivot.parent = newSubtreeRoot;
+    }
+
+    // Rotates the subtree rooted at 'pivot' to the right, promoting its
+    // left child to take its place. Mirror image of rotateLeft.
+    static void rotateRight(RedBlackNode pivot) {
+        RedBlackNode newSubtreeRoot = pivot.left;
+        pivot.left = newSubtreeRoot.right;
+
+        if (newSubtreeRoot.right != nilSentinel) {
+            newSubtreeRoot.right.parent = pivot;
+        }
+        newSubtreeRoot.parent = pivot.parent;
+
+        if (pivot.parent == nilSentinel) {
+            treeRoot = newSubtreeRoot;
+        } else if (pivot == pivot.parent.right) {
+            pivot.parent.right = newSubtreeRoot;
+        } else {
+            pivot.parent.left = newSubtreeRoot;
+        }
+
+        newSubtreeRoot.right = pivot;
+        pivot.parent = newSubtreeRoot;
+    }
+
+    // Restores the Red-Black invariants after inserting 'currentNode',
+    // which was just colored red by a plain BST insertion.
+    static void fixInsertViolations(RedBlackNode currentNode) {
+        while (currentNode.parent.color == Color.RED) {
+            if (currentNode.parent == currentNode.parent.parent.left) {
+                RedBlackNode uncle = currentNode.parent.parent.right;
+
+                if (uncle.color == Color.RED) {
+                    // Case 1: uncle is red -- recolor and move the violation up.
+                    currentNode.parent.color = Color.BLACK;
+                    uncle.color = Color.BLACK;
+                    currentNode.parent.parent.color = Color.RED;
+                    currentNode = currentNode.parent.parent;
+                } else {
+                    if (currentNode == currentNode.parent.right) {
+                        // Case 2: triangle shape -- rotate into a line.
+                        currentNode = currentNode.parent;
+                        rotateLeft(currentNode);
+                    }
+                    // Case 3: line shape -- rotate and recolor to finish.
+                    currentNode.parent.color = Color.BLACK;
+                    currentNode.parent.parent.color = Color.RED;
+                    rotateRight(currentNode.parent.parent);
+                }
+            } else {
+                // Mirror image: parent is a right child of the grandparent.
+                RedBlackNode uncle = currentNode.parent.parent.left;
+
+                if (uncle.color == Color.RED) {
+                    currentNode.parent.color = Color.BLACK;
+                    uncle.color = Color.BLACK;
+                    currentNode.parent.parent.color = Color.RED;
+                    currentNode = currentNode.parent.parent;
+                } else {
+                    if (currentNode == currentNode.parent.left) {
+                        currentNode = currentNode.parent;
+                        rotateRight(currentNode);
+                    }
+                    currentNode.parent.color = Color.BLACK;
+                    currentNode.parent.parent.color = Color.RED;
+                    rotateLeft(currentNode.parent.parent);
+                }
+            }
+
+            if (currentNode == treeRoot) break;
+        }
+
+        treeRoot.color = Color.BLACK; // rule: the root is always black
+    }
+
+    // Inserts 'value' into the tree, then restores the Red-Black invariants.
+    static void insert(int value) {
+        RedBlackNode newNode = new RedBlackNode(value);
+        newNode.left = nilSentinel;
+        newNode.right = nilSentinel;
+        newNode.parent = nilSentinel;
+
+        RedBlackNode parent = nilSentinel;
+        RedBlackNode current = treeRoot;
+
+        while (current != nilSentinel) {
+            parent = current;
+            if (newNode.value < current.value) {
+                current = current.left;
+            } else {
+                current = current.right;
+            }
+        }
+
+        newNode.parent = parent;
+        if (parent == nilSentinel) {
+            treeRoot = newNode;
+        } else if (newNode.value < parent.value) {
+            parent.left = newNode;
+        } else {
+            parent.right = newNode;
+        }
+
+        if (newNode.parent == nilSentinel) {
+            newNode.color = Color.BLACK;
+            return;
+        }
+        if (newNode.parent.parent == nilSentinel) {
+            return;
+        }
+
+        fixInsertViolations(newNode);
+    }
+
+    // Appends the tree's values in ascending order, annotated with each
+    // node's color (R for red, B for black).
+    static void printInOrder(RedBlackNode node, StringBuilder output) {
+        if (node == nilSentinel) return;
+        printInOrder(node.left, output);
+        output.append(node.value).append(node.color == Color.RED ? "R " : "B ");
+        printInOrder(node.right, output);
+    }
+
+    public static void main(String[] args) {
+        nilSentinel = new RedBlackNode(0);
+        nilSentinel.color = Color.BLACK;
+        nilSentinel.left = nilSentinel;
+        nilSentinel.right = nilSentinel;
+        nilSentinel.parent = nilSentinel;
+        treeRoot = nilSentinel;
+
+        int[] valuesToInsert = {10, 20, 30, 15, 25, 5, 1, 40, 35, 22, 18, 8};
+        for (int value : valuesToInsert) {
+            insert(value);
+        }
+
+        StringBuilder inOrderOutput = new StringBuilder();
+        printInOrder(treeRoot, inOrderOutput);
+        System.out.println("In-order traversal (value + color): " + inOrderOutput.toString().trim());
+
+        System.out.println("Root value: " + treeRoot.value);
+        System.out.println("Root color: " + (treeRoot.color == Color.BLACK ? "Black (required by rule 2)" : "Red (invalid!)"));
+    }
+}
+`,
+        "js": `const Color = Object.freeze({ RED: "RED", BLACK: "BLACK" });
+
+// A Red-Black tree node. A shared NIL sentinel (always black) is used in
+// place of null, which lets every rotation and color check treat
+// "no child" uniformly, without extra null-guards scattered everywhere.
+class RedBlackNode {
+    constructor(value) {
+        this.value = value;
+        this.color = Color.RED; // newly inserted nodes always start red
+        this.left = null;
+        this.right = null;
+        this.parent = null;
+    }
+}
+
+let nilSentinel;
+let treeRoot;
+
+// Rotates the subtree rooted at 'pivot' to the left, promoting its right
+// child to take its place.
+function rotateLeft(pivot) {
+    const newSubtreeRoot = pivot.right;
+    pivot.right = newSubtreeRoot.left;
+
+    if (newSubtreeRoot.left !== nilSentinel) {
+        newSubtreeRoot.left.parent = pivot;
+    }
+    newSubtreeRoot.parent = pivot.parent;
+
+    if (pivot.parent === nilSentinel) {
+        treeRoot = newSubtreeRoot;
+    } else if (pivot === pivot.parent.left) {
+        pivot.parent.left = newSubtreeRoot;
+    } else {
+        pivot.parent.right = newSubtreeRoot;
+    }
+
+    newSubtreeRoot.left = pivot;
+    pivot.parent = newSubtreeRoot;
+}
+
+// Rotates the subtree rooted at 'pivot' to the right, promoting its left
+// child to take its place. Mirror image of rotateLeft.
+function rotateRight(pivot) {
+    const newSubtreeRoot = pivot.left;
+    pivot.left = newSubtreeRoot.right;
+
+    if (newSubtreeRoot.right !== nilSentinel) {
+        newSubtreeRoot.right.parent = pivot;
+    }
+    newSubtreeRoot.parent = pivot.parent;
+
+    if (pivot.parent === nilSentinel) {
+        treeRoot = newSubtreeRoot;
+    } else if (pivot === pivot.parent.right) {
+        pivot.parent.right = newSubtreeRoot;
+    } else {
+        pivot.parent.left = newSubtreeRoot;
+    }
+
+    newSubtreeRoot.right = pivot;
+    pivot.parent = newSubtreeRoot;
+}
+
+// Restores the Red-Black invariants after inserting 'currentNode', which
+// was just colored red by a plain BST insertion.
+function fixInsertViolations(currentNode) {
+    while (currentNode.parent.color === Color.RED) {
+        if (currentNode.parent === currentNode.parent.parent.left) {
+            const uncle = currentNode.parent.parent.right;
+
+            if (uncle.color === Color.RED) {
+                // Case 1: uncle is red -- recolor and move the violation up.
+                currentNode.parent.color = Color.BLACK;
+                uncle.color = Color.BLACK;
+                currentNode.parent.parent.color = Color.RED;
+                currentNode = currentNode.parent.parent;
+            } else {
+                if (currentNode === currentNode.parent.right) {
+                    // Case 2: triangle shape -- rotate into a line.
+                    currentNode = currentNode.parent;
+                    rotateLeft(currentNode);
+                }
+                // Case 3: line shape -- rotate and recolor to finish.
+                currentNode.parent.color = Color.BLACK;
+                currentNode.parent.parent.color = Color.RED;
+                rotateRight(currentNode.parent.parent);
+            }
+        } else {
+            // Mirror image: parent is a right child of the grandparent.
+            const uncle = currentNode.parent.parent.left;
+
+            if (uncle.color === Color.RED) {
+                currentNode.parent.color = Color.BLACK;
+                uncle.color = Color.BLACK;
+                currentNode.parent.parent.color = Color.RED;
+                currentNode = currentNode.parent.parent;
+            } else {
+                if (currentNode === currentNode.parent.left) {
+                    currentNode = currentNode.parent;
+                    rotateRight(currentNode);
+                }
+                currentNode.parent.color = Color.BLACK;
+                currentNode.parent.parent.color = Color.RED;
+                rotateLeft(currentNode.parent.parent);
+            }
+        }
+
+        if (currentNode === treeRoot) break;
+    }
+
+    treeRoot.color = Color.BLACK; // rule: the root is always black
+}
+
+// Inserts 'value' into the tree, then restores the Red-Black invariants.
+function insert(value) {
+    const newNode = new RedBlackNode(value);
+    newNode.left = nilSentinel;
+    newNode.right = nilSentinel;
+    newNode.parent = nilSentinel;
+
+    let parent = nilSentinel;
+    let current = treeRoot;
+
+    while (current !== nilSentinel) {
+        parent = current;
+        if (newNode.value < current.value) {
+            current = current.left;
+        } else {
+            current = current.right;
+        }
+    }
+
+    newNode.parent = parent;
+    if (parent === nilSentinel) {
+        treeRoot = newNode;
+    } else if (newNode.value < parent.value) {
+        parent.left = newNode;
+    } else {
+        parent.right = newNode;
+    }
+
+    if (newNode.parent === nilSentinel) {
+        newNode.color = Color.BLACK;
+        return;
+    }
+    if (newNode.parent.parent === nilSentinel) {
+        return;
+    }
+
+    fixInsertViolations(newNode);
+}
+
+// Collects the tree's values in ascending order, annotated with each
+// node's color (R for red, B for black).
+function collectInOrder(node, output) {
+    if (node === nilSentinel) return;
+    collectInOrder(node.left, output);
+    output.push(\`\${node.value}\${node.color === Color.RED ? "R" : "B"}\`);
+    collectInOrder(node.right, output);
+}
+
+nilSentinel = new RedBlackNode(null);
+nilSentinel.color = Color.BLACK;
+nilSentinel.left = nilSentinel;
+nilSentinel.right = nilSentinel;
+nilSentinel.parent = nilSentinel;
+treeRoot = nilSentinel;
+
+const valuesToInsert = [10, 20, 30, 15, 25, 5, 1, 40, 35, 22, 18, 8];
+for (const value of valuesToInsert) {
+    insert(value);
+}
+
+const inOrderResult = [];
+collectInOrder(treeRoot, inOrderResult);
+console.log("In-order traversal (value + color):", inOrderResult.join(" "));
+
+console.log("Root value:", treeRoot.value);
+console.log("Root color:", treeRoot.color === Color.BLACK ? "Black (required by rule 2)" : "Red (invalid!)");
+`,
+        "c": `#include <stdio.h>
+#include <stdlib.h>
+
+typedef enum { RED, BLACK } RedBlackColor;
+
+// A Red-Black tree node. A shared NIL sentinel (always black) is used in
+// place of NULL, which lets every rotation and color check treat
+// "no child" uniformly, without extra NULL-guards scattered everywhere.
+typedef struct RedBlackNode {
+    int value;
+    RedBlackColor color;
+    struct RedBlackNode* left;
+    struct RedBlackNode* right;
+    struct RedBlackNode* parent;
+} RedBlackNode;
+
+RedBlackNode* nilSentinel;
+RedBlackNode* treeRoot;
+
+// Allocates a new node. Newly inserted nodes always start red.
+RedBlackNode* createNode(int value) {
+    RedBlackNode* node = (RedBlackNode*)malloc(sizeof(RedBlackNode));
+    node->value = value;
+    node->color = RED;
+    node->left = nilSentinel;
+    node->right = nilSentinel;
+    node->parent = nilSentinel;
+    return node;
+}
+
+// Rotates the subtree rooted at 'pivot' to the left, promoting its right
+// child to take its place.
+void rotateLeft(RedBlackNode* pivot) {
+    RedBlackNode* newSubtreeRoot = pivot->right;
+    pivot->right = newSubtreeRoot->left;
+
+    if (newSubtreeRoot->left != nilSentinel) {
+        newSubtreeRoot->left->parent = pivot;
+    }
+    newSubtreeRoot->parent = pivot->parent;
+
+    if (pivot->parent == nilSentinel) {
+        treeRoot = newSubtreeRoot;
+    } else if (pivot == pivot->parent->left) {
+        pivot->parent->left = newSubtreeRoot;
+    } else {
+        pivot->parent->right = newSubtreeRoot;
+    }
+
+    newSubtreeRoot->left = pivot;
+    pivot->parent = newSubtreeRoot;
+}
+
+// Rotates the subtree rooted at 'pivot' to the right, promoting its left
+// child to take its place. Mirror image of rotateLeft.
+void rotateRight(RedBlackNode* pivot) {
+    RedBlackNode* newSubtreeRoot = pivot->left;
+    pivot->left = newSubtreeRoot->right;
+
+    if (newSubtreeRoot->right != nilSentinel) {
+        newSubtreeRoot->right->parent = pivot;
+    }
+    newSubtreeRoot->parent = pivot->parent;
+
+    if (pivot->parent == nilSentinel) {
+        treeRoot = newSubtreeRoot;
+    } else if (pivot == pivot->parent->right) {
+        pivot->parent->right = newSubtreeRoot;
+    } else {
+        pivot->parent->left = newSubtreeRoot;
+    }
+
+    newSubtreeRoot->right = pivot;
+    pivot->parent = newSubtreeRoot;
+}
+
+// Restores the Red-Black invariants after inserting 'currentNode', which
+// was just colored red by a plain BST insertion.
+void fixInsertViolations(RedBlackNode* currentNode) {
+    while (currentNode->parent->color == RED) {
+        if (currentNode->parent == currentNode->parent->parent->left) {
+            RedBlackNode* uncle = currentNode->parent->parent->right;
+
+            if (uncle->color == RED) {
+                currentNode->parent->color = BLACK;
+                uncle->color = BLACK;
+                currentNode->parent->parent->color = RED;
+                currentNode = currentNode->parent->parent;
+            } else {
+                if (currentNode == currentNode->parent->right) {
+                    currentNode = currentNode->parent;
+                    rotateLeft(currentNode);
+                }
+                currentNode->parent->color = BLACK;
+                currentNode->parent->parent->color = RED;
+                rotateRight(currentNode->parent->parent);
+            }
+        } else {
+            RedBlackNode* uncle = currentNode->parent->parent->left;
+
+            if (uncle->color == RED) {
+                currentNode->parent->color = BLACK;
+                uncle->color = BLACK;
+                currentNode->parent->parent->color = RED;
+                currentNode = currentNode->parent->parent;
+            } else {
+                if (currentNode == currentNode->parent->left) {
+                    currentNode = currentNode->parent;
+                    rotateRight(currentNode);
+                }
+                currentNode->parent->color = BLACK;
+                currentNode->parent->parent->color = RED;
+                rotateLeft(currentNode->parent->parent);
+            }
+        }
+
+        if (currentNode == treeRoot) break;
+    }
+
+    treeRoot->color = BLACK;
+}
+
+// Inserts 'value' into the tree, then restores the Red-Black invariants.
+void insert(int value) {
+    RedBlackNode* newNode = createNode(value);
+    RedBlackNode* parent = nilSentinel;
+    RedBlackNode* current = treeRoot;
+
+    while (current != nilSentinel) {
+        parent = current;
+        if (newNode->value < current->value) {
+            current = current->left;
+        } else {
+            current = current->right;
+        }
+    }
+
+    newNode->parent = parent;
+    if (parent == nilSentinel) {
+        treeRoot = newNode;
+    } else if (newNode->value < parent->value) {
+        parent->left = newNode;
+    } else {
+        parent->right = newNode;
+    }
+
+    if (newNode->parent == nilSentinel) {
+        newNode->color = BLACK;
+        return;
+    }
+    if (newNode->parent->parent == nilSentinel) {
+        return;
+    }
+
+    fixInsertViolations(newNode);
+}
+
+// Prints the tree's values in ascending order, annotated with each node's
+// color (R for red, B for black).
+void printInOrder(RedBlackNode* node) {
+    if (node == nilSentinel) return;
+    printInOrder(node->left);
+    printf("%d%c ", node->value, node->color == RED ? 'R' : 'B');
+    printInOrder(node->right);
+}
+
+int main(void) {
+    nilSentinel = (RedBlackNode*)malloc(sizeof(RedBlackNode));
+    nilSentinel->color = BLACK;
+    nilSentinel->left = nilSentinel;
+    nilSentinel->right = nilSentinel;
+    nilSentinel->parent = nilSentinel;
+    treeRoot = nilSentinel;
+
+    int valuesToInsert[] = {10, 20, 30, 15, 25, 5, 1, 40, 35, 22, 18, 8};
+    int valueCount = 12;
+    for (int i = 0; i < valueCount; i++) {
+        insert(valuesToInsert[i]);
+    }
+
+    printf("In-order traversal (value + color): ");
+    printInOrder(treeRoot);
+    printf("\n");
+
+    printf("Root value: %d\n", treeRoot->value);
+    printf("Root color: %s\n", treeRoot->color == BLACK ? "Black (required by rule 2)" : "Red (invalid!)");
+
+    return 0;
+}
+`,
+        "c#": `using System;
+using System.Text;
+
+public static class RedBlackTree {
+
+    enum Color { RED, BLACK }
+
+    // A Red-Black tree node. A shared NIL sentinel (always black) is used
+    // in place of null, which lets every rotation and color check treat
+    // "no child" uniformly, without extra null-guards scattered everywhere.
+    class RedBlackNode {
+        public int Value;
+        public Color NodeColor;
+        public RedBlackNode Left;
+        public RedBlackNode Right;
+        public RedBlackNode Parent;
+
+        public RedBlackNode(int value) {
+            Value = value;
+            NodeColor = Color.RED; // newly inserted nodes always start red
+        }
+    }
+
+    static RedBlackNode nilSentinel;
+    static RedBlackNode treeRoot;
+
+    // Rotates the subtree rooted at 'pivot' to the left, promoting its
+    // right child to take its place.
+    static void RotateLeft(RedBlackNode pivot) {
+        RedBlackNode newSubtreeRoot = pivot.Right;
+        pivot.Right = newSubtreeRoot.Left;
+
+        if (newSubtreeRoot.Left != nilSentinel) {
+            newSubtreeRoot.Left.Parent = pivot;
+        }
+        newSubtreeRoot.Parent = pivot.Parent;
+
+        if (pivot.Parent == nilSentinel) {
+            treeRoot = newSubtreeRoot;
+        } else if (pivot == pivot.Parent.Left) {
+            pivot.Parent.Left = newSubtreeRoot;
+        } else {
+            pivot.Parent.Right = newSubtreeRoot;
+        }
+
+        newSubtreeRoot.Left = pivot;
+        pivot.Parent = newSubtreeRoot;
+    }
+
+    // Rotates the subtree rooted at 'pivot' to the right, promoting its
+    // left child to take its place. Mirror image of RotateLeft.
+    static void RotateRight(RedBlackNode pivot) {
+        RedBlackNode newSubtreeRoot = pivot.Left;
+        pivot.Left = newSubtreeRoot.Right;
+
+        if (newSubtreeRoot.Right != nilSentinel) {
+            newSubtreeRoot.Right.Parent = pivot;
+        }
+        newSubtreeRoot.Parent = pivot.Parent;
+
+        if (pivot.Parent == nilSentinel) {
+            treeRoot = newSubtreeRoot;
+        } else if (pivot == pivot.Parent.Right) {
+            pivot.Parent.Right = newSubtreeRoot;
+        } else {
+            pivot.Parent.Left = newSubtreeRoot;
+        }
+
+        newSubtreeRoot.Right = pivot;
+        pivot.Parent = newSubtreeRoot;
+    }
+
+    // Restores the Red-Black invariants after inserting 'currentNode',
+    // which was just colored red by a plain BST insertion.
+    static void FixInsertViolations(RedBlackNode currentNode) {
+        while (currentNode.Parent.NodeColor == Color.RED) {
+            if (currentNode.Parent == currentNode.Parent.Parent.Left) {
+                RedBlackNode uncle = currentNode.Parent.Parent.Right;
+
+                if (uncle.NodeColor == Color.RED) {
+                    currentNode.Parent.NodeColor = Color.BLACK;
+                    uncle.NodeColor = Color.BLACK;
+                    currentNode.Parent.Parent.NodeColor = Color.RED;
+                    currentNode = currentNode.Parent.Parent;
+                } else {
+                    if (currentNode == currentNode.Parent.Right) {
+                        currentNode = currentNode.Parent;
+                        RotateLeft(currentNode);
+                    }
+                    currentNode.Parent.NodeColor = Color.BLACK;
+                    currentNode.Parent.Parent.NodeColor = Color.RED;
+                    RotateRight(currentNode.Parent.Parent);
+                }
+            } else {
+                RedBlackNode uncle = currentNode.Parent.Parent.Left;
+
+                if (uncle.NodeColor == Color.RED) {
+                    currentNode.Parent.NodeColor = Color.BLACK;
+                    uncle.NodeColor = Color.BLACK;
+                    currentNode.Parent.Parent.NodeColor = Color.RED;
+                    currentNode = currentNode.Parent.Parent;
+                } else {
+                    if (currentNode == currentNode.Parent.Left) {
+                        currentNode = currentNode.Parent;
+                        RotateRight(currentNode);
+                    }
+                    currentNode.Parent.NodeColor = Color.BLACK;
+                    currentNode.Parent.Parent.NodeColor = Color.RED;
+                    RotateLeft(currentNode.Parent.Parent);
+                }
+            }
+
+            if (currentNode == treeRoot) break;
+        }
+
+        treeRoot.NodeColor = Color.BLACK;
+    }
+
+    // Inserts 'value' into the tree, then restores the Red-Black invariants.
+    static void Insert(int value) {
+        RedBlackNode newNode = new RedBlackNode(value);
+        newNode.Left = nilSentinel;
+        newNode.Right = nilSentinel;
+        newNode.Parent = nilSentinel;
+
+        RedBlackNode parent = nilSentinel;
+        RedBlackNode current = treeRoot;
+
+        while (current != nilSentinel) {
+            parent = current;
+            if (newNode.Value < current.Value) {
+                current = current.Left;
+            } else {
+                current = current.Right;
+            }
+        }
+
+        newNode.Parent = parent;
+        if (parent == nilSentinel) {
+            treeRoot = newNode;
+        } else if (newNode.Value < parent.Value) {
+            parent.Left = newNode;
+        } else {
+            parent.Right = newNode;
+        }
+
+        if (newNode.Parent == nilSentinel) {
+            newNode.NodeColor = Color.BLACK;
+            return;
+        }
+        if (newNode.Parent.Parent == nilSentinel) {
+            return;
+        }
+
+        FixInsertViolations(newNode);
+    }
+
+    // Appends the tree's values in ascending order, annotated with each
+    // node's color (R for red, B for black).
+    static void PrintInOrder(RedBlackNode node, StringBuilder output) {
+        if (node == nilSentinel) return;
+        PrintInOrder(node.Left, output);
+        output.Append(node.Value).Append(node.NodeColor == Color.RED ? "R " : "B ");
+        PrintInOrder(node.Right, output);
+    }
+
+    public static void Main() {
+        nilSentinel = new RedBlackNode(0);
+        nilSentinel.NodeColor = Color.BLACK;
+        nilSentinel.Left = nilSentinel;
+        nilSentinel.Right = nilSentinel;
+        nilSentinel.Parent = nilSentinel;
+        treeRoot = nilSentinel;
+
+        int[] valuesToInsert = {10, 20, 30, 15, 25, 5, 1, 40, 35, 22, 18, 8};
+        foreach (int value in valuesToInsert) {
+            Insert(value);
+        }
+
+        var inOrderOutput = new StringBuilder();
+        PrintInOrder(treeRoot, inOrderOutput);
+        Console.WriteLine("In-order traversal (value + color): " + inOrderOutput.ToString().Trim());
+
+        Console.WriteLine("Root value: " + treeRoot.Value);
+        Console.WriteLine("Root color: " + (treeRoot.NodeColor == Color.BLACK ? "Black (required by rule 2)" : "Red (invalid!)"));
+    }
+}
+`,
+        "swift": `import Foundation
+
+enum RedBlackColor {
+    case red
+    case black
+}
+
+// A Red-Black tree node. A shared NIL sentinel (always black) is used in
+// place of nil, which lets every rotation and color check treat
+// "no child" uniformly, without extra optional-unwrapping everywhere.
+final class RedBlackNode {
+    var value: Int
+    var color: RedBlackColor = .red // newly inserted nodes always start red
+    var left: RedBlackNode!
+    var right: RedBlackNode!
+    var parent: RedBlackNode!
+
+    init(_ value: Int) {
+        self.value = value
+    }
+}
+
+var nilSentinel: RedBlackNode!
+var treeRoot: RedBlackNode!
+
+// Rotates the subtree rooted at 'pivot' to the left, promoting its right
+// child to take its place.
+func rotateLeft(_ pivot: RedBlackNode) {
+    let newSubtreeRoot = pivot.right!
+    pivot.right = newSubtreeRoot.left
+
+    if newSubtreeRoot.left !== nilSentinel {
+        newSubtreeRoot.left.parent = pivot
+    }
+    newSubtreeRoot.parent = pivot.parent
+
+    if pivot.parent === nilSentinel {
+        treeRoot = newSubtreeRoot
+    } else if pivot === pivot.parent.left {
+        pivot.parent.left = newSubtreeRoot
+    } else {
+        pivot.parent.right = newSubtreeRoot
+    }
+
+    newSubtreeRoot.left = pivot
+    pivot.parent = newSubtreeRoot
+}
+
+// Rotates the subtree rooted at 'pivot' to the right, promoting its left
+// child to take its place. Mirror image of rotateLeft.
+func rotateRight(_ pivot: RedBlackNode) {
+    let newSubtreeRoot = pivot.left!
+    pivot.left = newSubtreeRoot.right
+
+    if newSubtreeRoot.right !== nilSentinel {
+        newSubtreeRoot.right.parent = pivot
+    }
+    newSubtreeRoot.parent = pivot.parent
+
+    if pivot.parent === nilSentinel {
+        treeRoot = newSubtreeRoot
+    } else if pivot === pivot.parent.right {
+        pivot.parent.right = newSubtreeRoot
+    } else {
+        pivot.parent.left = newSubtreeRoot
+    }
+
+    newSubtreeRoot.right = pivot
+    pivot.parent = newSubtreeRoot
+}
+
+// Restores the Red-Black invariants after inserting 'startNode', which was
+// just colored red by a plain BST insertion.
+func fixInsertViolations(_ startNode: RedBlackNode) {
+    var currentNode = startNode
+
+    while currentNode.parent.color == .red {
+        if currentNode.parent === currentNode.parent.parent.left {
+            let uncle = currentNode.parent.parent.right!
+
+            if uncle.color == .red {
+                currentNode.parent.color = .black
+                uncle.color = .black
+                currentNode.parent.parent.color = .red
+                currentNode = currentNode.parent.parent
+            } else {
+                if currentNode === currentNode.parent.right {
+                    currentNode = currentNode.parent
+                    rotateLeft(currentNode)
+                }
+                currentNode.parent.color = .black
+                currentNode.parent.parent.color = .red
+                rotateRight(currentNode.parent.parent)
+            }
+        } else {
+            let uncle = currentNode.parent.parent.left!
+
+            if uncle.color == .red {
+                currentNode.parent.color = .black
+                uncle.color = .black
+                currentNode.parent.parent.color = .red
+                currentNode = currentNode.parent.parent
+            } else {
+                if currentNode === currentNode.parent.left {
+                    currentNode = currentNode.parent
+                    rotateRight(currentNode)
+                }
+                currentNode.parent.color = .black
+                currentNode.parent.parent.color = .red
+                rotateLeft(currentNode.parent.parent)
+            }
+        }
+
+        if currentNode === treeRoot { break }
+    }
+
+    treeRoot.color = .black
+}
+
+// Inserts 'value' into the tree, then restores the Red-Black invariants.
+func insert(_ value: Int) {
+    let newNode = RedBlackNode(value)
+    newNode.left = nilSentinel
+    newNode.right = nilSentinel
+    newNode.parent = nilSentinel
+
+    var parent = nilSentinel!
+    var current = treeRoot!
+
+    while current !== nilSentinel {
+        parent = current
+        if newNode.value < current.value {
+            current = current.left
+        } else {
+            current = current.right
+        }
+    }
+
+    newNode.parent = parent
+    if parent === nilSentinel {
+        treeRoot = newNode
+    } else if newNode.value < parent.value {
+        parent.left = newNode
+    } else {
+        parent.right = newNode
+    }
+
+    if newNode.parent === nilSentinel {
+        newNode.color = .black
+        return
+    }
+    if newNode.parent.parent === nilSentinel {
+        return
+    }
+
+    fixInsertViolations(newNode)
+}
+
+// Collects the tree's values in ascending order, annotated with each
+// node's color (R for red, B for black).
+func collectInOrder(_ node: RedBlackNode, _ output: inout [String]) {
+    if node === nilSentinel { return }
+    collectInOrder(node.left, &output)
+    output.append("\(node.value)\(node.color == .red ? "R" : "B")")
+    collectInOrder(node.right, &output)
+}
+
+nilSentinel = RedBlackNode(0)
+nilSentinel.color = .black
+nilSentinel.left = nilSentinel
+nilSentinel.right = nilSentinel
+nilSentinel.parent = nilSentinel
+treeRoot = nilSentinel
+
+let valuesToInsert = [10, 20, 30, 15, 25, 5, 1, 40, 35, 22, 18, 8]
+for value in valuesToInsert {
+    insert(value)
+}
+
+var inOrderResult: [String] = []
+collectInOrder(treeRoot, &inOrderResult)
+print("In-order traversal (value + color): \(inOrderResult.joined(separator: " "))")
+
+print("Root value: \(treeRoot.value)")
+print("Root color: \(treeRoot.color == .black ? "Black (required by rule 2)" : "Red (invalid!)")")
+`,
+        "kotlin": `enum class RedBlackColor { RED, BLACK }
+
+// A Red-Black tree node. A shared NIL sentinel (always black) is used in
+// place of null, which lets every rotation and color check treat
+// "no child" uniformly, without extra null-guards scattered everywhere.
+class RedBlackNode(var value: Int) {
+    var color: RedBlackColor = RedBlackColor.RED // newly inserted nodes always start red
+    lateinit var left: RedBlackNode
+    lateinit var right: RedBlackNode
+    lateinit var parent: RedBlackNode
+}
+
+lateinit var nilSentinel: RedBlackNode
+lateinit var treeRoot: RedBlackNode
+
+// Rotates the subtree rooted at 'pivot' to the left, promoting its right
+// child to take its place.
+fun rotateLeft(pivot: RedBlackNode) {
+    val newSubtreeRoot = pivot.right
+    pivot.right = newSubtreeRoot.left
+
+    if (newSubtreeRoot.left !== nilSentinel) {
+        newSubtreeRoot.left.parent = pivot
+    }
+    newSubtreeRoot.parent = pivot.parent
+
+    if (pivot.parent === nilSentinel) {
+        treeRoot = newSubtreeRoot
+    } else if (pivot === pivot.parent.left) {
+        pivot.parent.left = newSubtreeRoot
+    } else {
+        pivot.parent.right = newSubtreeRoot
+    }
+
+    newSubtreeRoot.left = pivot
+    pivot.parent = newSubtreeRoot
+}
+
+// Rotates the subtree rooted at 'pivot' to the right, promoting its left
+// child to take its place. Mirror image of rotateLeft.
+fun rotateRight(pivot: RedBlackNode) {
+    val newSubtreeRoot = pivot.left
+    pivot.left = newSubtreeRoot.right
+
+    if (newSubtreeRoot.right !== nilSentinel) {
+        newSubtreeRoot.right.parent = pivot
+    }
+    newSubtreeRoot.parent = pivot.parent
+
+    if (pivot.parent === nilSentinel) {
+        treeRoot = newSubtreeRoot
+    } else if (pivot === pivot.parent.right) {
+        pivot.parent.right = newSubtreeRoot
+    } else {
+        pivot.parent.left = newSubtreeRoot
+    }
+
+    newSubtreeRoot.right = pivot
+    pivot.parent = newSubtreeRoot
+}
+
+// Restores the Red-Black invariants after inserting 'startNode', which was
+// just colored red by a plain BST insertion.
+fun fixInsertViolations(startNode: RedBlackNode) {
+    var currentNode = startNode
+
+    while (currentNode.parent.color == RedBlackColor.RED) {
+        if (currentNode.parent === currentNode.parent.parent.left) {
+            val uncle = currentNode.parent.parent.right
+
+            if (uncle.color == RedBlackColor.RED) {
+                currentNode.parent.color = RedBlackColor.BLACK
+                uncle.color = RedBlackColor.BLACK
+                currentNode.parent.parent.color = RedBlackColor.RED
+                currentNode = currentNode.parent.parent
+            } else {
+                if (currentNode === currentNode.parent.right) {
+                    currentNode = currentNode.parent
+                    rotateLeft(currentNode)
+                }
+                currentNode.parent.color = RedBlackColor.BLACK
+                currentNode.parent.parent.color = RedBlackColor.RED
+                rotateRight(currentNode.parent.parent)
+            }
+        } else {
+            val uncle = currentNode.parent.parent.left
+
+            if (uncle.color == RedBlackColor.RED) {
+                currentNode.parent.color = RedBlackColor.BLACK
+                uncle.color = RedBlackColor.BLACK
+                currentNode.parent.parent.color = RedBlackColor.RED
+                currentNode = currentNode.parent.parent
+            } else {
+                if (currentNode === currentNode.parent.left) {
+                    currentNode = currentNode.parent
+                    rotateRight(currentNode)
+                }
+                currentNode.parent.color = RedBlackColor.BLACK
+                currentNode.parent.parent.color = RedBlackColor.RED
+                rotateLeft(currentNode.parent.parent)
+            }
+        }
+
+        if (currentNode === treeRoot) break
+    }
+
+    treeRoot.color = RedBlackColor.BLACK
+}
+
+// Inserts 'value' into the tree, then restores the Red-Black invariants.
+fun insert(value: Int) {
+    val newNode = RedBlackNode(value)
+    newNode.left = nilSentinel
+    newNode.right = nilSentinel
+    newNode.parent = nilSentinel
+
+    var parent = nilSentinel
+    var current = treeRoot
+
+    while (current !== nilSentinel) {
+        parent = current
+        current = if (newNode.value < current.value) current.left else current.right
+    }
+
+    newNode.parent = parent
+    if (parent === nilSentinel) {
+        treeRoot = newNode
+    } else if (newNode.value < parent.value) {
+        parent.left = newNode
+    } else {
+        parent.right = newNode
+    }
+
+    if (newNode.parent === nilSentinel) {
+        newNode.color = RedBlackColor.BLACK
+        return
+    }
+    if (newNode.parent.parent === nilSentinel) {
+        return
+    }
+
+    fixInsertViolations(newNode)
+}
+
+// Collects the tree's values in ascending order, annotated with each
+// node's color (R for red, B for black).
+fun collectInOrder(node: RedBlackNode, output: MutableList<String>) {
+    if (node === nilSentinel) return
+    collectInOrder(node.left, output)
+    output.add("\${node.value}\${if (node.color == RedBlackColor.RED) "R" else "B"}")
+    collectInOrder(node.right, output)
+}
+
+fun main() {
+    nilSentinel = RedBlackNode(0)
+    nilSentinel.color = RedBlackColor.BLACK
+    nilSentinel.left = nilSentinel
+    nilSentinel.right = nilSentinel
+    nilSentinel.parent = nilSentinel
+    treeRoot = nilSentinel
+
+    val valuesToInsert = intArrayOf(10, 20, 30, 15, 25, 5, 1, 40, 35, 22, 18, 8)
+    for (value in valuesToInsert) {
+        insert(value)
+    }
+
+    val inOrderResult = mutableListOf<String>()
+    collectInOrder(treeRoot, inOrderResult)
+    println("In-order traversal (value + color): \${inOrderResult.joinToString(" ")}")
+
+    println("Root value: \${treeRoot.value}")
+    println("Root color: \${if (treeRoot.color == RedBlackColor.BLACK) "Black (required by rule 2)" else "Red (invalid!)"}")
+}
+`,
+        "scala" : `object ColorValue extends Enumeration {
+    val RED, BLACK = Value
+}
+
+// A Red-Black tree node. A shared NIL sentinel (always black) is used in
+// place of null, which lets every rotation and color check treat
+// "no child" uniformly, without extra null-guards scattered everywhere.
+class RedBlackNode(var value: Int) {
+    var color: ColorValue.Value = ColorValue.RED // newly inserted nodes always start red
+    var left: RedBlackNode = null
+    var right: RedBlackNode = null
+    var parent: RedBlackNode = null
+}
+
+object RedBlackTree extends App {
+
+    var nilSentinel: RedBlackNode = null
+    var treeRoot: RedBlackNode = null
+
+    // Rotates the subtree rooted at 'pivot' to the left, promoting its
+    // right child to take its place.
+    def rotateLeft(pivot: RedBlackNode): Unit = {
+        val newSubtreeRoot = pivot.right
+        pivot.right = newSubtreeRoot.left
+
+        if (newSubtreeRoot.left != nilSentinel) {
+            newSubtreeRoot.left.parent = pivot
+        }
+        newSubtreeRoot.parent = pivot.parent
+
+        if (pivot.parent == nilSentinel) {
+            treeRoot = newSubtreeRoot
+        } else if (pivot == pivot.parent.left) {
+            pivot.parent.left = newSubtreeRoot
+        } else {
+            pivot.parent.right = newSubtreeRoot
+        }
+
+        newSubtreeRoot.left = pivot
+        pivot.parent = newSubtreeRoot
+    }
+
+    // Rotates the subtree rooted at 'pivot' to the right, promoting its
+    // left child to take its place. Mirror image of rotateLeft.
+    def rotateRight(pivot: RedBlackNode): Unit = {
+        val newSubtreeRoot = pivot.left
+        pivot.left = newSubtreeRoot.right
+
+        if (newSubtreeRoot.right != nilSentinel) {
+            newSubtreeRoot.right.parent = pivot
+        }
+        newSubtreeRoot.parent = pivot.parent
+
+        if (pivot.parent == nilSentinel) {
+            treeRoot = newSubtreeRoot
+        } else if (pivot == pivot.parent.right) {
+            pivot.parent.right = newSubtreeRoot
+        } else {
+            pivot.parent.left = newSubtreeRoot
+        }
+
+        newSubtreeRoot.right = pivot
+        pivot.parent = newSubtreeRoot
+    }
+
+    // Restores the Red-Black invariants after inserting 'startNode', which
+    // was just colored red by a plain BST insertion.
+    def fixInsertViolations(startNode: RedBlackNode): Unit = {
+        var currentNode = startNode
+
+        while (currentNode.parent.color == ColorValue.RED) {
+            if (currentNode.parent == currentNode.parent.parent.left) {
+                val uncle = currentNode.parent.parent.right
+
+                if (uncle.color == ColorValue.RED) {
+                    currentNode.parent.color = ColorValue.BLACK
+                    uncle.color = ColorValue.BLACK
+                    currentNode.parent.parent.color = ColorValue.RED
+                    currentNode = currentNode.parent.parent
+                } else {
+                    if (currentNode == currentNode.parent.right) {
+                        currentNode = currentNode.parent
+                        rotateLeft(currentNode)
+                    }
+                    currentNode.parent.color = ColorValue.BLACK
+                    currentNode.parent.parent.color = ColorValue.RED
+                    rotateRight(currentNode.parent.parent)
+                }
+            } else {
+                val uncle = currentNode.parent.parent.left
+
+                if (uncle.color == ColorValue.RED) {
+                    currentNode.parent.color = ColorValue.BLACK
+                    uncle.color = ColorValue.BLACK
+                    currentNode.parent.parent.color = ColorValue.RED
+                    currentNode = currentNode.parent.parent
+                } else {
+                    if (currentNode == currentNode.parent.left) {
+                        currentNode = currentNode.parent
+                        rotateRight(currentNode)
+                    }
+                    currentNode.parent.color = ColorValue.BLACK
+                    currentNode.parent.parent.color = ColorValue.RED
+                    rotateLeft(currentNode.parent.parent)
+                }
+            }
+
+            if (currentNode == treeRoot) {
+                // exit the loop
+                return fixInsertViolationsFinish()
+            }
+        }
+
+        fixInsertViolationsFinish()
+    }
+
+    def fixInsertViolationsFinish(): Unit = {
+        treeRoot.color = ColorValue.BLACK
+    }
+
+    // Inserts 'value' into the tree, then restores the Red-Black invariants.
+    def insert(value: Int): Unit = {
+        val newNode = new RedBlackNode(value)
+        newNode.left = nilSentinel
+        newNode.right = nilSentinel
+        newNode.parent = nilSentinel
+
+        var parent = nilSentinel
+        var current = treeRoot
+
+        while (current != nilSentinel) {
+            parent = current
+            current = if (newNode.value < current.value) current.left else current.right
+        }
+
+        newNode.parent = parent
+        if (parent == nilSentinel) {
+            treeRoot = newNode
+        } else if (newNode.value < parent.value) {
+            parent.left = newNode
+        } else {
+            parent.right = newNode
+        }
+
+        if (newNode.parent == nilSentinel) {
+            newNode.color = ColorValue.BLACK
+            return
+        }
+        if (newNode.parent.parent == nilSentinel) {
+            return
+        }
+
+        fixInsertViolations(newNode)
+    }
+
+    // Collects the tree's values in ascending order, annotated with each
+    // node's color (R for red, B for black).
+    def collectInOrder(node: RedBlackNode, output: scala.collection.mutable.ListBuffer[String]): Unit = {
+        if (node == nilSentinel) return
+        collectInOrder(node.left, output)
+        output += s"\${node.value}\${if (node.color == ColorValue.RED) "R" else "B"}"
+        collectInOrder(node.right, output)
+    }
+
+    nilSentinel = new RedBlackNode(0)
+    nilSentinel.color = ColorValue.BLACK
+    nilSentinel.left = nilSentinel
+    nilSentinel.right = nilSentinel
+    nilSentinel.parent = nilSentinel
+    treeRoot = nilSentinel
+
+    val valuesToInsert = Array(10, 20, 30, 15, 25, 5, 1, 40, 35, 22, 18, 8)
+    for (value <- valuesToInsert) {
+        insert(value)
+    }
+
+    val inOrderResult = scala.collection.mutable.ListBuffer[String]()
+    collectInOrder(treeRoot, inOrderResult)
+    println(s"In-order traversal (value + color): \${inOrderResult.mkString(" ")}")
+
+    println(s"Root value: \${treeRoot.value}")
+    println(s"Root color: \${if (treeRoot.color == ColorValue.BLACK) "Black (required by rule 2)" else "Red (invalid!)"}")
+}
+`,
+        "go": `package main
+
+import "fmt"
+
+type redBlackColor int
+
+const (
+    red redBlackColor = iota
+    black
+)
+
+// redBlackNode is a Red-Black tree node. A shared NIL sentinel (always
+// black) is used in place of nil, which lets every rotation and color
+// check treat "no child" uniformly, without extra nil-guards everywhere.
+type redBlackNode struct {
+    value  int
+    color  redBlackColor
+    left   *redBlackNode
+    right  *redBlackNode
+    parent *redBlackNode
+}
+
+var nilSentinel *redBlackNode
+var treeRoot *redBlackNode
+
+// rotateLeft rotates the subtree rooted at 'pivot' to the left, promoting
+// its right child to take its place.
+func rotateLeft(pivot *redBlackNode) {
+    newSubtreeRoot := pivot.right
+    pivot.right = newSubtreeRoot.left
+
+    if newSubtreeRoot.left != nilSentinel {
+        newSubtreeRoot.left.parent = pivot
+    }
+    newSubtreeRoot.parent = pivot.parent
+
+    if pivot.parent == nilSentinel {
+        treeRoot = newSubtreeRoot
+    } else if pivot == pivot.parent.left {
+        pivot.parent.left = newSubtreeRoot
+    } else {
+        pivot.parent.right = newSubtreeRoot
+    }
+
+    newSubtreeRoot.left = pivot
+    pivot.parent = newSubtreeRoot
+}
+
+// rotateRight rotates the subtree rooted at 'pivot' to the right,
+// promoting its left child to take its place. Mirror image of rotateLeft.
+func rotateRight(pivot *redBlackNode) {
+    newSubtreeRoot := pivot.left
+    pivot.left = newSubtreeRoot.right
+
+    if newSubtreeRoot.right != nilSentinel {
+        newSubtreeRoot.right.parent = pivot
+    }
+    newSubtreeRoot.parent = pivot.parent
+
+    if pivot.parent == nilSentinel {
+        treeRoot = newSubtreeRoot
+    } else if pivot == pivot.parent.right {
+        pivot.parent.right = newSubtreeRoot
+    } else {
+        pivot.parent.left = newSubtreeRoot
+    }
+
+    newSubtreeRoot.right = pivot
+    pivot.parent = newSubtreeRoot
+}
+
+// fixInsertViolations restores the Red-Black invariants after inserting
+// 'startNode', which was just colored red by a plain BST insertion.
+func fixInsertViolations(startNode *redBlackNode) {
+    currentNode := startNode
+
+    for currentNode.parent.color == red {
+        if currentNode.parent == currentNode.parent.parent.left {
+            uncle := currentNode.parent.parent.right
+
+            if uncle.color == red {
+                currentNode.parent.color = black
+                uncle.color = black
+                currentNode.parent.parent.color = red
+                currentNode = currentNode.parent.parent
+            } else {
+                if currentNode == currentNode.parent.right {
+                    currentNode = currentNode.parent
+                    rotateLeft(currentNode)
+                }
+                currentNode.parent.color = black
+                currentNode.parent.parent.color = red
+                rotateRight(currentNode.parent.parent)
+            }
+        } else {
+            uncle := currentNode.parent.parent.left
+
+            if uncle.color == red {
+                currentNode.parent.color = black
+                uncle.color = black
+                currentNode.parent.parent.color = red
+                currentNode = currentNode.parent.parent
+            } else {
+                if currentNode == currentNode.parent.left {
+                    currentNode = currentNode.parent
+                    rotateRight(currentNode)
+                }
+                currentNode.parent.color = black
+                currentNode.parent.parent.color = red
+                rotateLeft(currentNode.parent.parent)
+            }
+        }
+
+        if currentNode == treeRoot {
+            break
+        }
+    }
+
+    treeRoot.color = black
+}
+
+// insert places 'value' into the tree, then restores the Red-Black invariants.
+func insert(value int) {
+    newNode := &redBlackNode{value: value, color: red, left: nilSentinel, right: nilSentinel, parent: nilSentinel}
+
+    parent := nilSentinel
+    current := treeRoot
+
+    for current != nilSentinel {
+        parent = current
+        if newNode.value < current.value {
+            current = current.left
+        } else {
+            current = current.right
+        }
+    }
+
+    newNode.parent = parent
+    if parent == nilSentinel {
+        treeRoot = newNode
+    } else if newNode.value < parent.value {
+        parent.left = newNode
+    } else {
+        parent.right = newNode
+    }
+
+    if newNode.parent == nilSentinel {
+        newNode.color = black
+        return
+    }
+    if newNode.parent.parent == nilSentinel {
+        return
+    }
+
+    fixInsertViolations(newNode)
+}
+
+// collectInOrder appends the tree's values in ascending order, annotated
+// with each node's color (R for red, B for black).
+func collectInOrder(node *redBlackNode, output *[]string) {
+    if node == nilSentinel {
+        return
+    }
+    collectInOrder(node.left, output)
+    colorLabel := "B"
+    if node.color == red {
+        colorLabel = "R"
+    }
+    *output = append(*output, fmt.Sprintf("%d%s", node.value, colorLabel))
+    collectInOrder(node.right, output)
+}
+
+func main() {
+    nilSentinel = &redBlackNode{color: black}
+    nilSentinel.left = nilSentinel
+    nilSentinel.right = nilSentinel
+    nilSentinel.parent = nilSentinel
+    treeRoot = nilSentinel
+
+    valuesToInsert := []int{10, 20, 30, 15, 25, 5, 1, 40, 35, 22, 18, 8}
+    for _, value := range valuesToInsert {
+        insert(value)
+    }
+
+    var inOrderResult []string
+    collectInOrder(treeRoot, &inOrderResult)
+    fmt.Println("In-order traversal (value + color):", inOrderResult)
+
+    fmt.Println("Root value:", treeRoot.value)
+    if treeRoot.color == black {
+        fmt.Println("Root color: Black (required by rule 2)")
+    } else {
+        fmt.Println("Root color: Red (invalid!)")
+    }
+}
+`,
+        "rust": `use std::cell::RefCell;
+use std::rc::{Rc, Weak};
+
+#[derive(Clone, Copy, PartialEq)]
+enum RedBlackColor {
+    Red,
+    Black,
+}
+
+/// A Red-Black tree node. Child links are strong (Rc<RefCell<..>>) while
+/// the parent link is a Weak reference to avoid an ownership cycle. A
+/// NIL sentinel is not used here (Rust's Option<..> already models
+/// "no child" cleanly), so leaf children are simply None.
+struct RedBlackNode {
+    value: i32,
+    color: RedBlackColor,
+    left: Option<Rc<RefCell<RedBlackNode>>>,
+    right: Option<Rc<RefCell<RedBlackNode>>>,
+    parent: Option<Weak<RefCell<RedBlackNode>>>,
+}
+
+type NodeRef = Rc<RefCell<RedBlackNode>>;
+
+impl RedBlackNode {
+    fn new(value: i32) -> NodeRef {
+        Rc::new(RefCell::new(RedBlackNode {
+            value,
+            color: RedBlackColor::Red, // newly inserted nodes always start red
+            left: None,
+            right: None,
+            parent: None,
+        }))
+    }
+}
+
+/// A thin wrapper holding the tree's root, since Rust's ownership rules
+/// make a bare global mutable pointer impractical; this mirrors the same
+/// algorithm shown in the other languages, just expressed idiomatically.
+struct RedBlackTree {
+    root: Option<NodeRef>,
+}
+
+impl RedBlackTree {
+    fn new() -> Self {
+        RedBlackTree { root: None }
+    }
+
+    fn parent_of(node: &NodeRef) -> Option<NodeRef> {
+        node.borrow().parent.as_ref().and_then(|weak| weak.upgrade())
+    }
+
+    fn color_of(node: &Option<NodeRef>) -> RedBlackColor {
+        match node {
+            Some(n) => n.borrow().color,
+            None => RedBlackColor::Black, // a missing child counts as black
+        }
+    }
+
+    /// Rotates the subtree rooted at \`pivot\` to the left, promoting its
+    /// right child to take its place.
+    fn rotate_left(&mut self, pivot: &NodeRef) {
+        let new_subtree_root = pivot.borrow().right.clone().unwrap();
+        let moved_subtree = new_subtree_root.borrow().left.clone();
+
+        pivot.borrow_mut().right = moved_subtree.clone();
+        if let Some(ref moved) = moved_subtree {
+            moved.borrow_mut().parent = Some(Rc::downgrade(pivot));
+        }
+
+        let pivot_parent = Self::parent_of(pivot);
+        new_subtree_root.borrow_mut().parent = pivot.borrow().parent.clone();
+
+        match pivot_parent {
+            None => self.root = Some(new_subtree_root.clone()),
+            Some(parent) => {
+                let is_left_child = {
+                    let parent_ref = parent.borrow();
+                    matches!(&parent_ref.left, Some(l) if Rc::ptr_eq(l, pivot))
+                };
+                if is_left_child {
+                    parent.borrow_mut().left = Some(new_subtree_root.clone());
+                } else {
+                    parent.borrow_mut().right = Some(new_subtree_root.clone());
+                }
+            }
+        }
+
+        new_subtree_root.borrow_mut().left = Some(pivot.clone());
+        pivot.borrow_mut().parent = Some(Rc::downgrade(&new_subtree_root));
+    }
+
+    /// Rotates the subtree rooted at \`pivot\` to the right, promoting its
+    /// left child to take its place. Mirror image of rotate_left.
+    fn rotate_right(&mut self, pivot: &NodeRef) {
+        let new_subtree_root = pivot.borrow().left.clone().unwrap();
+        let moved_subtree = new_subtree_root.borrow().right.clone();
+
+        pivot.borrow_mut().left = moved_subtree.clone();
+        if let Some(ref moved) = moved_subtree {
+            moved.borrow_mut().parent = Some(Rc::downgrade(pivot));
+        }
+
+        let pivot_parent = Self::parent_of(pivot);
+        new_subtree_root.borrow_mut().parent = pivot.borrow().parent.clone();
+
+        match pivot_parent {
+            None => self.root = Some(new_subtree_root.clone()),
+            Some(parent) => {
+                let is_right_child = {
+                    let parent_ref = parent.borrow();
+                    matches!(&parent_ref.right, Some(r) if Rc::ptr_eq(r, pivot))
+                };
+                if is_right_child {
+                    parent.borrow_mut().right = Some(new_subtree_root.clone());
+                } else {
+                    parent.borrow_mut().left = Some(new_subtree_root.clone());
+                }
+            }
+        }
+
+        new_subtree_root.borrow_mut().right = Some(pivot.clone());
+        pivot.borrow_mut().parent = Some(Rc::downgrade(&new_subtree_root));
+    }
+
+    /// Restores the Red-Black invariants after inserting \`start_node\`,
+    /// which was just colored red by a plain BST insertion.
+    fn fix_insert_violations(&mut self, start_node: NodeRef) {
+        let mut current_node = start_node;
+
+        loop {
+            let parent = match Self::parent_of(&current_node) {
+                Some(p) => p,
+                None => break, // current_node is the root
+            };
+            if parent.borrow().color != RedBlackColor::Red {
+                break;
+            }
+
+            let grandparent = Self::parent_of(&parent).unwrap();
+            let parent_is_left_child = {
+                let gp_ref = grandparent.borrow();
+                matches!(&gp_ref.left, Some(l) if Rc::ptr_eq(l, &parent))
+            };
+
+            if parent_is_left_child {
+                let uncle = grandparent.borrow().right.clone();
+                if Self::color_of(&uncle) == RedBlackColor::Red {
+                    // Case 1: uncle is red -- recolor and move the violation up.
+                    parent.borrow_mut().color = RedBlackColor::Black;
+                    uncle.unwrap().borrow_mut().color = RedBlackColor::Black;
+                    grandparent.borrow_mut().color = RedBlackColor::Red;
+                    current_node = grandparent;
+                } else {
+                    let current_is_right_child = {
+                        let parent_ref = parent.borrow();
+                        matches!(&parent_ref.right, Some(r) if Rc::ptr_eq(r, &current_node))
+                    };
+                    let mut pivot = parent.clone();
+                    if current_is_right_child {
+                        pivot = parent.clone();
+                        self.rotate_left(&pivot);
+                        pivot = current_node.clone();
+                    }
+                    let fix_parent = Self::parent_of(&pivot).unwrap();
+                    let fix_grandparent = Self::parent_of(&fix_parent).unwrap();
+                    fix_parent.borrow_mut().color = RedBlackColor::Black;
+                    fix_grandparent.borrow_mut().color = RedBlackColor::Red;
+                    self.rotate_right(&fix_grandparent);
+                }
+            } else {
+                let uncle = grandparent.borrow().left.clone();
+                if Self::color_of(&uncle) == RedBlackColor::Red {
+                    parent.borrow_mut().color = RedBlackColor::Black;
+                    uncle.unwrap().borrow_mut().color = RedBlackColor::Black;
+                    grandparent.borrow_mut().color = RedBlackColor::Red;
+                    current_node = grandparent;
+                } else {
+                    let current_is_left_child = {
+                        let parent_ref = parent.borrow();
+                        matches!(&parent_ref.left, Some(l) if Rc::ptr_eq(l, &current_node))
+                    };
+                    let mut pivot = parent.clone();
+                    if current_is_left_child {
+                        pivot = parent.clone();
+                        self.rotate_right(&pivot);
+                        pivot = current_node.clone();
+                    }
+                    let fix_parent = Self::parent_of(&pivot).unwrap();
+                    let fix_grandparent = Self::parent_of(&fix_parent).unwrap();
+                    fix_parent.borrow_mut().color = RedBlackColor::Black;
+                    fix_grandparent.borrow_mut().color = RedBlackColor::Red;
+                    self.rotate_left(&fix_grandparent);
+                }
+            }
+
+            if let Some(root) = &self.root {
+                if Rc::ptr_eq(root, &current_node) {
+                    break;
+                }
+            }
+        }
+
+        if let Some(root) = &self.root {
+            root.borrow_mut().color = RedBlackColor::Black;
+        }
+    }
+
+    /// Inserts \`value\` into the tree, then restores the Red-Black invariants.
+    fn insert(&mut self, value: i32) {
+        let new_node = RedBlackNode::new(value);
+
+        let mut parent: Option<NodeRef> = None;
+        let mut current = self.root.clone();
+
+        while let Some(node) = current {
+            parent = Some(node.clone());
+            let node_value = node.borrow().value;
+            current = if value < node_value {
+                node.borrow().left.clone()
+            } else {
+                node.borrow().right.clone()
+            };
+        }
+
+        match &parent {
+            None => {
+                self.root = Some(new_node.clone());
+                new_node.borrow_mut().color = RedBlackColor::Black;
+                return;
+            }
+            Some(p) => {
+                new_node.borrow_mut().parent = Some(Rc::downgrade(p));
+                if value < p.borrow().value {
+                    p.borrow_mut().left = Some(new_node.clone());
+                } else {
+                    p.borrow_mut().right = Some(new_node.clone());
+                }
+            }
+        }
+
+        // If the parent is the root, the parent is already black -- no violation possible.
+        if Self::parent_of(&parent.unwrap()).is_none() {
+            return;
+        }
+
+        self.fix_insert_violations(new_node);
+    }
+
+    /// Collects the tree's values in ascending order, annotated with each
+    /// node's color (R for red, B for black).
+    fn collect_in_order(node: &Option<NodeRef>, output: &mut Vec<String>) {
+        if let Some(n) = node {
+            let n_ref = n.borrow();
+            Self::collect_in_order(&n_ref.left, output);
+            let label = if n_ref.color == RedBlackColor::Red { "R" } else { "B" };
+            output.push(format!("{}{}", n_ref.value, label));
+            Self::collect_in_order(&n_ref.right, output);
+        }
+    }
+}
+
+fn main() {
+    let mut tree = RedBlackTree::new();
+
+    let values_to_insert = [10, 20, 30, 15, 25, 5, 1, 40, 35, 22, 18, 8];
+    for &value in values_to_insert.iter() {
+        tree.insert(value);
+    }
+
+    let mut in_order_result = Vec::new();
+    RedBlackTree::collect_in_order(&tree.root, &mut in_order_result);
+    println!("In-order traversal (value + color): {}", in_order_result.join(" "));
+
+    if let Some(root) = &tree.root {
+        let root_ref = root.borrow();
+        println!("Root value: {}", root_ref.value);
+        println!(
+            "Root color: {}",
+            if root_ref.color == RedBlackColor::Black {
+                "Black (required by rule 2)"
+            } else {
+                "Red (invalid!)"
+            }
+        );
+    }
 }
 `
       }
@@ -6183,7 +7174,1211 @@ int main() {
   ],
   desc: "BST, AVL, segment tree, traversals",
   complexity: "O(log n)",
-  featured: false,
+  featured: true,
 };
 
-export default TREES_SECTIONfx ;
+// export const TREES_SECTION = {
+//   name: "Trees",
+//   href: "/algorithms/trees",
+//     icon: (
+//       <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
+//         <circle cx="32" cy="12" r="5"/>
+//         <circle cx="18" cy="32" r="5"/>
+//         <circle cx="46" cy="32" r="5"/>
+//         <circle cx="10" cy="52" r="5"/>
+//         <circle cx="26" cy="52" r="5"/>
+//         <circle cx="38" cy="52" r="5"/>
+//         <circle cx="54" cy="52" r="5"/>
+//         <line x1="32" y1="17" x2="18" y2="27"/>
+//         <line x1="32" y1="17" x2="46" y2="27"/>
+//         <line x1="18" y1="37" x2="10" y2="47"/>
+//         <line x1="18" y1="37" x2="26" y2="47"/>
+//         <line x1="46" y1="37" x2="38" y2="47"/>
+//         <line x1="46" y1="37" x2="54" y2="47"/>
+//       </svg>
+//     ),
+//     hoverIcon: (
+//       <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
+//         <circle cx="32" cy="12" r="5" stroke="#34D399" fill="#34D399"/>
+//         <circle cx="18" cy="32" r="5" stroke="#34D399" fill="#34D399"/>
+//         <circle cx="46" cy="32" r="5"/>
+//         <circle cx="10" cy="52" r="5" stroke="#34D399" fill="#34D399"/>
+//         <circle cx="26" cy="52" r="5"/>
+//         <circle cx="38" cy="52" r="5"/>
+//         <circle cx="54" cy="52" r="5"/>
+//         <line x1="32" y1="17" x2="18" y2="27" stroke="#34D399" strokeWidth="4"/>
+//         <line x1="32" y1="17" x2="46" y2="27"/>
+//         <line x1="18" y1="37" x2="10" y2="47" stroke="#34D399" strokeWidth="4"/>
+//         <line x1="18" y1="37" x2="26" y2="47"/>
+//         <line x1="46" y1="37" x2="38" y2="47"/>
+//         <line x1="46" y1="37" x2="54" y2="47"/>
+//       </svg>
+//     ),
+
+//   about: [
+//     { tag: "h1", text: "Trees" },
+//     { tag: "p", text: "A tree is a connected, acyclic graph with a designated root, where every other vertex has exactly one parent — this hierarchical structure makes trees the natural representation for anything with nested relationships: file systems, organisation charts, expression parsing, and the indexing structures behind nearly every database." },
+//     { tag: "p", text: "The single number that governs almost every tree algorithm's performance is its height h — the length of the longest path from root to leaf. A perfectly balanced binary tree has h = O(log n), giving fast O(log n) search, insert, and delete. But an unbalanced tree (e.g. one built by inserting already-sorted data into a plain BST) can degrade to h = O(n), turning every operation into a linear scan. This single fact — that height, not node count, determines speed — is why self-balancing trees (AVL, Red-Black) exist at all." },
+//     { tag: "h2", text: "Why self-balancing trees exist" },
+//     { tag: "p", text: "A plain Binary Search Tree gives no guarantee about its own shape — it's entirely a function of insertion order. AVL trees and Red-Black trees both solve this by enforcing a structural invariant after every insertion and deletion (rotations to restore balance), guaranteeing h = O(log n) no matter what order operations arrive in. The trade-off between them is rebalancing frequency vs. rebalancing cost — AVL trees are more rigidly balanced (faster lookups) but rebalance more often (slower writes); Red-Black trees are more loosely balanced (slightly slower lookups) but rebalance less often (faster writes)." },
+//     { tag: "table",
+//       headers: ["Structure", "Guarantee", "Lookup", "Insert/Delete", "Typical Use"],
+//       rows: [
+//         ["Plain BST", "None — height depends on insertion order", "O(log n) avg / O(n) worst", "O(log n) avg / O(n) worst", "Simple ordered maps, teaching"],
+//         ["AVL Tree", "Strictly balanced: height difference of subtrees ≤ 1", "O(log n) guaranteed", "O(log n) guaranteed", "Read-heavy workloads"],
+//         ["Red-Black Tree", "Loosely balanced via coloring rules", "O(log n) guaranteed", "O(log n) guaranteed, fewer rotations", "Write-heavy workloads (most language standard libraries)"],
+//         ["Tree Traversals", "N/A — visits every node", "O(n) to visit all nodes", "N/A", "Serialisation, expression evaluation, search"],
+//         ["Lowest Common Ancestor", "Depends on tree type", "O(log n) for BST, O(n) general", "N/A", "Family-tree/version-control-style ancestry queries"]
+//       ]
+//     },
+//     { tag: "note", variant: "tip", text: "If you're asked for a self-balancing tree but don't know which kind, Red-Black is almost always the right default — it's what backs C++'s std::map, Java's TreeMap, and the Linux kernel's process scheduler, precisely because of its cheaper rebalancing." }
+//   ],
+
+//   items: [
+
+//     /* ════════════════════════════════════════════════════════════════════
+//        1. AVL TREES
+//     ════════════════════════════════════════════════════════════════════ */
+//     {
+//       name: "AVL Trees",
+//       href: "/algorithms/trees/avl",
+//       type: "Hard",
+
+//       about: [
+//         { tag: "h1", text: "AVL Trees" },
+//         { tag: "p", text: "An AVL tree, named after its inventors Georgy Adelson-Velsky and Evgenii Landis (1962), is a self-balancing Binary Search Tree where, for every node, the heights of its left and right subtrees differ by at most 1. This 'balance factor' constraint is checked and restored after every insertion or deletion, guaranteeing the tree's height never exceeds O(log n) regardless of the order operations occur in." },
+//         { tag: "p", text: "Balance is restored using rotations — single (left or right) and double (left-right or right-left) — applied at the lowest unbalanced ancestor of a newly inserted or deleted node. AVL trees were the first self-balancing BST structure ever invented and remain the standard example for teaching how local structural fixes can maintain a global height guarantee." },
+//         { tag: "h2", text: "When to reach for it" },
+//         { tag: "ul", items: [
+//           "Read-heavy workloads where lookups vastly outnumber insertions/deletions — AVL's stricter balance gives slightly faster average lookup than Red-Black trees",
+//           "Applications needing a hard guarantee on worst-case search time, such as real-time systems",
+//           "Database indexing and in-memory ordered maps where query latency matters more than update throughput",
+//           "Anywhere a plain BST is being considered but insertion order can't be guaranteed to be random (e.g. data could arrive pre-sorted, which would degrade a plain BST to O(n))"
+//         ]},
+//         { tag: "table",
+//           headers: ["Rotation Type", "Trigger Condition", "Fix Applied"],
+//           rows: [
+//             ["Left-Left (LL)", "Imbalance in the left subtree's left child", "Single right rotation"],
+//             ["Right-Right (RR)", "Imbalance in the right subtree's right child", "Single left rotation"],
+//             ["Left-Right (LR)", "Imbalance in the left subtree's right child", "Left rotation on child, then right rotation on node"],
+//             ["Right-Left (RL)", "Imbalance in the right subtree's left child", "Right rotation on child, then left rotation on node"]
+//           ]
+//         },
+//         { tag: "note", variant: "info", text: "AVL trees rebalance more aggressively than Red-Black trees, which is why they're favoured when lookups dominate — but that same aggressiveness means more rotations per write, which is why write-heavy systems usually prefer Red-Black trees instead." }
+//       ],
+
+//       timeComplexityCalculation: {
+//         notation: "O(log n)",
+//         best: [
+//           { tag: "h2", text: "Best Case — O(log n)" },
+//           { tag: "p", text: "Even in the most favourable scenario (e.g. searching for the root itself), the asymptotic classification remains O(log n) because the algorithm's structure guarantees this bound for the tree's height regardless of which specific node is targeted." },
+//           { tag: "ul", items: [
+//             "AVL's height invariant guarantees h = O(log n) at all times, for any sequence of insertions/deletions",
+//             "Searching, inserting, or deleting always follows a root-to-leaf path bounded by this height",
+//             "Best case (target found near the root): still classified O(log n) since the guarantee is structural, not value-dependent"
+//           ]}
+//         ],
+//         average: [
+//           { tag: "h2", text: "Average Case — O(log n)" },
+//           { tag: "p", text: "Because the balance invariant is actively enforced after every modification, there's no 'typical' input that produces a worse shape than the guaranteed bound — average case equals the guaranteed worst case." },
+//           { tag: "ul", items: [
+//             "Search: traverse from root to a leaf, comparing at each level — O(h) = O(log n)",
+//             "Insert: search for the insertion point (O(log n)), then rebalance along the path back to the root, performing at most O(log n) rotations — but each rotation is O(1), so total insert cost is O(log n)",
+//             "Delete: similarly O(log n) for the search plus O(log n) for rebalancing"
+//           ]}
+//         ],
+//         worst: [
+//           { tag: "h2", text: "Worst Case — O(log n)" },
+//           { tag: "p", text: "This is AVL's entire purpose: unlike a plain BST, there is no input sequence that can degrade an AVL tree's height beyond its mathematically proven bound." },
+//           { tag: "ul", items: [
+//             "Provable bound: an AVL tree of height h has at least F(h+2) − 1 nodes, where F is the Fibonacci sequence — inverting this gives h ≤ 1.44 log₂(n+2), i.e. O(log n)",
+//             "Search/insert/delete all stay strictly within this bound — there is no adversarial sequence of operations that produces a degenerate (linear-height) shape",
+//             "This is the key advantage over a plain BST, whose worst case is O(n)"
+//           ]}
+//         ]
+//       },
+
+//       spaceComplexityCalculation: {
+//         notation: "O(n)",
+//         best: [
+//           { tag: "h2", text: "Best Case Space — O(n)" },
+//           { tag: "p", text: "Storing n nodes always requires O(n) space for the node data itself, plus a small constant overhead per node for the balance factor (or height) field used to maintain the invariant." },
+//           { tag: "ul", items: ["n node objects, each with left/right/parent pointers + a balance factor field: O(n)"] }
+//         ],
+//         average: [
+//           { tag: "h2", text: "Average Case Space — O(n)" },
+//           { tag: "p", text: "Total stored data is fixed by n regardless of the tree's exact shape, since the guaranteed-balanced structure doesn't change how many nodes need to be stored." },
+//           { tag: "ul", items: ["O(n) for node storage", "O(log n) for the recursion stack during operations, due to the guaranteed logarithmic height"] }
+//         ],
+//         worst: [
+//           { tag: "h2", text: "Worst Case Space — O(n)" },
+//           { tag: "p", text: "No insertion/deletion sequence increases storage beyond the fixed per-node overhead — this is a hallmark difference from time complexity, since space doesn't depend on tree shape, only on node count." },
+//           { tag: "ul", items: [
+//             "O(n) total node storage, identical to a plain BST",
+//             "O(log n) recursion/call-stack depth during any single operation — guaranteed by the height bound, unlike a plain BST's potential O(n) worst-case stack depth"
+//           ]}
+//         ]
+//       },
+
+//       pseudoCodeandStepexplanation: [
+//         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+//         { tag: "code", language: "text", text:
+// `function insert(node, key):
+//     if node is null:
+//         return new Node(key)
+
+//     if key < node.key:
+//         node.left ← insert(node.left, key)
+//     else if key > node.key:
+//         node.right ← insert(node.right, key)
+//     else:
+//         return node                          // duplicate key, no-op
+
+//     updateHeight(node)
+//     balance ← getBalanceFactor(node)         // height(left) − height(right)
+
+//     // Left-Left case
+//     if balance > 1 and key < node.left.key:
+//         return rotateRight(node)
+//     // Right-Right case
+//     if balance < −1 and key > node.right.key:
+//         return rotateLeft(node)
+//     // Left-Right case
+//     if balance > 1 and key > node.left.key:
+//         node.left ← rotateLeft(node.left)
+//         return rotateRight(node)
+//     // Right-Left case
+//     if balance < −1 and key < node.right.key:
+//         node.right ← rotateRight(node.right)
+//         return rotateLeft(node)
+
+//     return node                              // already balanced
+
+// function rotateRight(y):
+//     x ← y.left
+//     T2 ← x.right
+//     x.right ← y
+//     y.left ← T2
+//     updateHeight(y)
+//     updateHeight(x)
+//     return x                                 // new subtree root` },
+//         { tag: "h2", text: "Step-by-step reasoning" },
+//         { tag: "ol", items: [
+//           "Insert exactly like a standard BST insertion: recurse left or right based on key comparison until reaching a null spot, then place the new node there.",
+//           "As the recursion unwinds back up the path to the root, update each ancestor's height and compute its balance factor (left subtree height − right subtree height).",
+//           "If any node's balance factor exceeds ±1, the AVL invariant has been violated at that node — identify which of the four imbalance cases applies (LL, RR, LR, RL) by comparing the inserted key against the unbalanced node's children.",
+//           "Apply the corresponding rotation(s) to restore the height invariant at that node. A single rotation suffices for LL/RR cases; a double rotation (rotate the child, then the node) is needed for LR/RL cases.",
+//           "Because rotations are O(1) and the path back to the root has length O(log n) (the tree's guaranteed height), at most O(log n) rotations are checked, with provably at most 2 actual rotations needed to fully rebalance after any single insertion."
+//         ]},
+//         { tag: "h2", text: "Why it's correct" },
+//         { tag: "p", text: "Each rotation is a local, BST-order-preserving restructuring: a right rotation around node y promotes y's left child x to take y's place, while preserving the in-order traversal sequence of all affected nodes (this can be verified by checking that the rotated subtree's in-order traversal is identical before and after). Since BST order is preserved by every rotation, search correctness is never compromised. The height-rebalancing guarantee follows from a classical proof: an AVL tree's minimum node count for height h grows according to the Fibonacci recurrence N(h) = N(h-1) + N(h-2) + 1, and solving this recurrence shows h = O(log n) is the only possibility consistent with the balance-factor-≤1 invariant being maintained after every single insertion or deletion." }
+//       ],
+//       codes:{
+//         "c++":`#include <iostream>
+// #include <algorithm>
+// using namespace std;
+
+// struct TreeNode {
+//     int value;
+//     int height;
+//     TreeNode* left;
+//     TreeNode* right;
+
+//     TreeNode(int value) {
+//         this->value = value;
+//         height = 1;
+//         left = nullptr;
+//         right = nullptr;
+//     }
+// };
+
+// int getHeight(TreeNode* node) {
+//     if (node == nullptr)
+//         return 0;
+//     return node->height;
+// }
+
+// int getBalance(TreeNode* node) {
+//     if (node == nullptr)
+//         return 0;
+//     return getHeight(node->left) - getHeight(node->right);
+// }
+
+// TreeNode* rightRotate(TreeNode* node) {
+//     TreeNode* left = node->left;
+//     TreeNode* temp = left->right;
+
+//     left->right = node;
+//     node->left = temp;
+
+//     node->height = max(getHeight(node->left), getHeight(node->right)) + 1;
+//     left->height = max(getHeight(left->left), getHeight(left->right)) + 1;
+
+//     return left;
+// }
+
+// TreeNode* leftRotate(TreeNode* node) {
+//     TreeNode* right = node->right;
+//     TreeNode* temp = right->left;
+
+//     right->left = node;
+//     node->right = temp;
+
+//     node->height = max(getHeight(node->left), getHeight(node->right)) + 1;
+//     right->height = max(getHeight(right->left), getHeight(right->right)) + 1;
+
+//     return right;
+// }
+
+// TreeNode* insert(TreeNode* node, int value) {
+//     if (node == nullptr)
+//         return new TreeNode(value);
+
+//     TreeNode* curr = node;
+
+//     if (value < curr->value)
+//         curr->left = insert(curr->left, value);
+//     else if (value > curr->value)
+//         curr->right = insert(curr->right, value);
+//     else
+//         return curr;
+
+//     curr->height = max(getHeight(curr->left), getHeight(curr->right)) + 1;
+
+//     int balance = getBalance(curr);
+
+//     if (balance > 1 && value < curr->left->value)
+//         return rightRotate(curr);
+
+//     if (balance < -1 && value > curr->right->value)
+//         return leftRotate(curr);
+
+//     if (balance > 1 && value > curr->left->value) {
+//         curr->left = leftRotate(curr->left);
+//         return rightRotate(curr);
+//     }
+
+//     if (balance < -1 && value < curr->right->value) {
+//         curr->right = rightRotate(curr->right);
+//         return leftRotate(curr);
+//     }
+
+//     return curr;
+// }
+
+// void inorder(TreeNode* node) {
+//     if (node == nullptr)
+//         return;
+
+//     inorder(node->left);
+//     cout << node->value << " ";
+//     inorder(node->right);
+// }
+
+// int main() {
+//     TreeNode* root = nullptr;
+
+//     root = insert(root, 45);
+//     root = insert(root, 20);
+//     root = insert(root, 10);
+//     root = insert(root, 30);
+//     root = insert(root, 5);
+//     root = insert(root, 15);
+//     root = insert(root, 25);
+//     root = insert(root, 35);
+//     root = insert(root, 50);
+//     root = insert(root, 58);
+//     root = insert(root, 65);
+//     root = insert(root, 80);
+
+//     inorder(root);
+//     cout << endl;
+
+//     return 0;
+// }
+// `
+//       }
+//     },
+
+//     /* ════════════════════════════════════════════════════════════════════
+//        2. TREE TRAVERSALS
+//     ════════════════════════════════════════════════════════════════════ */
+//     {
+//       name: "Tree Traversals",
+//       href: "/algorithms/trees/traversals",
+//       type: "Easy",
+
+//       about: [
+//         { tag: "h1", text: "Tree Traversals" },
+//         { tag: "p", text: "A tree traversal visits every node in a tree exactly once, in a specific order. The three classic depth-first orderings — pre-order, in-order, and post-order — differ only in WHEN the current node is processed relative to its children, while breadth-first (level-order) traversal visits nodes layer by layer using a queue, exactly like graph BFS." },
+//         { tag: "p", text: "The choice of traversal order isn't arbitrary — each one corresponds to a specific real-world need. In-order traversal of a Binary Search Tree visits nodes in sorted order (a uniquely useful property). Pre-order naturally serialises a tree in a way that can reconstruct its exact shape. Post-order is the only safe order for deleting a tree node-by-node, since it processes children before their parent." },
+//         { tag: "h2", text: "The four traversal orders" },
+//         { tag: "table",
+//           headers: ["Traversal", "Order", "Key Use Case"],
+//           rows: [
+//             ["Pre-order", "Node → Left → Right", "Serialising a tree's structure for later reconstruction; copying a tree"],
+//             ["In-order", "Left → Node → Right", "Retrieving BST elements in sorted order"],
+//             ["Post-order", "Left → Right → Node", "Safely deleting a tree (children before parent); evaluating expression trees"],
+//             ["Level-order (BFS)", "Layer by layer, left to right", "Finding shortest depth to a node; printing a tree level by level"]
+//           ]
+//         },
+//         { tag: "note", variant: "tip", text: "In-order traversal of a BST always produces sorted output — this single fact underlies many BST algorithms, including validating whether a tree is a correct BST in the first place." }
+//       ],
+
+//       timeComplexityCalculation: {
+//         notation: "O(n)",
+//         best: [
+//           { tag: "h2", text: "Best Case — O(n)" },
+//           { tag: "p", text: "Every traversal order must visit all n nodes to be complete — there is no early-exit shortcut for a full traversal, regardless of the tree's shape." },
+//           { tag: "ul", items: [
+//             "Each node is visited exactly once: O(n)",
+//             "Each visit does O(1) work (process the node, recurse into children/enqueue them)",
+//             "Total: O(n), even in the most favourably-shaped tree"
+//           ]}
+//         ],
+//         average: [
+//           { tag: "h2", text: "Average Case — O(n)" },
+//           { tag: "p", text: "Visiting every node exactly once with O(1) work per node is a structural property of the traversal, completely independent of the tree's shape or balance." },
+//           { tag: "ul", items: [
+//             "n node visits × O(1) work each = O(n)",
+//             "Tree shape (balanced vs. skewed) affects auxiliary space, not the total time, since every node is still visited exactly once regardless"
+//           ]}
+//         ],
+//         worst: [
+//           { tag: "h2", text: "Worst Case — O(n)" },
+//           { tag: "p", text: "No tree shape increases the time complexity beyond visiting every node once — a maximally skewed tree (essentially a linked list) still only requires n visits, just with worse space behaviour (see below)." },
+//           { tag: "ul", items: [
+//             "Worst case matches best/average exactly: O(n)",
+//             "This matches the trivial lower bound: a complete traversal must examine every node at least once"
+//           ]}
+//         ]
+//       },
+
+//       spaceComplexityCalculation: {
+//         notation: "O(h)",
+//         best: [
+//           { tag: "h2", text: "Best Case Space — O(log n)" },
+//           { tag: "p", text: "For a perfectly balanced tree, the recursion stack (for DFS-style traversals) only ever needs to hold one root-to-leaf path, which is O(log n) deep in a balanced tree." },
+//           { tag: "ul", items: ["Recursion stack depth = tree height h = O(log n) for a balanced tree", "Level-order traversal's queue can hold up to O(n/2) nodes at the widest level, regardless of balance"] }
+//         ],
+//         average: [
+//           { tag: "h2", text: "Average Case Space — O(h)" },
+//           { tag: "p", text: "For DFS-style traversals, space is governed entirely by tree height h, not by the total node count n — this is the key distinction from BFS-style traversal." },
+//           { tag: "ul", items: ["Pre/in/post-order recursion stack: O(h), where h depends on the tree's actual shape", "For a random/typical BST, h is usually O(log n) in practice"] }
+//         ],
+//         worst: [
+//           { tag: "h2", text: "Worst Case Space — O(n)" },
+//           { tag: "p", text: "A maximally skewed tree (every node has only one child, forming a linked-list shape) has height h = n − 1, so the recursion stack for DFS traversals can grow to O(n)." },
+//           { tag: "ul", items: [
+//             "DFS recursion stack: O(h), which can be as bad as O(n) for a degenerate skewed tree",
+//             "Level-order (BFS) traversal's queue: up to O(n) at the widest level of a wide/bushy tree, independent of height",
+//             "This is why an iterative traversal with an explicit stack (rather than recursion) is preferred for very deep or unbalanced trees, to avoid native call-stack overflow"
+//           ]}
+//         ]
+//       },
+
+//       pseudoCodeandStepexplanation: [
+//         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+//         { tag: "code", language: "text", text:
+// `function preOrder(node):
+//     if node is null: return
+//     process(node)
+//     preOrder(node.left)
+//     preOrder(node.right)
+
+// function inOrder(node):
+//     if node is null: return
+//     inOrder(node.left)
+//     process(node)
+//     inOrder(node.right)
+
+// function postOrder(node):
+//     if node is null: return
+//     postOrder(node.left)
+//     postOrder(node.right)
+//     process(node)
+
+// function levelOrder(root):
+//     if root is null: return
+//     queue ← [root]
+//     while queue is not empty:
+//         node ← dequeue(queue)
+//         process(node)
+//         if node.left:  enqueue(queue, node.left)
+//         if node.right: enqueue(queue, node.right)` },
+//         { tag: "h2", text: "Step-by-step reasoning" },
+//         { tag: "ol", items: [
+//           "Pre-order: process the current node first, then recurse left, then recurse right — the node is always 'visited' before either of its subtrees.",
+//           "In-order: recurse left first, then process the current node, then recurse right — for a BST this guarantees sorted output, since everything in the left subtree is smaller and everything in the right subtree is larger.",
+//           "Post-order: recurse left, then recurse right, then process the current node last — both children are fully handled before the parent, which is why it's the safe order for deletion.",
+//           "Level-order: use a queue instead of recursion. Start with the root in the queue; repeatedly dequeue a node, process it, then enqueue its children — this naturally produces a layer-by-layer visiting order, identical in mechanism to graph BFS."
+//         ]},
+//         { tag: "h2", text: "Why it's correct" },
+//         { tag: "p", text: "For the three DFS orders, correctness follows directly from the recursive definition: by induction on subtree size, each recursive call correctly traverses its entire subtree in the specified order (process/left/right in some sequence), and since the function is called on the left and right subtrees of every node, every node in the tree is eventually visited exactly once. For level-order, the queue's FIFO property guarantees that all nodes at depth d are dequeued (and their children enqueued) before any node at depth d+1 is dequeued, by the same inductive argument used to prove BFS correctness on graphs." }
+//       ],
+//       codes:{
+//         "c++": `#include <iostream>
+// using namespace std;
+
+// struct TreeNode {
+//     int id;
+//     int value;
+//     TreeNode* left;
+//     TreeNode* right;
+
+//     TreeNode(int id, int value) {
+//         this->id = id;
+//         this->value = value;
+//         left = nullptr;
+//         right = nullptr;
+//     }
+// };
+
+// void inorder(TreeNode* node) {
+//     if (node == nullptr)
+//         return;
+
+//     TreeNode* curr = node;
+
+//     inorder(curr->left);
+
+//     cout << curr->value << " ";
+
+//     inorder(curr->right);
+// }
+
+// void preorder(TreeNode* node) {
+//     if (node == nullptr)
+//         return;
+
+//     TreeNode* curr = node;
+
+//     cout << curr->value << " ";
+
+//     preorder(curr->left);
+//     preorder(curr->right);
+// }
+
+// void postorder(TreeNode* node) {
+//     if (node == nullptr)
+//         return;
+
+//     TreeNode* curr = node;
+
+//     postorder(curr->left);
+//     postorder(curr->right);
+
+//     cout << curr->value << " ";
+// }
+
+// int main() {
+//     TreeNode* root = new TreeNode(1, 10);
+
+//     root->left = new TreeNode(2, 5);
+//     root->right = new TreeNode(3, 20);
+
+//     root->left->left = new TreeNode(4, 2);
+//     root->left->right = new TreeNode(5, 8);
+
+//     root->right->left = new TreeNode(6, 15);
+//     root->right->right = new TreeNode(7, 30);
+
+//     inorder(root);
+//     cout << endl;
+
+//     preorder(root);
+//     cout << endl;
+
+//     postorder(root);
+//     cout << endl;
+
+//     return 0;
+// }`
+//       }
+//     },
+
+//     /* ════════════════════════════════════════════════════════════════════
+//        3. BINARY SEARCH TREE
+//     ════════════════════════════════════════════════════════════════════ */
+//     {
+//       name: "Binary Search Tree",
+//       href: "/algorithms/trees/bst",
+//       type: "Medium",
+
+//       about: [
+//         { tag: "h1", text: "Binary Search Tree (BST)" },
+//         { tag: "p", text: "A Binary Search Tree maintains the invariant that for every node, all keys in its left subtree are smaller, and all keys in its right subtree are larger. This ordering property allows search, insertion, and deletion to eliminate half the remaining search space at each step — the same logarithmic principle as binary search on a sorted array, but adapted to a dynamic structure that supports efficient insertion and deletion." },
+//         { tag: "p", text: "Unlike a sorted array, a BST doesn't guarantee O(log n) operations — its performance depends entirely on the tree's height, which depends entirely on insertion order. A BST built from already-sorted input degenerates into what is effectively a linked list, with O(n) operations. This exact weakness is what motivates self-balancing variants like AVL and Red-Black trees." },
+//         { tag: "h2", text: "When to reach for it" },
+//         { tag: "ul", items: [
+//           "You need an ordered dynamic collection supporting fast search, insert, delete, and in-order (sorted) iteration",
+//           "Implementing a simple ordered map/set when insertion order is known to be sufficiently randomised (avoiding the degenerate worst case)",
+//           "As the conceptual foundation before reaching for a self-balancing variant (AVL, Red-Black) in production code",
+//           "Range queries: 'find all keys between X and Y' is naturally efficient via a BST traversal that prunes subtrees outside the range"
+//         ]},
+//         { tag: "note", variant: "warning", text: "A plain BST gives no balance guarantee — inserting already-sorted data produces a degenerate O(n)-height tree, silently turning every 'O(log n)' operation into O(n). Production code should use a self-balancing variant unless insertion order is provably randomised." }
+//       ],
+
+//       timeComplexityCalculation: {
+//         notation: "O(log n) avg / O(n) worst",
+//         best: [
+//           { tag: "h2", text: "Best Case — O(1)" },
+//           { tag: "p", text: "The best case for any single operation occurs when the target happens to be the root itself, requiring just one comparison — though this is a property of the specific query, not a structural guarantee of the algorithm." },
+//           { tag: "ul", items: [
+//             "Searching for the root: 1 comparison — O(1)",
+//             "This best case applies per-operation and doesn't reflect the tree's overall behaviour across many operations"
+//           ]}
+//         ],
+//         average: [
+//           { tag: "h2", text: "Average Case — O(log n)" },
+//           { tag: "p", text: "For a BST built from randomly-ordered insertions, the expected height is provably O(log n) — a well-known result from random BST analysis (the expected height of a randomly built BST on n keys is approximately 2 ln n ≈ 1.39 log₂ n)." },
+//           { tag: "ul", items: [
+//             "Search/insert/delete all follow a single root-to-leaf path, costing O(h) where h is the current height",
+//             "For random insertion order, E[h] = O(log n), giving expected O(log n) per operation",
+//             "This is a probabilistic guarantee, not a worst-case one — it depends on the assumption of randomised insertion order"
+//           ]}
+//         ],
+//         worst: [
+//           { tag: "h2", text: "Worst Case — O(n)" },
+//           { tag: "p", text: "If keys are inserted in already-sorted (or reverse-sorted) order, every new node becomes the rightmost (or leftmost) child of the previous one, producing a tree that is structurally identical to a linked list." },
+//           { tag: "ul", items: [
+//             "Sorted-order insertion produces a tree of height n − 1",
+//             "Every search/insert/delete in this degenerate tree costs O(n), since the 'tree' is effectively a single chain",
+//             "This is the fundamental motivation for self-balancing BST variants (AVL, Red-Black), which provably cap height at O(log n) regardless of insertion order"
+//           ]}
+//         ]
+//       },
+
+//       spaceComplexityCalculation: {
+//         notation: "O(n)",
+//         best: [
+//           { tag: "h2", text: "Best Case Space — O(n)" },
+//           { tag: "p", text: "Storing n nodes requires O(n) space for the node data itself, regardless of the tree's shape — this is identical across all cases since it only depends on node count." },
+//           { tag: "ul", items: ["n node objects, each with key + left/right pointers: O(n)"] }
+//         ],
+//         average: [
+//           { tag: "h2", text: "Average Case Space — O(n)" },
+//           { tag: "p", text: "Total node storage is fixed by n alone, while the recursion stack used during operations scales with the tree's height, which is O(log n) on average for randomly-built trees." },
+//           { tag: "ul", items: ["O(n) node storage", "O(log n) expected recursion stack depth for random insertion order"] }
+//         ],
+//         worst: [
+//           { tag: "h2", text: "Worst Case Space — O(n)" },
+//           { tag: "p", text: "In a degenerate (linked-list-shaped) tree, the recursion stack during search/insert/delete can grow to O(n), matching the tree's worst-case height." },
+//           { tag: "ul", items: [
+//             "O(n) node storage, identical to best/average case",
+//             "O(n) recursion stack depth in a degenerate, maximally-skewed tree — this is the same root cause as the O(n) worst-case time complexity"
+//           ]}
+//         ]
+//       },
+
+//       pseudoCodeandStepexplanation: [
+//         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+//         { tag: "code", language: "text", text:
+// `function search(node, key):
+//     if node is null or node.key == key:
+//         return node
+//     if key < node.key:
+//         return search(node.left, key)
+//     else:
+//         return search(node.right, key)
+
+// function insert(node, key):
+//     if node is null:
+//         return new Node(key)
+//     if key < node.key:
+//         node.left ← insert(node.left, key)
+//     else if key > node.key:
+//         node.right ← insert(node.right, key)
+//     // duplicate keys: no-op (or handle per requirements)
+//     return node
+
+// function delete(node, key):
+//     if node is null:
+//         return null
+//     if key < node.key:
+//         node.left ← delete(node.left, key)
+//     else if key > node.key:
+//         node.right ← delete(node.right, key)
+//     else:
+//         // Found the node to delete
+//         if node.left is null:  return node.right
+//         if node.right is null: return node.left
+//         // Two children: replace with in-order successor
+//         successor ← findMin(node.right)
+//         node.key ← successor.key
+//         node.right ← delete(node.right, successor.key)
+//     return node` },
+//         { tag: "h2", text: "Step-by-step reasoning" },
+//         { tag: "ol", items: [
+//           "Search: compare the target key against the current node; if smaller, recurse left; if larger, recurse right; if equal, found. Each comparison eliminates one entire subtree from consideration.",
+//           "Insert: follow the same comparison path as search until reaching a null spot, then attach the new node there — this always preserves the BST ordering invariant.",
+//           "Delete (leaf node): simply remove it — no children to reattach.",
+//           "Delete (one child): replace the node with its single child, splicing it directly into the parent's link.",
+//           "Delete (two children): find the in-order successor (the smallest key in the right subtree, found by following left-child pointers from node.right), copy its key into the node being deleted, then recursively delete the successor from the right subtree (which is now an easier 0-or-1-child deletion)."
+//         ]},
+//         { tag: "h2", text: "Why it's correct" },
+//         { tag: "p", text: "Search correctness follows directly from the BST invariant: if key < node.key, every key in the right subtree is guaranteed larger than key (by the invariant), so it cannot contain the target — recursing left is safe and complete. Insertion correctness follows because the new node is always placed at a position consistent with the invariant (smaller keys to the left, larger to the right of every ancestor on its path). Deletion's two-child case is the subtle one: replacing the deleted key with its in-order successor (the smallest key greater than it) preserves the invariant, because the successor is guaranteed to be larger than everything in the original left subtree and smaller than everything remaining in the right subtree — exactly the ordering position the deleted node occupied." }
+//       ],
+//       codes:{
+//         "c++":`#include <iostream>
+// using namespace std;
+
+// struct TreeNode {
+//     int id;
+//     int value;
+//     TreeNode* left;
+//     TreeNode* right;
+
+//     TreeNode(int id, int value) {
+//         this->id = id;
+//         this->value = value;
+//         left = nullptr;
+//         right = nullptr;
+//     }
+// };
+
+// TreeNode* insert(TreeNode* node, int id, int value) {
+//     if (node == nullptr)
+//         return new TreeNode(id, value);
+
+//     TreeNode* curr = node;
+
+//     if (value < curr->value)
+//         curr->left = insert(curr->left, id, value);
+//     else
+//         curr->right = insert(curr->right, id, value);
+
+//     return curr;
+// }
+
+// bool search(TreeNode* node, int target) {
+//     TreeNode* curr = node;
+
+//     while (curr != nullptr) {
+//         if (curr->value == target)
+//             return true;
+
+//         if (target < curr->value)
+//             curr = curr->left;
+//         else
+//             curr = curr->right;
+//     }
+
+//     return false;
+// }
+
+// TreeNode* findMin(TreeNode* node) {
+//     TreeNode* curr = node;
+
+//     while (curr->left != nullptr)
+//         curr = curr->left;
+
+//     return curr;
+// }
+
+// TreeNode* deleteNode(TreeNode* node, int target) {
+//     if (node == nullptr)
+//         return nullptr;
+
+//     TreeNode* curr = node;
+
+//     if (target < curr->value)
+//         curr->left = deleteNode(curr->left, target);
+//     else if (target > curr->value)
+//         curr->right = deleteNode(curr->right, target);
+//     else {
+//         if (curr->left == nullptr) {
+//             TreeNode* temp = curr->right;
+//             delete curr;
+//             return temp;
+//         }
+
+//         if (curr->right == nullptr) {
+//             TreeNode* temp = curr->left;
+//             delete curr;
+//             return temp;
+//         }
+
+//         TreeNode* temp = findMin(curr->right);
+//         curr->value = temp->value;
+//         curr->id = temp->id;
+//         curr->right = deleteNode(curr->right, temp->value);
+//     }
+
+//     return curr;
+// }
+
+// void inorder(TreeNode* node) {
+//     if (node == nullptr)
+//         return;
+
+//     inorder(node->left);
+//     cout << node->value << " ";
+//     inorder(node->right);
+// }
+
+// int main() {
+//     TreeNode* root = nullptr;
+
+//     root = insert(root, 1, 10);
+//     root = insert(root, 2, 5);
+//     root = insert(root, 3, 15);
+//     root = insert(root, 4, 3);
+//     root = insert(root, 5, 8);
+//     root = insert(root, 6, 12);
+//     root = insert(root, 7, 20);
+
+//     cout << "Inorder : ";
+//     inorder(root);
+//     cout << endl;
+
+//     cout << "Search 8 : " << search(root, 8) << endl;
+//     cout << "Search 25 : " << search(root, 25) << endl;
+
+//     root = deleteNode(root, 5);
+
+//     cout << "After deleting 5 : ";
+//     inorder(root);
+//     cout << endl;
+
+//     root = deleteNode(root, 15);
+
+//     cout << "After deleting 15 : ";
+//     inorder(root);
+//     cout << endl;
+
+//     return 0;
+// }
+        
+// `
+//       }
+//     },
+
+//     /* ════════════════════════════════════════════════════════════════════
+//        4. LOWEST COMMON ANCESTOR
+//     ════════════════════════════════════════════════════════════════════ */
+//     {
+//       name: "Lowest Common Ancestor",
+//       href: "/algorithms/trees/lca",
+//       type: "Medium",
+
+//       about: [
+//         { tag: "h1", text: "Lowest Common Ancestor (LCA)" },
+//         { tag: "p", text: "The Lowest Common Ancestor of two nodes u and v in a tree is the deepest node that has both u and v as descendants (a node is considered a descendant of itself for this definition). It's a fundamental query that comes up anywhere hierarchical relationships matter: finding the common ancestor of two commits in a version-control history graph, the common category of two items in a taxonomy, or the meeting point of two file paths." },
+//         { tag: "p", text: "The right algorithm depends heavily on the tree type and query pattern. For a general binary tree with a single query, a recursive post-order approach works in O(n). For a Binary Search Tree specifically, the ordering property allows a much faster O(h) approach that doesn't need to explore both subtrees. For many repeated queries on a static tree, preprocessing techniques (binary lifting, Euler tour + sparse table) achieve O(log n) or even O(1) per query after O(n log n) preprocessing." },
+//         { tag: "h2", text: "When to reach for it" },
+//         { tag: "ul", items: [
+//           "Finding the common ancestor of two nodes in any tree structure (file systems, org charts, phylogenetic trees)",
+//           "Computing the distance between two nodes in a tree: distance(u, v) = depth(u) + depth(v) − 2 × depth(LCA(u, v))",
+//           "Git's merge-base computation (finding the common ancestor commit of two branches) is conceptually an LCA query on the commit DAG",
+//           "Range/path queries on trees, where many algorithms first reduce the problem to 'find the LCA, then process the path through it'"
+//         ]},
+//         { tag: "note", variant: "tip", text: "Don't use the general O(n) binary-tree algorithm on a BST — exploiting the BST ordering property gives O(h) instead, often a dramatic speedup, since you never need to explore the subtree that can't contain either target." }
+//       ],
+
+//       timeComplexityCalculation: {
+//         notation: "O(n)",
+//         best: [
+//           { tag: "h2", text: "Best Case — O(1)" },
+//           { tag: "p", text: "If one of the two target nodes happens to be an ancestor of the other and is found immediately at the root, the search can terminate in constant time — though this depends on the specific tree and query, not a structural guarantee." },
+//           { tag: "ul", items: [
+//             "If root itself is one of the two targets, it's immediately known to be the LCA (since a node is its own potential ancestor): O(1)",
+//             "This is a favourable-input case, not the typical algorithmic guarantee"
+//           ]}
+//         ],
+//         average: [
+//           { tag: "h2", text: "Average Case — O(n)" },
+//           { tag: "p", text: "The general binary-tree LCA algorithm must, in the average case, still explore a substantial fraction of the tree to confirm both targets are found and correctly determine their meeting point, since it doesn't exploit any ordering property." },
+//           { tag: "ul", items: [
+//             "Post-order recursive search: each node is visited once to check if it equals either target, or to combine results from its children",
+//             "On average, a significant portion of the tree must be explored before both targets are located: O(n)",
+//             "For a BST specifically, the average case improves to O(log n) by exploiting the ordering invariant, identical to BST search's average case"
+//           ]}
+//         ],
+//         worst: [
+//           { tag: "h2", text: "Worst Case — O(n)" },
+//           { tag: "p", text: "If the two target nodes are deep in different subtrees (or the entire tree must be searched to locate them), the general algorithm visits every node exactly once in the worst case." },
+//           { tag: "ul", items: [
+//             "Every node is visited exactly once in a post-order traversal: O(n)",
+//             "For a BST, the worst case is O(h), which is O(n) for a degenerate unbalanced tree but O(log n) for a balanced one — same height dependency as plain BST operations",
+//             "With O(n) preprocessing (binary lifting / Euler tour + sparse table), each individual query afterward drops to O(log n) or O(1), trading preprocessing cost for fast repeated queries"
+//           ]}
+//         ]
+//       },
+
+//       spaceComplexityCalculation: {
+//         notation: "O(h)",
+//         best: [
+//           { tag: "h2", text: "Best Case Space — O(1)" },
+//           { tag: "p", text: "If the LCA is found immediately at the root with no recursion needed, no additional stack space beyond the initial call is used." },
+//           { tag: "ul", items: ["Single function call, no recursion: O(1)"] }
+//         ],
+//         average: [
+//           { tag: "h2", text: "Average Case Space — O(h)" },
+//           { tag: "p", text: "The recursive post-order search uses a call stack bounded by the tree's height, since the recursion follows root-to-leaf paths." },
+//           { tag: "ul", items: ["Recursion stack depth: O(h), where h is the tree's height — O(log n) for a balanced tree"] }
+//         ],
+//         worst: [
+//           { tag: "h2", text: "Worst Case Space — O(n)" },
+//           { tag: "p", text: "For a degenerate, maximally-skewed tree, the recursion stack can grow to O(n), matching the tree's worst-case height." },
+//           { tag: "ul", items: [
+//             "Recursion stack: O(h), which is O(n) for a degenerate tree",
+//             "Preprocessing-based approaches (binary lifting) trade this for O(n log n) upfront space in exchange for O(log n) query time regardless of tree shape"
+//           ]}
+//         ]
+//       },
+
+//       pseudoCodeandStepexplanation: [
+//         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+//         { tag: "p", text: "General binary tree LCA (works for any binary tree, not just a BST):" },
+//         { tag: "code", language: "text", text:
+// `function lowestCommonAncestor(root, p, q):
+//     if root is null or root == p or root == q:
+//         return root
+
+//     left  ← lowestCommonAncestor(root.left, p, q)
+//     right ← lowestCommonAncestor(root.right, p, q)
+
+//     if left is not null and right is not null:
+//         return root          // p and q found in different subtrees — root is the LCA
+//     return left if left is not null else right` },
+//         { tag: "h2", text: "Step-by-step reasoning" },
+//         { tag: "ol", items: [
+//           "Base case: if the current node is null, or matches either target node, return it immediately — this is the signal that propagates 'I found one of the targets here' up through the recursion.",
+//           "Recurse into both the left and right subtrees, searching for either target in each.",
+//           "If both the left and right recursive calls return a non-null result, that means p was found in one subtree and q in the other — the current node is exactly where their paths diverge, making it the LCA.",
+//           "If only one side returned a non-null result, that side contains either one or both targets — propagate that result upward unchanged, since the true LCA must be at or above that point.",
+//           "The call on the original root eventually returns the LCA once the recursion fully unwinds."
+//         ]},
+//         { tag: "h2", text: "Why it's correct" },
+//         { tag: "p", text: "Correctness follows from a key invariant: a non-null return value from a subtree's recursive call means that subtree contains at least one of the two target nodes (possibly both, if it's already found their LCA internally). When a node receives non-null results from BOTH its left and right recursive calls, this proves the two targets are split across its two subtrees — meaning this node is precisely the deepest node with both as descendants, satisfying the definition of LCA. If a node already equals one of the targets, it's correctly returned immediately, since (by definition) any node is its own ancestor, covering the edge case where one target is an ancestor of the other." }
+//       ],
+//       codes:{
+//         "c++":`#include <iostream>
+// using namespace std;
+
+// struct TreeNode {
+//     int id;
+//     int value;
+//     TreeNode* left;
+//     TreeNode* right;
+
+//     TreeNode(int id, int value) {
+//         this->id = id;
+//         this->value = value;
+//         left = nullptr;
+//         right = nullptr;
+//     }
+// };
+
+// TreeNode* lowestCommonAncestor(TreeNode* node, int p, int q) {
+//     if (node == nullptr)
+//         return nullptr;
+
+//     TreeNode* curr = node;
+
+//     if (curr->value == p || curr->value == q)
+//         return curr;
+
+//     TreeNode* left = lowestCommonAncestor(curr->left, p, q);
+//     TreeNode* right = lowestCommonAncestor(curr->right, p, q);
+
+//     if (left != nullptr && right != nullptr)
+//         return curr;
+
+//     if (left != nullptr)
+//         return left;
+
+//     return right;
+// }
+
+// int main() {
+//     TreeNode* root = new TreeNode(1, 3);
+
+//     root->left = new TreeNode(2, 5);
+//     root->right = new TreeNode(3, 1);
+
+//     root->left->left = new TreeNode(4, 6);
+//     root->left->right = new TreeNode(5, 2);
+
+//     root->right->left = new TreeNode(6, 0);
+//     root->right->right = new TreeNode(7, 8);
+
+//     root->left->right->left = new TreeNode(8, 7);
+//     root->left->right->right = new TreeNode(9, 4);
+
+//     TreeNode* ans = lowestCommonAncestor(root, 5, 1);
+
+//     cout << ans->value << endl;
+
+//     ans = lowestCommonAncestor(root, 5, 4);
+
+//     cout << ans->value << endl;
+
+//     return 0;
+// }
+// `
+//       }
+//     },
+
+//     /* ════════════════════════════════════════════════════════════════════
+//        5. RED-BLACK TREES
+//     ════════════════════════════════════════════════════════════════════ */
+//     {
+//       name: "Red-Black Trees",
+//       href: "/algorithms/trees/red-black",
+//       type: "Hard",
+
+//       about: [
+//         { tag: "h1", text: "Red-Black Trees" },
+//         { tag: "p", text: "A Red-Black Tree is a self-balancing BST where every node is colored either red or black, and a set of coloring rules guarantees the tree's height never exceeds roughly 2 log₂(n+1) — looser than AVL's stricter balance, but cheaper to maintain. Invented by Rudolf Bayer in 1972 (originally as 'symmetric binary B-trees'), it's the most widely deployed self-balancing tree structure in real-world software." },
+//         { tag: "p", text: "The five defining rules are: (1) every node is red or black, (2) the root is always black, (3) every leaf (null/nil) is considered black, (4) a red node never has a red child ('no two reds in a row'), and (5) every path from a given node to any of its descendant null leaves passes through the same number of black nodes ('black-height' is consistent). These rules together guarantee no root-to-leaf path is ever more than twice as long as any other, which is what bounds the height to O(log n)." },
+//         { tag: "h2", text: "When to reach for it" },
+//         { tag: "ul", items: [
+//           "Write-heavy workloads — Red-Black trees require fewer rotations per insertion/deletion than AVL trees, making writes cheaper at a small cost to lookup speed",
+//           "Implementing language standard library ordered containers — this is what backs C++'s std::map/std::set, Java's TreeMap/TreeSet, and the Linux kernel's completely fair scheduler (CFS)",
+//           "Any general-purpose balanced BST need where you don't have a strong reason to prefer AVL's stricter balance",
+//           "Interval trees (used for efficient overlap queries) are commonly built as an augmented Red-Black tree"
+//         ]},
+//         { tag: "table",
+//           headers: ["Property", "AVL Tree", "Red-Black Tree"],
+//           rows: [
+//             ["Balance strictness", "Height difference ≤ 1 (strict)", "Height difference ≤ 2x (looser)"],
+//             ["Lookup speed", "Slightly faster (more balanced)", "Slightly slower"],
+//             ["Insert/delete speed", "Slower (more rotations)", "Faster (fewer rotations, O(1) amortised recoloring)"],
+//             ["Typical use", "Read-heavy", "Write-heavy / general-purpose"]
+//           ]
+//         },
+//         { tag: "note", variant: "info", text: "Red-Black trees are also the structural basis for 2-3-4 trees (a type of B-tree) — there's a direct, well-known correspondence between the two, which is part of why the coloring-based balance rules work at all." }
+//       ],
+
+//       timeComplexityCalculation: {
+//         notation: "O(log n)",
+//         best: [
+//           { tag: "h2", text: "Best Case — O(log n)" },
+//           { tag: "p", text: "Just like AVL trees, the height guarantee is structural and unconditional, so even the most favourable single query is still classified by the algorithm's guaranteed bound, not by luck." },
+//           { tag: "ul", items: [
+//             "The 5 Red-Black invariants guarantee height ≤ 2 log₂(n+1) at all times, for any insertion/deletion sequence",
+//             "Search, insert, and delete all follow a root-to-leaf path bounded by this height: O(log n)"
+//           ]}
+//         ],
+//         average: [
+//           { tag: "h2", text: "Average Case — O(log n)" },
+//           { tag: "p", text: "Because the coloring invariants are actively maintained after every modification, there's no input sequence that produces a worse average shape than the guaranteed bound." },
+//           { tag: "ul", items: [
+//             "Search: O(h) = O(log n)",
+//             "Insert: O(log n) to find the insertion point, plus O(1) amortised recoloring/rotation to restore the invariants (a key advantage over AVL, where rebalancing can require more frequent rotations)",
+//             "Delete: O(log n) to find the node, plus a bounded number of rotations (at most 3) to restore the invariants"
+//           ]}
+//         ],
+//         worst: [
+//           { tag: "h2", text: "Worst Case — O(log n)" },
+//           { tag: "p", text: "Like AVL trees, this is the entire purpose of the structure: no input sequence can ever produce a Red-Black tree taller than its proven bound." },
+//           { tag: "ul", items: [
+//             "Provable bound: a Red-Black tree with n internal nodes has height at most 2 log₂(n+1)",
+//             "This follows from the black-height invariant: a subtree rooted at any node with black-height bh has at least 2^bh − 1 internal nodes, and the no-two-reds-in-a-row rule means the longest possible path is at most twice the shortest",
+//             "No adversarial insertion/deletion sequence can break this bound — it's restored after every single operation"
+//           ]}
+//         ]
+//       },
+
+//       spaceComplexityCalculation: {
+//         notation: "O(n)",
+//         best: [
+//           { tag: "h2", text: "Best Case Space — O(n)" },
+//           { tag: "p", text: "Storing n nodes requires O(n) space, plus a single extra bit per node to store its color — a much smaller per-node overhead than AVL's integer height/balance-factor field." },
+//           { tag: "ul", items: ["n node objects, each with left/right/parent pointers + a 1-bit color field: O(n)"] }
+//         ],
+//         average: [
+//           { tag: "h2", text: "Average Case Space — O(n)" },
+//           { tag: "p", text: "Total stored data is fixed by n alone, since the guaranteed height bound doesn't change how many nodes need to be stored, only how they're arranged." },
+//           { tag: "ul", items: ["O(n) for node storage", "O(log n) for the recursion/iteration depth during any single operation, due to the guaranteed logarithmic height"] }
+//         ],
+//         worst: [
+//           { tag: "h2", text: "Worst Case Space — O(n)" },
+//           { tag: "p", text: "No insertion/deletion sequence increases storage beyond the fixed per-node overhead — exactly like AVL trees, space depends only on node count, not on tree shape." },
+//           { tag: "ul", items: [
+//             "O(n) total node storage",
+//             "O(log n) recursion/iteration depth during any single operation — guaranteed by the height bound"
+//           ]}
+//         ]
+//       },
+
+//       pseudoCodeandStepexplanation: [
+//         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+//         { tag: "p", text: "High-level insertion logic (full rotation/recoloring case analysis is extensive; the core structure is shown here):" },
+//         { tag: "code", language: "text", text:
+// `function insert(tree, key):
+//     newNode ← new Node(key, color = RED)
+//     bstInsert(tree, newNode)              // standard BST insertion
+//     fixInsertViolations(tree, newNode)
+
+// function fixInsertViolations(tree, node):
+//     while node.parent.color == RED:
+//         if node.parent == node.grandparent.left:
+//             uncle ← node.grandparent.right
+//             if uncle.color == RED:
+//                 // Case 1: uncle is red — recolor and move up
+//                 node.parent.color ← BLACK
+//                 uncle.color ← BLACK
+//                 node.grandparent.color ← RED
+//                 node ← node.grandparent
+//             else:
+//                 if node == node.parent.right:
+//                     // Case 2: triangle shape — rotate to make it a line
+//                     node ← node.parent
+//                     rotateLeft(tree, node)
+//                 // Case 3: line shape — rotate and recolor
+//                 node.parent.color ← BLACK
+//                 node.grandparent.color ← RED
+//                 rotateRight(tree, node.grandparent)
+//         else:
+//             // mirror image of the above, swapping left/right
+//             ...
+
+//     tree.root.color ← BLACK                // rule: root is always black` },
+//         { tag: "h2", text: "Step-by-step reasoning" },
+//         { tag: "ol", items: [
+//           "Insert the new node exactly like a standard BST insertion, but always color it red initially — this never violates the black-height rule (rule 5), since a new red leaf doesn't add to any path's black-node count.",
+//           "Coloring the new node red CAN violate rule 4 (no two reds in a row) if its parent is also red — this is the only possible violation after a plain BST insertion, and it's fixed by examining the new node's 'uncle' (its grandparent's other child).",
+//           "If the uncle is red: recolor the parent and uncle to black and the grandparent to red, then continue the fix-up process treating the grandparent as the new 'node' — this can propagate the red-red violation further up the tree.",
+//           "If the uncle is black (or absent): rotations are needed. A 'triangle' shape (node is on the opposite side of its parent than the parent is of the grandparent) is first rotated into a 'line' shape, then a single rotation plus a recolor of the parent/grandparent resolves the violation completely without needing to propagate further up.",
+//           "Finally, the root is always recolored black, satisfying rule 2 unconditionally — this can never violate the black-height rule, since lowering one red root to black only ever increases (or leaves unchanged) the black count of paths through it, uniformly across the whole tree."
+//         ]},
+//         { tag: "h2", text: "Why it's correct" },
+//         { tag: "p", text: "The five Red-Black invariants together force a provable height bound: rule 4 (no two consecutive reds) means that on any root-to-leaf path, red nodes can never make up more than half the path, so the longest path is at most twice the length of the shortest. Rule 5 (equal black-height on every path) is what makes 'shortest path' a well-defined, consistent quantity. The fix-up procedure is correct because each of its three cases either resolves the violation completely (cases 2 and 3, via rotation) or provably preserves all other invariants while pushing the violation strictly higher up the tree (case 1, recoloring) — and since the tree has finite height, this propagation must terminate, either by reaching a black parent (no violation) or by reaching the root (which is then simply recolored black, always a safe final fix)." }
+//       ],
+//       codes:{
+//         "c++":`#include <iostream>
+// using namespace std;
+
+// struct TreeNode {
+//     int value;
+//     bool red;
+//     TreeNode* left;
+//     TreeNode* right;
+//     TreeNode* parent;
+
+//     TreeNode(int value) {
+//         this->value = value;
+//         red = true;
+//         left = nullptr;
+//         right = nullptr;
+//         parent = nullptr;
+//     }
+// };
+
+// TreeNode* leftRotate(TreeNode* root, TreeNode* node) {
+//     TreeNode* right = node->right;
+
+//     node->right = right->left;
+
+//     if (right->left != nullptr)
+//         right->left->parent = node;
+
+//     right->parent = node->parent;
+
+//     if (node->parent == nullptr)
+//         root = right;
+//     else if (node == node->parent->left)
+//         node->parent->left = right;
+//     else
+//         node->parent->right = right;
+
+//     right->left = node;
+//     node->parent = right;
+
+//     return root;
+// }
+
+// TreeNode* rightRotate(TreeNode* root, TreeNode* node) {
+//     TreeNode* left = node->left;
+
+//     node->left = left->right;
+
+//     if (left->right != nullptr)
+//         left->right->parent = node;
+
+//     left->parent = node->parent;
+
+//     if (node->parent == nullptr)
+//         root = left;
+//     else if (node == node->parent->left)
+//         node->parent->left = left;
+//     else
+//         node->parent->right = left;
+
+//     left->right = node;
+//     node->parent = left;
+
+//     return root;
+// }
+
+// void flipColors(TreeNode* node) {
+//     node->red = !node->red;
+
+//     if (node->left != nullptr)
+//         node->left->red = !node->left->red;
+
+//     if (node->right != nullptr)
+//         node->right->red = !node->right->red;
+// }
+
+// void inorder(TreeNode* node) {
+//     if (node == nullptr)
+//         return;
+
+//     inorder(node->left);
+
+//     cout << node->value;
+
+//     if (node->red)
+//         cout << "(R) ";
+//     else
+//         cout << "(B) ";
+
+//     inorder(node->right);
+// }
+
+// int main() {
+//     TreeNode* root = new TreeNode(20);
+//     root->red = false;
+
+//     root->left = new TreeNode(10);
+//     root->left->parent = root;
+
+//     root->right = new TreeNode(30);
+//     root->right->parent = root;
+
+//     root->right->right = new TreeNode(40);
+//     root->right->right->parent = root->right;
+
+//     cout << "Before Rotation:" << endl;
+//     inorder(root);
+//     cout << endl;
+
+//     root = leftRotate(root, root);
+
+//     cout << "After Left Rotation:" << endl;
+//     inorder(root);
+//     cout << endl;
+
+//     flipColors(root);
+
+//     cout << "After Color Flip:" << endl;
+//     inorder(root);
+//     cout << endl;
+
+//     return 0;
+// }
+// `
+//       }
+//     }
+
+//   ],
+//   desc: "BST, AVL, segment tree, traversals",
+//   complexity: "O(log n)",
+//   featured: false,
+// };
+
+export default TREES_SECTION ;

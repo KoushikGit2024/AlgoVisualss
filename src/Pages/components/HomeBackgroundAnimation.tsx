@@ -708,7 +708,7 @@ export default function NetworkBackground() {
       {/* Vignette — dark edges like a city map receding into darkness */}
       <div
         className="absolute inset-0"
-        style={{ background: 'radial-gradient(ellipse 90% 90% at 50% 50%, transparent 35%, rgba(13,11,20,0.7) 75%, var(--bg) 100%)' }}
+        // style={{ background: 'radial-gradient(ellipse 90% 90% at 50% 50%, transparent 35%, rgba(13,11,20,0.7) 75%, var(--bg) 100%)' }}
       />
       <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-[var(--bg)] to-transparent" />
     </div>

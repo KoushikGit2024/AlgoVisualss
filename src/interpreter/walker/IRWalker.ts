@@ -67,6 +67,7 @@ import {
 import { ScopeManager }        from "../runtime/ScopeManager";
 import { EventEmitter }        from "../events/EventEmitter";
 import { ExpressionEvaluator } from "../evaluator/ExpressionEvaluator";
+import { logStepToConsole } from "../utils/helpers";
 import { StatementExecutor }   from "../executor/StatementExecutor";
 import { EventType }           from "../types";
 import type { Breakpoint }     from "../types";
@@ -315,7 +316,7 @@ export class IRWalker {
       default:
         // Unknown statement kind: emit a warning but do not crash.
         // This prevents a single unrecognised node from aborting the whole run.
-        console.warn(
+        logStepToConsole(
           `[IRWalker.walkStatement] Unknown statement kind '${(stmt as any).kind}' ` +
           `at line ${(stmt as any).line}. Skipping.`
         );
@@ -630,7 +631,7 @@ export class IRWalker {
 
     // Graceful fallback: uninitialized or unsupported collection type.
     if (!targetArray) {
-      console.warn(
+      logStepToConsole(
         `[IRWalker.walkForRangeStatement] Collection at line ${node.line} ` +
         `could not be iterated — defaulting to empty. ` +
         `Type: ${typeof container}.`
@@ -789,9 +790,6 @@ export class IRWalker {
 
     // ── No matching handler — re-throw ────────────────────────────────────
     if (!matched) {
-      // Debug note: The ThrowSignal will propagate to an outer walkTryStatement
-      // or to ExecutionEngine.invokeFunction(), which will surface it as a
-      // runtime error with the thrown value and type name in the message.
       throw caughtSignal;
     }
 
@@ -839,9 +837,6 @@ export class IRWalker {
    * @param stmt - The IRLabeledStatement to execute.
    */
   private walkLabeledStatement(stmt: IRLabeledStatement): void {
-    // Debug note: If this fires and the program relies on goto to reach this
-    // label, the goto walker above will have already thrown UnsupportedFeatureError.
-    // Reaching here means the label exists but no goto targeted it — safe to execute.
     this.walkStatement(stmt.statement);
   }
 }

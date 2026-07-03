@@ -220,9 +220,6 @@ export class CallStack {
    *
    * @throws {Error} If the stack is already empty (stack underflow).
    *   This represents an engine bug — a pop() without a matching push().
-   *   Debug note: Check that every invokeFunction() call has a corresponding
-   *   pop() in its finally block, including polyfill intercepts that call
-   *   push() for native functions.
    */
   public pop(): StackFrame {
     if (this.isEmpty()) {
@@ -242,8 +239,6 @@ export class CallStack {
    * and by createSnapshot() to read the active frame's scope depth.
    *
    * @throws {Error} If the stack is empty — no function is currently executing.
-   *   Debug note: If this fires outside of a run() call, check that run() was
-   *   called before any expression evaluation is attempted.
    */
   public peek(): StackFrame {
     if (this.isEmpty()) {

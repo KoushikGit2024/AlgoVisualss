@@ -58,9 +58,10 @@ function runForceLayout(
   });
 
   const area = width * height;
-  const k = Math.sqrt(area / nodes.length) * 0.6;
-  let temperature = width / 10;
-  const iterations = 150;
+  // Enforce a minimum equilibrium distance (k) so edges always have breathing room
+  const k = Math.max(Math.sqrt(area / Math.max(nodes.length, 1)) * 0.8, NODE_R * 5.5);
+  let temperature = width / 8;
+  const iterations = 180;
   const PADDING = NODE_R + 12;
 
   for (let iter = 0; iter < iterations; iter++) {
@@ -76,7 +77,12 @@ function runForceLayout(
         let dist = Math.sqrt(dx * dx + dy * dy);
         if (dist === 0) dist = 0.01;
 
-        const force = (k * k) / dist;
+        let force = (k * k) / dist;
+        // Strong collision penalty if nodes get too close to guarantee they never cover each other
+        if (dist < NODE_R * 4) {
+          force += (NODE_R * 4 - dist) * 100;
+        }
+        
         const dispX = (dx / dist) * force;
         const dispY = (dy / dist) * force;
 
@@ -196,13 +202,7 @@ const Graph = ({
         </marker>
       ))}
 
-      <filter id="edge-glow" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="2.2" result="blur" />
-        <feMerge>
-          <feMergeNode in="blur" />
-          <feMergeNode in="SourceGraphic" />
-        </feMerge>
-      </filter>
+
     </defs>
   );
 
@@ -276,7 +276,7 @@ const Graph = ({
             }
 
             return (
-              <g key={edge.id} filter={isActive ? 'url(#edge-glow)' : undefined}>
+              <g key={edge.id}>
                 <motion.path
                   initial={{ opacity: 0, pathLength: 0 }}
                   animate={{ opacity: 1, pathLength: 1, strokeDashoffset: isActive ? [0, -20] : 0 }}

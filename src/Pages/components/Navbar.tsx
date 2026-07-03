@@ -1,10 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { useEffect, useState, useId } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X,  Search, Command } from "lucide-react";
 import { cn } from '../../lib/utils';
 import SearchPalette from "./SearchPalette";
+import Logo from "./Logo";
 
 const navItems = [
   { name: "Algorithms",    href: "/algorithms" },
@@ -26,64 +27,7 @@ function ThemeIcon({ theme }: { theme: "light" | "dark" }) {
   );
 }
 
-// ─── Logo ─────────────────────────────────────────────────────────────────────
-function Logo({ gradId, lineGradId, glowId, mounted, theme }: {
-  gradId: string; lineGradId: string; glowId: string;
-  mounted: boolean; theme: "light" | "dark";
-}) {
-  return (
-    <Link to="/" className="flex items-center gap-2 shrink-0 transition-opacity hover:opacity-80">
-      <svg className="h-10" viewBox="0 0 320 90" preserveAspectRatio="xMinYMid meet" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%"   stopColor="#818CF8" />
-            <stop offset="50%"  stopColor="#A78BFA" />
-            <stop offset="100%" stopColor="#F472B6" />
-          </linearGradient>
-          <linearGradient id={lineGradId} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%"   stopColor="#818CF8" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#F472B6" stopOpacity="0.3" />
-          </linearGradient>
-          <filter id={glowId}>
-            <feGaussianBlur stdDeviation="1.5" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
 
-        <g transform="translate(12, 10)" filter={`url(#${glowId})`}>
-          <g stroke={`url(#${lineGradId})`} strokeWidth="1.5" strokeLinecap="round">
-            <line x1="18" y1="32" x2="44" y2="10" />
-            <line x1="44" y1="10" x2="70" y2="32" />
-            <line x1="70" y1="32" x2="58" y2="60" />
-            <line x1="58" y1="60" x2="30" y2="60" />
-            <line x1="30" y1="60" x2="18" y2="32" />
-            <line x1="44" y1="40" x2="18" y2="32" />
-            <line x1="44" y1="40" x2="44" y2="10" />
-            <line x1="44" y1="40" x2="70" y2="32" />
-          </g>
-          <circle cx="18" cy="32" r="4"   fill="#818CF8" opacity="0.9" />
-          <circle cx="44" cy="10" r="5.5" fill={`url(#${gradId})`} />
-          <circle cx="70" cy="32" r="4"   fill="#34D399" opacity="0.9" />
-          <circle cx="58" cy="60" r="3.5" fill="#A78BFA" opacity="0.85" />
-          <circle cx="30" cy="60" r="3.5" fill="#F472B6" opacity="0.85" />
-          <circle cx="44" cy="40" r="5"   fill={`url(#${gradId})`} />
-        </g>
-
-        <text x="96" y="50" fontFamily="var(--font-geist-sans), system-ui, sans-serif" fontSize="26" fontWeight="700" letterSpacing="-0.5">
-          <tspan fill={mounted ? (theme === "dark" ? "#EDE9FF" : "#1A1523") : "#EDE9FF"}>Algo</tspan>
-          <tspan fill={`url(#${gradId})`}>Visuals</tspan>
-        </text>
-        <text x="96" y="67" fontFamily="var(--font-geist-mono), monospace" fontSize="9" fontWeight="500" letterSpacing="2.5"
-          fill={mounted ? (theme === "dark" ? "#8878B0" : "#6B6787") : "#8878B0"}>
-          SEE ALGORITHMS EVOLVE
-        </text>
-      </svg>
-    </Link>
-  );
-}
 
 // ─── Mobile Drawer ────────────────────────────────────────────────────────────
 function MobileDrawer({ open, onClose, pathname }: { open: boolean; onClose: () => void; pathname: string; }) {
@@ -126,16 +70,16 @@ function MobileDrawer({ open, onClose, pathname }: { open: boolean; onClose: () 
             animate={{ x: 0 }} 
             exit={{ x: "100%" }}
             transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-            className="fixed top-0 right-0 bottom-0 z-50 flex w-[280px] sm:w-[320px] flex-col bg-[color-mix(in_srgb,var(--surface)_95%,transparent)] backdrop-blur-xl border-l border-[var(--border)] shadow-2xl md:hidden"
+            className="fixed top-0 right-0 bottom-0 z-50 flex w-[280px] sm:w-[320px] flex-col bg-[color-mix(in_srgb,var(--surface)_95%,transparent)] backdrop-blur-xl border-l border-(--border) shadow-2xl md:hidden"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-2 sm:px-4 py-3.5 border-b border-[var(--border)]">
-              <span className="text-sm font-semibold uppercase tracking-widest text-[var(--muted)]">
+            <div className="flex items-center justify-between px-2 sm:px-4 py-3.5 border-b border-(--border)">
+              <span className="text-sm font-semibold uppercase tracking-widest text-(--muted)">
                 Menu
               </span>
               <button 
                 onClick={onClose} 
-                className="flex items-center justify-center w-[36px] h-[36px] rounded-[10px] border border-[var(--border)] bg-transparent text-[var(--muted)] cursor-pointer transition-all duration-200 ease-in-out hover:text-[var(--text)] hover:bg-[var(--surface-2)] active:scale-95"
+                className="flex items-center justify-center w-[36px] h-[36px] rounded-[10px] border border-(--border) bg-transparent text-(--muted) cursor-pointer transition-all duration-200 ease-in-out hover:text-(--muted) hover:bg-(--surface-2) active:scale-95"
               >
                 <X size={18} strokeWidth={2.5} />
               </button>
@@ -149,6 +93,23 @@ function MobileDrawer({ open, onClose, pathname }: { open: boolean; onClose: () 
               animate="show"
               exit="exit"
             >
+              <motion.div variants={itemVariants} className="w-full block">
+                <button
+                  onClick={() => {
+                    onClose();
+                    document.dispatchEvent(new Event("open-search"));
+                  }}
+                  className={cn("group relative flex w-full items-center px-5 py-4 rounded-sm text-base font-semibold transition-all duration-200 ease overflow-hidden text-(--muted) hover:bg-(--surface-2) hover:text-(--muted)")}
+                >
+                  <div className="flex items-center gap-3">
+                    <Search size={18} />
+                    <span className="transition-transform duration-200 group-hover:translate-x-1">
+                      Search...
+                    </span>
+                  </div>
+                </button>
+              </motion.div>
+
               {navItems.map((item) => {
                 const isActive = pathname.startsWith(item.href);
                 return (
@@ -157,17 +118,17 @@ function MobileDrawer({ open, onClose, pathname }: { open: boolean; onClose: () 
                     <Link
                       to={item.href}
                       onClick={onClose}
-                      className={cn(`group relative flex w-full items-center px-5 py-4 rounded-[4px] text-base font-semibold transition-all duration-200 ease overflow-hidden ${
+                      className={cn(`group relative flex w-full items-center px-5 py-4 rounded-sm text-base font-semibold transition-all duration-200 ease overflow-hidden ${
                         isActive 
-                          ? "bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] text-[var(--accent)]" 
-                          : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+                          ? "bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] text-(--muted)" 
+                          : "text-(--muted) hover:bg-(--surface-2) hover:text-(--muted)"
                       }`)}
                     >
                       {/* Animated Active Indicator */}
                       {isActive && (
                         <motion.div 
                           layoutId="mobile-active-pill"
-                          className="absolute left-0 top-[25%] bottom-[25%] w-[3px] bg-[var(--accent)] rounded-r-[4px] shadow-[0_0_10px_var(--accent)]"
+                          className="absolute left-0 top-[25%] bottom-[25%] w-[3px] bg-(--surface-2) rounded-r-[4px] shadow-[0_0_10px_var(--accent)]"
                           transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
                         />
                       )}
@@ -184,13 +145,13 @@ function MobileDrawer({ open, onClose, pathname }: { open: boolean; onClose: () 
             </motion.nav>
 
             {/* Footer with Added Links for Mobile */}
-            <div className="mt-auto flex flex-col items-center gap-4 p-6 border-t border-[var(--border)]">
+            <div className="mt-auto flex flex-col items-center gap-4 p-6 border-t border-(--border)">
 
               <a 
                 href="https://github.com/KoushikGit2024/AlgoVisualss" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-[var(--muted)] hover:text-[var(--text)] transition-transform hover:scale-110 duration-200"
+                className="text-(--muted) hover:text-(--muted) transition-transform hover:scale-110 duration-200"
                 aria-label="GitHub Repository"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -199,7 +160,7 @@ function MobileDrawer({ open, onClose, pathname }: { open: boolean; onClose: () 
               </a>
                 
 
-              <div className="text-center text-[11px] text-[var(--muted)] font-[var(--font-geist-mono),monospace]">
+              <div className="text-center text-[11px] text-(--muted) font-[var(--font-geist-mono),monospace]">
                 <p>AlgoVisuals <span className="opacity-50">v2.1.0</span></p>
               </div>
             </div>
@@ -219,15 +180,24 @@ export default function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const rawId      = useId().replace(/:/g, "");
-  const gradId     = `nb-grad-${rawId}`;
-  const lineGradId = `nb-line-${rawId}`;
-  const glowId     = `nb-glow-${rawId}`;
-
   useEffect(() => {
     setMounted(true);
     const saved = localStorage.getItem("theme") as "light" | "dark" | null;
+    if (saved) {
+      setTheme(saved);
+    } else {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      setTheme(mediaQuery.matches ? "dark" : "light");
+      
+      const handleChange = (e: MediaQueryListEvent) => {
+        if (!localStorage.getItem("theme")) {
+          setTheme(e.matches ? "dark" : "light");
+        }
+      };
+      
+      mediaQuery.addEventListener("change", handleChange);
     if (saved) setTheme(saved);
+    }
   }, []);
 
   useEffect(() => {
@@ -257,10 +227,10 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 w-full h-[64px] border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_75%,transparent)] backdrop-blur-xl transition-[background,border-color] duration-300 ease-in-out">
+      <nav className="sticky top-0 z-50 w-full h-[64px] border-b border-(--border) bg-[color-mix(in_srgb,var(--bg)_75%,transparent)] backdrop-blur-xl transition-[background,border-color] duration-300 ease-in-out">
         <div className="flex items-center justify-between h-full px-6 mx-auto max-w-[1480px]">
           
-          <Logo gradId={gradId} lineGradId={lineGradId} glowId={glowId} mounted={mounted} theme={theme} />
+          <Logo />
           
           <div className="flex items-center gap-6 md:gap-8">
             
@@ -272,8 +242,8 @@ export default function Navbar() {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={cn(`relative flex items-center justify-center text-sm font-medium transition-colors duration-200 rounded-lg z-10 hover:text-[var(--text)] ${
-                      isActive ? "text-[var(--accent)]" : "text-[var(--muted)]"
+                    className={cn(`relative flex items-center justify-center text-sm font-medium transition-colors duration-200 rounded-lg z-10 hover:text-(--muted) ${
+                      isActive ? "text-(--muted)" : "text-(--muted)"
                     }`)}
                   >
                     {isActive && (
@@ -290,18 +260,18 @@ export default function Navbar() {
             </div>
 
             {/* Right Side Tools & Functionalities */}
-            <div className="flex items-center gap-3 border-l border-transparent md:border-[var(--border)] md:pl-6 transition-colors">
+            <div className="flex items-center gap-3 border-l border-transparent md:border-(--border) md:pl-6 transition-colors">
               
               {/* Aesthetic Global Search Mockup (Desktop Only) */}
               <button 
-                className="hidden lg:flex items-center gap-3 px-3 py-1.5 h-[38px] rounded-[10px] bg-[color-mix(in_srgb,var(--surface)_50%,transparent)] border border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)] hover:border-[var(--muted)] transition-all duration-200"
+                className="hidden lg:flex items-center gap-3 px-3 py-1.5 h-[38px] rounded-[10px] bg-[color-mix(in_srgb,var(--surface)_50%,transparent)] border border-(--border) text-(--muted) hover:text-(--muted) hover:border-(--border) transition-all duration-200"
                 onClick={() => setIsSearchOpen(true)}
               >
                 <div className="flex items-center gap-2 text-sm">
                   <Search size={15} />
                   <span className="font-normal tracking-tight">Search...</span>
                 </div>
-                <kbd className="hidden xl:flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-[var(--surface-2)] border border-[var(--border)] text-[10px] font-[var(--font-geist-mono),monospace] font-semibold text-[var(--muted)]">
+                <kbd className="hidden xl:flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] bg-(--surface-2) border border-(--border) text-[10px] font-[var(--font-geist-mono),monospace] font-semibold text-(--muted)">
                   <Command size={10} /> K
                 </kbd>
               </button>
@@ -311,7 +281,7 @@ export default function Navbar() {
                 href="https://github.com/KoushikGit2024/AlgoVisualss" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="hidden md:flex items-center justify-center w-[38px] h-[38px] rounded-[10px] border border-[var(--border)] bg-transparent text-[var(--muted)] cursor-pointer transition-all duration-200 ease-in-out hover:text-[var(--text)] hover:border-[var(--text)] hover:bg-[color-mix(in_srgb,var(--surface-2)_50%,transparent)] hover:-translate-y-px hover:shadow-[0_4px_12px_color-mix(in_srgb,var(--text)_5%,transparent)] active:translate-y-px"
+                className="hidden md:flex items-center justify-center w-[38px] h-[38px] rounded-[10px] border border-(--border) bg-transparent text-(--muted) cursor-pointer transition-all duration-200 ease-in-out hover:text-(--muted) hover:border-(--border) hover:bg-[color-mix(in_srgb,var(--surface-2)_50%,transparent)] hover:-translate-y-px hover:shadow-[0_4px_12px_color-mix(in_srgb,var(--text)_5%,transparent)] active:translate-y-px"
                 aria-label="GitHub Repository"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -322,7 +292,7 @@ export default function Navbar() {
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
-                className="flex items-center justify-center w-[38px] h-[38px] rounded-[10px] border border-[var(--border)] bg-transparent text-[var(--muted)] cursor-pointer transition-all duration-200 ease-in-out hover:text-[var(--accent)] hover:border-[var(--accent)] hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] hover:-translate-y-px hover:shadow-[0_4px_12px_color-mix(in_srgb,var(--accent)_10%,transparent)] active:translate-y-px"
+                className="flex items-center justify-center w-[38px] h-[38px] rounded-[10px] border border-(--border) bg-transparent text-(--muted) cursor-pointer transition-all duration-200 ease-in-out hover:text-(--muted) hover:border-(--border) hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] hover:-translate-y-px hover:shadow-[0_4px_12px_color-mix(in_srgb,var(--accent)_10%,transparent)] active:translate-y-px"
                 aria-label="Toggle theme"
                 suppressHydrationWarning
               >
@@ -332,7 +302,7 @@ export default function Navbar() {
               {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setDrawerOpen(true)}
-                className="flex items-center justify-center w-[38px] h-[38px] bg-transparent border cursor-pointer md:hidden rounded-[10px] border-[var(--border)] text-[var(--muted)] transition-all duration-200 ease-in-out hover:text-[var(--accent)] hover:border-[var(--accent)] hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] hover:-translate-y-px hover:shadow-[0_4px_12px_color-mix(in_srgb,var(--accent)_10%,transparent)] active:translate-y-px"
+                className="flex items-center justify-center w-[38px] h-[38px] bg-transparent border cursor-pointer md:hidden rounded-[10px] border-(--border) text-(--muted) transition-all duration-200 ease-in-out hover:text-(--muted) hover:border-(--border) hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] hover:-translate-y-px hover:shadow-[0_4px_12px_color-mix(in_srgb,var(--accent)_10%,transparent)] active:translate-y-px"
                 aria-label="Open menu"
               >
                 <Menu size={18} />

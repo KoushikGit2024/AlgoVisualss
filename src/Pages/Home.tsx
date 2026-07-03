@@ -17,9 +17,7 @@ export default function HomePage() {
   return (
     <div className="relative flex flex-col flex-1 items-center bg-[var(--bg)] overflow-hidden selection:bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] selection:text-[var(--text)]">
       
-      {/* ─── Clean Dot Grid Background ─── */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle,color-mix(in_srgb,var(--text)_8%,transparent)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-60" />
-
+      {/* ─── Clean Background ─── */}
       {/* ─── Hero Section ─── */}
       <main className="relative flex flex-col items-center justify-center w-full px-6 pt-32 pb-24 text-center">
         
