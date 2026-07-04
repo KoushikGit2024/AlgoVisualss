@@ -51,12 +51,21 @@ const CodeEditor = ({
     const style = getComputedStyle(root);
     const isDark = root.getAttribute("data-theme")?.includes("dark");
     
+    const normalizeColor = (color: string) => {
+      // Monaco's internal token parser crashes on 3-digit hex colors (like #fff).
+      // We must expand them to 6-digit (#ffffff).
+      if (color && color.length === 4 && color.startsWith("#")) {
+        return "#" + color[1] + color[1] + color[2] + color[2] + color[3] + color[3];
+      }
+      return color;
+    };
+
     // Fallback colors just in case styles haven't loaded
-    const bg = style.getPropertyValue("--surface").trim() || (isDark ? "#13101F" : "#FFFFFF");
-    const text = style.getPropertyValue("--text").trim() || (isDark ? "#EDE9FF" : "#1A1523");
-    const muted = style.getPropertyValue("--muted").trim() || (isDark ? "#8878B0" : "#6B6787");
-    const accent = style.getPropertyValue("--accent").trim() || (isDark ? "#818CF8" : "#6366F1");
-    const surface2 = style.getPropertyValue("--surface-2").trim() || (isDark ? "#1A1630" : "#F0EFFE");
+    const bg = normalizeColor(style.getPropertyValue("--surface").trim() || (isDark ? "#13101F" : "#FFFFFF"));
+    const text = normalizeColor(style.getPropertyValue("--text").trim() || (isDark ? "#EDE9FF" : "#1A1523"));
+    const muted = normalizeColor(style.getPropertyValue("--muted").trim() || (isDark ? "#8878B0" : "#6B6787"));
+    const accent = normalizeColor(style.getPropertyValue("--accent").trim() || (isDark ? "#818CF8" : "#6366F1"));
+    const surface2 = normalizeColor(style.getPropertyValue("--surface-2").trim() || (isDark ? "#1A1630" : "#F0EFFE"));
 
     monaco.editor.defineTheme("dynamic-theme", {
       base: isDark ? "vs-dark" : "vs",
