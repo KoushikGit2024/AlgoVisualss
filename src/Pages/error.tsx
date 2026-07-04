@@ -41,7 +41,7 @@ export default function GlobalError({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.15 }}
-        className="text-[11px] font-mono font-semibold uppercase tracking-[0.15em]"
+        className="text-[calc(11rem/16)] font-mono font-semibold uppercase tracking-[0.15em]"
         style={{ color: "var(--failure)" }}
       >
         Runtime error

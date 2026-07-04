@@ -50,7 +50,7 @@ const StringComponent = ({
   if (safeValue.length === 0) {
     return (
       <div className="w-full flex items-center justify-center p-4">
-        <span className="text-ds-string/50 text-[10px] font-mono border border-dashed border-ds-string/30 rounded p-2">
+        <span className="text-ds-string/50 text-[calc(10rem/16)] font-mono border border-dashed border-ds-string/30 rounded p-2">
           "" (Empty String)
         </span>
       </div>
@@ -117,7 +117,7 @@ const StringComponent = ({
 
             return (
               <motion.div key={`cell-container-${idx}`} layout variants={cellVariants} className="flex flex-col items-center relative flex-1 min-w-[2rem] max-w-[3rem] mx-0.5">
-                <motion.span layout className="text-[9px] text-ds-string/40 font-mono mb-1">
+                <motion.span layout className="text-[calc(9rem/16)] text-ds-string/40 font-mono mb-1">
                   {idx}
                 </motion.span>
 
@@ -127,7 +127,7 @@ const StringComponent = ({
                   animate={{ scale: activeScale, zIndex: activeZIndex }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
                   className={cn(`
-                    w-full aspect-square px-1 flex items-center justify-center font-mono text-[16px] font-medium 
+                    w-full aspect-square px-1 flex items-center justify-center font-mono text-[calc(16rem/16)] font-medium 
                     rounded-sm border transition-colors duration-200 shrink-0
                     ${bgClass} ${borderClass} ${textClass} ${shadowClass}
                   `)}
@@ -156,7 +156,7 @@ const StringComponent = ({
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mb-0.5 opacity-80">
                           <path d="M12 19V5M5 12l7-7 7 7" />
                         </svg>
-                        <span className="text-[9px] font-mono font-bold bg-ds-string/50 text-ds-string px-1 rounded border border-ds-string/30 truncate max-w-full">
+                        <span className="text-[calc(9rem/16)] font-mono font-bold bg-ds-string/50 text-ds-string px-1 rounded border border-ds-string/30 truncate max-w-full">
                           {ptr.name}
                         </span>
                       </motion.div>

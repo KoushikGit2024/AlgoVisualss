@@ -50,11 +50,11 @@ const Stack = ({
       <div className="w-full h-full flex flex-col items-center justify-center p-4">
         {/* Empty Stack Bucket */}
         <div className="w-24 h-32 border-x-2 border-b-2 border-dashed border-border/50 bg-surface-2/10 rounded-b-md flex items-end justify-center pb-4 relative">
-            <span className="absolute -top-6 text-[10px] font-mono text-muted uppercase tracking-widest flex flex-col items-center">
+            <span className="absolute -top-6 text-[calc(10rem/16)] font-mono text-muted uppercase tracking-widest flex flex-col items-center">
               <span>Top</span>
               <span>&darr;</span>
             </span>
-            <span className="text-muted text-[10px] font-mono opacity-50">Empty</span>
+            <span className="text-muted text-[calc(10rem/16)] font-mono opacity-50">Empty</span>
         </div>
       </div>
     );
@@ -70,7 +70,7 @@ const Stack = ({
         <div className="absolute inset-y-[-12px] -inset-x-4 border-x-2 border-b-2 border-dashed border-border/50 bg-surface-2/10 rounded-b-md pointer-events-none" />
 
         {/* Structural Indicator */}
-        <div className="absolute -top-8 w-full flex items-center justify-center text-[10px] font-bold font-mono text-muted uppercase tracking-widest gap-1">
+        <div className="absolute -top-8 w-full flex items-center justify-center text-[calc(10rem/16)] font-bold font-mono text-muted uppercase tracking-widest gap-1">
           <span>Top</span>
         </div>
 
@@ -131,7 +131,7 @@ const Stack = ({
                 <motion.div key={`stack-cell-${idx}`} layout variants={cellVariants} className="flex items-center justify-center relative w-full h-[2.5rem]">
                   
                   {/* Left Side: Array Index */}
-                  <div className="absolute right-full mr-2 text-[10px] text-muted font-mono opacity-60">
+                  <div className="absolute right-full mr-2 text-[calc(10rem/16)] text-muted font-mono opacity-60">
                     {idx}
                   </div>
 
@@ -148,7 +148,7 @@ const Stack = ({
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mr-0.5 opacity-80 rotate-90">
                             <path d="M12 19V5M5 12l7-7 7 7" />
                           </svg>
-                          <span className="text-[9px] font-mono font-bold bg-surface-2 text-accent-3 px-1.5 py-[1px] rounded border border-accent-3/30 truncate max-w-[60px]">
+                          <span className="text-[calc(9rem/16)] font-mono font-bold bg-surface-2 text-accent-3 px-1.5 py-[1px] rounded border border-accent-3/30 truncate max-w-[60px]">
                             {ptr.name}
                           </span>
                         </motion.div>
@@ -163,7 +163,7 @@ const Stack = ({
                     animate={{ scale: activeScale, zIndex: activeZIndex }}
                     transition={{ type: "spring", stiffness: 400, damping: 25 }}
                     className={cn(`
-                      w-full h-full px-1 flex items-center justify-center font-mono text-[14px] font-bold 
+                      w-full h-full px-1 flex items-center justify-center font-mono text-[calc(14rem/16)] font-bold 
                       rounded-sm border transition-colors duration-200 shrink-0
                       ${bgClass} ${borderClass} ${textClass} ${shadowClass}
                     `)}

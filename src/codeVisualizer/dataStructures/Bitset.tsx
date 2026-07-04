@@ -39,7 +39,7 @@ const Bitset = ({ value }: BitsetProps) => {
             const isActive = bit === 1;
             const bgClass = isActive ? "bg-cyan-500/20" : "bg-surface-2";
             const borderClass = isActive ? "border-cyan-400" : "border-border/50";
-            const textClass = isActive ? "text-cyan-300 text-[15px]" : "text-muted/40 text-[13px]";
+            const textClass = isActive ? "text-cyan-300 text-[calc(15rem/16)]" : "text-muted/40 text-[calc(13rem/16)]";
             const shadowClass = isActive ? "shadow-[0_0_10px_rgba(34,211,238,0.4)]" : "";
             
             return (
@@ -54,7 +54,7 @@ const Bitset = ({ value }: BitsetProps) => {
                 >
                   {bit}
                 </motion.div>
-                <span className="text-[9px] text-muted/60 font-mono">{index}</span>
+                <span className="text-[calc(9rem/16)] text-muted/60 font-mono">{index}</span>
               </motion.div>
             );
           })}

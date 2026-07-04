@@ -140,7 +140,7 @@ const TrieTree = ({
   if (nodes.length === 0 || !layout) {
     return (
       <div className="w-full h-full flex items-center justify-center p-4">
-        <span className="text-muted text-[10px] font-mono border border-dashed border-border rounded p-2">
+        <span className="text-muted text-[calc(10rem/16)] font-mono border border-dashed border-border rounded p-2">
           Awaiting Trie initialization…
         </span>
       </div>
@@ -249,7 +249,7 @@ const TrieTree = ({
                   transition={{ type: 'spring', stiffness: 380, damping: 24 }}
                   className={cn(`
                     w-10 h-10 flex items-center justify-center relative
-                    font-mono text-[13px] rounded-full border-2 shrink-0
+                    font-mono text-[calc(13rem/16)] rounded-full border-2 shrink-0
                     transition-colors duration-150
                     ${bg} ${border} ${text} ${shadow}
                   `)}
@@ -292,7 +292,7 @@ const TrieTree = ({
                           className="bg-accent-3 text-white shadow-md border border-bg
                                      rounded-full px-1.5 py-[2px]"
                         >
-                          <span className="text-[8px] font-mono font-bold leading-none uppercase tracking-wider">
+                          <span className="text-[calc(8rem/16)] font-mono font-bold leading-none uppercase tracking-wider">
                             {ptr.name}
                           </span>
                         </motion.div>
@@ -308,7 +308,7 @@ const TrieTree = ({
 
       {/* ── Legend ────────────────────────────────────────────────────── */}
       {/* <div className="sticky bottom-1 left-2 flex items-center gap-2 z-20 pointer-events-none w-fit">
-        <span className="flex items-center gap-1 text-[9px] font-mono text-muted bg-bg/70 backdrop-blur-sm rounded px-1.5 py-0.5">
+        <span className="flex items-center gap-1 text-[calc(9rem/16)] font-mono text-muted bg-bg/70 backdrop-blur-sm rounded px-1.5 py-0.5">
           <span className="w-2 h-2 rounded-full bg-accent-3 border border-bg shadow-sm inline-block" />
           end of word
         </span>

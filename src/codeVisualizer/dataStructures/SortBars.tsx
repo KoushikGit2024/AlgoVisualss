@@ -68,7 +68,7 @@ const SortBars = ({
   if (safeValue.length === 0) {
     return (
       <div className="w-full flex items-center justify-center p-4">
-        <span className="text-muted text-[10px] font-mono border border-dashed border-border rounded p-2">
+        <span className="text-muted text-[calc(10rem/16)] font-mono border border-dashed border-border rounded p-2">
           Awaiting sort array initialization...
         </span>
       </div>
@@ -127,7 +127,7 @@ const SortBars = ({
             
             const safeValToDisplay = typeof val === 'object' ? JSON.stringify(val) : String(val);
             const valLen = safeValToDisplay.length;
-            const fontSizeClass = valLen > 3 ? 'text-[8px]' : 'text-[10px]';
+            const fontSizeClass = valLen > 3 ? 'text-[calc(8rem/16)]' : 'text-[calc(10rem/16)]';
 
             return (
               <div key={`bar-container-${idx}`} className="flex flex-col items-center justify-end h-full w-8 shrink-0 relative group">
@@ -149,7 +149,7 @@ const SortBars = ({
                 </motion.div>
                 
                 {/* Index below the bar */}
-                <motion.span layout className="text-[9px] text-muted font-mono mt-1 absolute top-full">
+                <motion.span layout className="text-[calc(9rem/16)] text-muted font-mono mt-1 absolute top-full">
                   {idx}
                 </motion.span>
 
@@ -164,7 +164,7 @@ const SortBars = ({
                       style={{ bottom: `calc(${heightPercent}% + ${pIdx * 16 + 8}px)`, zIndex: 50 }}
                       className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none"
                     >
-                      <div className="bg-bg text-text text-[9px] font-bold px-1.5 py-0.5 rounded border border-border whitespace-nowrap shadow-sm">
+                      <div className="bg-bg text-text text-[calc(9rem/16)] font-bold px-1.5 py-0.5 rounded border border-border whitespace-nowrap shadow-sm">
                         {ptr.name}
                       </div>
                       <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-t-[4px] border-t-border" />

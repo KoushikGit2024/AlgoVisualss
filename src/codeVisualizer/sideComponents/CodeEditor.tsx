@@ -19,13 +19,24 @@ const CodeEditor = ({
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const decorationIdsRef = useRef<string[]>([]);
 
-  const getTheme = () =>
-    document.documentElement.getAttribute("data-theme") === "dark"
-      ? "custom-dark"
-      : "custom-light";
-
-  const [editorTheme, setEditorTheme] = useState(getTheme);
   const [copied, setCopied] = useState(false);
+  const [editorFontSize, setEditorFontSize] = useState(() => {
+    const f = localStorage.getItem("appFontSize") || "md";
+    if (f === "sm") return 11;
+    if (f === "lg") return 18;
+    return 14;
+  });
+
+  useEffect(() => {
+    const handleFontSizeChange = () => {
+      const f = localStorage.getItem("appFontSize") || "md";
+      if (f === "sm") setEditorFontSize(11);
+      else if (f === "lg") setEditorFontSize(18);
+      else setEditorFontSize(14);
+    };
+    window.addEventListener("font-size-change", handleFontSizeChange);
+    return () => window.removeEventListener("font-size-change", handleFontSizeChange);
+  }, []);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
@@ -33,50 +44,42 @@ const CodeEditor = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const applyDynamicTheme = (monaco: any) => {
+    if (!monaco) return;
+    
+    const root = document.documentElement;
+    const style = getComputedStyle(root);
+    const isDark = root.getAttribute("data-theme")?.includes("dark");
+    
+    // Fallback colors just in case styles haven't loaded
+    const bg = style.getPropertyValue("--surface").trim() || (isDark ? "#13101F" : "#FFFFFF");
+    const text = style.getPropertyValue("--text").trim() || (isDark ? "#EDE9FF" : "#1A1523");
+    const muted = style.getPropertyValue("--muted").trim() || (isDark ? "#8878B0" : "#6B6787");
+    const accent = style.getPropertyValue("--accent").trim() || (isDark ? "#818CF8" : "#6366F1");
+    const surface2 = style.getPropertyValue("--surface-2").trim() || (isDark ? "#1A1630" : "#F0EFFE");
+
+    monaco.editor.defineTheme("dynamic-theme", {
+      base: isDark ? "vs-dark" : "vs",
+      inherit: true,
+      rules: [],
+      colors: {
+        "editor.background": bg,
+        "editor.foreground": text,
+        "editorLineNumber.foreground": muted,
+        "editorLineNumber.activeForeground": accent,
+        "editorCursor.foreground": accent,
+        "editor.selectionBackground": accent + "40", // 25% opacity
+        "editor.inactiveSelectionBackground": accent + "20",
+        "editor.lineHighlightBackground": surface2,
+      },
+    });
+
+    monaco.editor.setTheme("dynamic-theme");
+  };
+
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
-
-    // Light Theme
-    monaco.editor.defineTheme("custom-light", {
-      base: "vs",
-      inherit: true,
-      rules: [],
-      colors: {
-        "editor.background": "#FFFFFF",
-        "editor.foreground": "#1A1523",
-
-        "editorLineNumber.foreground": "#6B6787",
-        "editorLineNumber.activeForeground": "#6366F1",
-
-        "editorCursor.foreground": "#6366F1",
-        "editor.selectionBackground": "#CFC9FF66",
-        "editor.inactiveSelectionBackground": "#E2DEFF88",
-
-        "editor.lineHighlightBackground": "#F0EFFE",
-      },
-    });
-
-    // Dark Theme
-    monaco.editor.defineTheme("custom-dark", {
-      base: "vs-dark",
-      inherit: true,
-      rules: [],
-      colors: {
-        "editor.background": "#13101F",
-        "editor.foreground": "#EDE9FF",
-
-        "editorLineNumber.foreground": "#8878B0",
-        "editorLineNumber.activeForeground": "#818CF8",
-
-        "editorCursor.foreground": "#818CF8",
-        "editor.selectionBackground": "#3730A366",
-        "editor.inactiveSelectionBackground": "#3730A344",
-
-        "editor.lineHighlightBackground": "#1A1630",
-      },
-    });
-
-    monaco.editor.setTheme(getTheme());
+    applyDynamicTheme(monaco);
 
     updateHighlight(highlightLine);
   };
@@ -122,13 +125,9 @@ const CodeEditor = ({
     const root = document.documentElement;
 
     const updateTheme = () => {
-      const theme = getTheme();
-
-      setEditorTheme(theme);
-
       const monaco = (window as any).monaco;
       if (monaco) {
-        monaco.editor.setTheme(theme);
+        applyDynamicTheme(monaco);
       }
     };
 
@@ -169,12 +168,12 @@ const CodeEditor = ({
         height="100%"
         width="100%"
         language={languageMap[lang.toLowerCase()]}
-        theme={editorTheme}
+        theme="dynamic-theme"
         value={code}
         onMount={handleEditorDidMount}
         options={{
           minimap: { enabled: false },
-          fontSize: 14,
+          fontSize: editorFontSize,
           fontFamily: "var(--font-mono)",
           smoothScrolling: true,
           scrollBeyondLastLine: false,

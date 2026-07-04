@@ -334,14 +334,14 @@ export default function VisualizerNamingConventions() {
         <div className="flex flex-col gap-2">
           <div className="flex items-start gap-2 bg-surface p-3 rounded-lg border border-border">
             <span className="w-5 h-5 rounded-full bg-accent/20 text-accent flex items-center justify-center text-xs font-bold shrink-0">1</span>
-            <p className="text-[13px] text-muted"><strong className="text-text">PREFIX match</strong> — Does the variable name start with a known trigger prefix?</p>
+            <p className="text-[calc(13rem/16)] text-muted"><strong className="text-text">PREFIX match</strong> — Does the variable name start with a known trigger prefix?</p>
           </div>
           <div className="flex items-start gap-2 bg-surface p-3 rounded-lg border border-border">
             <span className="w-5 h-5 rounded-full bg-accent/20 text-accent flex items-center justify-center text-xs font-bold shrink-0">2</span>
-            <p className="text-[13px] text-muted"><strong className="text-text">SHAPE validation</strong> — Is the runtime value actually the correct data shape?</p>
+            <p className="text-[calc(13rem/16)] text-muted"><strong className="text-text">SHAPE validation</strong> — Is the runtime value actually the correct data shape?</p>
           </div>
         </div>
-        <p className="text-[12px] text-muted mt-3 italic">
+        <p className="text-[calc(12rem/16)] text-muted mt-3 italic">
           Example: `numRows = 5` will not trigger &lt;D1Array /&gt; even though it starts with `num`, because `5` is a scalar. Only variables whose value passes both checks get visualized.
         </p>
       </section>
@@ -353,7 +353,7 @@ export default function VisualizerNamingConventions() {
           Priority Order
         </h2>
         <div className="overflow-x-auto border border-border rounded-lg styled-scrollbar">
-          <table className="w-full text-left border-collapse text-[13px]">
+          <table className="w-full text-left border-collapse text-[calc(13rem/16)]">
             <thead>
               <tr className="bg-surface-2">
                 <th className="px-4 py-3 border-b border-r border-border font-semibold text-text">Priority</th>
@@ -395,15 +395,15 @@ export default function VisualizerNamingConventions() {
             {/* Header */}
             <div className={cn(`px-4 py-3 border-b ${ds.color.split(" ")[0]} ${ds.color.split(" ")[1]} flex items-center gap-2`)}>
               {ds.icon}
-              <h2 className="font-bold text-[14px] text-text">{ds.title}</h2>
+              <h2 className="font-bold text-[calc(14rem/16)] text-text">{ds.title}</h2>
             </div>
             
             <div className="p-4 flex flex-col gap-4">
-              <p className="text-[13px] text-muted">{ds.description}</p>
+              <p className="text-[calc(13rem/16)] text-muted">{ds.description}</p>
               
               {/* Prefixes */}
               <div>
-                <h3 className="text-[11px] font-bold text-text uppercase tracking-wider mb-2">Primary Structure Prefixes</h3>
+                <h3 className="text-[calc(11rem/16)] font-bold text-text uppercase tracking-wider mb-2">Primary Structure Prefixes</h3>
                 <div className="flex flex-wrap gap-1.5">
                   {ds.prefixes.map((pref, i) => (
                     <div 
@@ -415,7 +415,7 @@ export default function VisualizerNamingConventions() {
                       </span>
                       {/* Tooltip for example */}
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block z-50 whitespace-nowrap bg-bg border border-border px-2 py-1 rounded shadow-lg">
-                        <code className="text-[10px] font-mono text-muted">{pref.example}</code>
+                        <code className="text-[calc(10rem/16)] font-mono text-muted">{pref.example}</code>
                       </div>
                     </div>
                   ))}
@@ -430,7 +430,7 @@ export default function VisualizerNamingConventions() {
               {/* Auxiliary Variables */}
               {ds.auxiliary.length > 0 && (
                 <div>
-                  <h3 className="text-[11px] font-bold text-text uppercase tracking-wider mb-2 mt-2">Auxiliary Variables (Auto-Bound)</h3>
+                  <h3 className="text-[calc(11rem/16)] font-bold text-text uppercase tracking-wider mb-2 mt-2">Auxiliary Variables (Auto-Bound)</h3>
                   <div className="overflow-x-auto border border-border rounded-lg styled-scrollbar">
                     <table className="w-full text-left border-collapse text-[12.5px]">
                       <thead>
@@ -464,7 +464,7 @@ export default function VisualizerNamingConventions() {
           <ShieldAlert size={20} />
           Reserved Variables
         </h2>
-        <p className="text-[13px] text-muted mb-4">
+        <p className="text-[calc(13rem/16)] text-muted mb-4">
           These variable names are <strong className="text-text">never consumed</strong> by the detector and will always appear in the Variables panel:
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -478,7 +478,7 @@ export default function VisualizerNamingConventions() {
           ].map((item, i) => (
             <div key={i} className="flex items-center gap-3 bg-surface p-3 rounded-lg border border-border">
               <code className="text-failure font-mono text-[12.5px] bg-failure/10 px-2 py-0.5 rounded shrink-0">{item.v}</code>
-              <span className="text-[12px] text-muted">{item.why}</span>
+              <span className="text-[calc(12rem/16)] text-muted">{item.why}</span>
             </div>
           ))}
         </div>
@@ -491,7 +491,7 @@ export default function VisualizerNamingConventions() {
           Quick Reference
         </h2>
         <div className="overflow-x-auto border border-border rounded-lg styled-scrollbar">
-          <table className="w-full text-left border-collapse text-[12px]">
+          <table className="w-full text-left border-collapse text-[calc(12rem/16)]">
             <thead>
               <tr className="bg-surface-2">
                 <th className="px-3 py-2.5 border-b border-r border-border font-semibold text-text whitespace-nowrap">Component</th>
@@ -535,16 +535,16 @@ export default function VisualizerNamingConventions() {
           <Database size={20} />
           Engine Limits & Semantic Compression
         </h2>
-        <p className="text-[13px] text-muted leading-relaxed mb-4">
+        <p className="text-[calc(13rem/16)] text-muted leading-relaxed mb-4">
           To prevent browser out-of-memory crashes on enormous algorithms (like backtracking), the VisualGround engine features a smart <strong className="text-text">Semantic Hierarchical Compression</strong> system.
         </p>
-        <ul className="flex flex-col gap-2 mb-4 text-[13px] text-muted list-disc list-inside marker:text-ds-string">
+        <ul className="flex flex-col gap-2 mb-4 text-[calc(13rem/16)] text-muted list-disc list-inside marker:text-ds-string">
           <li><strong>Max Execution Steps:</strong> The engine will halt execution if a single run exceeds <code className="text-text">2,000,000</code> operations to prevent infinite loops.</li>
           <li><strong>Smart Frame Dropping:</strong> If the visualizer accumulates over <code className="text-text">30,000</code> animation frames, it automatically begins dropping less-important events to save memory.</li>
           <li>It first drops <code className="text-text">READ</code> events (which usually make up 90% of a loop), keeping all your assignments, function calls, and console logs completely intact!</li>
           <li>If memory pressure continues, it drops <code className="text-text">CONDITION</code> and loop events, meaning variables will jump cleanly to their next states without showing the intermediate loop overhead.</li>
         </ul>
-        <p className="text-[13px] text-muted italic border-l-2 border-accent pl-3 py-1 bg-surface/50 rounded-r">
+        <p className="text-[calc(13rem/16)] text-muted italic border-l-2 border-accent pl-3 py-1 bg-surface/50 rounded-r">
           <strong>Playback Tip:</strong> The playback speed slider directly sets the exact delay between frames in milliseconds (<code className="text-text">1ms - 1000ms</code>) for precise, real-time timing control. You can also click the value to type an exact number.
         </p>
       </section>

@@ -83,7 +83,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <h3
             key={index}
-            className="text-[13px] font-semibold text-text/80 mt-4 mb-1.5 uppercase tracking-wide"
+            className="text-[calc(13rem/16)] font-semibold text-text/80 mt-4 mb-1.5 uppercase tracking-wide"
           >
             {node.text}
           </h3>
@@ -92,7 +92,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <h4
             key={index}
-            className="text-[13px] font-medium text-text/70 mt-3 mb-1"
+            className="text-[calc(13rem/16)] font-medium text-text/70 mt-3 mb-1"
           >
             {node.text}
           </h4>
@@ -103,7 +103,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <p
             key={index}
-            className="text-[13px] leading-relaxed text-muted mb-3 last:mb-0"
+            className="text-[calc(13rem/16)] leading-relaxed text-muted mb-3 last:mb-0"
           >
             {node.text}
           </p>
@@ -114,7 +114,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <blockquote
             key={index}
-            className="border-l-[3px] border-accent bg-accent/5 px-3 py-2 my-3 rounded-r-md italic text-[13px] text-muted leading-relaxed"
+            className="border-l-[3px] border-accent bg-accent/5 px-3 py-2 my-3 rounded-r-md italic text-[calc(13rem/16)] text-muted leading-relaxed"
           >
             {node.text}
           </blockquote>
@@ -125,7 +125,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <ul
             key={index}
-            className="list-disc pl-5 mb-3 text-[13px] text-muted space-y-1.5 last:mb-0"
+            className="list-disc pl-5 mb-3 text-[calc(13rem/16)] text-muted space-y-1.5 last:mb-0"
           >
             {node.items.map((item, i) => (
               <li key={i} className="leading-relaxed">
@@ -138,7 +138,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <ol
             key={index}
-            className="list-decimal pl-5 mb-3 text-[13px] text-muted space-y-1.5 last:mb-0"
+            className="list-decimal pl-5 mb-3 text-[calc(13rem/16)] text-muted space-y-1.5 last:mb-0"
           >
             {node.items.map((item, i) => (
               <li key={i} className="leading-relaxed">
@@ -151,7 +151,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
       /* ── Definition list ───────────────────────────────────────────── */
       case "dl":
         return (
-          <dl key={index} className="mb-3 flex flex-col gap-2 text-[13px]">
+          <dl key={index} className="mb-3 flex flex-col gap-2 text-[calc(13rem/16)]">
             {node.items.map((item, i) => (
               <div
                 key={i}
@@ -180,7 +180,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
                 <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
                 <span className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
               </div>
-              <span className="font-mono text-[10px] text-muted uppercase tracking-widest">
+              <span className="font-mono text-[calc(10rem/16)] text-muted uppercase tracking-widest">
                 {node.language || "text"}
               </span>
             </div>
@@ -267,7 +267,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
             <div className={cn(`${c.iconClass} shrink-0 mt-0.5`)}>{c.icon}</div>
             <div>
               <span
-                className={cn(`${c.labelClass} font-mono text-[10px] tracking-widest mr-2`)}
+                className={cn(`${c.labelClass} font-mono text-[calc(10rem/16)] tracking-widest mr-2`)}
               >
                 {c.label}
               </span>
@@ -283,7 +283,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <div
             key={index}
-            className="font-mono text-accent my-3 p-3 bg-surface-2 border border-border rounded-lg text-center text-[13px]"
+            className="font-mono text-accent my-3 p-3 bg-surface-2 border border-border rounded-lg text-center text-[calc(13rem/16)]"
           >
             {node.text}
           </div>
@@ -305,7 +305,7 @@ const CaseDivider = () => (
     aria-hidden="true"
   >
     <div className="flex-1 h-px bg-border" />
-    <span className="text-[10px] font-mono text-border tracking-widest">
+    <span className="text-[calc(10rem/16)] font-mono text-border tracking-widest">
       ···
     </span>
     <div className="flex-1 h-px bg-border" />
@@ -345,10 +345,10 @@ const ComplexityCard = ({
     {/* Card header */}
     <div className="bg-surface-2 px-4 py-2.5 border-b border-border flex items-center gap-2 shrink-0">
       <span className={cn(`${iconColorClass} shrink-0`)}>{icon}</span>
-      <h3 className="font-semibold text-[13px] text-text">{title}</h3>
+      <h3 className="font-semibold text-[calc(13rem/16)] text-text">{title}</h3>
       {notation && (
         <span
-          className={cn(`ml-auto font-mono text-[11px] px-2 py-0.5 rounded border ${notationColorClass}`)}
+          className={cn(`ml-auto font-mono text-[calc(11rem/16)] px-2 py-0.5 rounded border ${notationColorClass}`)}
         >
           {notation}
         </span>
@@ -406,7 +406,7 @@ const DocParser = ({ data }: { data: any }) => {
               </h1>
               {sub.type && (
                 <span
-                  className={cn(`shrink-0 inline-block font-mono text-[10px] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border ${
+                  className={cn(`shrink-0 inline-block font-mono text-[calc(10rem/16)] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border ${
                     TYPE_STYLES[sub.type] ?? TYPE_STYLES.Medium
                   }`)}
                 >
@@ -418,7 +418,7 @@ const DocParser = ({ data }: { data: any }) => {
             // Fallback if no h1 at start
             sub.type && (
               <span
-                className={cn(`inline-block font-mono text-[10px] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border mb-4 ${
+                className={cn(`inline-block font-mono text-[calc(10rem/16)] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border mb-4 ${
                   TYPE_STYLES[sub.type] ?? TYPE_STYLES.Medium
                 }`)}
               >
@@ -442,7 +442,7 @@ const DocParser = ({ data }: { data: any }) => {
               {/* Section header */}
               <div className="bg-surface-2 px-4 py-2.5 border-b border-border flex items-center gap-2">
                 <Terminal size={15} className="text-accent-3 shrink-0" />
-                <h3 className="font-semibold text-[13px] text-text">
+                <h3 className="font-semibold text-[calc(13rem/16)] text-text">
                   Implementation &amp; Reasoning
                 </h3>
               </div>

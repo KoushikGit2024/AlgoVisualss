@@ -88,6 +88,7 @@ The application follows a strictly modular architecture, separating the C++ runt
 
 ```text
 AlgoVisuals/
+├── docs/                   # Detailed documentation and architectural explanations
 ├── public/                 # Static assets
 │   └── wasm/               # Pre-compiled web-tree-sitter and C++ grammar wasm files
 ├── src/
@@ -107,35 +108,39 @@ AlgoVisuals/
 │   │   │   └── data/                # Hardcoded logic, categories, and preloaded MDX content
 │   │   │
 │   │   ├── components/     # Global, reusable UI building blocks
-│   │   │   ├── Navbar.tsx           # Persistent top navigation bar
-│   │   │   ├── Sidebar.tsx          # Collapsible contextual side navigation
-│   │   │   ├── HomeBackgroundAnimation.tsx # Landing page visual effects
-│   │   │   └── NetworkBackground.tsx# Interactive background node network
-│   │   │
-│   │   ├── visualizer/     # The dedicated Competitive Programming visualizer workspace
-│   │   │   ├── Visualizer.tsx       # The 3-pane layout for CP problem solving
-│   │   │   └── VisualPlatforms.tsx  # Layout specific to LeetCode / Codeforces styles
-│   │   │
-│   │   ├── error.tsx       # 404 and global React Error boundary pages
-│   │   └── Home.tsx        # Landing page layout and heroic entry
+│   ├── Pages/              # UI components, layout, and page routing
+│   │   ├── algorithms/     # Algorithm reference index and MDX documentation logic
+│   │   ├── components/     # Shared layout pieces (Navbar, Sidebar, ErrorBoundary, Logo)
+│   │   ├── editor/         # Dedicated standalone Code Editor views
+│   │   ├── visualizer/     # Platform integration views for execution
+│   │   ├── error.tsx       # Global runtime error boundary page
+│   │   ├── Home.tsx        # Landing page layout and heroic entry
+│   │   └── not-found.tsx   # Custom 404 page for missing routes
 │   │
 │   ├── codeVisualizer/     # The UI Rendering layer for the runtime state
 │   │   ├── CodeWindow.tsx           # Split-pane manager containing the Editor and Visualizer
 │   │   ├── dataStructures/          # The SVG/DOM Visual primitive components
 │   │   │   ├── Graph.tsx            # Force-directed network graphs
 │   │   │   ├── Tree.tsx             # Hierarchical AST / BST trees
-│   │   │   ├── D1Array.tsx          # 1D arrays, vectors, and string sequences
+│   │   │   ├── TrieTree.tsx         # Specialized prefix-tree renderer
+│   │   │   ├── D1Array.tsx          # 1D arrays, vectors, and sequences
 │   │   │   ├── D2Array.tsx          # 2D Matrices and DP grid tables
 │   │   │   ├── LinkedList.tsx       # Connected node sequences
 │   │   │   ├── Queue.tsx            # Sliding FIFO horizontal tubes
 │   │   │   ├── Stack.tsx            # Dropping LIFO vertical buckets
-│   │   │   ├── MapVisualizer.tsx    # Key-value dictionary stores
-│   │   │   └── VisualizerNamingConventions.tsx # Informational Modal detailing naming heuristics
+│   │   │   ├── Map.tsx              # Key-value dictionary stores
+│   │   │   ├── Set.tsx              # Unique element collections
+│   │   │   ├── String.tsx           # String renderer with text styling
+│   │   │   ├── Bitset.tsx           # Bitmask and flags renderer
+│   │   │   ├── Scalar.tsx           # Standalone value dashboard
+│   │   │   ├── SortBars.tsx         # Classic vertical sorting bar chart
+│   │   │   └── VisualizerNamingConventions.tsx # Informational Modal
 │   │   │
 │   │   └── sideComponents/          # Panels, controls, and sub-components
 │   │       ├── CodeEditor.tsx       # Monaco Editor wrapper configuring C++ language features
 │   │       ├── VisualGround.tsx     # The primary Visualizer Canvas and Snapshot Player controls
 │   │       ├── detectVisualizer.ts  # The Heuristic Engine (Prefix + Shape regex matching)
+│   │       ├── DraggableWindow.tsx  # OS-style floating window manager
 │   │       ├── languages/           # Language mapping utilities (C++, Python, etc.)
 │   │       └── parsers/
 │   │           └── DocParser.tsx    # Custom MDX markdown renderer for integrated tutorials

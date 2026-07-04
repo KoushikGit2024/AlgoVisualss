@@ -423,13 +423,47 @@ export default function NetworkBackground() {
     const W = () => canvas.width;
     const H = () => canvas.height;
 
-    const TIER_COLOR      = ['#818CF8', '#9ca3f0', '#6b7bdc', '#4a5580'];
-    const TIER_COLOR_PATH = ['#F472B6', '#e879a8', '#d46898', '#c05888'];
-    const TIER_W_BASE     = [2.8, 1.6, 0.9, 0.55];
-    const TIER_GLOW       = [8, 5, 3, 1.5];
-    const DIM_COLOR       = ['#4a4870', '#35335a', '#252345', '#1a1935'];
-    const DIM_W           = [1.4, 0.9, 0.55, 0.3];
-    const DIM_A           = [0.42, 0.32, 0.22, 0.14];
+    let TIER_COLOR      = ['#818CF8', '#9ca3f0', '#6b7bdc', '#4a5580'];
+    let TIER_COLOR_PATH = ['#F472B6', '#e879a8', '#d46898', '#c05888'];
+    const TIER_W_BASE   = [2.8, 1.6, 0.9, 0.55];
+    const TIER_GLOW     = [8, 5, 3, 1.5];
+    let DIM_COLOR       = ['#4a4870', '#35335a', '#252345', '#1a1935'];
+    const DIM_W         = [1.4, 0.9, 0.55, 0.3];
+    const DIM_A         = [0.42, 0.32, 0.22, 0.14];
+
+    const updateColors = () => {
+      const root = document.documentElement;
+      const style = getComputedStyle(root);
+      const isDark = root.getAttribute("data-theme")?.includes("dark");
+      
+      const accent = style.getPropertyValue('--accent').trim() || (isDark ? '#818CF8' : '#6366F1');
+      const accent3 = style.getPropertyValue('--accent-3').trim() || (isDark ? '#F472B6' : '#EC4899');
+      const dim = style.getPropertyValue('--border-2').trim() || (isDark ? '#352B5A' : '#CBD5E1');
+      const bg = style.getPropertyValue('--bg').trim() || (isDark ? '#0D0B14' : '#F8FAFC');
+
+      const hex2rgb = (hex: string) => {
+        const h = hex.replace('#', '');
+        if (h.length === 3) return h.split('').map(c => parseInt(c+c, 16));
+        if (h.length === 6) return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+        return [128,128,128];
+      };
+
+      const mix = (c1: string, c2: string, p: number) => {
+        try {
+          const rgb1 = hex2rgb(c1);
+          const rgb2 = hex2rgb(c2);
+          return `rgb(${Math.round(rgb1[0]*p + rgb2[0]*(1-p))}, ${Math.round(rgb1[1]*p + rgb2[1]*(1-p))}, ${Math.round(rgb1[2]*p + rgb2[2]*(1-p))})`;
+        } catch(e) { return c1; }
+      }
+
+      TIER_COLOR = [accent, mix(accent, bg, 0.7), mix(accent, bg, 0.4), mix(accent, bg, 0.2)];
+      TIER_COLOR_PATH = [accent3, mix(accent3, bg, 0.7), mix(accent3, bg, 0.4), mix(accent3, bg, 0.2)];
+      DIM_COLOR = [dim, mix(dim, bg, 0.7), mix(dim, bg, 0.4), mix(dim, bg, 0.2)];
+    };
+
+    updateColors();
+    const themeObserver = new MutationObserver(updateColors);
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
     let roads: Road[]   = [];
     let pulses: Pulse[] = [];
@@ -699,7 +733,7 @@ export default function NetworkBackground() {
     };
 
     raf = requestAnimationFrame(loop);
-    return () => { cancelAnimationFrame(raf!); ro.disconnect(); };
+    return () => { cancelAnimationFrame(raf!); ro.disconnect(); themeObserver.disconnect(); };
   }, []);
 
   return (

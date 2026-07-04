@@ -286,3 +286,446 @@ a {
 .styled-scrollbar {
   scrollbar-width: auto;
 }
+
+/* ─── Ocean Theme (Deep Slate/Blue) ─────────────────────────────────────────── */
+[data-theme="ocean-dark"] {
+  --bg:        #0F172A;
+  --surface:   #1E293B;
+  --surface-2: #334155;
+  --text:      #F8FAFC;
+  --muted:     #94A3B8;
+  --border:    #475569;
+  --border-2:  #64748B;
+  --accent:    #38BDF8;
+  --accent-2:  #818CF8;
+  --accent-3:  #2DD4BF;
+  --success:   #10B981;
+  --failure:   #EF4444;
+  --glow:      rgba(56, 189, 248, 0.15);
+  --glow-soft: rgba(56, 189, 248, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --bar:       #0EA5E9;
+  --grid-line: rgba(56, 189, 248, 0.06);
+  --nav-bg:    rgba(15, 23, 42, 0.85);
+  --ds-read:   #818CF8;
+  --ds-write:  #10B981;
+  --ds-graph:  #38BDF8;
+  --ds-tree:   #2DD4BF;
+  --ds-trie:   #A78BFA;
+  --ds-matrix: #60A5FA;
+  --ds-array:  #F472B6;
+  --ds-queue:  #38BDF8;
+  --ds-stack:  #2DD4BF;
+  --ds-string: #10B981;
+  --ds-map:    #10B981;
+  --ds-bitset: #38BDF8;
+  --ds-scalar: #818CF8;
+}
+
+/* ─── Monokai Theme (High Contrast Dark) ────────────────────────────────────── */
+[data-theme="monokai-dark"] {
+  --bg:        #272822;
+  --surface:   #3E3D32;
+  --surface-2: #49483E;
+  --text:      #F8F8F2;
+  --muted:     #A59F85;
+  --border:    #49483E;
+  --border-2:  #75715E;
+  --accent:    #F92672;
+  --accent-2:  #A6E22E;
+  --accent-3:  #FD971F;
+  --success:   #A6E22E;
+  --failure:   #F92672;
+  --glow:      rgba(249, 38, 114, 0.15);
+  --glow-soft: rgba(249, 38, 114, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --bar:       #AE81FF;
+  --grid-line: rgba(249, 38, 114, 0.06);
+  --nav-bg:    rgba(39, 40, 34, 0.85);
+  --ds-read:   #AE81FF;
+  --ds-write:  #A6E22E;
+  --ds-graph:  #F92672;
+  --ds-tree:   #A6E22E;
+  --ds-trie:   #E6DB74;
+  --ds-matrix: #66D9EF;
+  --ds-array:  #FD971F;
+  --ds-queue:  #66D9EF;
+  --ds-stack:  #F92672;
+  --ds-string: #E6DB74;
+  --ds-map:    #A6E22E;
+  --ds-bitset: #66D9EF;
+  --ds-scalar: #AE81FF;
+}
+
+/* ─── Solarized Dark Theme (Low Contrast Strain Relief) ─────────────────────── */
+[data-theme="solarized-dark"] {
+  --bg:        #002B36;
+  --surface:   #073642;
+  --surface-2: #586E75;
+  --text:      #EEE8D5;
+  --muted:     #AAB9B9;
+  --border:    #073642;
+  --border-2:  #586E75;
+  --accent:    #268BD2;
+  --accent-2:  #2AA198;
+  --accent-3:  #B58900;
+  --success:   #859900;
+  --failure:   #DC322F;
+  --glow:      rgba(38, 139, 210, 0.15);
+  --glow-soft: rgba(38, 139, 210, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --bar:       #268BD2;
+  --grid-line: rgba(38, 139, 210, 0.06);
+  --nav-bg:    rgba(0, 43, 54, 0.85);
+  --ds-read:   #6C71C4;
+  --ds-write:  #859900;
+  --ds-graph:  #268BD2;
+  --ds-tree:   #2AA198;
+  --ds-trie:   #D33682;
+  --ds-matrix: #268BD2;
+  --ds-array:  #CB4B16;
+  --ds-queue:  #2AA198;
+  --ds-stack:  #D33682;
+  --ds-string: #859900;
+  --ds-map:    #2AA198;
+  --ds-bitset: #268BD2;
+  --ds-scalar: #6C71C4;
+}
+
+/* ─── Nord Theme (Arctic Muted) ─────────────────────────────────────────────── */
+[data-theme="nord-dark"] {
+  --bg:        #2E3440;
+  --surface:   #3B4252;
+  --surface-2: #434C5E;
+  --text:      #D8DEE9;
+  --muted:     #939EAD;
+  --border:    #4C566A;
+  --border-2:  #81A1C1;
+  --accent:    #88C0D0;
+  --accent-2:  #81A1C1;
+  --accent-3:  #5E81AC;
+  --success:   #A3BE8C;
+  --failure:   #BF616A;
+  --glow:      rgba(136, 192, 208, 0.15);
+  --glow-soft: rgba(136, 192, 208, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --bar:       #81A1C1;
+  --grid-line: rgba(136, 192, 208, 0.06);
+  --nav-bg:    rgba(46, 52, 64, 0.85);
+  --ds-read:   #B48EAD;
+  --ds-write:  #A3BE8C;
+  --ds-graph:  #88C0D0;
+  --ds-tree:   #A3BE8C;
+  --ds-trie:   #B48EAD;
+  --ds-matrix: #81A1C1;
+  --ds-array:  #EBCB8B;
+  --ds-queue:  #88C0D0;
+  --ds-stack:  #BF616A;
+  --ds-string: #A3BE8C;
+  --ds-map:    #A3BE8C;
+  --ds-bitset: #88C0D0;
+  --ds-scalar: #B48EAD;
+}
+
+/* ─── Ocean Theme (Light Slate/Blue) ────────────────────────────────────────── */
+[data-theme="ocean-light"] {
+  --bg:        #E0F2FE;
+  --surface:   #F0F9FF;
+  --surface-2: #BAE6FD;
+  --text:      #0F172A;
+  --muted:     #334155;
+  --border:    #94A3B8;
+  --border-2:  #64748B;
+  --accent:    #0284C7;
+  --accent-2:  #4F46E5;
+  --accent-3:  #0D9488;
+  --success:   #059669;
+  --failure:   #DC2626;
+  --glow:      rgba(2, 132, 199, 0.15);
+  --glow-soft: rgba(2, 132, 199, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --bar:       #0284C7;
+  --grid-line: rgba(2, 132, 199, 0.06);
+  --nav-bg:    rgba(224, 242, 254, 0.85);
+  --ds-read:   #4F46E5;
+  --ds-write:  #059669;
+  --ds-graph:  #0284C7;
+  --ds-tree:   #0D9488;
+  --ds-trie:   #7C3AED;
+  --ds-matrix: #2563EB;
+  --ds-array:  #DB2777;
+  --ds-queue:  #0284C7;
+  --ds-stack:  #0D9488;
+  --ds-string: #059669;
+  --ds-map:    #059669;
+  --ds-bitset: #0284C7;
+  --ds-scalar: #4F46E5;
+}
+
+/* ─── Monokai Theme (Light) ────────────────────────────────────────────────── */
+[data-theme="monokai-light"] {
+  --bg:        #F9F8F5;
+  --surface:   #FFFFFF;
+  --surface-2: #E6E5DF;
+  --text:      #272822;
+  --muted:     #75715E;
+  --border:    #C4C3BC;
+  --border-2:  #A6A59E;
+  --accent:    #D81A5D;
+  --accent-2:  #0082A8;
+  --accent-3:  #D67000;
+  --success:   #A6E22E;
+  --failure:   #F92672;
+  --glow:      rgba(249, 38, 114, 0.15);
+  --glow-soft: rgba(249, 38, 114, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --bar:       #AE81FF;
+  --grid-line: rgba(249, 38, 114, 0.06);
+  --nav-bg:    rgba(249, 248, 245, 0.85);
+  --ds-read:   #AE81FF;
+  --ds-write:  #A6E22E;
+  --ds-graph:  #F92672;
+  --ds-tree:   #A6E22E;
+  --ds-trie:   #E6DB74;
+  --ds-matrix: #66D9EF;
+  --ds-array:  #FD971F;
+  --ds-queue:  #66D9EF;
+  --ds-stack:  #F92672;
+  --ds-string: #E6DB74;
+  --ds-map:    #A6E22E;
+  --ds-bitset: #66D9EF;
+  --ds-scalar: #AE81FF;
+}
+
+/* ─── Solarized Light Theme ────────────────────────────────────────────────── */
+[data-theme="solarized-light"] {
+  --bg:        #FDF6E3;
+  --surface:   #EEE8D5;
+  --surface-2: #D3C6A6;
+  --text:      #073642;
+  --muted:     #586E75;
+  --border:    #93A1A1;
+  --border-2:  #657B83;
+  --accent:    #268BD2;
+  --accent-2:  #2AA198;
+  --accent-3:  #B58900;
+  --success:   #859900;
+  --failure:   #DC322F;
+  --glow:      rgba(38, 139, 210, 0.15);
+  --glow-soft: rgba(38, 139, 210, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --bar:       #268BD2;
+  --grid-line: rgba(38, 139, 210, 0.06);
+  --nav-bg:    rgba(253, 246, 227, 0.85);
+  --ds-read:   #6C71C4;
+  --ds-write:  #859900;
+  --ds-graph:  #268BD2;
+  --ds-tree:   #2AA198;
+  --ds-trie:   #D33682;
+  --ds-matrix: #268BD2;
+  --ds-array:  #CB4B16;
+  --ds-queue:  #2AA198;
+  --ds-stack:  #D33682;
+  --ds-string: #859900;
+  --ds-map:    #2AA198;
+  --ds-bitset: #268BD2;
+  --ds-scalar: #6C71C4;
+}
+
+/* ─── Nord Theme (Light) ───────────────────────────────────────────────────── */
+[data-theme="nord-light"] {
+  --bg:        #ECEFF4;
+  --surface:   #E5E9F0;
+  --surface-2: #D8DEE9;
+  --text:      #2E3440;
+  --muted:     #4C566A;
+  --border:    #C0C8D6;
+  --border-2:  #81A1C1;
+  --accent:    #5E81AC;
+  --accent-2:  #3B6EA5;
+  --accent-3:  #2D527C;
+  --success:   #A3BE8C;
+  --failure:   #BF616A;
+  --glow:      rgba(94, 129, 172, 0.15);
+  --glow-soft: rgba(94, 129, 172, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --bar:       #5E81AC;
+  --grid-line: rgba(94, 129, 172, 0.06);
+  --nav-bg:    rgba(236, 239, 244, 0.85);
+  --ds-read:   #8C6386;
+  --ds-write:  #75915D;
+  --ds-graph:  #3B6EA5;
+  --ds-tree:   #75915D;
+  --ds-trie:   #8C6386;
+  --ds-matrix: #597A9C;
+  --ds-array:  #B59654;
+  --ds-queue:  #3B6EA5;
+  --ds-stack:  #94414A;
+  --ds-string: #75915D;
+  --ds-map:    #75915D;
+  --ds-bitset: #3B6EA5;
+  --ds-scalar: #8C6386;
+}
+
+/* ─── Dracula Theme ────────────────────────────────────────────────────────── */
+[data-theme="dracula-dark"] {
+  --bg:        #282A36;
+  --surface:   #383A59;
+  --surface-2: #44475A;
+  --text:      #F8F8F2;
+  --muted:     #8B9BD4;
+  --border:    #44475A;
+  --border-2:  #6272A4;
+  --accent:    #FF79C6;
+  --accent-2:  #50FA7B;
+  --accent-3:  #F1FA8C;
+  --success:   #50FA7B;
+  --failure:   #FF5555;
+  --glow:      rgba(255, 121, 198, 0.15);
+  --glow-soft: rgba(255, 121, 198, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --bar:       #BD93F9;
+  --grid-line: rgba(255, 121, 198, 0.06);
+  --nav-bg:    rgba(40, 42, 54, 0.85);
+  --ds-read:   #BD93F9;
+  --ds-write:  #50FA7B;
+  --ds-graph:  #FF79C6;
+  --ds-tree:   #50FA7B;
+  --ds-trie:   #F1FA8C;
+  --ds-matrix: #8BE9FD;
+  --ds-array:  #FFB86C;
+  --ds-queue:  #8BE9FD;
+  --ds-stack:  #FF79C6;
+  --ds-string: #F1FA8C;
+  --ds-map:    #50FA7B;
+  --ds-bitset: #8BE9FD;
+  --ds-scalar: #BD93F9;
+}
+
+[data-theme="dracula-light"] {
+  --bg:        #F8F8F2;
+  --surface:   #FFFFFF;
+  --surface-2: #EBEBE1;
+  --text:      #282A36;
+  --muted:     #6272A4;
+  --border:    #D1D1C7;
+  --border-2:  #BD93F9;
+  --accent:    #E03C9E;
+  --accent-2:  #00A32A;
+  --accent-3:  #B0A800;
+  --success:   #00A32A;
+  --failure:   #D93025;
+  --glow:      rgba(224, 60, 158, 0.15);
+  --glow-soft: rgba(224, 60, 158, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --bar:       #9656E6;
+  --grid-line: rgba(224, 60, 158, 0.06);
+  --nav-bg:    rgba(248, 248, 242, 0.85);
+  --ds-read:   #9656E6;
+  --ds-write:  #00A32A;
+  --ds-graph:  #E03C9E;
+  --ds-tree:   #00A32A;
+  --ds-trie:   #B0A800;
+  --ds-matrix: #009CC0;
+  --ds-array:  #C26F00;
+  --ds-queue:  #009CC0;
+  --ds-stack:  #E03C9E;
+  --ds-string: #B0A800;
+  --ds-map:    #00A32A;
+  --ds-bitset: #009CC0;
+  --ds-scalar: #9656E6;
+}
+
+/* ─── Tokyo Night Theme ────────────────────────────────────────────────────── */
+[data-theme="tokyo-night-dark"] {
+  --bg:        #1A1B26;
+  --surface:   #24283B;
+  --surface-2: #292E42;
+  --text:      #C0CAF5;
+  --muted:     #7A84B3;
+  --border:    #292E42;
+  --border-2:  #414868;
+  --accent:    #7AA2F7;
+  --accent-2:  #9ECE6A;
+  --accent-3:  #E0AF68;
+  --success:   #9ECE6A;
+  --failure:   #F7768E;
+  --glow:      rgba(122, 162, 247, 0.15);
+  --glow-soft: rgba(122, 162, 247, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --bar:       #BB9AF7;
+  --grid-line: rgba(122, 162, 247, 0.06);
+  --nav-bg:    rgba(26, 27, 38, 0.85);
+  --ds-read:   #BB9AF7;
+  --ds-write:  #9ECE6A;
+  --ds-graph:  #7AA2F7;
+  --ds-tree:   #9ECE6A;
+  --ds-trie:   #E0AF68;
+  --ds-matrix: #7DCFFF;
+  --ds-array:  #FF9E64;
+  --ds-queue:  #7DCFFF;
+  --ds-stack:  #7AA2F7;
+  --ds-string: #E0AF68;
+  --ds-map:    #9ECE6A;
+  --ds-bitset: #7DCFFF;
+  --ds-scalar: #BB9AF7;
+}
+
+[data-theme="tokyo-night-light"] {
+  --bg:        #D5D6DB;
+  --surface:   #E1E2E7;
+  --surface-2: #C4C8D4;
+  --text:      #3760BF;
+  --muted:     #848CB5;
+  --border:    #B4B8C5;
+  --border-2:  #8C92A6;
+  --accent:    #2E7DE9;
+  --accent-2:  #485E30;
+  --accent-3:  #8F5E15;
+  --success:   #485E30;
+  --failure:   #8C4351;
+  --glow:      rgba(46, 125, 233, 0.15);
+  --glow-soft: rgba(46, 125, 233, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --bar:       #5A4A78;
+  --grid-line: rgba(46, 125, 233, 0.06);
+  --nav-bg:    rgba(213, 214, 219, 0.85);
+  --ds-read:   #5A4A78;
+  --ds-write:  #485E30;
+  --ds-graph:  #2E7DE9;
+  --ds-tree:   #485E30;
+  --ds-trie:   #8F5E15;
+  --ds-matrix: #007197;
+  --ds-array:  #965027;
+  --ds-queue:  #007197;
+  --ds-stack:  #2E7DE9;
+  --ds-string: #8F5E15;
+  --ds-map:    #485E30;
+  --ds-bitset: #007197;
+  --ds-scalar: #5A4A78;
+}
+

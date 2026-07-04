@@ -19,7 +19,7 @@ const formatValue = (v: any): string => {
 export default function Map({ entries = [] }: MapProps) {
   if (!entries || entries.length === 0) {
     return (
-      <div className="flex items-center justify-center p-4 text-muted text-[10px] font-mono opacity-50">
+      <div className="flex items-center justify-center p-4 text-muted text-[calc(10rem/16)] font-mono opacity-50">
         Empty Map
       </div>
     );
@@ -37,7 +37,7 @@ export default function Map({ entries = [] }: MapProps) {
         >
           {/* Key Node */}
           <div className="flex-1 flex justify-end">
-            <span className="px-2 py-0.5 bg-accent/20 text-accent font-bold font-mono text-[11px] rounded shrink-0 border border-accent/30 max-w-[100px] truncate" title={String(k)}>
+            <span className="px-2 py-0.5 bg-accent/20 text-accent font-bold font-mono text-[calc(11rem/16)] rounded shrink-0 border border-accent/30 max-w-[100px] truncate" title={String(k)}>
               {formatValue(k)}
             </span>
           </div>
@@ -49,7 +49,7 @@ export default function Map({ entries = [] }: MapProps) {
 
           {/* Value Node */}
           <div className="flex-1 flex justify-start">
-            <span className="px-2 py-0.5 bg-success/20 text-success font-bold font-mono text-[11px] rounded shrink-0 border border-success/30 max-w-[100px] truncate" title={String(v)}>
+            <span className="px-2 py-0.5 bg-success/20 text-success font-bold font-mono text-[calc(11rem/16)] rounded shrink-0 border border-success/30 max-w-[100px] truncate" title={String(v)}>
               {formatValue(v)}
             </span>
           </div>

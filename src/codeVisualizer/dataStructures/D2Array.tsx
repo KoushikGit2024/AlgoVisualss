@@ -93,7 +93,7 @@ const D2Array = ({
   if (safeValue.length === 0 || numCols === 0) {
     return (
       <div className="w-full flex items-center justify-center p-4">
-        <span className="text-muted text-[10px] font-mono border border-dashed border-border rounded p-2">
+        <span className="text-muted text-[calc(10rem/16)] font-mono border border-dashed border-border rounded p-2">
           Awaiting valid 2D Matrix initialization...
         </span>
       </div>
@@ -109,7 +109,7 @@ const D2Array = ({
           <div className="w-6 h-6 shrink-0" />
           {Array.from({ length: numCols }).map((_, c) => (
             <div key={`col-idx-${c}`} className="w-12 flex justify-center shrink-0">
-              <span className="text-[10px] text-muted font-mono">{c}</span>
+              <span className="text-[calc(10rem/16)] text-muted font-mono">{c}</span>
             </div>
           ))}
         </div>
@@ -123,7 +123,7 @@ const D2Array = ({
                 
                 {/* Row Index */}
                 <div className="w-6 flex justify-end pr-2 shrink-0">
-                  <span className="text-[10px] text-muted font-mono">{r}</span>
+                  <span className="text-[calc(10rem/16)] text-muted font-mono">{r}</span>
                 </div>
 
                 {/* CRITICAL: Mapping exactly over safeRow for jagged arrays */}
@@ -177,7 +177,7 @@ const D2Array = ({
 
                   const safeValToDisplay = typeof val === 'object' ? JSON.stringify(val) : String(val);
                   const valLen = safeValToDisplay.length;
-                  const fontSizeClass = valLen > 4 ? (valLen > 6 ? (valLen > 8 ? 'text-[8px]' : 'text-[9.5px]') : 'text-[11px]') : 'text-[14px]';
+                  const fontSizeClass = valLen > 4 ? (valLen > 6 ? (valLen > 8 ? 'text-[calc(8rem/16)]' : 'text-[9.5px]') : 'text-[calc(11rem/16)]') : 'text-[calc(14rem/16)]';
 
                   return (
                     <motion.div key={`cell-${r}-${c}`} layout variants={cellVariants} className="relative flex flex-col items-center w-12 shrink-0">
@@ -209,7 +209,7 @@ const D2Array = ({
                               transition={{ type: "spring", stiffness: 400, damping: 25, mass: 0.8 }}
                               className="bg-accent-3 text-white shadow-md border border-bg rounded px-1 py-[1px] flex items-center justify-center"
                             >
-                              <span className="text-[8px] font-mono font-bold leading-none uppercase tracking-wider">
+                              <span className="text-[calc(8rem/16)] font-mono font-bold leading-none uppercase tracking-wider">
                                 {ptr.name}
                               </span>
                             </motion.div>

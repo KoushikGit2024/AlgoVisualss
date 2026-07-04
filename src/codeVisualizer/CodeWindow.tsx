@@ -105,7 +105,7 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
       >
       {/* Small Screen Warning Banner */}
       {!hideMobileWarning && (
-        <div className="lg:hidden w-full flex items-center justify-between gap-2 px-3 py-2 bg-orange-500/10 border border-orange-500/20 text-orange-500 text-[11px] font-medium shrink-0 rounded-sm mb-1 z-20">
+        <div className="lg:hidden w-full flex items-center justify-between gap-2 px-3 py-2 bg-orange-500/10 border border-orange-500/20 text-orange-500 text-[calc(11rem/16)] font-medium shrink-0 rounded-sm mb-1 z-20">
           <div className="flex items-center gap-2">
             <MonitorPlay className="w-4 h-4 shrink-0" />
             <span>This visualizer is optimized for desktop. For the best experience, please use a larger screen.</span>
@@ -130,7 +130,7 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
           title="Expand Editor"
         >
           <Code size={16} className="text-muted mb-4" />
-          <span className="text-[10px] font-semibold text-muted uppercase tracking-widest" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>Code Editor</span>
+          <span className="text-[calc(10rem/16)] font-semibold text-muted uppercase tracking-widest" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>Code Editor</span>
         </div>
       ) : (
       <div 
@@ -170,7 +170,7 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
                 <Info size={14} />
               </button>
             </div>
-            <span className="text-[10px] font-semibold text-muted uppercase tracking-wider">Editor</span>
+            <span className="text-[calc(10rem/16)] font-semibold text-muted uppercase tracking-wider">Editor</span>
             <button 
               onClick={() => setIsEditorCollapsed(true)} 
               className="p-1 hover:bg-surface-3 rounded text-muted transition-colors ml-1"
@@ -210,7 +210,7 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
           title="Expand Visualizer"
         >
           <MonitorPlay size={16} className="text-muted mb-4" />
-          <span className="text-[10px] font-semibold text-muted uppercase tracking-widest" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>Visual Output</span>
+          <span className="text-[calc(10rem/16)] font-semibold text-muted uppercase tracking-widest" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>Visual Output</span>
         </div>
       ) : (
       <div
@@ -242,13 +242,13 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
             >
               <ChevronRight size={14} />
             </button>
-            <span className="text-[9px] sm:text-[10px] font-semibold text-muted uppercase tracking-wider font-display">
+            <span className="text-[calc(9rem/16)] sm:text-[calc(10rem/16)] font-semibold text-muted uppercase tracking-wider font-display">
               Visualizer Output
             </span>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-[9px] sm:text-[10px] text-muted font-mono">
+            <span className="text-[calc(9rem/16)] sm:text-[calc(10rem/16)] text-muted font-mono">
               {lang === "c++" ? "Active" : "Inactive"}
             </span>
 

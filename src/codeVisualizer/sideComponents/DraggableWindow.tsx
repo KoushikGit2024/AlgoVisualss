@@ -161,7 +161,7 @@ export function DraggableWindow({
       >
         <div className="flex items-center gap-1.5 text-text/80">
           <Move size={10} className="opacity-50 group-hover:opacity-100 transition-opacity" />
-          <span className="text-[10px] font-bold uppercase tracking-widest">{title}</span>
+          <span className="text-[calc(10rem/16)] font-bold uppercase tracking-widest">{title}</span>
         </div>
 
         {/* Stop pointer-down here so clicking buttons doesn't also start a drag */}

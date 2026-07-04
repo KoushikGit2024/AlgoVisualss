@@ -81,7 +81,7 @@ export default function NotFound() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.5 }}
-        className="mt-3 text-[11px] font-mono font-semibold uppercase tracking-[0.15em]"
+        className="mt-3 text-[calc(11rem/16)] font-mono font-semibold uppercase tracking-[0.15em]"
         style={{ color: "var(--accent-3)" }}
       >
         Node unreachable · 404

@@ -19,7 +19,7 @@ export default function VisualPlatforms() {
         
         {/* ── Header ── */}
         <header className="mb-12" style={{ animation: "vpHdr 0.55s cubic-bezier(0.2,0,0,1) forwards" }}>
-          {/* <div className="inline-flex items-center gap-2.5 font-['JetBrains_Mono','Fira_Code',monospace] text-[10px] text-[var(--accent,#818CF8)] uppercase tracking-[0.2em] mb-4">
+          {/* <div className="inline-flex items-center gap-2.5 font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(10rem/16)] text-[var(--accent,#818CF8)] uppercase tracking-[0.2em] mb-4">
             <span 
               className="w-1.5 h-1.5 rounded-full bg-[#34D399] shrink-0 shadow-[0_0_8px_rgba(52,211,153,0.6)]" 
               style={{ animation: "vpBlink 2s ease-in-out infinite" }}
@@ -39,7 +39,7 @@ export default function VisualPlatforms() {
           />
           
           <p 
-            className="text-[15px] text-[var(--muted,#94A3B8)] max-w-[600px] leading-[1.6]"
+            className="text-[calc(15rem/16)] text-[var(--muted,#94A3B8)] max-w-[600px] leading-[1.6]"
             style={{ animation: "vpFade 0.6s ease 0.35s both" }}
           >
             Find your question and generate beautiful, insightful performance metrics.
@@ -97,7 +97,7 @@ function PlatformCard({ platform, index, mounted, featured }: { platform: any, i
       {
         !platform.featured && (
           <div className="flex gap-1.5 mb-3">
-            <span className="font-['JetBrains_Mono','Fira_Code',monospace] text-[9px] uppercase tracking-[0.12em] text-[#d38634] border border-[rgba(187,62,4,0.3)] bg-[rgba(52,211,153,0.05)] py-[3px] px-2 rounded">
+            <span className="font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(9rem/16)] uppercase tracking-[0.12em] text-[#d38634] border border-[rgba(187,62,4,0.3)] bg-[rgba(52,211,153,0.05)] py-[3px] px-2 rounded">
               Under Developement
             </span>
           </div>
@@ -106,7 +106,7 @@ function PlatformCard({ platform, index, mounted, featured }: { platform: any, i
 
       {/* Name with Dynamic Underline */}
       <div className="mb-2">
-        <h2 className="text-[20px] font-bold text-[var(--text,#F8FAFC)] tracking-[-0.02em] leading-[1.2] relative inline-block">
+        <h2 className="text-[calc(20rem/16)] font-bold text-[var(--text,#F8FAFC)] tracking-[-0.02em] leading-[1.2] relative inline-block">
           {platform.name}
           <span className="absolute left-0 -bottom-[2px] w-full h-[2px] bg-[var(--brand-color)] origin-right scale-x-0 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-x-100 group-hover:origin-left" />
         </h2>
@@ -131,7 +131,7 @@ function PlatformCard({ platform, index, mounted, featured }: { platform: any, i
 
       {/* Footer CTA */}
       <div className="flex items-center justify-start border-t border-[var(--border,#2A2445)] pt-[18px] transition-colors duration-300 ease-in-out group-hover:border-[color-mix(in_srgb,var(--brand-color)_20%,transparent)]">
-        <span className="font-['Syne',system-ui,sans-serif] font-semibold text-[13px] text-[var(--muted,#94A3B8)] flex items-center gap-1.5 transition-colors duration-300 ease-in-out group-hover:text-[var(--brand-color)]">
+        <span className="font-['Syne',system-ui,sans-serif] font-semibold text-[calc(13rem/16)] text-[var(--muted,#94A3B8)] flex items-center gap-1.5 transition-colors duration-300 ease-in-out group-hover:text-[var(--brand-color)]">
           Let's Go 
           <span aria-hidden="true" className="opacity-0 -translate-x-2 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:opacity-100 group-hover:translate-x-[2px]">
             →

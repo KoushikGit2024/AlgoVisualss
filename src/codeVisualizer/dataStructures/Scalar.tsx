@@ -11,7 +11,7 @@ const Scalar = ({ value }: ScalarProps) => {
   return (
     <div className="flex flex-col items-center justify-center p-2">
       {/* Variable Name Badge */}
-      {/* <span className="text-[10px] font-mono font-bold text-accent-3 bg-accent-3/10 px-2 py-0.5 rounded border border-accent-3/30 mb-1.5 whitespace-nowrap shadow-sm">
+      {/* <span className="text-[calc(10rem/16)] font-mono font-bold text-accent-3 bg-accent-3/10 px-2 py-0.5 rounded border border-accent-3/30 mb-1.5 whitespace-nowrap shadow-sm">
         {name}
       </span> */}
 
@@ -33,7 +33,7 @@ const Scalar = ({ value }: ScalarProps) => {
 
         <motion.span 
           key={`text-${displayValue}`}
-          className="text-[14px] font-mono font-bold text-text tracking-tight z-10 truncate max-w-full"
+          className="text-[calc(14rem/16)] font-mono font-bold text-text tracking-tight z-10 truncate max-w-full"
           initial={{ scale: 1.2, color: '#a855f7' }}
           animate={{ scale: 1, color: 'var(--text)' }}
           transition={{ duration: 0.4 }}

@@ -2,10 +2,11 @@ import { useState, useMemo, useEffect } from "react";
 import { Link, useLocation, useMatch, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { Search, X, ChevronRight, AlertCircle, BadgeInfo, Settings, BookOpen, Sparkles, Code2 } from "lucide-react";
-import ALGODATA from "../algorithms/data/AlgoData";
-import PLATFORMDATA from "../visualizer/data/PlatformData";
-import { cn } from '../../lib/utils';
+import { Search, X, ChevronRight, AlertCircle, BadgeInfo, Settings, BookOpen, Code2 } from "lucide-react";
+import ALGODATA from "../Pages/algorithms/data/AlgoData";
+import PLATFORMDATA from "../Pages/visualizer/data/PlatformData";
+import { cn } from '../lib/utils';
+import ThemeSelector from "./ThemeSelector";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type NavItem = {
@@ -79,7 +80,7 @@ function SidebarSkeleton() {
 
 function NotFound() {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center h-48 text-[var(--muted)] text-center p-6 text-[13px]">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center h-48 text-[var(--muted)] text-center p-6 text-[calc(13rem/16)]">
       <AlertCircle size={28} className="mb-3 opacity-40 text-[var(--accent)]" />
       <p className="font-semibold text-sm mb-0.5 text-[var(--text)] tracking-tight">No Results Found</p>
       <p className="opacity-80">Try tweaking your search index query.</p>
@@ -152,14 +153,14 @@ function RecursiveNavNode({
             {!collapsed && (
               <>
                 <Link to={item.url ? `${item.url}${search}` : "#"} className="flex-1 min-w-0">
-                  <span title={item.label} className={cn(`block truncate ${isTopLevel ? "text-[14px] font-semibold" : "text-[13px]"}`)}>
+                  <span title={item.label} className={cn(`block truncate ${isTopLevel ? "text-[calc(14rem/16)] font-semibold" : "text-[calc(13rem/16)]"}`)}>
                     <Highlighted text={item.label} query={query} />
                   </span>
                 </Link>
                 
                 {/* Difficulty Badge System */}
                 {item.badge && (
-                  <span className={cn(`text-[9px] font-bold px-1.5 py-0.5 rounded-sm shrink-0 whitespace-nowrap uppercase tracking-widest
+                  <span className={cn(`text-[calc(9rem/16)] font-bold px-1.5 py-0.5 rounded-sm shrink-0 whitespace-nowrap uppercase tracking-widest
                     ${item.badge === 'Easy' ? 'text-[#34D399] bg-[#34D399]/10' :
                       item.badge === 'Medium' ? 'text-[#FBBF24] bg-[#FBBF24]/10' :
                       item.badge === 'Hard' ? 'text-[#EF4444] bg-[#EF4444]/10' :
@@ -240,6 +241,18 @@ export default function Sidebar() {
   };
 
   const [showSettings, setShowSettings] = useState(false);
+  const [fontSize, setFontSize] = useState<"sm" | "md" | "lg">(
+    () => (localStorage.getItem("appFontSize") as "sm" | "md" | "lg") || "md"
+  );
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (fontSize === "sm") root.style.fontSize = "12px";
+    else if (fontSize === "lg") root.style.fontSize = "20px";
+    else root.style.fontSize = "16px";
+    localStorage.setItem("appFontSize", fontSize);
+    window.dispatchEvent(new Event("font-size-change"));
+  }, [fontSize]);
 
   // Resizing and Collapsing State
   const [collapsed, setCollapsed] = useState(false);
@@ -421,7 +434,7 @@ export default function Sidebar() {
       <div className={cn("flex items-center p-3 shrink-0 transition-all duration-300 border-b border-[color-mix(in_srgb,var(--border)_50%,transparent)]", collapsed ? "justify-center" : "justify-between")}>
         {!collapsed && (
           <div className="flex items-center gap-2 px-2 overflow-hidden">
-            <span className="text-[12px] font-semibold text-[var(--muted)] uppercase tracking-wider truncate">
+            <span className="text-[calc(12rem/16)] font-semibold text-[var(--muted)] uppercase tracking-wider truncate">
               {isAlgo ? "Algorithm Explorer" : "Visualizer"}
             </span>
           </div>
@@ -490,7 +503,7 @@ export default function Sidebar() {
           <SidebarSkeleton />
         ) : isVis && !query && !collapsed && data?.length === 0 ? ( // Updated conditional since mock problem IDs are removed
           /* Visualizer Empty Search State */
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center h-48 text-[var(--muted)] text-center p-6 text-[13px]">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center h-48 text-[var(--muted)] text-center p-6 text-[calc(13rem/16)]">
             <Search size={28} className="mb-3 opacity-40 text-[var(--accent)]" />
             <p className="font-semibold text-sm mb-0.5 text-[var(--text)] tracking-tight">Search Questions</p>
             <p className="opacity-80">Type a problem ID or name (e.g., "Two Sum") to see if it's available.</p>
@@ -536,14 +549,14 @@ export default function Sidebar() {
                   className={cn("relative flex items-center justify-center transition-all group shrink-0 snap-start", 
                     collapsed 
                       ? "w-8 h-8 rounded-md hover:bg-[var(--surface-2)]" 
-                      : "flex-col gap-1 w-[80px] h-[64px] rounded-[8px] bg-[var(--surface-2)] border border-[color-mix(in_srgb,var(--border)_50%,transparent)] hover:border-[var(--accent)] hover:bg-[color-mix(in_srgb,var(--accent)_5%,transparent)] hover:text-[var(--text)] text-[10px] text-[var(--muted)] font-medium shadow-sm hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:-translate-y-0.5"
+                      : "flex-col gap-1 w-[80px] h-[64px] rounded-[8px] bg-[var(--surface-2)] border border-[color-mix(in_srgb,var(--border)_50%,transparent)] hover:border-[var(--accent)] hover:bg-[color-mix(in_srgb,var(--accent)_5%,transparent)] hover:text-[var(--text)] text-[calc(10rem/16)] text-[var(--muted)] font-medium shadow-sm hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:-translate-y-0.5"
                   )}
                 >
-                  {link.featured && (
+                  {/* {link.featured && (
                     <div className={cn("absolute", collapsed ? "-top-1 -right-1" : "top-1 right-1")} title="Featured Topic">
                       <Sparkles size={collapsed ? 8 : 10} className="text-amber-400 drop-shadow-[0_0_3px_rgba(251,191,36,0.5)] animate-pulse" />
                     </div>
-                  )}
+                  )} */}
                   <div className={cn("shrink-0 transition-all flex items-center justify-center", 
                     collapsed 
                       ? "w-4 h-4 text-[var(--muted)] opacity-70 group-hover:text-[var(--accent)] group-hover:opacity-100" 
@@ -578,7 +591,7 @@ export default function Sidebar() {
           <div className="flex items-center bg-[var(--surface-2)] rounded-lg p-1 shadow-inner">
             <button
               onClick={() => handleViewChange("docs")}
-              className={cn(`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[12px] font-semibold transition-all duration-300 ${
+              className={cn(`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[calc(12rem/16)] font-semibold transition-all duration-300 ${
                 activeView === "docs" 
                   ? "bg-[var(--accent)] text-[#ffffff] shadow-sm" 
                   : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--text)_5%,transparent)]"
@@ -588,7 +601,7 @@ export default function Sidebar() {
             </button>
             <button
               onClick={() => handleViewChange("visualizer")}
-              className={cn(`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[12px] font-semibold transition-all duration-300 ${
+              className={cn(`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[calc(12rem/16)] font-semibold transition-all duration-300 ${
                 activeView === "visualizer" 
                   ? "bg-[var(--accent)] text-[#ffffff] shadow-sm" 
                   : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--text)_5%,transparent)]"
@@ -611,25 +624,33 @@ export default function Sidebar() {
               style={{ minWidth: collapsed ? "200px" : "auto" }}
             >
               <div className="flex items-center justify-between p-3 border-b border-[var(--border)] bg-[var(--surface-2)]">
-                <span className="text-[13px] font-bold text-[var(--text)]">Preferences</span>
+                <span className="text-[calc(13rem/16)] font-bold text-[var(--text)]">Preferences</span>
                 <button onClick={() => setShowSettings(false)} className="text-[var(--muted)] hover:text-[var(--text)] transition-colors">
                   <X size={14} />
                 </button>
               </div>
               <div className="p-4 flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
-                  <span className="text-[11px] font-bold text-[var(--muted)] uppercase tracking-wider">Font Size</span>
+                  <span className="text-[calc(11rem/16)] font-bold text-[var(--muted)] uppercase tracking-wider">Font Size</span>
                   <div className="flex items-center gap-2">
-                    <button className="flex-1 py-1.5 bg-[var(--surface-2)] rounded-md border border-[var(--border)] text-[12px] font-medium text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all">Sm</button>
-                    <button className="flex-1 py-1.5 bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] border border-[var(--accent)] text-[var(--accent)] rounded-md text-[12px] font-semibold transition-all">Md</button>
-                    <button className="flex-1 py-1.5 bg-[var(--surface-2)] rounded-md border border-[var(--border)] text-[12px] font-medium text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all">Lg</button>
+                    <button 
+                      onClick={() => setFontSize("sm")}
+                      className={cn("flex-1 py-1.5 rounded-md border text-[calc(12rem/16)] transition-all", fontSize === "sm" ? "bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] border-[var(--accent)] text-[var(--accent)] font-semibold" : "bg-[var(--surface-2)] border-[var(--border)] text-[var(--text)] font-medium hover:border-[var(--accent)] hover:text-[var(--accent)]")}
+                    >Sm</button>
+                    <button 
+                      onClick={() => setFontSize("md")}
+                      className={cn("flex-1 py-1.5 rounded-md border text-[calc(12rem/16)] transition-all", fontSize === "md" ? "bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] border-[var(--accent)] text-[var(--accent)] font-semibold" : "bg-[var(--surface-2)] border-[var(--border)] text-[var(--text)] font-medium hover:border-[var(--accent)] hover:text-[var(--accent)]")}
+                    >Md</button>
+                    <button 
+                      onClick={() => setFontSize("lg")}
+                      className={cn("flex-1 py-1.5 rounded-md border text-[calc(12rem/16)] transition-all", fontSize === "lg" ? "bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] border-[var(--accent)] text-[var(--accent)] font-semibold" : "bg-[var(--surface-2)] border-[var(--border)] text-[var(--text)] font-medium hover:border-[var(--accent)] hover:text-[var(--accent)]")}
+                    >Lg</button>
                   </div>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <span className="text-[11px] font-bold text-[var(--muted)] uppercase tracking-wider">Theme</span>
-                  <div className="flex items-center gap-2">
-                    <button className="flex-1 py-1.5 bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] border border-[var(--accent)] text-[var(--accent)] rounded-md text-[12px] font-semibold transition-all">Dark</button>
-                    <button className="flex-1 py-1.5 bg-[var(--surface-2)] rounded-md border border-[var(--border)] text-[12px] font-medium text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all">Light</button>
+                  <span className="text-[calc(11rem/16)] font-bold text-[var(--muted)] uppercase tracking-wider">Theme</span>
+                  <div className="pt-2">
+                    <ThemeSelector />
                   </div>
                 </div>
               </div>
@@ -648,7 +669,7 @@ export default function Sidebar() {
           </button>
           
           {!collapsed && (
-            <div className="text-[10px] font-medium text-[var(--muted)] px-1 truncate">
+            <div className="text-[calc(10rem/16)] font-medium text-[var(--muted)] px-1 truncate">
               Crafted with passion by <span className="text-[var(--text)] font-bold">Koushik</span>
             </div>
           )}

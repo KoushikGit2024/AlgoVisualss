@@ -1,19 +1,19 @@
 import './App.css'
 import AlgoDirector from './Pages/algorithms/AlgoDirector'
 import Algorithms from './Pages/algorithms/Algorithms'
-import Navbar from './Pages/components/Navbar'
-import Sidebar from './Pages/components/Sidebar'
+import Navbar from './components/Navbar'
+import Sidebar from './components/Sidebar'
 import HomePage from './Pages/Home'
 import Editor from './Pages/editor/Editor'
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import VisualPlatforms from './Pages/visualizer/VisualPlatforms'
 import Visualizer from './Pages/visualizer/Visualizer'
-import NotFound from './Pages/not-found'
-import { ErrorBoundary } from './Pages/components/ErrorBoundary'
+import NotFound from './Pages/NotFound'
+import { ErrorBoundary } from './components/ErrorBoundary'
 
 const Footer = () => {
   return (
-    <footer className="w-full mt-auto border-t border-[var(--border)] bg-[var(--surface)] text-[14px]">
+    <footer className="w-full mt-auto border-t border-[var(--border)] bg-[var(--surface)] text-[calc(14rem/16)]">
       <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
         
         {/* Left Side: Brand & Creator */}
@@ -64,7 +64,7 @@ const Footer = () => {
             </a>
 
             <a
-              href="https://instagram.com/your-handle"
+              href="https://instagram.com/chidanand013"
               target="_blank"
               rel="noopener noreferrer"
               className="text-[var(--muted)] hover:text-[#E4405F] transition-transform hover:scale-110 duration-200"
@@ -92,9 +92,10 @@ const App = () => {
   const location = useLocation();
   
   const isCodeWindowOpen = 
-    location.pathname === '/editor' || 
-    (location.pathname.startsWith('/algorithms'));
-
+    location.pathname === "/editor" || 
+    location.pathname.includes("/algorithms/") || 
+    location.pathname.includes("/visualizer/");
+    
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden bg-[var(--bg)] text-[var(--text)] antialiased relative selection:bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] selection:text-[var(--accent)]">
       

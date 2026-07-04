@@ -76,7 +76,7 @@ const D1Array = ({
   if (safeValue.length === 0) {
     return (
       <div className="w-full flex items-center justify-center p-4">
-        <span className="text-muted text-[10px] font-mono border border-dashed border-border rounded p-2">
+        <span className="text-muted text-[calc(10rem/16)] font-mono border border-dashed border-border rounded p-2">
           Awaiting valid 1D Array initialization...
         </span>
       </div>
@@ -138,11 +138,11 @@ const D1Array = ({
 
             const safeValToDisplay = typeof val === 'object' ? JSON.stringify(val) : String(val);
             const valLen = safeValToDisplay.length;
-            const fontSizeClass = valLen > 4 ? (valLen > 6 ? (valLen > 8 ? 'text-[8px]' : 'text-[9.5px]') : 'text-[11px]') : 'text-[14px]';
+            const fontSizeClass = valLen > 4 ? (valLen > 6 ? (valLen > 8 ? 'text-[calc(8rem/16)]' : 'text-[9.5px]') : 'text-[calc(11rem/16)]') : 'text-[calc(14rem/16)]';
 
             return (
               <motion.div key={`cell-container-${idx}`} layout variants={cellVariants} className="flex flex-col items-center relative w-12 shrink-0">
-                <motion.span layout className="text-[10px] text-muted font-mono mb-1">
+                <motion.span layout className="text-[calc(10rem/16)] text-muted font-mono mb-1">
                   {idx}
                 </motion.span>
 
@@ -179,7 +179,7 @@ const D1Array = ({
                             <motion.span
                               key={ptr.name} layoutId={`pointer-${ptr.name}`}
                               transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
-                              className="text-[9px] font-mono font-bold bg-surface-2 text-accent-3 px-1 rounded border border-accent-3/30 whitespace-nowrap"
+                              className="text-[calc(9rem/16)] font-mono font-bold bg-surface-2 text-accent-3 px-1 rounded border border-accent-3/30 whitespace-nowrap"
                             >
                               {ptr.name}
                             </motion.span>

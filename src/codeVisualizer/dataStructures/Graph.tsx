@@ -305,7 +305,7 @@ const Graph = ({
                     />
                     <text
                       textAnchor="middle" dy="3.5"
-                      className="fill-muted font-mono text-[10px] font-semibold tracking-wide"
+                      className="fill-muted font-mono text-[calc(10rem/16)] font-semibold tracking-wide"
                     >
                       {edge.weight}
                     </text>
@@ -365,7 +365,7 @@ const Graph = ({
                   animate={{ scale, zIndex: zIdx }}
                   transition={{ type: 'spring', stiffness: 340, damping: 22 }}
                   className={cn(
-                    'w-11 h-11 flex items-center justify-center font-mono text-[13px] font-semibold tracking-wide',
+                    'w-11 h-11 flex items-center justify-center font-mono text-[calc(13rem/16)] font-semibold tracking-wide',
                     'rounded-full border-[1.5px] shrink-0 transition-colors duration-200 cursor-default',
                     bgCls, borderCls, textCls, ringCls,
                   )}
@@ -407,7 +407,7 @@ const Graph = ({
                         transition={{ type: 'spring', stiffness: 400, damping: 25, mass: 0.8 }}
                         className="flex items-center bg-accent-3 text-white border border-bg rounded-full px-2 py-[3px]"
                       >
-                        <span className="text-[9px] font-mono font-bold leading-none uppercase tracking-wider">
+                        <span className="text-[calc(9rem/16)] font-mono font-bold leading-none uppercase tracking-wider">
                           {ptr.name}
                         </span>
                       </motion.div>

@@ -417,10 +417,10 @@ const VisualGround = ({
         <div className="flex items-start gap-2 rounded-sm border border-cyan-500/25 bg-cyan-500/8 px-2.5 py-2 shadow-sm">
           <InfoIcon size={16} className="text-cyan-400 shrink-0 mt-px" strokeWidth={2.2} />
           <div className="min-w-0">
-            <p className="text-[11px] font-medium text-cyan-300 leading-tight">
+            <p className="text-[calc(11rem/16)] font-medium text-cyan-300 leading-tight">
               Visualization unavailable
             </p>
-            <p className="text-[10px] text-muted leading-tight mt-0.5">
+            <p className="text-[calc(10rem/16)] text-muted leading-tight mt-0.5">
               Currently supported only for C++.
             </p>
           </div>
@@ -437,11 +437,11 @@ const VisualGround = ({
             <Cpu size={16} /> Engine Crash
           </h3>
           <div className="bg-bg/50 p-2 rounded border border-failure/20 overflow-auto max-h-32">
-            <p className="text-[10px] text-failure font-mono text-left">{error}</p>
+            <p className="text-[calc(10rem/16)] text-failure font-mono text-left">{error}</p>
           </div>
           <button
             onClick={handleResetError}
-            className="self-center flex items-center gap-1 px-3 py-1.5 bg-surface border border-border hover:bg-surface-2 text-text text-[11px] rounded-sm transition-colors"
+            className="self-center flex items-center gap-1 px-3 py-1.5 bg-surface border border-border hover:bg-surface-2 text-text text-[calc(11rem/16)] rounded-sm transition-colors"
           >
             <RefreshCw size={12} /> Dismiss & Reset
           </button>
@@ -456,7 +456,7 @@ const VisualGround = ({
 
       {/* ─── LIVE HEADER ─── */}
       <div className="w-full flex items-center justify-between bg-surface-2 border border-border rounded-sm px-2 py-1 shadow-sm shrink-0">
-        <div className="flex items-center gap-1.5 text-[10px]">
+        <div className="flex items-center gap-1.5 text-[calc(10rem/16)]">
           <span className="font-mono text-muted uppercase tracking-wider">Status</span>
           <code className="bg-bg px-1.5 py-0.5 rounded-sm border border-border text-accent-3 font-bold">
             {currentSnapshot?.state?.callStack?.[
@@ -464,7 +464,7 @@ const VisualGround = ({
             ] || 'Idle()'}
           </code>
         </div>
-        <div className="flex items-center gap-1.5 text-[10px]">
+        <div className="flex items-center gap-1.5 text-[calc(10rem/16)]">
           <span className="font-mono text-muted uppercase tracking-wider flex items-center gap-1">
             <Activity size={10} className="text-accent" /> Event
           </span>
@@ -496,7 +496,7 @@ const VisualGround = ({
             style={{ perspective: '1000px' }}
           >
             {Object.keys(groupedStates).length === 0 && (
-              <div className="absolute inset-0 flex items-center justify-center text-muted text-[10px] font-mono opacity-50 flex-col gap-1">
+              <div className="absolute inset-0 flex items-center justify-center text-muted text-[calc(10rem/16)] font-mono opacity-50 flex-col gap-1">
                 <span>No active data structures detected.</span>
               </div>
             )}
@@ -535,7 +535,7 @@ const VisualGround = ({
                         key={state.id}
                         className="flex flex-col items-center gap-1 border border-border/50 bg-bg p-2 rounded"
                       >
-                        <span className="text-[10px] font-mono font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">
+                        <span className="text-[calc(10rem/16)] font-mono font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">
                           {state.id}
                         </span>
                         <div className="flex-1 flex items-center justify-center">
@@ -579,7 +579,7 @@ const VisualGround = ({
                       bringToFront(type);
                     }
                   }}
-                  className={cn(`px-3 py-1 border rounded-sm text-[10px] font-bold transition-all flex items-center gap-1.5 min-w-[80px] max-w-[150px] truncate justify-center hover:-translate-y-px active:translate-y-0
+                  className={cn(`px-3 py-1 border rounded-sm text-[calc(10rem/16)] font-bold transition-all flex items-center gap-1.5 min-w-[80px] max-w-[150px] truncate justify-center hover:-translate-y-px active:translate-y-0
                     ${
                       isActive
                         ? 'bg-surface-3 border-accent/50 text-accent shadow-sm'
@@ -593,7 +593,7 @@ const VisualGround = ({
               );
             })}
             {Object.keys(groupedStates).length === 0 && (
-              <span className="text-[10px] text-muted opacity-50 font-mono italic">
+              <span className="text-[calc(10rem/16)] text-muted opacity-50 font-mono italic">
                 No windows open
               </span>
             )}
@@ -614,7 +614,7 @@ const VisualGround = ({
         {isRightPanelCollapsed ? (
            <div className="flex flex-col items-center justify-start p-1 bg-surface-2 border-l border-border shrink-0 cursor-pointer hover:bg-surface-3 transition-colors z-10" onClick={() => { setIsCallStackCollapsed(false); setIsVariablesCollapsed(false); setIsConsoleCollapsed(false); }} title="Expand Inspectors">
              <PanelRightOpen size={14} className="text-muted mb-4" />
-             <span className="text-[9px] font-semibold text-muted uppercase tracking-widest" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>Inspectors</span>
+             <span className="text-[calc(9rem/16)] font-semibold text-muted uppercase tracking-widest" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>Inspectors</span>
            </div>
         ) : (
         <div
@@ -628,7 +628,7 @@ const VisualGround = ({
             className={cn(`w-full flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden ${isCallStackCollapsed ? 'min-h-0' : 'min-h-[80px]'}`)}
           >
             <div className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0 flex items-center justify-between cursor-pointer hover:bg-surface-3" onClick={() => setIsCallStackCollapsed(!isCallStackCollapsed)}>
-              <h4 className="text-[9px] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
+              <h4 className="text-[calc(9rem/16)] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
                 {isCallStackCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />} Call Stack
               </h4>
             </div>
@@ -642,7 +642,7 @@ const VisualGround = ({
                   return (
                     <div
                       key={idx}
-                      className={cn(`px-2 py-1 rounded-sm border shadow-sm text-[9px] font-mono flex items-center justify-between
+                      className={cn(`px-2 py-1 rounded-sm border shadow-sm text-[calc(9rem/16)] font-mono flex items-center justify-between
                         ${
                           isTop
                             ? 'border-accent-3 bg-accent-3/10  text-accent-3 font-bold'
@@ -651,7 +651,7 @@ const VisualGround = ({
                     >
                       <span>{frame}()</span>
                       {isTop && (
-                        <span className="text-[8px] bg-bg px-1 border border-border rounded">
+                        <span className="text-[calc(8rem/16)] bg-bg px-1 border border-border rounded">
                           Active
                         </span>
                       )}
@@ -680,7 +680,7 @@ const VisualGround = ({
             {/* Variables */}
             <div className="flex-1 flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden">
               <div className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0 flex items-center justify-between cursor-pointer hover:bg-surface-3" onClick={() => setIsVariablesCollapsed(!isVariablesCollapsed)}>
-                <h4 className="text-[9px] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
+                <h4 className="text-[calc(9rem/16)] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
                   {isVariablesCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />} Variables
                 </h4>
               </div>
@@ -688,7 +688,7 @@ const VisualGround = ({
               <div className="flex-1 overflow-y-auto styled-scrollbar p-1">
                 <div className="flex flex-col gap-px">
                   {overviewVars.length === 0 && (
-                    <span className="text-[9px] text-muted font-mono p-1">No locals.</span>
+                    <span className="text-[calc(9rem/16)] text-muted font-mono p-1">No locals.</span>
                   )}
                   {overviewVars.map((v) => {
                     const isExp = expandedVars.has(v.id);
@@ -720,12 +720,12 @@ const VisualGround = ({
                     <div
                       key={v.id}
                       onClick={() => toggleVarExpand(v.id)}
-                      className={cn(`flex flex-col px-1.5 py-1 text-[10px] font-mono rounded-sm border border-transparent transition-colors cursor-pointer hover:bg-surface-3 ${v.opStyle}`)}
+                      className={cn(`flex flex-col px-1.5 py-1 text-[calc(10rem/16)] font-mono rounded-sm border border-transparent transition-colors cursor-pointer hover:bg-surface-3 ${v.opStyle}`)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 overflow-hidden">
                           <span className="text-muted shrink-0">{isExp ? <ChevronDown size={10} /> : <ChevronRight size={10} />}</span>
-                          <span className="text-accent-2 opacity-80 text-[8px] uppercase shrink-0">
+                          <span className="text-accent-2 opacity-80 text-[calc(8rem/16)] uppercase shrink-0">
                             {v.type}
                           </span>
                           <span className="font-bold shrink-0">{v.name}</span>
@@ -736,7 +736,7 @@ const VisualGround = ({
                             </span>
                           )}
                         </div>
-                        <span className="text-[8px] text-muted opacity-50 shrink-0 ml-1">
+                        <span className="text-[calc(8rem/16)] text-muted opacity-50 shrink-0 ml-1">
                           in {v.func}()
                         </span>
                       </div>
@@ -757,7 +757,7 @@ const VisualGround = ({
               <div className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0 flex items-center justify-between cursor-pointer hover:bg-surface-3" onClick={() => setIsConsoleCollapsed(!isConsoleCollapsed)}>
                 <div className="flex items-center gap-1">
                   <Terminal size={10} className="text-muted" />
-                  <h4 className="text-[9px] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
+                  <h4 className="text-[calc(9rem/16)] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
                     {isConsoleCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />} Console Output
                   </h4>
                 </div>
@@ -765,7 +765,7 @@ const VisualGround = ({
               {!isConsoleCollapsed && (
               <div
                 ref={outputRef}
-                className="flex-1 overflow-y-auto styled-scrollbar p-2 font-mono text-[10px] text-text whitespace-pre-wrap"
+                className="flex-1 overflow-y-auto styled-scrollbar p-2 font-mono text-[calc(10rem/16)] text-text whitespace-pre-wrap"
               >
                 {consoleOutput || (
                   <span className="text-muted opacity-50 italic">No output...</span>
@@ -782,7 +782,7 @@ const VisualGround = ({
       <div className="w-full bg-surface-2 border border-border rounded-sm p-1.5 flex flex-col gap-1.5 shrink-0 mt-auto shadow-sm">
         {/* Progress track */}
         <div className="flex items-center gap-2 w-full px-1">
-          <span className="text-[9px] font-mono text-muted whitespace-nowrap min-w-[35px]">
+          <span className="text-[calc(9rem/16)] font-mono text-muted whitespace-nowrap min-w-[35px]">
             {snapshots.length > 0 ? currentStep + 1 : 0} / {snapshots.length}
           </span>
           <input
@@ -814,7 +814,7 @@ const VisualGround = ({
               onClick={handleSimulate}
               disabled={isCompiling}
               title="Compile & Simulate"
-              className={cn(`px-2 py-1 text-white border border-transparent rounded-sm text-[9px] font-bold transition-all shadow-sm flex items-center gap-1 ${
+              className={cn(`px-2 py-1 text-white border border-transparent rounded-sm text-[calc(9rem/16)] font-bold transition-all shadow-sm flex items-center gap-1 ${
                 isCompiling ? 'bg-accent/50 cursor-not-allowed' : 'bg-accent hover:bg-accent-2'
               }`)}
             >
@@ -873,7 +873,7 @@ const VisualGround = ({
             <div className="flex items-center">
               <input
                 type="number"
-                className="w-10 bg-transparent hover:bg-surface focus:bg-surface border border-transparent hover:border-border focus:border-accent text-[9px] text-accent font-mono rounded-sm px-1 py-0.5 text-right outline-none transition-all"
+                className="w-10 bg-transparent hover:bg-surface focus:bg-surface border border-transparent hover:border-border focus:border-accent text-[calc(9rem/16)] text-accent font-mono rounded-sm px-1 py-0.5 text-right outline-none transition-all"
                 style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
                 onChange={(e) => {
                   const val = parseInt(e.target.value);
@@ -883,7 +883,7 @@ const VisualGround = ({
                 max={1000}
                 value={speed}
               />
-              <span className="text-[9px] text-accent font-mono pr-1">ms</span>
+              <span className="text-[calc(9rem/16)] text-accent font-mono pr-1">ms</span>
             </div>
           </div>
         </div>

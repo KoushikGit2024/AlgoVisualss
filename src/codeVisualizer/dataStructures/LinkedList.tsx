@@ -92,7 +92,7 @@ const LinkedList = ({
   if (safeNodes.length === 0) {
     return (
       <div className="w-full flex items-center justify-center p-4">
-        <span className="text-muted text-[10px] font-mono border border-dashed border-border rounded p-2">
+        <span className="text-muted text-[calc(10rem/16)] font-mono border border-dashed border-border rounded p-2">
           Awaiting valid Linked List initialization...
         </span>
       </div>
@@ -159,7 +159,7 @@ const LinkedList = ({
                   <>
                     <motion.div layout className="flex items-center justify-center shrink-0 opacity-60">
                       <div className="flex items-center justify-center px-2 py-0.5 rounded bg-surface border-2 border-dashed border-border-2 shadow-sm">
-                        <span className="text-[10px] font-mono font-bold text-muted">NULL</span>
+                        <span className="text-[calc(10rem/16)] font-mono font-bold text-muted">NULL</span>
                       </div>
                     </motion.div>
                     
@@ -194,7 +194,7 @@ const LinkedList = ({
                           transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
                           className="flex flex-col items-center text-accent-3 z-30 pointer-events-auto"
                         >
-                          <span className="text-[10px] font-mono font-bold bg-surface-2 text-accent-3 px-1.5 py-0.5 rounded shadow-sm border border-accent-3/30 truncate max-w-[70px]">
+                          <span className="text-[calc(10rem/16)] font-mono font-bold bg-surface-2 text-accent-3 px-1.5 py-0.5 rounded shadow-sm border border-accent-3/30 truncate max-w-[70px]">
                             {ptr.name}
                           </span>
                           <div className="w-0.5 h-3 bg-accent-3/70 rounded-full mt-0.5 mb-0.5" />
@@ -209,7 +209,7 @@ const LinkedList = ({
                     animate={{ scale: activeScale, zIndex: activeZIndex }}
                     transition={{ type: "spring", stiffness: 400, damping: 25 }}
                     className={cn(`
-                      flex items-stretch font-mono text-[14px] font-medium 
+                      flex items-stretch font-mono text-[calc(14rem/16)] font-medium 
                       rounded-md border-2 transition-colors duration-200 shadow-md
                       ${bgClass} ${borderClass} ${textClass} ${shadowClass}
                       overflow-hidden
@@ -239,7 +239,7 @@ const LinkedList = ({
                   </motion.div>
 
                   {/* Node Address / ID Label */}
-                  {/* <span className="absolute -bottom-6 text-[9px] text-muted font-mono bg-bg/80 px-1 rounded border border-border/50">
+                  {/* <span className="absolute -bottom-6 text-[calc(9rem/16)] text-muted font-mono bg-bg/80 px-1 rounded border border-border/50">
                     {node.id}
                   </span> */}
                 </motion.div>
@@ -273,7 +273,7 @@ const LinkedList = ({
                 {isLastNode && (
                   <motion.div layout className="flex items-center justify-center shrink-0 opacity-60">
                     <div className="flex items-center justify-center px-2 py-0.5 rounded bg-surface border-2 border-dashed border-border-2 shadow-sm">
-                      <span className="text-[10px] font-mono font-bold text-muted">NULL</span>
+                      <span className="text-[calc(10rem/16)] font-mono font-bold text-muted">NULL</span>
                     </div>
                   </motion.div>
                 )}

@@ -2,8 +2,8 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Play, Pause, FastForward, Activity, Code2, Network, Braces, ChevronRight, CornerDownRight } from "lucide-react";
-// import NetworkBackground1 from "./components/NetworkBackground";
-import NetworkBackground from "./components/HomeBackgroundAnimation";
+// import NetworkBackground1 from "../components/NetworkBackground";
+import NetworkBackground from "../components/HomeBackgroundAnimation";
 // import D1Array from "../codeVisualizer/dataStructures/D1Array";
 // import D2Array from "../codeVisualizer/dataStructures/D2Array";
 // import ComponentTester from "../dumpyard/Tester";
@@ -12,7 +12,6 @@ import NetworkBackground from "./components/HomeBackgroundAnimation";
 
 // ─── Main Landing Page Component (Unchanged) ──────────────────────────────────
 export default function HomePage() {
-
 
   return (
     <div className="relative flex flex-col flex-1 items-center bg-[var(--bg)] overflow-hidden selection:bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] selection:text-[var(--text)]">
@@ -29,7 +28,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[6px] bg-[var(--surface-2)] border border-[var(--border)] text-[12px] font-[var(--font-geist-mono)] text-[var(--text)] mb-8 tracking-wide uppercase shadow-sm"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[6px] bg-[var(--surface-2)] border border-[var(--border)] text-[calc(12rem/16)] font-[var(--font-geist-mono)] text-[var(--text)] mb-8 tracking-wide uppercase shadow-sm"
           >
             <Activity size={14} className="text-[var(--accent)]" />
             AlgoVisuals Engine v2.0
@@ -100,7 +99,7 @@ export default function HomePage() {
                 <Activity size={20} />
               </div>
               <h3 className="text-lg font-semibold text-[var(--text)] mb-2">Granular Execution Control</h3>
-              <p className="text-[var(--muted)] text-[15px] leading-relaxed max-w-md">
+              <p className="text-[var(--muted)] text-[calc(15rem/16)] leading-relaxed max-w-md">
                 Take the wheel. Pause, rewind, fast-forward, or step through algorithms line-by-line to observe state mutations at every cycle.
               </p>
             </div>
@@ -124,7 +123,7 @@ export default function HomePage() {
               <Code2 size={20} />
             </div>
             <h3 className="text-lg font-semibold text-[var(--text)] mb-2">Live Code Tracing</h3>
-            <p className="text-[var(--muted)] text-[15px] leading-relaxed">
+            <p className="text-[var(--muted)] text-[calc(15rem/16)] leading-relaxed">
               Visuals synchronize perfectly with actual code. Watch the execution pointer move natively through C++, JS, or Python.
             </p>
           </motion.div>
@@ -138,7 +137,7 @@ export default function HomePage() {
               <Network size={20} />
             </div>
             <h3 className="text-lg font-semibold text-[var(--text)] mb-2">Interactive Graphs</h3>
-            <p className="text-[var(--muted)] text-[15px] leading-relaxed">
+            <p className="text-[var(--muted)] text-[calc(15rem/16)] leading-relaxed">
               Construct custom nodes and edges on a drag-and-drop canvas to stress-test pathfinding and routing algorithms.
             </p>
           </motion.div>
@@ -153,13 +152,13 @@ export default function HomePage() {
                 <Braces size={20} />
               </div>
               <h3 className="text-lg font-semibold text-[var(--text)] mb-2">State Introspection</h3>
-              <p className="text-[var(--muted)] text-[15px] leading-relaxed">
+              <p className="text-[var(--muted)] text-[calc(15rem/16)] leading-relaxed">
                 A dedicated variable scope window updates instantly. Keep exact track of pointers, accumulators, and the call-stack without console logs.
               </p>
             </div>
 
             {/* Clean Monospace State UI */}
-            <div className="w-full md:w-auto bg-[var(--surface-2)] border border-[var(--border)] rounded-[6px] p-5 font-[var(--font-geist-mono)] text-[13px] shadow-sm text-left min-w-[240px]">
+            <div className="w-full md:w-auto bg-[var(--surface-2)] border border-[var(--border)] rounded-[6px] p-5 font-[var(--font-geist-mono)] text-[calc(13rem/16)] shadow-sm text-left min-w-[240px]">
               <div className="flex items-center gap-2 text-[var(--text)] mb-3 pb-2 border-b border-[var(--border)] font-semibold">
                 <CornerDownRight size={14} className="text-[var(--accent)]" /> <span>Scope State</span>
               </div>
@@ -190,7 +189,7 @@ export default function HomePage() {
           <h2 className="text-3xl font-bold tracking-tight text-[var(--text)] mb-3">
             Start mastering algorithms.
           </h2>
-          <p className="text-[var(--muted)] text-[15px] mb-8 max-w-md">
+          <p className="text-[var(--muted)] text-[calc(15rem/16)] mb-8 max-w-md">
             Jump into the algorithm library or load up the visualizer sandbox to begin building your mental models.
           </p>
           {/* Fixed Contrast: Solid Accent with White Text */}

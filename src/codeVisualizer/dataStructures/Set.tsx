@@ -18,7 +18,7 @@ const formatValue = (v: any): string => {
 export default function Set({ values = [] }: SetProps) {
   if (!values || values.length === 0) {
     return (
-      <div className="flex items-center justify-center p-4 text-muted text-[10px] font-mono opacity-50">
+      <div className="flex items-center justify-center p-4 text-muted text-[calc(10rem/16)] font-mono opacity-50">
         Empty Set
       </div>
     );
@@ -34,7 +34,7 @@ export default function Set({ values = [] }: SetProps) {
           transition={{ duration: 0.2, delay: i * 0.05 }}
           className="flex items-center justify-center px-3 py-1 bg-success/10 rounded-full border border-success/30 shadow-sm"
         >
-          <span className="text-success font-bold font-mono text-[11px] max-w-[100px] truncate" title={String(v)}>
+          <span className="text-success font-bold font-mono text-[calc(11rem/16)] max-w-[100px] truncate" title={String(v)}>
             {formatValue(v)}
           </span>
         </motion.div>
