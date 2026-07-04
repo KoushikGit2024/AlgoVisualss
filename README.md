@@ -294,4 +294,4 @@ If you plan to contribute to this repository, please adhere to these strict guid
 This project is open-source. Build algorithms, understand the array, and happy coding.
 
 ---
-*Built for developers to understand the array, not just trace it.*
+*Built for developers for not just to trace the algorithm, but to understand it.*
