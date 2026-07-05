@@ -1,14 +1,24 @@
+import { useState } from "react"
 import CodeWindow from "../../codeVisualizer/CodeWindow"
 const Editor = () => {
-    return (
-        <CodeWindow  codeObject={{
-            "c++": `#include <iostream>
+
+    
+    const [storedCode,getSoredCode]=useState<String>(()=>{
+        const code=localStorage.getItem("editor-code");
+        const defaultCode = `#include <iostream>
 using namespace std;
 
 int main() {
     cout << "Hello, World!" << endl;
     return 0;
-}`
+}`;
+        return code || defaultCode
+    })
+
+    
+    return (
+        <CodeWindow  codeObject={{
+            "c++":`${storedCode}`
         }} />
     )
 }

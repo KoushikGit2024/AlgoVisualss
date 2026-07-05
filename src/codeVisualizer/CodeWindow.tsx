@@ -5,7 +5,7 @@ import { Info, X, ChevronLeft, ChevronRight, Code, MonitorPlay } from 'lucide-re
 import VisualizerNamingConventions from './dataStructures/VisualizerNamingConventions';
 // import { ALGODATA } from '../Pages/algorithms/data/categories/AlgoData';
 import { cn } from '../lib/utils';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 
 const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -97,6 +97,16 @@ const CodeWindow = ({ codeObject }: {codeObject: Record<string, string>}) => {
   }, [isDragging]);
 
   const langArray: string[] = Object.keys(codeObject);
+
+  const location = useLocation();
+
+  useEffect(()=>{
+    
+    if(!location.pathname.startsWith("/editor"))
+      return;
+    localStorage.setItem("editor-code",code);
+    
+  },[code]);
   
   return (
       <div 
