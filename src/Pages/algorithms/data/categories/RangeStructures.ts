@@ -1,40 +1,8 @@
 const RANGE_STRUCTURES_SECTION = {
   name: "Range Structures",
   href: "/algorithms/range_structures",
-    icon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <circle cx="32" cy="10" r="4"/>
-        <circle cx="16" cy="30" r="4"/>
-        <circle cx="48" cy="30" r="4"/>
-        <circle cx="8" cy="50" r="4"/>
-        <circle cx="24" cy="50" r="4"/>
-        <circle cx="40" cy="50" r="4"/>
-        <circle cx="56" cy="50" r="4"/>
-        <line x1="32" y1="14" x2="16" y2="26"/>
-        <line x1="32" y1="14" x2="48" y2="26"/>
-        <line x1="16" y1="34" x2="8" y2="46"/>
-        <line x1="16" y1="34" x2="24" y2="46"/>
-        <line x1="48" y1="34" x2="40" y2="46"/>
-        <line x1="48" y1="34" x2="56" y2="46"/>
-      </svg>
-    ),
-    hoverIcon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <circle cx="32" cy="10" r="4"/>
-        <circle cx="16" cy="30" r="4"/>
-        <circle cx="48" cy="30" r="4" fill="#34D399" stroke="#34D399"/>
-        <circle cx="8" cy="50" r="4"/>
-        <circle cx="24" cy="50" r="4"/>
-        <circle cx="40" cy="50" r="4" fill="#34D399" stroke="#34D399"/>
-        <circle cx="56" cy="50" r="4" fill="#34D399" stroke="#34D399"/>
-        <line x1="32" y1="14" x2="16" y2="26"/>
-        <line x1="32" y1="14" x2="48" y2="26"/>
-        <line x1="16" y1="34" x2="8" y2="46"/>
-        <line x1="16" y1="34" x2="24" y2="46"/>
-        <line x1="48" y1="34" x2="40" y2="46" stroke="#34D399" strokeWidth="4"/>
-        <line x1="48" y1="34" x2="56" y2="46" stroke="#34D399" strokeWidth="4"/>
-      </svg>
-    ),
+    iconId: "RangeStructures",
+    hoverIconId: "RangeStructures",
 
   about: [
     { tag: "h1", text: "Range Structures" },

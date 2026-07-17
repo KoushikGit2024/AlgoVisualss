@@ -1,23 +1,8 @@
 const QUEUES_SECTION = {
     name: "Queues",
     href: "/algorithms/queues",
-    icon: (
-        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-            <rect x="4" y="24" width="12" height="12"/>
-            <rect x="20" y="24" width="12" height="12"/>
-            <rect x="36" y="24" width="12" height="12"/>
-            <line x1="52" y1="30" x2="60" y2="30"/>
-            <polyline points="56,26 60,30 56,34"/>
-        </svg>
-    ),
-    hoverIcon: (
-        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-            <rect x="20" y="24" width="12" height="12" fill="#34D399" stroke="#34D399"/>
-            <rect x="36" y="24" width="12" height="12"/>
-            <rect x="52" y="24" width="12" height="12"/>
-            <line x1="4" y1="30" x2="12" y2="30" stroke="#34D399" strokeDasharray="2 2"/>
-        </svg>
-    ),
+    iconId: "Queue",
+    hoverIconId: "Queue",
 
     about: [
         { tag: "h1", text: "Queues" },
@@ -1698,23 +1683,8 @@ display();`
 const QUEUES_SECTION = {
   name: "Queues",
   href: "/algorithms/queues",
-    icon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <rect x="4" y="24" width="12" height="12"/>
-        <rect x="20" y="24" width="12" height="12"/>
-        <rect x="36" y="24" width="12" height="12"/>
-        <line x1="52" y1="30" x2="60" y2="30"/>
-        <polyline points="56,26 60,30 56,34"/>
-      </svg>
-    ),
-    hoverIcon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <rect x="20" y="24" width="12" height="12" fill="#34D399" stroke="#34D399"/>
-        <rect x="36" y="24" width="12" height="12"/>
-        <rect x="52" y="24" width="12" height="12"/>
-        <line x1="4" y1="30" x2="12" y2="30" stroke="#34D399" strokeDasharray="2 2"/>
-      </svg>
-    ),
+    iconId: "Queue",
+    hoverIconId: "Queue",
 
   about: [
     { tag: "h1", text: "Queues" },

@@ -1,28 +1,8 @@
 const LINKED_LISTS_SECTION = {
   name: "Linked Lists",
   href: "/algorithms/linked_lists",
-    icon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <rect x="4" y="24" width="12" height="12" rx="2"/>
-        <rect x="26" y="24" width="12" height="12" rx="2"/>
-        <rect x="48" y="24" width="12" height="12" rx="2"/>
-        <line x1="16" y1="30" x2="26" y2="30"/>
-        <line x1="38" y1="30" x2="48" y2="30"/>
-        <polyline points="22,26 26,30 22,34"/>
-        <polyline points="44,26 48,30 44,34"/>
-      </svg>
-    ),
-    hoverIcon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="#34D399" strokeWidth="3">
-        <rect x="4" y="24" width="12" height="12" rx="2" stroke="currentColor"/>
-        <rect x="26" y="24" width="12" height="12" rx="2" stroke="currentColor"/>
-        <rect x="48" y="24" width="12" height="12" rx="2" stroke="currentColor"/>
-        <line x1="16" y1="30" x2="26" y2="30"/>
-        <line x1="38" y1="30" x2="48" y2="30"/>
-        <polyline points="20,26 16,30 20,34"/>
-        <polyline points="42,26 38,30 42,34"/>
-      </svg>
-    ),
+    iconId: "LinkedList",
+    hoverIconId: "LinkedList",
 
   about: [
     { tag: "h1", text: "Linked Lists" },

@@ -1,25 +1,8 @@
 const SORTING_SECTION = {
   name: "Sorting",
   href: "/algorithms/sorting",
-  icon: (
-      <svg viewBox="0 0 64 64" fill="currentColor">
-        <rect x="8" y="36" width="8" height="20"/>
-        <rect x="22" y="26" width="8" height="30"/>
-        <rect x="36" y="14" width="8" height="42"/>
-        <rect x="50" y="6" width="8" height="50"/>
-      </svg>
-    ),
-    hoverIcon: (
-        <svg viewBox="0 0 64 64" fill="#34D399">
-        {/* Sorted order */}
-        <rect x="8" y="44" width="8" height="12"/>
-        <rect x="22" y="32" width="8" height="24"/>
-        <rect x="36" y="18" width="8" height="38"/>
-        <rect x="50" y="6" width="8" height="50"/>
-        {/* Arrow indicating sort */}
-        <path d="M 60 56 L 60 16 L 56 22 M 60 16 L 64 22" stroke="#34D399" strokeWidth="2" fill="none"/>
-        </svg>
-    ),
+  iconId: "Sorting",
+    hoverIconId: "Sorting",
   about: [
     { tag: "h1", text: "Sorting" },
     { tag: "p", text: "Sorting rearranges a collection into a defined order — usually ascending or descending — and is one of the most heavily studied problems in computer science because so many other algorithms (binary search, two pointers, greedy interval scheduling, deduplication) assume sorted input as a precondition." },

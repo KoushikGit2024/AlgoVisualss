@@ -1,16 +1,8 @@
 const BIT_MANIPULATION_SECTION = {
   name: "Bit Manipulation",
   href: "/algorithms/bit_manipulation",
-    icon: (
-      <svg viewBox="0 0 64 64" fill="currentColor">
-        <text x="7" y="40" fontSize="18" fontFamily="monospace">1010</text>
-      </svg>
-    ),
-    hoverIcon: (
-      <svg viewBox="0 0 64 64" fill="currentColor">
-        <text x="7" y="40" fontSize="18" fontFamily="monospace">10<tspan fill="#34D399">01</tspan></text>
-      </svg>
-    ),
+    iconId: "Bits",
+    hoverIconId: "Bits",
 
   about: [
     { tag: "h1", text: "Bit Manipulation" },

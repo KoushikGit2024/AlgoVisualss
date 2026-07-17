@@ -1,24 +1,8 @@
 const ARRAYS_SECTION = {
     name: "Arrays",
     href: "/algorithms/arrays",
-    icon: (
-        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="4">
-        <rect x="6" y="20" width="12" height="24"/>
-        <rect x="20" y="20" width="12" height="24"/>
-        <rect x="34" y="20" width="12" height="24"/>
-        <rect x="48" y="20" width="12" height="24"/>
-        </svg>
-    ),
-    hoverIcon: (
-        <svg viewBox="0 0 64 64" fill="none" stroke="#34D399" strokeWidth="4">
-        <rect x="6" y="20" width="12" height="24" fill="#34D399" fillOpacity="0.2"/>
-        <rect x="20" y="20" width="12" height="24" fill="#34D399" fillOpacity="0.2"/>
-        <rect x="34" y="20" width="12" height="24"/>
-        <rect x="48" y="20" width="12" height="24"/>
-        {/* Sliding window bracket */}
-        <path d="M 4 48 L 4 54 L 34 54 L 34 48" strokeWidth="3" strokeLinecap="round"/>
-        </svg>
-    ),
+    iconId: "Array",
+    hoverIconId: "Array",
     about: [
         { tag: "h1", text: "Arrays" },
         { tag: "p", text: "An array stores elements in contiguous memory so that any element can be reached in O(1) time given its index. That single guarantee — constant-time random access — is the foundation every array algorithm exploits, and the reason arrays are usually the first data structure taught and the most frequently used in practice." },

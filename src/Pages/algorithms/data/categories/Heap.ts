@@ -1,33 +1,8 @@
 const HEAP_SECTION = {
   name: "Heap",
   href: "/algorithms/heap",
-    icon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <circle cx="32" cy="12" r="5"/>
-        <circle cx="18" cy="32" r="5"/>
-        <circle cx="46" cy="32" r="5"/>
-        <circle cx="10" cy="52" r="5"/>
-        <circle cx="26" cy="52" r="5"/>
-        <line x1="32" y1="17" x2="18" y2="27"/>
-        <line x1="32" y1="17" x2="46" y2="27"/>
-        <line x1="18" y1="37" x2="10" y2="47"/>
-        <line x1="18" y1="37" x2="26" y2="47"/>
-      </svg>
-    ),
-    hoverIcon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <circle cx="32" cy="12" r="6" fill="#34D399" stroke="#34D399"/>
-        <circle cx="18" cy="32" r="5"/>
-        <circle cx="46" cy="32" r="5"/>
-        <circle cx="10" cy="52" r="5"/>
-        <circle cx="26" cy="52" r="5"/>
-        <line x1="32" y1="18" x2="18" y2="27"/>
-        <line x1="32" y1="18" x2="46" y2="27"/>
-        <line x1="18" y1="37" x2="10" y2="47"/>
-        <line x1="18" y1="37" x2="26" y2="47"/>
-        <path d="M 38 12 L 44 8 L 44 16 Z" fill="#34D399" stroke="none"/>
-      </svg>
-    ),
+    iconId: "Heap",
+    hoverIconId: "Heap",
 
   about: [
     { tag: "h1", text: "Heap" },

@@ -7758,30 +7758,8 @@
 const GRAPHS_SECTION = {
   name: "Graphs",
   href: "/algorithms/graphs",
-    icon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <circle cx="12" cy="32" r="5"/>
-        <circle cx="32" cy="12" r="5"/>
-        <circle cx="52" cy="32" r="5"/>
-        <circle cx="32" cy="52" r="5"/>
-        <line x1="12" y1="32" x2="32" y2="12"/>
-        <line x1="32" y1="12" x2="52" y2="32"/>
-        <line x1="52" y1="32" x2="32" y2="52"/>
-        <line x1="32" y1="52" x2="12" y2="32"/>
-      </svg>
-    ),
-    hoverIcon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <circle cx="12" cy="32" r="5" fill="#34D399" stroke="#34D399"/>
-        <circle cx="32" cy="12" r="5" fill="#34D399" stroke="#34D399"/>
-        <circle cx="52" cy="32" r="5" fill="#34D399" stroke="#34D399"/>
-        <circle cx="32" cy="52" r="5"/>
-        <line x1="12" y1="32" x2="32" y2="12" stroke="#34D399" strokeWidth="5"/>
-        <line x1="32" y1="12" x2="52" y2="32" stroke="#34D399" strokeWidth="5"/>
-        <line x1="52" y1="32" x2="32" y2="52"/>
-        <line x1="32" y1="52" x2="12" y2="32"/>
-      </svg>
-    ),
+    iconId: "Graph",
+    hoverIconId: "Graph",
 
   about: [
     { tag: "h1", text: "Graphs" },

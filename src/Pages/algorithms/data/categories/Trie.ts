@@ -1,29 +1,8 @@
 const TRIES_SECTION = {
     name: "Tries",
     href: "/algorithms/tries",
-    icon: (
-        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-            <circle cx="32" cy="10" r="4"/>
-            <line x1="32" y1="14" x2="16" y2="32"/>
-            <line x1="32" y1="14" x2="48" y2="32"/>
-            <line x1="16" y1="32" x2="8" y2="52"/>
-            <line x1="16" y1="32" x2="24" y2="52"/>
-            <line x1="48" y1="32" x2="40" y2="52"/>
-            <line x1="48" y1="32" x2="56" y2="52"/>
-        </svg>
-    ),
-    hoverIcon: (
-        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-            <circle cx="32" cy="10" r="4" fill="#34D399" stroke="#34D399"/>
-            <line x1="32" y1="14" x2="16" y2="32" stroke="#34D399" strokeWidth="4"/>
-            <line x1="32" y1="14" x2="48" y2="32"/>
-            <line x1="16" y1="32" x2="8" y2="52"/>
-            <line x1="16" y1="32" x2="24" y2="52" stroke="#34D399" strokeWidth="4"/>
-            <circle cx="24" cy="52" r="4" fill="#34D399" stroke="#34D399"/>
-            <line x1="48" y1="32" x2="40" y2="52"/>
-            <line x1="48" y1="32" x2="56" y2="52"/>
-        </svg>
-    ),
+    iconId: "Trie",
+    hoverIconId: "Trie",
 
     about: [
         { tag: "h1", text: "Tries" },
@@ -1201,29 +1180,8 @@ export default TRIES_SECTION
 const TRIES_SECTION2 = {
   name: "Tries",
   href: "/algorithms/tries",
-    icon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <circle cx="32" cy="10" r="4"/>
-        <line x1="32" y1="14" x2="16" y2="32"/>
-        <line x1="32" y1="14" x2="48" y2="32"/>
-        <line x1="16" y1="32" x2="8" y2="52"/>
-        <line x1="16" y1="32" x2="24" y2="52"/>
-        <line x1="48" y1="32" x2="40" y2="52"/>
-        <line x1="48" y1="32" x2="56" y2="52"/>
-      </svg>
-    ),
-    hoverIcon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <circle cx="32" cy="10" r="4" fill="#34D399" stroke="#34D399"/>
-        <line x1="32" y1="14" x2="16" y2="32" stroke="#34D399" strokeWidth="4"/>
-        <line x1="32" y1="14" x2="48" y2="32"/>
-        <line x1="16" y1="32" x2="8" y2="52"/>
-        <line x1="16" y1="32" x2="24" y2="52" stroke="#34D399" strokeWidth="4"/>
-        <circle cx="24" cy="52" r="4" fill="#34D399" stroke="#34D399"/>
-        <line x1="48" y1="32" x2="40" y2="52"/>
-        <line x1="48" y1="32" x2="56" y2="52"/>
-      </svg>
-    ),
+    iconId: "Trie",
+    hoverIconId: "Trie",
 
   about: [
     { tag: "h1", text: "Tries" },

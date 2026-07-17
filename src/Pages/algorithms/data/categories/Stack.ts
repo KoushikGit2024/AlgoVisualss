@@ -1,23 +1,8 @@
 const STACKS_SECTION = {
   name: "Stacks",
   href: "/algorithms/stacks",
-    icon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <rect x="18" y="42" width="28" height="10"/>
-        <rect x="18" y="30" width="28" height="10"/>
-        <rect x="18" y="18" width="28" height="10"/>
-      </svg>
-    ),
-    hoverIcon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <rect x="18" y="42" width="28" height="10"/>
-        <rect x="18" y="30" width="28" height="10"/>
-        <rect x="18" y="6" width="28" height="10" fill="#34D399" stroke="#34D399"/>
-        {/* Pushing animation indicator */}
-        <line x1="32" y1="18" x2="32" y2="28" stroke="#34D399" strokeDasharray="3 3"/>
-        <polyline points="28,24 32,28 36,24" stroke="#34D399"/>
-      </svg>
-    ),
+    iconId: "Stack",
+    hoverIconId: "Stack",
 
   about: [
     { tag: "h1", text: "Stacks" },

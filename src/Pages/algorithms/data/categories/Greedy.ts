@@ -1,17 +1,8 @@
 const GREEDY_SECTION = {
   name: "Greedy",
   href: "/algorithms/greedy",
-    icon: (
-      <svg viewBox="0 0 64 64" fill="currentColor">
-        <path d="M32 8l6 14 16 2-12 10 4 16-14-8-14 8 4-16-12-10 16-2z"/>
-      </svg>
-    ),
-    hoverIcon: (
-      <svg viewBox="0 0 64 64" fill="currentColor">
-        <path d="M32 8l6 14 16 2-12 10 4 16-14-8-14 8 4-16-12-10 16-2z" fill="none" stroke="#34D399" strokeWidth="3"/>
-        <circle cx="32" cy="36" r="8" fill="#34D399"/>
-      </svg>
-    ),
+    iconId: "Greedy",
+    hoverIconId: "Greedy",
 
   about: [
     { tag: "h1", text: "Greedy" },

@@ -5,6 +5,7 @@ import type { Variants } from "framer-motion";
 import { Search, X, ChevronRight, AlertCircle, BadgeInfo, Settings, BookOpen, Code2 } from "lucide-react";
 import ALGODATA from "../Pages/algorithms/data/AlgoData";
 import PLATFORMDATA from "../Pages/visualizer/data/PlatformData";
+import { CategoryIcon } from "./icons";
 import { cn } from '../lib/utils';
 import ThemeSelector from "./ThemeSelector";
 
@@ -276,7 +277,15 @@ export default function Sidebar() {
 
   const quickLinks = useMemo(() => {
     if (isAlgo && normalizedTopic && normalizedTopic !== 'algorithms') {
-      return ALGODATA.filter((a) => a.name.toLowerCase() !== normalizedTopic).map(a => ({ name: a.name, href: a.href, icon: a.icon, hoverIcon: a.hoverIcon, featured: (a as any).featured }));
+      return ALGODATA.filter((a) => a.name.toLowerCase() !== normalizedTopic).map(a => {
+        return { 
+          name: a.name, 
+          href: a.href, 
+          icon: <CategoryIcon name={a.iconId} />, 
+          hoverIcon: <CategoryIcon name={a.hoverIconId || a.iconId} hover={true} />, 
+          featured: (a as any).featured 
+        };
+      });
     }
     if (isVis && normalizedPlatform && normalizedPlatform !== 'visualizer') {
       return PLATFORMDATA.filter((p: any) => p.name.toLowerCase() !== normalizedPlatform).map((p: any) => ({ name: p.name, href: p.href, icon: p.icon, hoverIcon: p.hoverIcon, featured: p.featured }));
@@ -388,19 +397,21 @@ export default function Sidebar() {
       const dataToMap = targetAlgos.length > 0 ? targetAlgos : ALGODATA;
 
       // Map ALGODATA structure strictly to NavItem type
-      const algoNavItems: NavItem[] = dataToMap.map(algo => ({
-        id: algo.name.toLowerCase().replace(/\s+/g, '-'),
-        label: algo.name,
-        url: algo.href,
-        icon: algo.icon,
-        hoverIcon: algo.hoverIcon,
-        children: algo.items?.map((sub: any) => ({
-          id: sub.name.toLowerCase().replace(/\s+/g, '-'),
-          label: sub.name,
-          url: sub.href,
-          badge: sub.type
-        }))
-      }));
+      const algoNavItems: NavItem[] = dataToMap.map(algo => {
+        return {
+          id: algo.name.toLowerCase().replace(/\s+/g, '-'),
+          label: algo.name,
+          url: algo.href,
+          icon: <CategoryIcon name={algo.iconId} />,
+          hoverIcon: <CategoryIcon name={algo.hoverIconId || algo.iconId} hover={true} />,
+          children: algo.items?.map((sub: any) => ({
+            id: sub.name.toLowerCase().replace(/\s+/g, '-'),
+            label: sub.name,
+            url: sub.href,
+            badge: sub.type
+          }))
+        };
+      });
 
       if (isMounted) {
         setData(algoNavItems);

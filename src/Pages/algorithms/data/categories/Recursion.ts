@@ -1,20 +1,8 @@
 const RECURSION_SECTION = {
   name: "Recursion",
   href: "/algorithms/recursion",
-    icon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <path d="M22 22 A12 12 0 1 1 22 42"/>
-        <polyline points="22,16 22,22 28,22"/>
-      </svg>
-    ),
-    hoverIcon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <path d="M22 22 A12 12 0 1 1 22 42"/>
-        <polyline points="22,16 22,22 28,22"/>
-        <path d="M34 26 A6 6 0 1 1 34 38" stroke="#34D399"/>
-        <polyline points="34,22 34,26 38,26" stroke="#34D399"/>
-      </svg>
-    ),
+    iconId: "Recursion",
+    hoverIconId: "Recursion",
 
   about: [
     { tag: "h1", text: "Recursion" },

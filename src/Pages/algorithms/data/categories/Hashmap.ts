@@ -1,25 +1,8 @@
 const HASH_MAPS_SECTION = {
   name: "Hash Maps",
   href: "/algorithms/hash_maps",
-    icon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <line x1="20" y1="8" x2="20" y2="56"/>
-        <line x1="44" y1="8" x2="44" y2="56"/>
-        <line x1="8" y1="20" x2="56" y2="20"/>
-        <line x1="8" y1="44" x2="56" y2="44"/>
-      </svg>
-    ),
-    hoverIcon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3">
-        <line x1="20" y1="8" x2="20" y2="56"/>
-        <line x1="44" y1="8" x2="44" y2="56"/>
-        <line x1="8" y1="20" x2="56" y2="20"/>
-        <line x1="8" y1="44" x2="56" y2="44"/>
-        <circle cx="32" cy="32" r="6" fill="#34D399" stroke="none"/>
-        <circle cx="12" cy="12" r="3" fill="#34D399" stroke="none"/>
-        <circle cx="52" cy="52" r="4" fill="#34D399" stroke="none"/>
-      </svg>
-    ),
+    iconId: "Hashmap",
+    hoverIconId: "Hashmap",
 
   about: [
     { tag: "h1", text: "Hash Maps" },

@@ -1,8 +1,17 @@
 
 
+import SEO from "../../components/SEO";
+
 const Visualizer = () => {
   return (
-    <div>Visualizer</div>
+    <div>
+      <SEO 
+        title="Code Visualizer" 
+        description="Visualize execution for specific problem IDs."
+        noindex={true}
+      />
+      Visualizer
+    </div>
   )
 }
 

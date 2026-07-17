@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import ALGODATA from "./data/AlgoData"
 import "./AlgoDirector.css";
 import { cn } from '../../lib/utils';
+import SEO from "../../components/SEO";
+import { CategoryIcon } from "../../components/icons";
 
 /* ─── Complexity filter config ──────────────────────────────────────────────── */
 type Algorithm = (typeof ALGODATA)[number];
@@ -40,7 +42,23 @@ export default function AlgoDirector() {
 
   return (
     <div className="min-h-screen bg-[var(--bg,#0D0B14)] text-[var(--text,#EDE9FF)] font-['Syne',system-ui,sans-serif] relative overflow-x-hidden">
-      
+      <SEO 
+        title="Algorithm Reference Index" 
+        description="Explore our comprehensive library of algorithms and data structures. Filter by complexity and discover patterns." 
+        canonical="https://algovisuals-na1c.onrender.com/algorithms"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "name": "Algorithm Reference Index",
+          "url": "https://algovisuals-na1c.onrender.com/algorithms",
+          "description": "Explore our comprehensive library of algorithms and data structures.",
+          "isPartOf": {
+            "@type": "WebSite",
+            "name": "AlgoVisuals",
+            "url": "https://algovisuals-na1c.onrender.com/"
+          }
+        }}
+      />
       {/* Background Grid Pattern */}
       <div className="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(circle,rgba(129,140,248,0.055)_1px,transparent_1px)] bg-[size:28px_28px]" />
 
@@ -180,10 +198,10 @@ function AlgoCard({ algo, index, mounted }: AlgoCardProps) {
       {/* Animated Icons */}
       <div className="relative w-8 h-8 mb-5 text-[var(--accent,#818CF8)]" aria-hidden="true">
         <div className="absolute inset-0 flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] opacity-100 translate-y-0 scale-100 group-hover:opacity-0 group-hover:-translate-y-2.5 group-hover:scale-[0.85] [&>svg]:w-full [&>svg]:h-full">
-          {algo.icon}
+          <CategoryIcon name={algo.iconId} />
         </div>
         <div className="absolute inset-0 flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] opacity-0 translate-y-2.5 scale-[0.85] group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-100 [&>svg]:w-full [&>svg]:h-full">
-          {algo.hoverIcon} 
+          <CategoryIcon name={algo.hoverIconId || algo.iconId} hover={true} />
         </div>
       </div>
 

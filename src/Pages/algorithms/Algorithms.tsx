@@ -3,6 +3,7 @@ import CodeWindow from "../../codeVisualizer/CodeWindow";
 import DocParser from "../../codeVisualizer/sideComponents/parsers/DocParser";
 import { useParams, useSearchParams } from "react-router-dom";
 import ALGODATA from "./data/AlgoData";
+import SEO from "../../components/SEO";
 // import { BookOpen, Code2 } from "lucide-react";
 type ALGODATAITEM = (typeof ALGODATA)[number];
 type subTopicItems = ALGODATAITEM["items"][number];
@@ -65,8 +66,52 @@ int main() {
     return codes;
   };
 
+  const pageTitle = data && "name" in data ? data.name : (subTopic || topic || "Algorithm");
+  const pageDescription = data && "desc" in data ? (data as any).desc : "Interactive algorithm visualizer and documentation.";
+  const currentUrl = `https://algovisuals-na1c.onrender.com/algorithms/${topic}${subTopic ? `/${subTopic}` : ''}`;
+  
+  // Breadcrumb schema
+  const breadcrumbList = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://algovisuals-na1c.onrender.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Algorithms", "item": "https://algovisuals-na1c.onrender.com/algorithms" },
+      ...(topic ? [{
+        "@type": "ListItem",
+        "position": 3,
+        "name": topic.replace(/[-_]/g, ' '),
+        "item": `https://algovisuals-na1c.onrender.com/algorithms/${topic}`
+      }] : []),
+      ...(subTopic ? [{
+        "@type": "ListItem",
+        "position": 4,
+        "name": subTopic.replace(/[-_]/g, ' '),
+        "item": currentUrl
+      }] : [])
+    ]
+  };
+
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": pageTitle,
+    "description": pageDescription,
+    "url": currentUrl,
+    "author": {
+      "@type": "Person",
+      "name": "Koushik"
+    }
+  };
+
   return (
     <div className="relative h-[calc(100vh-64px)] max-h-[calc(100vh-70px)] min-w-0 max-w-full flex flex-col bg-bg">
+      <SEO 
+        title={pageTitle as string}
+        description={pageDescription}
+        canonical={currentUrl}
+        jsonLd={[breadcrumbList, articleSchema]}
+      />
       
       {(!topic) && (
         <div className="w-full h-full flex items-center justify-center text-muted font-mono p-6">

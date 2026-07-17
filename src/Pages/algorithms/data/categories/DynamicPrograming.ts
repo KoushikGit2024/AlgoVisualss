@@ -1,32 +1,8 @@
 const DYNAMIC_PROGRAMMING_SECTION = {
   name: "Dynamic Programming",
   href: "/algorithms/dynamic_programming",
-    icon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="8" y="8" width="16" height="16"/>
-        <rect x="24" y="8" width="16" height="16"/>
-        <rect x="40" y="8" width="16" height="16"/>
-        <rect x="8" y="24" width="16" height="16"/>
-        <rect x="24" y="24" width="16" height="16"/>
-        <rect x="40" y="24" width="16" height="16"/>
-        <rect x="8" y="40" width="16" height="16"/>
-        <rect x="24" y="40" width="16" height="16"/>
-        <rect x="40" y="40" width="16" height="16"/>
-      </svg>
-    ),
-    hoverIcon: (
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="8" y="8" width="16" height="16" fill="#34D399" stroke="#34D399"/>
-        <rect x="24" y="8" width="16" height="16"/>
-        <rect x="40" y="8" width="16" height="16"/>
-        <rect x="8" y="24" width="16" height="16" fill="#34D399" stroke="#34D399"/>
-        <rect x="24" y="24" width="16" height="16" fill="#34D399" stroke="#34D399"/>
-        <rect x="40" y="24" width="16" height="16"/>
-        <rect x="8" y="40" width="16" height="16"/>
-        <rect x="24" y="40" width="16" height="16"/>
-        <rect x="40" y="40" width="16" height="16" fill="#34D399" stroke="#34D399"/>
-      </svg>
-    ),
+    iconId: "DynamicPrograming",
+    hoverIconId: "DynamicPrograming",
 
   about: [
     { tag: "h1", text: "Dynamic Programming" },

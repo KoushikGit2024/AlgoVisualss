@@ -2,23 +2,31 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Play, Pause, FastForward, Activity, Code2, Network, Braces, ChevronRight, CornerDownRight } from "lucide-react";
-// import NetworkBackground1 from "../components/NetworkBackground";
 import NetworkBackground from "../components/HomeBackgroundAnimation";
-// import D1Array from "../codeVisualizer/dataStructures/D1Array";
-// import D2Array from "../codeVisualizer/dataStructures/D2Array";
-// import ComponentTester from "../dumpyard/Tester";
-// import getFlowData from "../lib/treeSitter";
-// import CodeWindow from "../codeVisualizer/CodeWindow";
+import SEO from "../components/SEO";
 
 // ─── Main Landing Page Component (Unchanged) ──────────────────────────────────
 export default function HomePage() {
 
   return (
     <div className="relative flex flex-col flex-1 items-center bg-[var(--bg)] overflow-hidden selection:bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] selection:text-[var(--text)]">
-      
+      <SEO 
+        title="Interactive Algorithm Visualizer" 
+        description="A high-fidelity sandbox to visualize data structures, trace algorithms step-by-step, and deeply understand software architecture." 
+        canonical="https://algovisuals-na1c.onrender.com/"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": ["WebSite", "SoftwareApplication"],
+          "name": "AlgoVisuals",
+          "url": "https://algovisuals-na1c.onrender.com/",
+          "description": "Interactive algorithm visualizer and learning platform.",
+          "applicationCategory": "EducationalApplication",
+          "operatingSystem": "All"
+        }}
+      />
       {/* ─── Clean Background ─── */}
       {/* ─── Hero Section ─── */}
-      <main className="relative flex flex-col items-center justify-center w-full px-6 pt-32 pb-24 text-center">
+      <section className="relative flex flex-col items-center justify-center w-full px-6 pt-32 pb-24 text-center">
         
         {/* The Animated Raining Text Background */}
         <NetworkBackground/>
@@ -75,7 +83,7 @@ export default function HomePage() {
             </Link>
           </motion.div>
         </div>
-      </main>
+      </section>
 
       {/* ─── Structural Feature Grid ─── */}
       <section className="relative z-10 w-full max-w-6xl px-6 pb-32">

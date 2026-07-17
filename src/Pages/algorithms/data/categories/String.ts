@@ -1,17 +1,8 @@
 const STRINGS_SECTION = {
   name: "Strings",
   href: "/algorithms/strings",
-    icon: (
-      <svg viewBox="0 0 64 64" fill="currentColor">
-        <text x="8" y="42" fontSize="26" fontFamily="monospace">Aa</text>
-      </svg>
-    ),
-    hoverIcon: (
-      <svg viewBox="0 0 64 64" fill="currentColor">
-        <text x="8" y="42" fontSize="26" fontFamily="monospace">A<tspan fill="#34D399">a</tspan></text>
-        <rect x="25" y="46" width="16" height="3" fill="#34D399"/>
-      </svg>
-    ),
+    iconId: "String",
+    hoverIconId: "String",
 
   about: [
     { tag: "h1", text: "Strings" },
