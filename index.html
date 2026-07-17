@@ -26,9 +26,146 @@
         } catch (e) {}
       })();
     </script>
+    <style>
+      body {
+        background-color: #0D0B14;
+        margin: 0;
+        padding: 0;
+      }
+      .initial-loader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        width: 100vw;
+        background-color: #0D0B14;
+        font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+        gap: 2rem;
+      }
+
+      /* Animated Neural Network / Graph */
+      .network-svg {
+        width: 150px;
+        height: 150px;
+        animation: float 4s ease-in-out infinite;
+      }
+      .net-line {
+        stroke-dasharray: 65;
+        stroke-dashoffset: 65;
+      }
+      .net-node {
+        transform-origin: center;
+        transform-box: fill-box;
+        transform: scale(0);
+        opacity: 0;
+      }
+
+      /* Unified 3s animation loop for perfect synchronization */
+      .n1 { animation: n1-seq 3s infinite; }
+      .l1-2 { animation: l1-seq 3s infinite; }
+      .n2 { animation: n2-seq 3s infinite; }
+      .n2-core { animation: n2-core-seq 3s infinite; }
+      .l2-3 { animation: l2-seq 3s infinite; }
+      .n3 { animation: n3-seq 3s infinite; }
+
+      @keyframes n1-seq {
+        0%, 5% { transform: scale(0); opacity: 0; }
+        15%, 85% { transform: scale(1); opacity: 1; }
+        95%, 100% { transform: scale(0); opacity: 0; }
+      }
+      @keyframes l1-seq {
+        0%, 15% { stroke-dashoffset: 65; opacity: 0; }
+        35%, 85% { stroke-dashoffset: 0; opacity: 1; }
+        95%, 100% { stroke-dashoffset: 65; opacity: 0; }
+      }
+      @keyframes n2-seq {
+        0%, 35% { transform: scale(0); opacity: 0; }
+        45%, 85% { transform: scale(1); opacity: 1; }
+        95%, 100% { transform: scale(0); opacity: 0; }
+      }
+      @keyframes n2-core-seq {
+        0%, 35% { transform: scale(0); opacity: 0; fill: #818CF8; }
+        45%, 75% { transform: scale(1); opacity: 1; fill: #818CF8; }
+        80%, 85% { transform: scale(1.4); opacity: 1; fill: #E0E7FF; } /* Core flash */
+        95%, 100% { transform: scale(0); opacity: 0; fill: #E0E7FF; }
+      }
+      @keyframes l2-seq {
+        0%, 45% { stroke-dashoffset: 65; opacity: 0; }
+        65%, 85% { stroke-dashoffset: 0; opacity: 1; }
+        95%, 100% { stroke-dashoffset: 65; opacity: 0; }
+      }
+      @keyframes n3-seq {
+        0%, 65% { transform: scale(0); opacity: 0; }
+        75%, 85% { transform: scale(1); opacity: 1; }
+        95%, 100% { transform: scale(0); opacity: 0; }
+      }
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+      }
+
+      .loader-text {
+        color: #E0E7FF;
+        font-size: 0.9rem;
+        letter-spacing: 0.3em;
+        font-weight: 500;
+        text-transform: uppercase;
+        animation: text-glow 3s infinite;
+      }
+      @keyframes text-glow {
+        0%, 75% { opacity: 0.5; text-shadow: none; }
+        80%, 85% { opacity: 1; text-shadow: 0 0 15px rgba(129, 140, 248, 0.8); }
+        95%, 100% { opacity: 0.5; text-shadow: none; }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="initial-loader">
+        <svg viewBox="0 0 100 100" class="network-svg" xmlns="http://www.w3.org/2000/svg">
+          <g stroke-width="1.5" stroke-linecap="round">
+            <!-- L1 to L2 -->
+            <g stroke="#6366F1">
+              <line x1="20" y1="35" x2="50" y2="20" class="net-line l1-2" />
+              <line x1="20" y1="35" x2="50" y2="50" class="net-line l1-2" />
+              <line x1="20" y1="35" x2="50" y2="80" class="net-line l1-2" />
+              <line x1="20" y1="65" x2="50" y2="20" class="net-line l1-2" />
+              <line x1="20" y1="65" x2="50" y2="50" class="net-line l1-2" />
+              <line x1="20" y1="65" x2="50" y2="80" class="net-line l1-2" />
+            </g>
+            
+            <!-- L2 to L3 -->
+            <g stroke="#8B5CF6">
+              <line x1="50" y1="20" x2="80" y2="35" class="net-line l2-3" />
+              <line x1="50" y1="20" x2="80" y2="65" class="net-line l2-3" />
+              <line x1="50" y1="50" x2="80" y2="35" class="net-line l2-3" />
+              <line x1="50" y1="50" x2="80" y2="65" class="net-line l2-3" />
+              <line x1="50" y1="80" x2="80" y2="35" class="net-line l2-3" />
+              <line x1="50" y1="80" x2="80" y2="65" class="net-line l2-3" />
+            </g>
+          </g>
+
+          <g>
+            <!-- L1 Nodes -->
+            <circle cx="20" cy="35" r="5" fill="#38BDF8" class="net-node n1" />
+            <circle cx="20" cy="65" r="5" fill="#38BDF8" class="net-node n1" />
+            
+            <!-- L2 Nodes -->
+            <circle cx="50" cy="20" r="6" fill="#818CF8" class="net-node n2" />
+            <circle cx="50" cy="80" r="6" fill="#818CF8" class="net-node n2" />
+            
+            <!-- Core Node -->
+            <circle cx="50" cy="50" r="8" fill="#818CF8" class="net-node n2-core" />
+            
+            <!-- L3 Nodes -->
+            <circle cx="80" cy="35" r="5" fill="#A855F7" class="net-node n3" />
+            <circle cx="80" cy="65" r="5" fill="#A855F7" class="net-node n3" />
+          </g>
+        </svg>
+        <div class="loader-text">Loading Workspace</div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

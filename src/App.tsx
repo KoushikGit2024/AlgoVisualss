@@ -53,7 +53,7 @@ const Footer = () => {
             </a>
             
             <a 
-              href="https://linkedin.com/in/your-profile" 
+              href="https://www.linkedin.com/in/koushik-kar-409489329/" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-[var(--muted)] hover:text-[#0A66C2] transition-transform hover:scale-110 duration-200"
