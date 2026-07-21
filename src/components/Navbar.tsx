@@ -87,10 +87,11 @@ function MobileDrawer({ open, onClose, pathname }: { open: boolean; onClose: () 
                 Menu
               </span>
               <button 
+                aria-label="Close menu"
                 onClick={onClose} 
                 className="flex items-center justify-center w-[36px] h-[36px] rounded-[10px] border border-(--border) bg-transparent text-(--muted) cursor-pointer transition-all duration-200 ease-in-out hover:text-(--muted) hover:bg-(--surface-2) active:scale-95"
               >
-                <X size={18} strokeWidth={2.5} />
+                <X size={18} strokeWidth={2.5} aria-hidden="true" />
               </button>
             </div>
 
@@ -339,7 +340,7 @@ export default function Navbar() {
                 className="hidden md:flex items-center justify-center w-[38px] h-[38px] rounded-[10px] border border-(--border) bg-transparent text-(--muted) cursor-pointer transition-all duration-200 ease-in-out hover:text-(--muted) hover:border-(--border) hover:bg-[color-mix(in_srgb,var(--surface-2)_50%,transparent)] hover:-translate-y-px hover:shadow-[0_4px_12px_color-mix(in_srgb,var(--text)_5%,transparent)] active:translate-y-px"
                 aria-label="GitHub Repository"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.02c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A4.8 4.8 0 0 0 8 18v4"></path>
                 </svg>
               </a>
@@ -351,7 +352,7 @@ export default function Navbar() {
                   className="flex items-center justify-center w-[38px] h-[38px] rounded-[10px] border border-(--border) bg-transparent text-(--muted) cursor-pointer transition-all duration-200 ease-in-out hover:text-(--muted) hover:border-(--border) hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] hover:-translate-y-px hover:shadow-[0_4px_12px_color-mix(in_srgb,var(--accent)_10%,transparent)] active:translate-y-px"
                   aria-label="Toggle palette"
                 >
-                  <Palette size={16} />
+                  <Palette size={16} aria-hidden="true" />
                 </button>
                 <AnimatePresence>
                   {themeDropdownOpen && (
@@ -427,7 +428,7 @@ export default function Navbar() {
                 className="flex items-center justify-center w-[38px] h-[38px] bg-transparent border cursor-pointer md:hidden rounded-[10px] border-(--border) text-(--muted) transition-all duration-200 ease-in-out hover:text-(--muted) hover:border-(--border) hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] hover:-translate-y-px hover:shadow-[0_4px_12px_color-mix(in_srgb,var(--accent)_10%,transparent)] active:translate-y-px"
                 aria-label="Open menu"
               >
-                <Menu size={18} />
+                <Menu size={18} aria-hidden="true" />
               </button>
             </div>
 

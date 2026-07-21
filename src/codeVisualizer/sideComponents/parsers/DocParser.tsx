@@ -41,6 +41,7 @@ export interface AlgorithmItem {
   };
   pseudoCodeandStepexplanation: ContentBlock;
   codes?: Record<string, string>;
+  related?: { name: string; href: string }[];
 }
 
 export interface TopicItem {
@@ -297,7 +298,6 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
 
 /* ─── Helpers ──────────────────────────────────────────────────────────────── */
 
-/** Thin horizontal rule between best / average / worst case blocks */
 const CaseDivider = () => (
   <div
     className="flex items-center gap-2 my-1"
@@ -312,19 +312,18 @@ const CaseDivider = () => (
   </div>
 );
 
-/** Type-difficulty badge */
+/* Type-difficulty badge */
 const TYPE_STYLES: Record<string, string> = {
   Easy:   "bg-green-400/10  text-green-400  border-green-400/25",
   Medium: "bg-yellow-400/10 text-yellow-400 border-yellow-400/25",
   Hard:   "bg-red-400/10   text-red-400    border-red-400/25",
 };
 
-/* ─── Complexity card ──────────────────────────────────────────────────────── */
 interface ComplexityCardProps {
   title: string;
   icon: React.ReactNode;
   iconColorClass: string;
-  notationColorClass: string;  // for the badge bg/text/border
+  notationColorClass: string; 
   notation?: string;
   best?: ContentBlock;
   average?: ContentBlock;
@@ -345,7 +344,7 @@ const ComplexityCard = ({
     {/* Card header */}
     <div className="bg-surface-2 px-4 py-2.5 border-b border-border flex items-center gap-2 shrink-0">
       <span className={cn(`${iconColorClass} shrink-0`)}>{icon}</span>
-      <h3 className="font-semibold text-[calc(13rem/16)] text-text">{title}</h3>
+      <h2 className="font-semibold text-[calc(13rem/16)] text-text">{title}</h2>
       {notation && (
         <span
           className={cn(`ml-auto font-mono text-[calc(11rem/16)] px-2 py-0.5 rounded border ${notationColorClass}`)}
@@ -366,7 +365,6 @@ const ComplexityCard = ({
 
 /* ─── Main component ───────────────────────────────────────────────────────── */
 const DocParser = ({ data }: { data: any }) => {
-  /* No data */
   if (!data) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center text-muted p-6 bg-bg">
@@ -377,14 +375,14 @@ const DocParser = ({ data }: { data: any }) => {
   }
 
   /* ── TOPIC VIEW ─────────────────────────────────────────────────────────── */
-  // A topic has `items[]`; a subtopic does not.
+  
   if (Array.isArray(data.items)) {
     const topic = data as TopicItem;
     return (
       <div className="w-full h-full overflow-y-auto styled-scrollbar bg-bg">
-        <div className="max-w-4xl mx-auto px-6 py-8 pb-16">
+        <article className="max-w-4xl mx-auto px-6 py-8 pb-16">
           {renderNodes(topic.about)}
-        </div>
+        </article>
       </div>
     );
   }
@@ -394,11 +392,8 @@ const DocParser = ({ data }: { data: any }) => {
 
   return (
     <div className="w-full h-full overflow-y-auto styled-scrollbar bg-bg">
-      <div className="max-w-4xl mx-auto px-5 py-6 pb-16 flex flex-col gap-7">
-
-        {/* ── Section 1: About / Introduction ─────────────────────────── */}
+      <article className="max-w-4xl mx-auto px-5 py-6 pb-16 flex flex-col gap-7">
         <section>
-          {/* If the first element is an h1, render it alongside the badge */}
           {sub.about && sub.about.length > 0 && sub.about[0].tag === "h1" ? (
             <div className="flex items-center justify-between mb-3 pb-2 border-b border-border mt-6 first:mt-0">
               <h1 className="text-xl font-bold text-accent m-0 p-0 border-none">
@@ -415,7 +410,7 @@ const DocParser = ({ data }: { data: any }) => {
               )}
             </div>
           ) : (
-            // Fallback if no h1 at start
+            
             sub.type && (
               <span
                 className={cn(`inline-block font-mono text-[calc(10rem/16)] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border mb-4 ${
@@ -427,7 +422,6 @@ const DocParser = ({ data }: { data: any }) => {
             )
           )}
           
-          {/* Render the rest of the nodes, skipping the first h1 if we just rendered it */}
           {renderNodes(
             sub.about && sub.about.length > 0 && sub.about[0].tag === "h1"
               ? sub.about.slice(1)
@@ -442,15 +436,10 @@ const DocParser = ({ data }: { data: any }) => {
               {/* Section header */}
               <div className="bg-surface-2 px-4 py-2.5 border-b border-border flex items-center gap-2">
                 <Terminal size={15} className="text-accent-3 shrink-0" />
-                <h3 className="font-semibold text-[calc(13rem/16)] text-text">
+                <h2 className="font-semibold text-[calc(13rem/16)] text-text">
                   Implementation &amp; Reasoning
-                </h3>
+                </h2>
               </div>
-
-              {/* Content — rendered in the ORIGINAL authored order.
-                  The data already follows the pattern:
-                    h1 title → p intro → code block → h2 steps → ol → h2 why → p
-                  No reordering needed; trust the schema. */}
               <div className="p-4">
                 {renderNodes(sub.pseudoCodeandStepexplanation, true)}
               </div>
@@ -479,8 +468,31 @@ const DocParser = ({ data }: { data: any }) => {
             average={sub.spaceComplexityCalculation?.average}
             worst={sub.spaceComplexityCalculation?.worst}
           />
-        </div>  
-      </div>
+        </div>
+
+        {/* ── Section 4: Related Algorithms ────────────────────────────── */}
+        {sub.related && sub.related.length > 0 && (
+          <section className="bg-surface border border-border rounded-lg overflow-hidden">
+            <div className="bg-surface-2 px-4 py-2.5 border-b border-border flex items-center gap-2">
+              <Lightbulb size={15} className="text-accent-4 shrink-0" />
+              <h2 className="font-semibold text-[calc(13rem/16)] text-text">
+                Related Algorithms
+              </h2>
+            </div>
+            <div className="p-4 flex flex-wrap gap-3">
+              {sub.related.map((rel, i) => (
+                <a 
+                  key={i} 
+                  href={rel.href} 
+                  className="font-mono text-[13px] text-accent hover:text-accent-2 transition-colors border border-border rounded px-3 py-1.5 bg-surface-2/50 hover:bg-surface-2"
+                >
+                  {rel.name}
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+      </article>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import PLATFORMDATA from "./data/PlatformData";
+import SEO from "../../components/SEO";
 import "./VisualPlatforms.css";
 /* ─── Component ─────────────────────────────────────────────────────────────── */
 export default function VisualPlatforms() {
@@ -13,7 +14,7 @@ export default function VisualPlatforms() {
 
   return (
     <div className="min-h-screen bg-[var(--bg,#0D0B14)] text-[var(--text,#F8FAFC)] font-['Syne',system-ui,sans-serif] relative overflow-x-hidden">
-      
+      <SEO title="Visualizer Profiles" description="Select a platform for visualization." noindex={true} />
       {/* Background */}
       <div className="relative z-10 max-w-[1280px] mx-auto px-5 pt-8 pb-16 md:px-7 md:pt-12 md:pb-[100px]">
         

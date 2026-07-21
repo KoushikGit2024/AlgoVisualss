@@ -128,8 +128,11 @@ const SORTING_SECTION = {
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "Invariant: after the i-th outer iteration, the i largest elements are in their correct final positions at the end of the array. Each inner pass guarantees the current maximum of the unsorted region 'bubbles' all the way to the right because every adjacent out-of-order pair it encounters gets swapped. By induction, after n − 1 passes the entire array is sorted." }
-      ]
-,
+      ],
+      related: [
+        { name: "Selection Sort", href: "/algorithms/sorting/selection-sort" },
+        { name: "Insertion Sort", href: "/algorithms/sorting/insertion-sort" }
+      ],
       codes: {
   "c++": `#include <iostream>
 #include <vector>
@@ -495,8 +498,11 @@ function merge(left, right):
         ]},
         { tag: "h2", text: "Why it's correct" },
         { tag: "p", text: "By strong induction on array length: arrays of length ≤ 1 are trivially sorted (base case). Assuming both halves of length < n are correctly sorted by the recursive calls, the merge step produces a fully sorted array by always selecting the smallest remaining element from the two sorted fronts — a textbook two-pointer merge that's provably correct since both input lists are sorted." }
-      ]
-,
+      ],
+      related: [
+        { name: "Quick Sort", href: "/algorithms/sorting/quick-sort" },
+        { name: "Heap Sort", href: "/algorithms/sorting/heap-sort" }
+      ],
       codes: {
   "c++": `#include <iostream>
 #include <vector>

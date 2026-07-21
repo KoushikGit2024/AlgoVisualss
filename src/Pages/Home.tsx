@@ -19,9 +19,42 @@ export default function HomePage() {
           "@type": ["WebSite", "SoftwareApplication"],
           "name": "AlgoVisuals",
           "url": "https://algovisuals-na1c.onrender.com/",
-          "description": "Interactive algorithm visualizer and learning platform.",
+          "description": "AlgoVisuals is an interactive DSA learning platform that visualizes supported C++ implementations through synchronized code execution, data structure animation, and algorithm simulation.",
           "applicationCategory": "EducationalApplication",
-          "operatingSystem": "All"
+          "applicationSubCategory": "ProgrammingEnvironment",
+          "operatingSystem": "All",
+          "browserRequirements": "Requires JavaScript",
+          "audience": {
+            "@type": "EducationalAudience"
+          },
+          "educationalUse": [
+            "Self Study",
+            "Programming Education",
+            "Computer Science Education"
+          ],
+          "featureList": [
+            "Algorithm Visualization",
+            "Interactive DSA Learning",
+            "C++ Code Visualization",
+            "Step-by-Step Execution",
+            "Execution State Inspection",
+            "Variable Tracking",
+            "Execution Timeline",
+            "Graph Visualization",
+            "Tree Visualization",
+            "Linked List Visualization",
+            "Stack Visualization",
+            "Queue Visualization",
+            "Heap Visualization",
+            "Sorting Visualization",
+            "Graph Traversal Visualization",
+            "Algorithm Comparison",
+            "Interactive Documentation"
+          ],
+          "author": {
+            "@type": "Organization",
+            "name": "AlgoVisuals"
+          }
         }}
       />
       {/* ─── Clean Background ─── */}
@@ -38,7 +71,7 @@ export default function HomePage() {
             transition={{ duration: 0.4 }}
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[6px] bg-[var(--surface-2)] border border-[var(--border)] text-[calc(12rem/16)] font-[var(--font-geist-mono)] text-[var(--text)] mb-8 tracking-wide uppercase shadow-sm"
           >
-            <Activity size={14} className="text-[var(--accent)]" />
+            <Activity size={14} className="text-[var(--accent)]" aria-hidden="true" />
             AlgoVisuals Engine v2.0
           </motion.div>
 
@@ -60,7 +93,7 @@ export default function HomePage() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-lg sm:text-xl text-[var(--muted)] max-w-2xl font-normal leading-relaxed mb-10"
           >
-            A high-fidelity sandbox to visualize data structures, trace algorithms step-by-step, and deeply understand software architecture.
+            Understand algorithms by watching C++ implementations execute step-by-step. Visualize data structures, inspect execution state, and build intuition through interactive algorithm simulations.
           </motion.p>
 
           <motion.div
@@ -73,7 +106,7 @@ export default function HomePage() {
               to="/visualizer"
               className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3.5 rounded-[8px] bg-[var(--accent)] text-[#ffffff] font-bold shadow-sm transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
-              Launch Visualizer <ChevronRight size={18} />
+              Launch Visualizer <ChevronRight size={18} aria-hidden="true" />
             </Link>
             <Link
               to="/algorithms"
@@ -104,21 +137,21 @@ export default function HomePage() {
           >
             <div>
               <div className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text)] mb-6">
-                <Activity size={20} />
+                <Activity size={20} aria-hidden="true" />
               </div>
               <h3 className="text-lg font-semibold text-[var(--text)] mb-2">Granular Execution Control</h3>
               <p className="text-[var(--muted)] text-[calc(15rem/16)] leading-relaxed max-w-md">
-                Take the wheel. Pause, rewind, fast-forward, or step through algorithms line-by-line to observe state mutations at every cycle.
+                Take the wheel. Pause, rewind, fast-forward, or step through algorithms line-by-line to observe state mutations at every cycle and intuitively grasp complex logic.
               </p>
             </div>
             
             {/* Minimal Player UI */}
             <div className="mt-10 flex items-center justify-center gap-3 p-3 rounded-[8px] bg-[var(--surface-2)] border border-[var(--border)] w-fit shadow-sm">
-              <button className="p-2 rounded-md text-[var(--muted)] hover:text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)] transition-colors"><Pause size={16} fill="currentColor" /></button>
-              <button className="p-2.5 rounded-md bg-[var(--accent)] text-[#ffffff] hover:opacity-90 transition-opacity">
-                <Play size={18} fill="currentColor" />
+              <button aria-label="Pause execution" className="p-2 rounded-md text-[var(--muted)] hover:text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)] transition-colors"><Pause size={16} fill="currentColor" aria-hidden="true" /></button>
+              <button aria-label="Start execution" className="p-2.5 rounded-md bg-[var(--accent)] text-[#ffffff] hover:opacity-90 transition-opacity">
+                <Play size={18} fill="currentColor" aria-hidden="true" />
               </button>
-              <button className="p-2 rounded-md text-[var(--muted)] hover:text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)] transition-colors"><FastForward size={16} fill="currentColor" /></button>
+              <button aria-label="Fast forward execution" className="p-2 rounded-md text-[var(--muted)] hover:text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)] transition-colors"><FastForward size={16} fill="currentColor" aria-hidden="true" /></button>
             </div>
           </motion.div>
 
@@ -128,11 +161,11 @@ export default function HomePage() {
             className="flex flex-col p-8 rounded-xl bg-[var(--surface)] border border-[var(--border)] transition-colors hover:border-[var(--muted)]"
           >
             <div className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text)] mb-6">
-              <Code2 size={20} />
+              <Code2 size={20} aria-hidden="true" />
             </div>
             <h3 className="text-lg font-semibold text-[var(--text)] mb-2">Live Code Tracing</h3>
             <p className="text-[var(--muted)] text-[calc(15rem/16)] leading-relaxed">
-              Visuals synchronize perfectly with actual code. Watch the execution pointer move natively through C++, JS, or Python.
+              Synchronize C++ source code with algorithm visualization so every execution step corresponds to the program's evolving state.
             </p>
           </motion.div>
 
@@ -142,11 +175,11 @@ export default function HomePage() {
             className="flex flex-col p-8 rounded-xl bg-[var(--surface)] border border-[var(--border)] transition-colors hover:border-[var(--muted)]"
           >
             <div className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text)] mb-6">
-              <Network size={20} />
+              <Network size={20} aria-hidden="true" />
             </div>
             <h3 className="text-lg font-semibold text-[var(--text)] mb-2">Interactive Graphs</h3>
             <p className="text-[var(--muted)] text-[calc(15rem/16)] leading-relaxed">
-              Construct custom nodes and edges on a drag-and-drop canvas to stress-test pathfinding and routing algorithms.
+              Build custom graphs and explore traversal and pathfinding algorithms using your own test cases.
             </p>
           </motion.div>
 
@@ -157,18 +190,18 @@ export default function HomePage() {
           >
             <div className="mb-8 md:mb-0 max-w-sm">
               <div className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text)] mb-6">
-                <Braces size={20} />
+                <Braces size={20} aria-hidden="true" />
               </div>
               <h3 className="text-lg font-semibold text-[var(--text)] mb-2">State Introspection</h3>
               <p className="text-[var(--muted)] text-[calc(15rem/16)] leading-relaxed">
-                A dedicated variable scope window updates instantly. Keep exact track of pointers, accumulators, and the call-stack without console logs.
+                Track variables, arrays, containers, and execution state as your C++ program runs, making abstract algorithm behavior concrete and easier to understand.
               </p>
             </div>
 
             {/* Clean Monospace State UI */}
             <div className="w-full md:w-auto bg-[var(--surface-2)] border border-[var(--border)] rounded-[6px] p-5 font-[var(--font-geist-mono)] text-[calc(13rem/16)] shadow-sm text-left min-w-[240px]">
               <div className="flex items-center gap-2 text-[var(--text)] mb-3 pb-2 border-b border-[var(--border)] font-semibold">
-                <CornerDownRight size={14} className="text-[var(--accent)]" /> <span>Scope State</span>
+                <CornerDownRight size={14} className="text-[var(--accent)]" aria-hidden="true" /> <span>Scope State</span>
               </div>
               <div className="flex justify-between mb-1">
                 <span className="text-[var(--muted)]">target</span>
@@ -198,7 +231,7 @@ export default function HomePage() {
             Start mastering algorithms.
           </h2>
           <p className="text-[var(--muted)] text-[calc(15rem/16)] mb-8 max-w-md">
-            Jump into the algorithm library or load up the visualizer sandbox to begin building your mental models.
+            Students, competitive programmers, educators, and self-learners—jump into the algorithm library or load up the visualizer sandbox to begin building your mental models.
           </p>
           {/* Fixed Contrast: Solid Accent with White Text */}
           <Link

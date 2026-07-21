@@ -461,9 +461,10 @@ export default function Sidebar() {
           }}
           className="flex items-center justify-center w-8 aspect-square rounded-[6px] text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors shrink-0"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <motion.div animate={{ rotate: collapsed ? 180 : 0 }} transition={{ duration: 0.3 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
               <line x1="9" y1="3" x2="9" y2="21" />
               <path d="M15 15l-3-3 3-3" />
@@ -492,18 +493,19 @@ export default function Sidebar() {
               </div>
             )}
             {query && (
-              <button onClick={() => setQuery("")} className="text-[var(--muted)] hover:text-[var(--text)] transition-colors shrink-0 flex items-center">
-                <X size={14} strokeWidth={3} />
+              <button aria-label="Clear search" onClick={() => setQuery("")} className="text-[var(--muted)] hover:text-[var(--text)] transition-colors shrink-0 flex items-center">
+                <X size={14} strokeWidth={3} aria-hidden="true" />
               </button>
             )}
           </div>
         ) : (
           <button 
+            aria-label="Search"
             onClick={() => { setCollapsed(false); if (sidebarWidth < 150) setSidebarWidth(288); }}
             className="flex items-center justify-center w-8 aspect-square rounded-[6px] text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text)] transition-colors"
             title="Search"
           >
-            <Search size={16} />
+            <Search size={16} aria-hidden="true" />
           </button>
         )}
       </div>
@@ -636,8 +638,8 @@ export default function Sidebar() {
             >
               <div className="flex items-center justify-between p-3 border-b border-[var(--border)] bg-[var(--surface-2)]">
                 <span className="text-[calc(13rem/16)] font-bold text-[var(--text)]">Preferences</span>
-                <button onClick={() => setShowSettings(false)} className="text-[var(--muted)] hover:text-[var(--text)] transition-colors">
-                  <X size={14} />
+                <button aria-label="Close settings" onClick={() => setShowSettings(false)} className="text-[var(--muted)] hover:text-[var(--text)] transition-colors">
+                  <X size={14} aria-hidden="true" />
                 </button>
               </div>
               <div className="p-4 flex flex-col gap-4">
@@ -672,11 +674,12 @@ export default function Sidebar() {
         {/* Footer Bar */}
         <div className={cn(`flex items-center justify-between ${collapsed ? "flex-col gap-3 justify-center" : ""}`)}>
           <button 
+            aria-label="Settings"
             onClick={() => setShowSettings(!showSettings)}
             className={cn(`flex items-center justify-center p-2 rounded-[8px] transition-colors ${showSettings ? "bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] text-[var(--accent)] shadow-sm" : "text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]"}`)}
             title="Settings"
           >
-            <Settings size={16} />
+            <Settings size={16} aria-hidden="true" />
           </button>
           
           {!collapsed && (

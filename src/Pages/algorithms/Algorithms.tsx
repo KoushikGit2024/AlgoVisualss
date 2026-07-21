@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import CodeWindow from "../../codeVisualizer/CodeWindow";
+import { useEffect, useState, Suspense, lazy } from "react";
+const CodeWindow = lazy(() => import("../../codeVisualizer/CodeWindow"));
 import DocParser from "../../codeVisualizer/sideComponents/parsers/DocParser";
 import { useParams, useSearchParams } from "react-router-dom";
 import ALGODATA from "./data/AlgoData";
@@ -98,10 +98,21 @@ int main() {
     "headline": pageTitle,
     "description": pageDescription,
     "url": currentUrl,
+    "image": `https://ui-avatars.com/api/?name=${encodeURIComponent(pageTitle as string)}&background=13101F&color=818CF8&size=1200&font-size=0.33&length=3`,
     "author": {
       "@type": "Person",
       "name": "Koushik"
-    }
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "AlgoVisuals",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://algovisuals-na1c.onrender.com/logo.png"
+      }
+    },
+    "datePublished": "2024-01-01T00:00:00Z",
+    "dateModified": new Date().toISOString().split('T')[0] + "T00:00:00Z"
   };
 
   return (
@@ -110,6 +121,7 @@ int main() {
         title={pageTitle as string}
         description={pageDescription}
         canonical={currentUrl}
+        ogImage={`https://ui-avatars.com/api/?name=${encodeURIComponent(pageTitle as string)}&background=13101F&color=818CF8&size=1200&font-size=0.33&length=3`}
         jsonLd={[breadcrumbList, articleSchema]}
       />
       
@@ -134,7 +146,9 @@ int main() {
               <DocParser data={data} />
             </div>
             <div className={`w-full h-full ${activeView === "visualizer" ? "block" : "hidden"}`}>
-              <CodeWindow codeObject={getCodeObject()} />
+              <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-muted">Loading Editor...</div>}>
+                <CodeWindow codeObject={getCodeObject()} />
+              </Suspense>
             </div>
           </div>
         </div>

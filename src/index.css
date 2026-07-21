@@ -4,6 +4,11 @@
   box-sizing: border-box;
 }
 
+*:focus-visible {
+  outline: 2px solid var(--accent, #818CF8);
+  outline-offset: 2px;
+}
+
 .page {
   --background: #fafafa;
   --foreground: #fff;

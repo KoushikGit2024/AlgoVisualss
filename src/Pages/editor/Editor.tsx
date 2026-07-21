@@ -1,5 +1,6 @@
-import { useState } from "react"
-import CodeWindow from "../../codeVisualizer/CodeWindow"
+import { useState, Suspense, lazy } from "react"
+const CodeWindow = lazy(() => import("../../codeVisualizer/CodeWindow"));
+import SEO from "../../components/SEO"
 const Editor = () => {
 
     
@@ -15,9 +16,14 @@ int main() {
         return code || defaultCode
     })
     return (
-        <CodeWindow  codeObject={{
-            "c++":`${storedCode}`
-        }} />
+        <>
+            <SEO title="Editor" description="Code editor sandbox." noindex={true} />
+            <Suspense fallback={<div className="w-full h-screen flex items-center justify-center text-muted">Loading Editor...</div>}>
+                <CodeWindow  codeObject={{
+                    "c++":`${storedCode}`
+                }} />
+            </Suspense>
+        </>
     )
 }
 
