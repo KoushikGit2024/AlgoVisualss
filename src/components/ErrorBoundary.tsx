@@ -1,5 +1,5 @@
-import React, { Component, type ReactNode } from 'react';
-import GlobalError from '../Pages/Error';
+import React, { Component, type ReactNode } from "react";
+import GlobalError from "../Pages/Error";
 
 interface Props {
   children: ReactNode;
@@ -13,7 +13,7 @@ interface State {
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
-    error: null
+    error: null,
   };
 
   public static getDerivedStateFromError(error: Error): State {
@@ -21,7 +21,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Uncaught error in application:', error, errorInfo);
+    console.error("Uncaught error in application:", error, errorInfo);
   }
 
   public reset = () => {

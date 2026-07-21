@@ -45,7 +45,6 @@ import type { CppValue } from "../types";
  */
 const DEFAULT_MAX_RECURSION_DEPTH = 2000;
 
-
 // ─── StackOverflowError ───────────────────────────────────────────────────────
 
 /**
@@ -66,15 +65,14 @@ export class StackOverflowError extends Error {
   constructor(depth: number, trace: string[]) {
     super(
       `Stack Overflow: Recursion depth exceeded ${depth} frames. ` +
-      `Last calls: ${trace.slice(-8).join(" → ")}. ` +
-      `Check for infinite or missing base-case recursion.`
+        `Last calls: ${trace.slice(-8).join(" → ")}. ` +
+        `Check for infinite or missing base-case recursion.`,
     );
     this.depth = depth;
     this.trace = trace;
     Object.setPrototypeOf(this, StackOverflowError.prototype);
   }
 }
-
 
 // ─── StackFrame ───────────────────────────────────────────────────────────────
 
@@ -109,17 +107,22 @@ export class StackOverflowError extends Error {
 export class StackFrame {
   public readonly functionName: string;
   public readonly scopeManager: ScopeManager;
-  public readonly enteredAt:    number;
-  public readonly callDepth:    number;
+  public readonly enteredAt: number;
+  public readonly callDepth: number;
 
-  constructor(functionName: string, enteredAt: number = 0, callDepth: number = 1, globalScopeManager?: ScopeManager, onStaticAssign?: (name: string, value: CppValue) => void) {
+  constructor(
+    functionName: string,
+    enteredAt: number = 0,
+    callDepth: number = 1,
+    globalScopeManager?: ScopeManager,
+    onStaticAssign?: (name: string, value: CppValue) => void,
+  ) {
     this.functionName = functionName;
     this.scopeManager = new ScopeManager(globalScopeManager, onStaticAssign);
-    this.enteredAt    = enteredAt;
-    this.callDepth    = callDepth;
+    this.enteredAt = enteredAt;
+    this.callDepth = callDepth;
   }
 }
-
 
 // ─── CallStack ────────────────────────────────────────────────────────────────
 
@@ -138,7 +141,6 @@ export class StackFrame {
  * locking is needed.
  */
 export class CallStack {
-
   /**
    * The frame stack. Index 0 is the bottom (oldest); the last index is the
    * top (currently executing). Direct array access is private — all mutations
@@ -164,11 +166,10 @@ export class CallStack {
    *   thrown at the right depth without running a genuinely deep recursion.
    */
   constructor(maxDepth: number = DEFAULT_MAX_RECURSION_DEPTH) {
-    this.frames          = [];
-    this.maxDepth        = maxDepth;
+    this.frames = [];
+    this.maxDepth = maxDepth;
     this.maxReachedDepth = 0;
   }
-
 
   // ── Frame Lifecycle ───────────────────────────────────────────────────────
 
@@ -189,7 +190,12 @@ export class CallStack {
    *   consistent state — getTrace() still reflects the call chain leading up
    *   to the overflow point.
    */
-  public push(functionName: string, enteredAt: number = 0, globalScopeManager?: ScopeManager, onStaticAssign?: (name: string, value: CppValue) => void): StackFrame {
+  public push(
+    functionName: string,
+    enteredAt: number = 0,
+    globalScopeManager?: ScopeManager,
+    onStaticAssign?: (name: string, value: CppValue) => void,
+  ): StackFrame {
     // Depth check before mutating the stack so the error message can include
     // an accurate trace of the frames that led to overflow.
     if (this.frames.length >= this.maxDepth) {
@@ -197,7 +203,13 @@ export class CallStack {
     }
 
     const depth = this.frames.length + 1; // 1-based depth of the new frame
-    const frame = new StackFrame(functionName, enteredAt, depth, globalScopeManager, onStaticAssign);
+    const frame = new StackFrame(
+      functionName,
+      enteredAt,
+      depth,
+      globalScopeManager,
+      onStaticAssign,
+    );
     this.frames.push(frame);
 
     // Update high-water mark.
@@ -225,7 +237,7 @@ export class CallStack {
     if (this.isEmpty()) {
       throw new Error(
         "Fatal: Call stack underflow. Attempted to pop a frame from an empty stack. " +
-        "This indicates a missing push() call or a double pop() in ExecutionEngine."
+          "This indicates a missing push() call or a double pop() in ExecutionEngine.",
       );
     }
     return this.frames.pop() as StackFrame;
@@ -244,12 +256,11 @@ export class CallStack {
     if (this.isEmpty()) {
       throw new Error(
         "Fatal: Call stack is empty. No active execution frame to peek at. " +
-        "Ensure ExecutionEngine.run() has been called and has not yet returned."
+          "Ensure ExecutionEngine.run() has been called and has not yet returned.",
       );
     }
     return this.frames[this.frames.length - 1];
   }
-
 
   // ── Introspection ─────────────────────────────────────────────────────────
 
@@ -298,7 +309,6 @@ export class CallStack {
     return this.maxReachedDepth;
   }
 
-
   // ── Configuration ─────────────────────────────────────────────────────────
 
   /**
@@ -317,13 +327,10 @@ export class CallStack {
    */
   public setMaxDepth(depth: number): void {
     if (depth < 1) {
-      throw new Error(
-        `[CallStack.setMaxDepth] Invalid depth ${depth}: must be >= 1.`
-      );
+      throw new Error(`[CallStack.setMaxDepth] Invalid depth ${depth}: must be >= 1.`);
     }
     this.maxDepth = depth;
   }
-
 
   // ── Serialisation ─────────────────────────────────────────────────────────
 
@@ -357,12 +364,11 @@ export class CallStack {
    */
   public getDetailedTrace(): Array<{ name: string; enteredAt: number; depth: number }> {
     return this.frames.map((frame) => ({
-      name:      frame.functionName,
+      name: frame.functionName,
       enteredAt: frame.enteredAt,
-      depth:     frame.callDepth,
+      depth: frame.callDepth,
     }));
   }
-
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -378,7 +384,7 @@ export class CallStack {
    * caller does not need to re-apply setMaxDepth() between runs.
    */
   public reset(): void {
-    this.frames          = [];
+    this.frames = [];
     this.maxReachedDepth = 0;
   }
 }

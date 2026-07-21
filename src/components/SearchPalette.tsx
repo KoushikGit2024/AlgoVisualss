@@ -8,17 +8,19 @@ import { cn } from "../lib/utils";
 // Helper to extract plain text from ContentNodes
 const extractText = (blocks: any[] | undefined): string => {
   if (!blocks || !Array.isArray(blocks)) return "";
-  return blocks.map(block => {
-    if (block.text) return block.text;
-    if (block.items) {
-      if (typeof block.items[0] === 'string') return block.items.join(" ");
-      return block.items.map((i: any) => `${i.term || ''} ${i.desc || ''}`).join(" ");
-    }
-    if (block.headers && block.rows) {
-      return block.headers.join(" ") + " " + block.rows.flat().join(" ");
-    }
-    return "";
-  }).join(" ");
+  return blocks
+    .map((block) => {
+      if (block.text) return block.text;
+      if (block.items) {
+        if (typeof block.items[0] === "string") return block.items.join(" ");
+        return block.items.map((i: any) => `${i.term || ""} ${i.desc || ""}`).join(" ");
+      }
+      if (block.headers && block.rows) {
+        return block.headers.join(" ") + " " + block.rows.flat().join(" ");
+      }
+      return "";
+    })
+    .join(" ");
 };
 
 // Build flat index
@@ -34,7 +36,7 @@ type SearchItem = {
 
 const SEARCH_INDEX: SearchItem[] = [];
 
-ALGODATA.forEach(cat => {
+ALGODATA.forEach((cat) => {
   const catText = extractText(cat.about);
   SEARCH_INDEX.push({
     id: cat.href,
@@ -42,25 +44,35 @@ ALGODATA.forEach(cat => {
     category: "Topic",
     href: cat.href,
     searchText: (cat.name + " " + catText).toLowerCase(),
-    snippet: catText.length > 120 ? catText.slice(0, 120) + "..." : catText
+    snippet: catText.length > 120 ? catText.slice(0, 120) + "..." : catText,
   });
 
-  cat.items?.forEach(item => {
+  cat.items?.forEach((item) => {
     let itemText = extractText(item.about);
 
     // Include complexity in search text
     if (item.timeComplexityCalculation) {
       const tc = item.timeComplexityCalculation;
-      itemText += " " + (tc.notation || "") + " " +
-        extractText(tc.best) + " " +
-        extractText(tc.average) + " " +
+      itemText +=
+        " " +
+        (tc.notation || "") +
+        " " +
+        extractText(tc.best) +
+        " " +
+        extractText(tc.average) +
+        " " +
         extractText(tc.worst);
     }
     if (item.spaceComplexityCalculation) {
       const sc = item.spaceComplexityCalculation;
-      itemText += " " + (sc.notation || "") + " " +
-        extractText(sc.best) + " " +
-        extractText(sc.average) + " " +
+      itemText +=
+        " " +
+        (sc.notation || "") +
+        " " +
+        extractText(sc.best) +
+        " " +
+        extractText(sc.average) +
+        " " +
         extractText(sc.worst);
     }
 
@@ -72,13 +84,13 @@ ALGODATA.forEach(cat => {
       href: item.href,
       type: item.type,
       searchText: (item.name + " " + itemText).toLowerCase(),
-      snippet: snippetText.length > 120 ? snippetText.slice(0, 120) + "..." : snippetText
+      snippet: snippetText.length > 120 ? snippetText.slice(0, 120) + "..." : snippetText,
     });
   });
 });
 
 // A handful of topics to surface as quick suggestions when a query misses.
-const FALLBACK_TOPICS = SEARCH_INDEX.filter(i => i.category === "Topic").slice(0, 4);
+const FALLBACK_TOPICS = SEARCH_INDEX.filter((i) => i.category === "Topic").slice(0, 4);
 
 // Deterministic accent per category so the same topic always reads as the
 // same color across a session — a lightweight way to let people pattern-match
@@ -131,14 +143,14 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
   const results = useMemo(() => {
     if (!query.trim()) return SEARCH_INDEX.slice(0, 6); // Quick-access default
     const q = query.toLowerCase();
-    return SEARCH_INDEX.filter(item => item.searchText.includes(q)).slice(0, 20);
+    return SEARCH_INDEX.filter((item) => item.searchText.includes(q)).slice(0, 20);
   }, [query]);
 
   // Group results by category, preserving first-seen order, so the list
   // reads as sections instead of one undifferentiated stream.
   const groups = useMemo(() => {
     const map = new Map<string, SearchItem[]>();
-    results.forEach(item => {
+    results.forEach((item) => {
       if (!map.has(item.category)) map.set(item.category, []);
       map.get(item.category)!.push(item);
     });
@@ -192,7 +204,9 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
   // now sectioned with header elements interleaved between rows).
   useEffect(() => {
     if (listRef.current) {
-      const activeEl = listRef.current.querySelector(`[data-index="${selectedIndex}"]`) as HTMLElement | null;
+      const activeEl = listRef.current.querySelector(
+        `[data-index="${selectedIndex}"]`,
+      ) as HTMLElement | null;
       activeEl?.scrollIntoView({ block: "nearest" });
     }
   }, [selectedIndex]);
@@ -203,9 +217,9 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
   };
 
   const TYPE_COLORS: Record<string, string> = {
-    "Easy": "text-emerald-400 border-emerald-400/30 bg-emerald-400/10",
-    "Medium": "text-yellow-400 border-yellow-400/30 bg-yellow-400/10",
-    "Hard": "text-red-400 border-red-400/30 bg-red-400/10"
+    Easy: "text-emerald-400 border-emerald-400/30 bg-emerald-400/10",
+    Medium: "text-yellow-400 border-yellow-400/30 bg-yellow-400/10",
+    Hard: "text-red-400 border-red-400/30 bg-red-400/10",
   };
 
   // Flat counter used to hand out data-index values as we walk the grouped
@@ -216,7 +230,6 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4">
-
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -285,7 +298,7 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
                     No results for "{query}"
                   </span>
                   <div className="flex flex-wrap items-center justify-center gap-2 px-6">
-                    {FALLBACK_TOPICS.map(topic => (
+                    {FALLBACK_TOPICS.map((topic) => (
                       <button
                         key={topic.id}
                         onClick={() => handleSelect(topic)}
@@ -326,11 +339,13 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
                           data-index={idx}
                           onClick={() => handleSelect(item)}
                           onMouseEnter={() => setSelectedIndex(idx)}
-                          className={cn(`group relative w-full text-left flex items-start gap-3 pl-4 pr-4 py-3 rounded-lg border transition-all duration-150 outline-none ${
-                            isActive
-                              ? "bg-[var(--surface-2)] border-[var(--border-2)] shadow-sm"
-                              : "border-transparent hover:bg-[var(--surface)]"
-                          }`)}
+                          className={cn(
+                            `group relative w-full text-left flex items-start gap-3 pl-4 pr-4 py-3 rounded-lg border transition-all duration-150 outline-none ${
+                              isActive
+                                ? "bg-[var(--surface-2)] border-[var(--border-2)] shadow-sm"
+                                : "border-transparent hover:bg-[var(--surface)]"
+                            }`,
+                          )}
                         >
                           {isActive && (
                             <motion.div
@@ -347,16 +362,26 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
                                 {highlight(item.title, query)}
                               </span>
                               {item.type && (
-                                <span className={cn(`text-[calc(10rem/16)] font-bold font-mono tracking-wider px-2 py-0.5 rounded-full border shrink-0 ${TYPE_COLORS[item.type]}`)}>
+                                <span
+                                  className={cn(
+                                    `text-[calc(10rem/16)] font-bold font-mono tracking-wider px-2 py-0.5 rounded-full border shrink-0 ${TYPE_COLORS[item.type]}`,
+                                  )}
+                                >
                                   {item.type.toUpperCase()}
                                 </span>
                               )}
                             </div>
 
                             {item.snippet && (
-                              <span className={cn(`text-[calc(13rem/16)] line-clamp-1 leading-relaxed transition-colors ${
-                                isActive ? "text-[var(--text)] opacity-80" : "text-[var(--muted)]"
-                              }`)}>
+                              <span
+                                className={cn(
+                                  `text-[calc(13rem/16)] line-clamp-1 leading-relaxed transition-colors ${
+                                    isActive
+                                      ? "text-[var(--text)] opacity-80"
+                                      : "text-[var(--muted)]"
+                                  }`,
+                                )}
+                              >
                                 {highlight(item.snippet, query)}
                               </span>
                             )}
@@ -380,13 +405,19 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
               <div className="flex items-center gap-5 text-[calc(11rem/16)] text-[var(--muted)] font-medium">
                 <span className="flex items-center gap-2">
                   <span className="flex items-center gap-1">
-                    <kbd className="flex items-center justify-center w-5 h-5 rounded-[4px] bg-[var(--surface)] border border-[var(--border)] shadow-sm text-xs">↑</kbd>
-                    <kbd className="flex items-center justify-center w-5 h-5 rounded-[4px] bg-[var(--surface)] border border-[var(--border)] shadow-sm text-xs">↓</kbd>
+                    <kbd className="flex items-center justify-center w-5 h-5 rounded-[4px] bg-[var(--surface)] border border-[var(--border)] shadow-sm text-xs">
+                      ↑
+                    </kbd>
+                    <kbd className="flex items-center justify-center w-5 h-5 rounded-[4px] bg-[var(--surface)] border border-[var(--border)] shadow-sm text-xs">
+                      ↓
+                    </kbd>
                   </span>
                   Navigate
                 </span>
                 <span className="flex items-center gap-2">
-                  <kbd className="flex items-center justify-center w-5 h-5 rounded-[4px] bg-[var(--surface)] border border-[var(--border)] shadow-sm text-[calc(10rem/16)]">↵</kbd>
+                  <kbd className="flex items-center justify-center w-5 h-5 rounded-[4px] bg-[var(--surface)] border border-[var(--border)] shadow-sm text-[calc(10rem/16)]">
+                    ↵
+                  </kbd>
                   Select
                 </span>
               </div>
@@ -395,7 +426,6 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
                 <span className="text-[var(--muted)]">AlgoVisuals</span>
               </div>
             </div>
-
           </motion.div>
         </div>
       )}

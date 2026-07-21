@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from "react";
 // The ?worker flag is Vite's magic syntax to bundle this as a background thread!
-import EngineWorker from '../../lib/engine.worker?worker';
+import EngineWorker from "../../lib/engine.worker?worker";
 import {
   InfoIcon,
   Play,
@@ -15,26 +15,26 @@ import {
   ChevronDown,
   ChevronRight,
   // PanelRightClose,
-  PanelRightOpen
-} from 'lucide-react';
+  PanelRightOpen,
+} from "lucide-react";
 
-import Graph from '../dataStructures/Graph';
-import D1Array from '../dataStructures/D1Array';
-import D2Array from '../dataStructures/D2Array';
-import LinkedList from '../dataStructures/LinkedList';
-import Queue from '../dataStructures/Queue';
-import Stack from '../dataStructures/Stack';
-import Tree from '../dataStructures/Tree';
-import TrieTree from '../dataStructures/TrieTree';
-import MapComponent from '../dataStructures/Map';
-import SetComponent from '../dataStructures/Set';
-import StringComponent from '../dataStructures/String';
-import Bitset from '../dataStructures/Bitset';
-import SortBars from '../dataStructures/SortBars';
-import { DraggableWindow, type WindowState } from './DraggableWindow';
-import { detectVisualizer, deepUnwrap, type CanvasState } from './detectVisualizer';
-import { usePointerHistory } from './hooks/usePointerHistory';
-import { cn } from '../../lib/utils';
+import Graph from "../dataStructures/Graph";
+import D1Array from "../dataStructures/D1Array";
+import D2Array from "../dataStructures/D2Array";
+import LinkedList from "../dataStructures/LinkedList";
+import Queue from "../dataStructures/Queue";
+import Stack from "../dataStructures/Stack";
+import Tree from "../dataStructures/Tree";
+import TrieTree from "../dataStructures/TrieTree";
+import MapComponent from "../dataStructures/Map";
+import SetComponent from "../dataStructures/Set";
+import StringComponent from "../dataStructures/String";
+import Bitset from "../dataStructures/Bitset";
+import SortBars from "../dataStructures/SortBars";
+import { DraggableWindow, type WindowState } from "./DraggableWindow";
+import { detectVisualizer, deepUnwrap, type CanvasState } from "./detectVisualizer";
+import { usePointerHistory } from "./hooks/usePointerHistory";
+import { cn } from "../../lib/utils";
 
 const VisualGround = ({
   code,
@@ -54,7 +54,7 @@ const VisualGround = ({
 
   const [hSplit, setHSplit] = useState<number>(65);
   const [vSplit, setVSplit] = useState<number>(30);
-  const [draggingDiv, setDraggingDiv] = useState<'v' | 'h' | null>(null);
+  const [draggingDiv, setDraggingDiv] = useState<"v" | "h" | null>(null);
 
   const [isCallStackCollapsed, setIsCallStackCollapsed] = useState(false);
   const [isVariablesCollapsed, setIsVariablesCollapsed] = useState(false);
@@ -84,7 +84,7 @@ const VisualGround = ({
       const curr = prev[id] || {
         isMinimized: false,
         isMaximized: false,
-        snap: 'none',
+        snap: "none",
         zIndex: globalZRef.current,
       };
       return { ...prev, [id]: { ...curr, ...partial } };
@@ -114,7 +114,7 @@ const VisualGround = ({
   }, [code]);
 
   const handleSimulate = () => {
-    if (lang !== 'c++') return;
+    if (lang !== "c++") return;
 
     // Kill any existing worker
     if (workerRef.current) workerRef.current.terminate();
@@ -144,8 +144,8 @@ const VisualGround = ({
         setSnapshots(snapshots);
         setCurrentStep(0);
       } else {
-        console.error('FATAL ENGINE CRASH:', error);
-        setError(error || 'Compilation Failed. Check syntax or engine limits.');
+        console.error("FATAL ENGINE CRASH:", error);
+        setError(error || "Compilation Failed. Check syntax or engine limits.");
       }
       setIsCompiling(false);
       worker.terminate();
@@ -155,8 +155,8 @@ const VisualGround = ({
     worker.onerror = (err) => {
       // Staleness guard.
       if (workerRef.current !== worker) return;
-      console.error('Worker Thread Error:', err);
-      setError('A fatal worker error occurred (Out of Memory / Timeout).');
+      console.error("Worker Thread Error:", err);
+      setError("A fatal worker error occurred (Out of Memory / Timeout).");
       setIsCompiling(false);
       worker.terminate();
       workerRef.current = null;
@@ -177,11 +177,11 @@ const VisualGround = ({
       // Do not trigger if user is typing in an input, textarea, or the Monaco Editor
       const activeEl = document.activeElement as HTMLElement | null;
       if (
-        activeEl?.tagName === 'INPUT' ||
-        activeEl?.tagName === 'TEXTAREA' ||
+        activeEl?.tagName === "INPUT" ||
+        activeEl?.tagName === "TEXTAREA" ||
         activeEl?.isContentEditable ||
-        activeEl?.closest('.monaco-editor') ||
-        activeEl?.closest('.monaco-mouse-cursor-text')
+        activeEl?.closest(".monaco-editor") ||
+        activeEl?.closest(".monaco-mouse-cursor-text")
       ) {
         return;
       }
@@ -189,16 +189,16 @@ const VisualGround = ({
       if (snapshots.length === 0) return;
 
       switch (e.code) {
-        case 'Space':
+        case "Space":
           e.preventDefault();
           setIsPlaying((prev) => !prev);
           break;
-        case 'ArrowRight':
+        case "ArrowRight":
           e.preventDefault();
           setIsPlaying(false);
           setCurrentStep((s) => Math.min(snapshots.length - 1, s + 1));
           break;
-        case 'ArrowLeft':
+        case "ArrowLeft":
           e.preventDefault();
           setIsPlaying(false);
           setCurrentStep((s) => Math.max(0, s - 1));
@@ -206,8 +206,8 @@ const VisualGround = ({
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [snapshots.length]);
 
   useEffect(() => {
@@ -231,9 +231,9 @@ const VisualGround = ({
   // ─── STATE EXTRACTION ───
   const currentSnapshot = snapshots[currentStep] || null;
   const rawVars = currentSnapshot?.state?.variables || {};
-  const currentEvent = currentSnapshot?.event || { type: 'IDLE', payload: {} };
+  const currentEvent = currentSnapshot?.event || { type: "IDLE", payload: {} };
   const activeFunction =
-    currentSnapshot?.state?.callStack?.[currentSnapshot.state.callStack.length - 1] || 'global';
+    currentSnapshot?.state?.callStack?.[currentSnapshot.state.callStack.length - 1] || "global";
 
   const vars = useMemo(() => {
     const clean: Record<string, any> = {};
@@ -248,36 +248,36 @@ const VisualGround = ({
   Object.entries(vars).forEach(([name, data]: [string, any]) => {
     const val = data.value;
     const isTarget = currentEvent.payload?.variable === name;
-    let opStyle = 'text-text';
+    let opStyle = "text-text";
 
     if (isTarget) {
-      if (currentEvent.type === 'WRITE')
-        opStyle = 'bg-success/20 text-success border-success/30 font-bold';
-      else if (currentEvent.type === 'READ')
-        opStyle = 'bg-accent/20 text-accent border-accent/30 font-bold';
+      if (currentEvent.type === "WRITE")
+        opStyle = "bg-success/20 text-success border-success/30 font-bold";
+      else if (currentEvent.type === "READ")
+        opStyle = "bg-accent/20 text-accent border-accent/30 font-bold";
     }
 
     const formatVariableValue = (v: any): string => {
-      if (v === null) return 'null';
-      if (v === undefined) return 'undefined';
-      if (typeof v === 'string') return v;
+      if (v === null) return "null";
+      if (v === undefined) return "undefined";
+      if (typeof v === "string") return v;
       if (Array.isArray(v)) {
-          return '[' + v.map(item => formatVariableValue(item)).join(', ') + ']';
+        return "[" + v.map((item) => formatVariableValue(item)).join(", ") + "]";
       }
-      if (typeof v === 'object') {
-          if (v.__type === 'container' && Array.isArray(v.data)) {
-              return '[' + v.data.map((item: any) => formatVariableValue(item)).join(', ') + ']';
-          }
-          let typeName = v.__type || '';
-          let props: string[] = [];
-          for (let [k, propVal] of Object.entries(v)) {
-              if (k.startsWith('__')) continue;
-              if (typeof propVal === 'string' && propVal.startsWith('&')) continue;
-              if (propVal === null && (k === 'left' || k === 'right' || k === 'next')) continue;
-              props.push(k + ': ' + formatVariableValue(propVal));
-          }
-          let content = props.length > 0 ? '{ ' + props.join(', ') + ' }' : '{}';
-          return typeName ? typeName + ' ' + content : content;
+      if (typeof v === "object") {
+        if (v.__type === "container" && Array.isArray(v.data)) {
+          return "[" + v.data.map((item: any) => formatVariableValue(item)).join(", ") + "]";
+        }
+        let typeName = v.__type || "";
+        let props: string[] = [];
+        for (let [k, propVal] of Object.entries(v)) {
+          if (k.startsWith("__")) continue;
+          if (typeof propVal === "string" && propVal.startsWith("&")) continue;
+          if (propVal === null && (k === "left" || k === "right" || k === "next")) continue;
+          props.push(k + ": " + formatVariableValue(propVal));
+        }
+        let content = props.length > 0 ? "{ " + props.join(", ") + " }" : "{}";
+        return typeName ? typeName + " " + content : content;
       }
       return String(v);
     };
@@ -293,7 +293,7 @@ const VisualGround = ({
       func: activeFunction,
     });
   });
-  
+
   // ─── TERMINAL OUTPUT ───
   const consoleOutput = useMemo(() => {
     // Fast path: walk backward to find the most recent snapshot with cumulative output.
@@ -302,9 +302,9 @@ const VisualGround = ({
       if (snap?.state?.output !== undefined) return snap.state.output as string;
     }
     // Fallback: accumulate from scratch.
-    let out = '';
+    let out = "";
     for (let i = 0; i <= currentStep; i++) {
-      if (snapshots[i]?.event?.type === 'WRITE' && snapshots[i].event.payload?.output) {
+      if (snapshots[i]?.event?.type === "WRITE" && snapshots[i].event.payload?.output) {
         out += snapshots[i].event.payload.output;
       }
     }
@@ -318,12 +318,15 @@ const VisualGround = ({
   // ─── VISUALIZER DETECTION ───
   const pointerHistory = usePointerHistory(snapshots);
   const currentPointerContext = pointerHistory[currentStep] || {};
-  const canvasStates: CanvasState[] = useMemo(() => detectVisualizer(vars, currentEvent, currentPointerContext), [vars, currentEvent, currentPointerContext]);
+  const canvasStates: CanvasState[] = useMemo(
+    () => detectVisualizer(vars, currentEvent, currentPointerContext),
+    [vars, currentEvent, currentPointerContext],
+  );
 
   const groupedStates = useMemo(() => {
     const groups: Record<string, CanvasState[]> = {};
     canvasStates.forEach((state) => {
-      if (state.type === 'none') return;
+      if (state.type === "none") return;
       if (!groups[state.type]) groups[state.type] = [];
       groups[state.type].push(state);
     });
@@ -348,24 +351,24 @@ const VisualGround = ({
         keys.forEach((key, idx) => {
           z += 1;
           if (keys.length === 1) {
-            next[key] = { isMinimized: false, isMaximized: true, snap: 'none', zIndex: z };
+            next[key] = { isMinimized: false, isMaximized: true, snap: "none", zIndex: z };
           } else if (keys.length === 2) {
             next[key] = {
               isMinimized: false,
               isMaximized: false,
-              snap: (idx === 0 ? 'left' : 'right'),
+              snap: idx === 0 ? "left" : "right",
               zIndex: z,
             };
           } else {
             // Stagger diagonally so windows don't completely eclipse each other.
-            next[key] = { isMinimized: false, isMaximized: false, snap: 'none', zIndex: z };
+            next[key] = { isMinimized: false, isMaximized: false, snap: "none", zIndex: z };
           }
         });
       } else {
         // Case B: new key appeared mid-simulation → free-floating, no snap
         newKeys.forEach((key) => {
           z += 1;
-          next[key] = { isMinimized: false, isMaximized: false, snap: 'none', zIndex: z };
+          next[key] = { isMinimized: false, isMaximized: false, snap: "none", zIndex: z };
         });
       }
 
@@ -378,14 +381,14 @@ const VisualGround = ({
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!draggingDiv) return;
-      if (draggingDiv === 'h' && mainContainerRef.current) {
+      if (draggingDiv === "h" && mainContainerRef.current) {
         const rect = mainContainerRef.current.getBoundingClientRect();
         const isDesktop = window.innerWidth >= 768;
         const raw = isDesktop
           ? ((e.clientX - rect.left) / rect.width) * 100
           : ((e.clientY - rect.top) / rect.height) * 100;
         setHSplit(Math.max(25, Math.min(raw, 75)));
-      } else if (draggingDiv === 'v' && rightPanelRef.current) {
+      } else if (draggingDiv === "v" && rightPanelRef.current) {
         const rect = rightPanelRef.current.getBoundingClientRect();
         const raw = ((e.clientY - rect.top) / rect.height) * 100;
         setVSplit(Math.max(15, Math.min(raw, 85)));
@@ -393,20 +396,20 @@ const VisualGround = ({
     };
     const handleMouseUp = () => setDraggingDiv(null);
     if (draggingDiv) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      document.body.style.userSelect = 'none';
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      document.body.style.userSelect = "none";
     } else {
-      document.body.style.userSelect = '';
+      document.body.style.userSelect = "";
     }
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [draggingDiv]);
 
   // ─── EARLY RETURNS ───
-  if (lang !== 'c++') {
+  if (lang !== "c++") {
     return (
       <div className="w-full">
         <div className="flex items-start gap-2 rounded-sm border border-cyan-500/25 bg-cyan-500/8 px-2.5 py-2 shadow-sm">
@@ -448,15 +451,13 @@ const VisualGround = ({
   // ─── MAIN RENDER ───
   return (
     <div className="flex flex-col h-full w-full text-text font-display gap-0 overflow-hidden pb-1">
-
       {/* ─── LIVE HEADER ─── */}
       <div className="w-full flex items-center justify-between bg-surface-2 border border-border rounded-sm px-2 py-1 shadow-sm shrink-0">
         <div className="flex items-center gap-1.5 text-[calc(10rem/16)]">
           <span className="font-mono text-muted uppercase tracking-wider">Status</span>
           <code className="bg-bg px-1.5 py-0.5 rounded-sm border border-border text-accent-3 font-bold">
-            {currentSnapshot?.state?.callStack?.[
-              currentSnapshot.state.callStack.length - 1
-            ] || 'Idle()'}
+            {currentSnapshot?.state?.callStack?.[currentSnapshot.state.callStack.length - 1] ||
+              "Idle()"}
           </code>
         </div>
         <div className="flex items-center gap-1.5 text-[calc(10rem/16)]">
@@ -464,12 +465,12 @@ const VisualGround = ({
             <Activity size={10} className="text-accent" /> Event
           </span>
           <code className="bg-bg px-1.5 py-0.5 rounded-sm border border-border text-text font-bold">
-            {currentEvent.type}{' '}
+            {currentEvent.type}{" "}
             {currentEvent.payload?.variable
               ? `'${currentEvent.payload.variable}'`
               : currentEvent.payload?.function
-              ? `${currentEvent.payload.function}()`
-              : ''}
+                ? `${currentEvent.payload.function}()`
+                : ""}
           </code>
         </div>
       </div>
@@ -488,7 +489,7 @@ const VisualGround = ({
           <div
             ref={layoutAreaRef}
             className="flex-1 overflow-auto styled-scrollbar relative p-0"
-            style={{ perspective: '1000px' }}
+            style={{ perspective: "1000px" }}
           >
             {Object.keys(groupedStates).length === 0 && (
               <div className="absolute inset-0 flex items-center justify-center text-muted text-[calc(10rem/16)] font-mono opacity-50 flex-col gap-1">
@@ -500,11 +501,11 @@ const VisualGround = ({
               const ws = windowStates[type] || {
                 isMinimized: false,
                 isMaximized: false,
-                snap: 'none' as const,
+                snap: "none" as const,
                 zIndex: 20,
               };
 
-              // Small diagonal stagger so the windows don't hide everything. 
+              // Small diagonal stagger so the windows don't hide everything.
               // Each is offset by 40px from the previous one, capped at 4 positions.
               const defaultX = (idx % 4) * 40 + 20;
               const defaultY = (idx % 4) * 40 + 20;
@@ -520,7 +521,11 @@ const VisualGround = ({
                   bringToFront={() => bringToFront(type)}
                   parentRef={layoutAreaRef}
                 >
-                  <div className={cn(`flex flex-wrap gap-4 items-center justify-center p-2 min-w-[40px] min-h-[150px]`)}>
+                  <div
+                    className={cn(
+                      `flex flex-wrap gap-4 items-center justify-center p-2 min-w-[40px] min-h-[150px]`,
+                    )}
+                  >
                     {states.map((state) => (
                       <div
                         key={state.id}
@@ -530,19 +535,19 @@ const VisualGround = ({
                           {state.id}
                         </span>
                         <div className="flex-1 flex items-center justify-center">
-                          {state.type === 'graph'      && <Graph       {...(state.props as any)} />}
-                          {state.type === 'matrix'     && <D2Array     {...(state.props as any)} />}
-                          {state.type === 'array'      && <D1Array     {...(state.props as any)} />}
-                          {state.type === 'linkedlist' && <LinkedList  {...(state.props as any)} />}
-                          {state.type === 'queue'      && <Queue       {...(state.props as any)} />}
-                          {state.type === 'stack'      && <Stack       {...(state.props as any)} />}
-                          {state.type === 'tree'       && <Tree        {...(state.props as any)} />}
-                          {state.type === 'trie'       && <TrieTree    {...(state.props as any)} />}
-                          {state.type === 'map'        && <MapComponent {...(state.props as any)} />}
-                          {state.type === 'set'        && <SetComponent {...(state.props as any)} />}
-                          {state.type === 'string'     && <StringComponent {...(state.props as any)} />}
-                          {state.type === 'bitset'     && <Bitset {...(state.props as any)} />}
-                          {state.type === 'sortbars'   && <SortBars {...(state.props as any)} />}
+                          {state.type === "graph" && <Graph {...(state.props as any)} />}
+                          {state.type === "matrix" && <D2Array {...(state.props as any)} />}
+                          {state.type === "array" && <D1Array {...(state.props as any)} />}
+                          {state.type === "linkedlist" && <LinkedList {...(state.props as any)} />}
+                          {state.type === "queue" && <Queue {...(state.props as any)} />}
+                          {state.type === "stack" && <Stack {...(state.props as any)} />}
+                          {state.type === "tree" && <Tree {...(state.props as any)} />}
+                          {state.type === "trie" && <TrieTree {...(state.props as any)} />}
+                          {state.type === "map" && <MapComponent {...(state.props as any)} />}
+                          {state.type === "set" && <SetComponent {...(state.props as any)} />}
+                          {state.type === "string" && <StringComponent {...(state.props as any)} />}
+                          {state.type === "bitset" && <Bitset {...(state.props as any)} />}
+                          {state.type === "sortbars" && <SortBars {...(state.props as any)} />}
                         </div>
                       </div>
                     ))}
@@ -572,10 +577,10 @@ const VisualGround = ({
                   className={cn(`px-3 py-1 border rounded-sm text-[calc(10rem/16)] font-bold transition-all flex items-center gap-1.5 min-w-[80px] max-w-[150px] truncate justify-center hover:-translate-y-px active:translate-y-0
                     ${
                       isActive
-                        ? 'bg-surface-3 border-accent/50 text-accent shadow-sm'
+                        ? "bg-surface-3 border-accent/50 text-accent shadow-sm"
                         : ws.isMinimized
-                        ? 'bg-bg border-border text-muted hover:bg-surface opacity-70'
-                        : 'bg-surface border-border text-text hover:bg-surface-2'
+                          ? "bg-bg border-border text-muted hover:bg-surface opacity-70"
+                          : "bg-surface border-border text-text hover:bg-surface-2"
                     }`)}
                 >
                   {type}s
@@ -592,179 +597,227 @@ const VisualGround = ({
 
         {/* H-Divider */}
         {!isRightPanelCollapsed && (
-        <div
-          onMouseDown={() => setDraggingDiv('h')}
-          className="flex items-center justify-center w-1 cursor-col-resize z-10 shrink-0 hover:bg-surface-2 transition-colors"
-        >
-          <div className="w-px h-12 rounded-full bg-border" />
-        </div>
+          <div
+            onMouseDown={() => setDraggingDiv("h")}
+            className="flex items-center justify-center w-1 cursor-col-resize z-10 shrink-0 hover:bg-surface-2 transition-colors"
+          >
+            <div className="w-px h-12 rounded-full bg-border" />
+          </div>
         )}
 
         {/* RIGHT PANE: Inspectors */}
         {isRightPanelCollapsed ? (
-           <div className="flex flex-col items-center justify-start p-1 bg-surface-2 border-l border-border shrink-0 cursor-pointer hover:bg-surface-3 transition-colors z-10" onClick={() => { setIsCallStackCollapsed(false); setIsVariablesCollapsed(false); setIsConsoleCollapsed(false); }} title="Expand Inspectors">
-             <PanelRightOpen size={14} className="text-muted mb-4" />
-             <span className="text-[calc(9rem/16)] font-semibold text-muted uppercase tracking-widest" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>Inspectors</span>
-           </div>
+          <div
+            className="flex flex-col items-center justify-start p-1 bg-surface-2 border-l border-border shrink-0 cursor-pointer hover:bg-surface-3 transition-colors z-10"
+            onClick={() => {
+              setIsCallStackCollapsed(false);
+              setIsVariablesCollapsed(false);
+              setIsConsoleCollapsed(false);
+            }}
+            title="Expand Inspectors"
+          >
+            <PanelRightOpen size={14} className="text-muted mb-4" />
+            <span
+              className="text-[calc(9rem/16)] font-semibold text-muted uppercase tracking-widest"
+              style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+            >
+              Inspectors
+            </span>
+          </div>
         ) : (
-        <div
-          ref={rightPanelRef}
-          style={{ flex: `${100 - hSplit} 1 0%` }}
-          className="flex flex-col overflow-hidden min-h-0 shrink-0 gap-1"
-        >
-          {/* Call Stack */}
           <div
-            style={isCallStackCollapsed ? { flex: '0 0 auto' } : { flex: isVariablesCollapsed ? '1 1 0%' : `${vSplit} 1 0%` }}
-            className={cn(`w-full flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden ${isCallStackCollapsed ? 'min-h-0' : 'min-h-[80px]'}`)}
+            ref={rightPanelRef}
+            style={{ flex: `${100 - hSplit} 1 0%` }}
+            className="flex flex-col overflow-hidden min-h-0 shrink-0 gap-1"
           >
-            <div className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0 flex items-center justify-between cursor-pointer hover:bg-surface-3" onClick={() => setIsCallStackCollapsed(!isCallStackCollapsed)}>
-              <h4 className="text-[calc(9rem/16)] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
-                {isCallStackCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />} Call Stack
-              </h4>
-            </div>
-            {!isCallStackCollapsed && (
-            <div className="flex-1 overflow-y-auto styled-scrollbar pr-1 flex flex-col gap-1 p-1.5">
-              {currentSnapshot?.state?.callStack
-                ?.slice()
-                .reverse()
-                .map((frame: string, idx: number) => {
-                  const isTop = idx === 0;
-                  return (
-                    <div
-                      key={idx}
-                      className={cn(`px-2 py-1 rounded-sm border shadow-sm text-[calc(9rem/16)] font-mono flex items-center justify-between
-                        ${
-                          isTop
-                            ? 'border-accent-3 bg-accent-3/10  text-accent-3 font-bold'
-                            : 'border-border bg-surface text-muted opacity-70'
-                        }`)}
-                    >
-                      <span>{frame}()</span>
-                      {isTop && (
-                        <span className="text-[calc(8rem/16)] bg-bg px-1 border border-border rounded">
-                          Active
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-            </div>
-            )}
-          </div>
-
-          {/* V-Divider */}
-          {!isCallStackCollapsed && !isVariablesCollapsed && (
-          <div
-            onMouseDown={() => setDraggingDiv('v')}
-            className="flex items-center justify-center h-1 cursor-row-resize z-10 shrink-0 hover:bg-surface-2 transition-colors my-[-2px]"
-          >
-            <div className="h-px w-12 rounded-full bg-border" />
-          </div>
-          )}
-
-          {/* Variables + Console */}
-          <div
-            style={isVariablesCollapsed ? { flex: '0 0 auto' } : { flex: isCallStackCollapsed ? '1 1 0%' : `${100 - vSplit} 1 0%` }}
-            className={cn(`w-full flex flex-col gap-1 overflow-hidden ${isVariablesCollapsed ? 'min-h-0' : 'min-h-[120px]'}`)}
-          >
-            {/* Variables */}
-            <div className="flex-1 flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden">
-              <div className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0 flex items-center justify-between cursor-pointer hover:bg-surface-3" onClick={() => setIsVariablesCollapsed(!isVariablesCollapsed)}>
+            {/* Call Stack */}
+            <div
+              style={
+                isCallStackCollapsed
+                  ? { flex: "0 0 auto" }
+                  : { flex: isVariablesCollapsed ? "1 1 0%" : `${vSplit} 1 0%` }
+              }
+              className={cn(
+                `w-full flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden ${isCallStackCollapsed ? "min-h-0" : "min-h-[80px]"}`,
+              )}
+            >
+              <div
+                className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0 flex items-center justify-between cursor-pointer hover:bg-surface-3"
+                onClick={() => setIsCallStackCollapsed(!isCallStackCollapsed)}
+              >
                 <h4 className="text-[calc(9rem/16)] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
-                  {isVariablesCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />} Variables
+                  {isCallStackCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />}{" "}
+                  Call Stack
                 </h4>
               </div>
-              {!isVariablesCollapsed && (
-              <div className="flex-1 overflow-y-auto styled-scrollbar p-1">
-                <div className="flex flex-col gap-px">
-                  {overviewVars.length === 0 && (
-                    <span className="text-[calc(9rem/16)] text-muted font-mono p-1">No locals.</span>
-                  )}
-                  {overviewVars.map((v) => {
-                    const isExp = expandedVars.has(v.id);
-                    let formattedVal = v.value;
-                    try {
-                       const parsed = JSON.parse(v.value);
-                       formattedVal = JSON.stringify(parsed, null, 2);
-                    } catch(e) {
-                       let indent = 0;
-                       let res = '';
-                       for(let i=0; i<v.value.length; i++) {
-                           const c = v.value[i];
-                           if(c === '{' || c === '[') {
-                               indent += 2;
-                               res += c + '\n' + ' '.repeat(indent);
-                           } else if(c === '}' || c === ']') {
-                               indent = Math.max(0, indent - 2);
-                               res += '\n' + ' '.repeat(indent) + c;
-                           } else if(c === ',') {
-                               res += ',\n' + ' '.repeat(indent);
-                           } else {
-                               res += c;
-                           }
-                       }
-                       formattedVal = res;
-                    }
-
-                    return (
-                    <div
-                      key={v.id}
-                      onClick={() => toggleVarExpand(v.id)}
-                      className={cn(`flex flex-col px-1.5 py-1 text-[calc(10rem/16)] font-mono rounded-sm border border-transparent transition-colors cursor-pointer hover:bg-surface-3 ${v.opStyle}`)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 overflow-hidden">
-                          <span className="text-muted shrink-0">{isExp ? <ChevronDown size={10} /> : <ChevronRight size={10} />}</span>
-                          <span className="text-accent-2 opacity-80 text-[calc(8rem/16)] uppercase shrink-0">
-                            {v.type}
-                          </span>
-                          <span className="font-bold shrink-0">{v.name}</span>
-                          <span className="opacity-50 shrink-0">=</span>
-                          {!isExp && (
-                            <span className="text-accent-3 font-bold truncate max-w-[150px]">
-                              {v.value}
+              {!isCallStackCollapsed && (
+                <div className="flex-1 overflow-y-auto styled-scrollbar pr-1 flex flex-col gap-1 p-1.5">
+                  {currentSnapshot?.state?.callStack
+                    ?.slice()
+                    .reverse()
+                    .map((frame: string, idx: number) => {
+                      const isTop = idx === 0;
+                      return (
+                        <div
+                          key={idx}
+                          className={cn(`px-2 py-1 rounded-sm border shadow-sm text-[calc(9rem/16)] font-mono flex items-center justify-between
+                        ${
+                          isTop
+                            ? "border-accent-3 bg-accent-3/10  text-accent-3 font-bold"
+                            : "border-border bg-surface text-muted opacity-70"
+                        }`)}
+                        >
+                          <span>{frame}()</span>
+                          {isTop && (
+                            <span className="text-[calc(8rem/16)] bg-bg px-1 border border-border rounded">
+                              Active
                             </span>
                           )}
                         </div>
-                        <span className="text-[calc(8rem/16)] text-muted opacity-50 shrink-0 ml-1">
-                          in {v.func}()
-                        </span>
-                      </div>
-                      {isExp && (
-                        <div className="mt-1.5 w-full text-accent-3 font-bold whitespace-pre-wrap break-all bg-bg/80 p-2 rounded border border-border/50 h-auto overflow-visible shadow-inner">
-                          {formattedVal}
-                        </div>
-                      )}
-                    </div>
-                  );})}
+                      );
+                    })}
                 </div>
-              </div>
               )}
             </div>
 
-            {/* Console Output */}
-            <div className={cn(`shrink-0 flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden ${isConsoleCollapsed ? 'min-h-0 h-auto' : 'h-28'}`)}>
-              <div className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0 flex items-center justify-between cursor-pointer hover:bg-surface-3" onClick={() => setIsConsoleCollapsed(!isConsoleCollapsed)}>
-                <div className="flex items-center gap-1">
-                  <Terminal size={10} className="text-muted" />
+            {/* V-Divider */}
+            {!isCallStackCollapsed && !isVariablesCollapsed && (
+              <div
+                onMouseDown={() => setDraggingDiv("v")}
+                className="flex items-center justify-center h-1 cursor-row-resize z-10 shrink-0 hover:bg-surface-2 transition-colors my-[-2px]"
+              >
+                <div className="h-px w-12 rounded-full bg-border" />
+              </div>
+            )}
+
+            {/* Variables + Console */}
+            <div
+              style={
+                isVariablesCollapsed
+                  ? { flex: "0 0 auto" }
+                  : { flex: isCallStackCollapsed ? "1 1 0%" : `${100 - vSplit} 1 0%` }
+              }
+              className={cn(
+                `w-full flex flex-col gap-1 overflow-hidden ${isVariablesCollapsed ? "min-h-0" : "min-h-[120px]"}`,
+              )}
+            >
+              {/* Variables */}
+              <div className="flex-1 flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden">
+                <div
+                  className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0 flex items-center justify-between cursor-pointer hover:bg-surface-3"
+                  onClick={() => setIsVariablesCollapsed(!isVariablesCollapsed)}
+                >
                   <h4 className="text-[calc(9rem/16)] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
-                    {isConsoleCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />} Console Output
+                    {isVariablesCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />}{" "}
+                    Variables
                   </h4>
                 </div>
-              </div>
-              {!isConsoleCollapsed && (
-              <div
-                ref={outputRef}
-                className="flex-1 overflow-y-auto styled-scrollbar p-2 font-mono text-[calc(10rem/16)] text-text whitespace-pre-wrap"
-              >
-                {consoleOutput || (
-                  <span className="text-muted opacity-50 italic">No output...</span>
+                {!isVariablesCollapsed && (
+                  <div className="flex-1 overflow-y-auto styled-scrollbar p-1">
+                    <div className="flex flex-col gap-px">
+                      {overviewVars.length === 0 && (
+                        <span className="text-[calc(9rem/16)] text-muted font-mono p-1">
+                          No locals.
+                        </span>
+                      )}
+                      {overviewVars.map((v) => {
+                        const isExp = expandedVars.has(v.id);
+                        let formattedVal = v.value;
+                        try {
+                          const parsed = JSON.parse(v.value);
+                          formattedVal = JSON.stringify(parsed, null, 2);
+                        } catch (e) {
+                          let indent = 0;
+                          let res = "";
+                          for (let i = 0; i < v.value.length; i++) {
+                            const c = v.value[i];
+                            if (c === "{" || c === "[") {
+                              indent += 2;
+                              res += c + "\n" + " ".repeat(indent);
+                            } else if (c === "}" || c === "]") {
+                              indent = Math.max(0, indent - 2);
+                              res += "\n" + " ".repeat(indent) + c;
+                            } else if (c === ",") {
+                              res += ",\n" + " ".repeat(indent);
+                            } else {
+                              res += c;
+                            }
+                          }
+                          formattedVal = res;
+                        }
+
+                        return (
+                          <div
+                            key={v.id}
+                            onClick={() => toggleVarExpand(v.id)}
+                            className={cn(
+                              `flex flex-col px-1.5 py-1 text-[calc(10rem/16)] font-mono rounded-sm border border-transparent transition-colors cursor-pointer hover:bg-surface-3 ${v.opStyle}`,
+                            )}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1.5 overflow-hidden">
+                                <span className="text-muted shrink-0">
+                                  {isExp ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+                                </span>
+                                <span className="text-accent-2 opacity-80 text-[calc(8rem/16)] uppercase shrink-0">
+                                  {v.type}
+                                </span>
+                                <span className="font-bold shrink-0">{v.name}</span>
+                                <span className="opacity-50 shrink-0">=</span>
+                                {!isExp && (
+                                  <span className="text-accent-3 font-bold truncate max-w-[150px]">
+                                    {v.value}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[calc(8rem/16)] text-muted opacity-50 shrink-0 ml-1">
+                                in {v.func}()
+                              </span>
+                            </div>
+                            {isExp && (
+                              <div className="mt-1.5 w-full text-accent-3 font-bold whitespace-pre-wrap break-all bg-bg/80 p-2 rounded border border-border/50 h-auto overflow-visible shadow-inner">
+                                {formattedVal}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
               </div>
-              )}
+
+              {/* Console Output */}
+              <div
+                className={cn(
+                  `shrink-0 flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden ${isConsoleCollapsed ? "min-h-0 h-auto" : "h-28"}`,
+                )}
+              >
+                <div
+                  className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0 flex items-center justify-between cursor-pointer hover:bg-surface-3"
+                  onClick={() => setIsConsoleCollapsed(!isConsoleCollapsed)}
+                >
+                  <div className="flex items-center gap-1">
+                    <Terminal size={10} className="text-muted" />
+                    <h4 className="text-[calc(9rem/16)] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
+                      {isConsoleCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />}{" "}
+                      Console Output
+                    </h4>
+                  </div>
+                </div>
+                {!isConsoleCollapsed && (
+                  <div
+                    ref={outputRef}
+                    className="flex-1 overflow-y-auto styled-scrollbar p-2 font-mono text-[calc(10rem/16)] text-text whitespace-pre-wrap"
+                  >
+                    {consoleOutput || (
+                      <span className="text-muted opacity-50 italic">No output...</span>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
         )}
       </div>
 
@@ -793,7 +846,10 @@ const VisualGround = ({
         <div className="flex flex-wrap items-center justify-between gap-1 px-1">
           <div className="flex items-center gap-1">
             <button
-              onClick={() => { setIsPlaying(false); setCurrentStep(0); }}
+              onClick={() => {
+                setIsPlaying(false);
+                setCurrentStep(0);
+              }}
               disabled={snapshots.length === 0}
               title="Restart Visualization"
               className="p-1 bg-surface border border-border hover:bg-surface-2 hover:text-accent disabled:opacity-50 rounded-sm text-text transition-all"
@@ -804,23 +860,28 @@ const VisualGround = ({
               onClick={handleSimulate}
               disabled={isCompiling}
               title="Compile & Simulate"
-              className={cn(`px-2 py-1 text-white border border-transparent rounded-sm text-[calc(9rem/16)] font-bold transition-all shadow-sm flex items-center gap-1 ${
-                isCompiling ? 'bg-accent/50 cursor-not-allowed' : 'bg-accent hover:bg-accent-2'
-              }`)}
+              className={cn(
+                `px-2 py-1 text-white border border-transparent rounded-sm text-[calc(9rem/16)] font-bold transition-all shadow-sm flex items-center gap-1 ${
+                  isCompiling ? "bg-accent/50 cursor-not-allowed" : "bg-accent hover:bg-accent-2"
+                }`,
+              )}
             >
               {isCompiling ? (
                 <RefreshCw size={10} className="animate-spin" />
               ) : (
                 <Play size={10} fill="currentColor" />
               )}
-              {isCompiling ? 'Compiling' : 'Simulate'}
+              {isCompiling ? "Compiling" : "Simulate"}
             </button>
           </div>
 
           <div className="flex items-center gap-1">
             <button
               disabled={currentStep === 0 || snapshots.length === 0}
-              onClick={() => { setIsPlaying(false); setCurrentStep((s) => Math.max(0, s - 1)); }}
+              onClick={() => {
+                setIsPlaying(false);
+                setCurrentStep((s) => Math.max(0, s - 1));
+              }}
               className="p-1 bg-surface border border-border hover:bg-surface-2 hover:text-accent rounded-sm disabled:opacity-50 transition-colors"
             >
               <SkipBack size={10} fill="currentColor" />
@@ -828,9 +889,13 @@ const VisualGround = ({
             <button
               disabled={snapshots.length === 0}
               onClick={() => setIsPlaying(!isPlaying)}
-              className={cn(`p-1.5 rounded-sm text-white transition-all shadow-md disabled:opacity-50 ${
-                isPlaying ? 'bg-orange-500 hover:bg-orange-600' : 'bg-success hover:bg-emerald-500'
-              }`)}
+              className={cn(
+                `p-1.5 rounded-sm text-white transition-all shadow-md disabled:opacity-50 ${
+                  isPlaying
+                    ? "bg-orange-500 hover:bg-orange-600"
+                    : "bg-success hover:bg-emerald-500"
+                }`,
+              )}
             >
               {isPlaying ? (
                 <Pause size={10} fill="currentColor" />
@@ -864,7 +929,7 @@ const VisualGround = ({
               <input
                 type="number"
                 className="w-10 bg-transparent hover:bg-surface focus:bg-surface border border-transparent hover:border-border focus:border-accent text-[calc(9rem/16)] text-accent font-mono rounded-sm px-1 py-0.5 text-right outline-none transition-all"
-                style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
+                style={{ WebkitAppearance: "none", MozAppearance: "textfield" }}
                 onChange={(e) => {
                   const val = parseInt(e.target.value);
                   if (!isNaN(val)) setSpeed(Math.min(1000, Math.max(1, val)));
@@ -880,6 +945,6 @@ const VisualGround = ({
       </div>
     </div>
   );
-}
+};
 
 export default React.memo(VisualGround);

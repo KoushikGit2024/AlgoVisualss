@@ -1,13 +1,13 @@
-import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import { cn } from '../../lib/utils';
+import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { cn } from "../../lib/utils";
 
 export interface StackProps {
   value: (number | string)[];
   pointers?: { name: string; index: number }[];
-  
+
   // Highlighting Operations
   highLightIndices?: number[];
-  readIndices?: number[];   // e.g., peek() or top()
+  readIndices?: number[]; // e.g., peek() or top()
   writeIndices?: number[];
   compareIndices?: number[];
   swapIndices?: number[];
@@ -28,7 +28,6 @@ const Stack = ({
   insertIndices = [],
   foundIndices = [],
 }: StackProps) => {
-
   // 1. Bulletproof validation
   const safeValue = Array.isArray(value) ? value : [];
 
@@ -41,8 +40,13 @@ const Stack = ({
   // Push slides in from top (-y), Pop slides out to top (-y)
   const cellVariants: Variants = {
     hidden: { opacity: 0, y: -30, scale: 0.9 }, // Enter from Top
-    show: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 350, damping: 25 } },
-    exit: { opacity: 0, y: -40, scale: 0.8, transition: { duration: 0.2, ease: "easeIn" } } // Exit to Top
+    show: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { type: "spring", stiffness: 350, damping: 25 },
+    },
+    exit: { opacity: 0, y: -40, scale: 0.8, transition: { duration: 0.2, ease: "easeIn" } }, // Exit to Top
   };
 
   if (safeValue.length === 0) {
@@ -50,11 +54,11 @@ const Stack = ({
       <div className="w-full h-full flex flex-col items-center justify-center p-4">
         {/* Empty Stack Bucket */}
         <div className="w-24 h-32 border-x-2 border-b-2 border-dashed border-border/50 bg-surface-2/10 rounded-b-md flex items-end justify-center pb-4 relative">
-            <span className="absolute -top-6 text-[calc(10rem/16)] font-mono text-muted uppercase tracking-widest flex flex-col items-center">
-              <span>Top</span>
-              <span>&darr;</span>
-            </span>
-            <span className="text-muted text-[calc(10rem/16)] font-mono opacity-50">Empty</span>
+          <span className="absolute -top-6 text-[calc(10rem/16)] font-mono text-muted uppercase tracking-widest flex flex-col items-center">
+            <span>Top</span>
+            <span>&darr;</span>
+          </span>
+          <span className="text-muted text-[calc(10rem/16)] font-mono opacity-50">Empty</span>
         </div>
       </div>
     );
@@ -62,10 +66,8 @@ const Stack = ({
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center overflow-y-auto styled-scrollbar py-8 px-4">
-      
       {/* ─── Stack Bucket Container ─── */}
       <div className="relative flex flex-col items-center min-h-[150px]">
-        
         {/* The Open-Top Bucket Visual */}
         <div className="absolute inset-y-[-12px] -inset-x-4 border-x-2 border-b-2 border-dashed border-border/50 bg-surface-2/10 rounded-b-md pointer-events-none" />
 
@@ -77,7 +79,12 @@ const Stack = ({
         {/* Using flex-col-reverse ensures index 0 stays locked at the bottom, 
           and new elements push the stack upwards natively.
         */}
-        <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col-reverse gap-1.5 relative z-10 w-[4.5rem]">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="flex flex-col-reverse gap-1.5 relative z-10 w-[4.5rem]"
+        >
           <AnimatePresence mode="popLayout">
             {safeValue.map((val, idx) => {
               const isDelete = deleteIndices?.includes(idx);
@@ -100,36 +107,70 @@ const Stack = ({
               let activeZIndex = 1;
 
               if (isFound) {
-                bgClass = "bg-ds-read/20"; borderClass = "border-ds-read"; textClass = "text-ds-read";
-                shadowClass = "shadow-none"; activeScale = 1.1; activeZIndex = 30;
+                bgClass = "bg-ds-read/20";
+                borderClass = "border-ds-read";
+                textClass = "text-ds-read";
+                shadowClass = "shadow-none";
+                activeScale = 1.1;
+                activeZIndex = 30;
               } else if (isDelete) {
-                bgClass = "bg-failure/20"; borderClass = "border-failure"; textClass = "text-failure";
-                shadowClass = "shadow-none"; activeScale = 0.95; activeZIndex = 10;
+                bgClass = "bg-failure/20";
+                borderClass = "border-failure";
+                textClass = "text-failure";
+                shadowClass = "shadow-none";
+                activeScale = 0.95;
+                activeZIndex = 10;
               } else if (isSwap) {
-                bgClass = "bg-accent-3/20"; borderClass = "border-accent-3"; textClass = "text-accent-3";
-                shadowClass = "shadow-none"; activeScale = 1.05; activeZIndex = 20;
+                bgClass = "bg-accent-3/20";
+                borderClass = "border-accent-3";
+                textClass = "text-accent-3";
+                shadowClass = "shadow-none";
+                activeScale = 1.05;
+                activeZIndex = 20;
               } else if (isInsert) {
-                bgClass = "bg-ds-write/20"; borderClass = "border-ds-write"; textClass = "text-ds-write";
-                shadowClass = "shadow-none"; activeScale = 1.08; activeZIndex = 25;
+                bgClass = "bg-ds-write/20";
+                borderClass = "border-ds-write";
+                textClass = "text-ds-write";
+                shadowClass = "shadow-none";
+                activeScale = 1.08;
+                activeZIndex = 25;
               } else if (isWrite) {
-                bgClass = "bg-success/20"; borderClass = "border-success"; textClass = "text-success";
-                shadowClass = "shadow-none"; activeScale = 1.05; activeZIndex = 20;
+                bgClass = "bg-success/20";
+                borderClass = "border-success";
+                textClass = "text-success";
+                shadowClass = "shadow-none";
+                activeScale = 1.05;
+                activeZIndex = 20;
               } else if (isCompare) {
-                bgClass = "bg-orange-500/20"; borderClass = "border-orange-500"; textClass = "text-orange-500";
-                shadowClass = "shadow-none"; activeScale = 1.02; activeZIndex = 15;
+                bgClass = "bg-orange-500/20";
+                borderClass = "border-orange-500";
+                textClass = "text-orange-500";
+                shadowClass = "shadow-none";
+                activeScale = 1.02;
+                activeZIndex = 15;
               } else if (isRead) {
-                bgClass = "bg-accent/20"; borderClass = "border-accent"; textClass = "text-accent";
-                shadowClass = "shadow-none"; activeScale = 1.02; activeZIndex = 10;
+                bgClass = "bg-accent/20";
+                borderClass = "border-accent";
+                textClass = "text-accent";
+                shadowClass = "shadow-none";
+                activeScale = 1.02;
+                activeZIndex = 10;
               } else if (isHighlight) {
-                bgClass = "bg-accent-2/20"; borderClass = "border-accent-2"; textClass = "text-accent-2";
+                bgClass = "bg-accent-2/20";
+                borderClass = "border-accent-2";
+                textClass = "text-accent-2";
                 activeZIndex = 5;
               }
 
-              const safeValToDisplay = typeof val === 'object' ? JSON.stringify(val) : String(val);
+              const safeValToDisplay = typeof val === "object" ? JSON.stringify(val) : String(val);
 
               return (
-                <motion.div key={`stack-cell-${idx}`} layout variants={cellVariants} className="flex items-center justify-center relative w-full h-[2.5rem]">
-                  
+                <motion.div
+                  key={`stack-cell-${idx}`}
+                  layout
+                  variants={cellVariants}
+                  className="flex items-center justify-center relative w-full h-[2.5rem]"
+                >
                   {/* Left Side: Array Index */}
                   <div className="absolute right-full mr-2 text-[calc(10rem/16)] text-muted font-mono opacity-60">
                     {idx}
@@ -140,12 +181,25 @@ const Stack = ({
                     <AnimatePresence>
                       {cellPointers.map((ptr) => (
                         <motion.div
-                          key={ptr.name} layoutId={`pointer-stack-${ptr.name}`}
-                          initial={{ opacity: 0, x: -10, scale: 0.8 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: 10, scale: 0.8 }}
+                          key={ptr.name}
+                          layoutId={`pointer-stack-${ptr.name}`}
+                          initial={{ opacity: 0, x: -10, scale: 0.8 }}
+                          animate={{ opacity: 1, x: 0, scale: 1 }}
+                          exit={{ opacity: 0, x: 10, scale: 0.8 }}
                           transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
                           className="flex items-center text-accent-3 z-30"
                         >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mr-0.5 opacity-80 rotate-90">
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="mr-0.5 opacity-80 rotate-90"
+                          >
                             <path d="M12 19V5M5 12l7-7 7 7" />
                           </svg>
                           <span className="text-[calc(9rem/16)] font-mono font-bold bg-surface-2 text-accent-3 px-1.5 py-[1px] rounded border border-accent-3/30 truncate max-w-[60px]">
@@ -171,14 +225,16 @@ const Stack = ({
                     <AnimatePresence mode="wait">
                       <motion.span
                         key={`val-${safeValToDisplay}`}
-                        initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.15 }} className="truncate max-w-full"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.15 }}
+                        className="truncate max-w-full"
                       >
                         {safeValToDisplay}
                       </motion.span>
                     </AnimatePresence>
                   </motion.div>
-                  
                 </motion.div>
               );
             })}

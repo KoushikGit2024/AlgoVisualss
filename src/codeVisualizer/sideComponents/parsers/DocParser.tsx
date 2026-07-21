@@ -1,12 +1,5 @@
-import { cn } from '../../../lib/utils';
-import {
-  Lightbulb,
-  AlertTriangle,
-  Info,
-  Clock,
-  HardDrive,
-  Terminal,
-} from "lucide-react";
+import { cn } from "../../../lib/utils";
+import { Lightbulb, AlertTriangle, Info, Clock, HardDrive, Terminal } from "lucide-react";
 
 /* ─── Schema types ─────────────────────────────────────────────────────────── */
 export type ContentNode =
@@ -64,19 +57,18 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <h1
             key={index}
-            className={cn(`text-xl font-bold text-accent mb-3 pb-2 border-b border-border ${
-              isInsideCard ? "mt-0" : "mt-6 first:mt-0"
-            }`)}
+            className={cn(
+              `text-xl font-bold text-accent mb-3 pb-2 border-b border-border ${
+                isInsideCard ? "mt-0" : "mt-6 first:mt-0"
+              }`,
+            )}
           >
             {node.text}
           </h1>
         );
       case "h2":
         return (
-          <h2
-            key={index}
-            className="text-base font-semibold text-text mt-5 mb-2 first:mt-0"
-          >
+          <h2 key={index} className="text-base font-semibold text-text mt-5 mb-2 first:mt-0">
             {node.text}
           </h2>
         );
@@ -91,10 +83,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         );
       case "h4":
         return (
-          <h4
-            key={index}
-            className="text-[calc(13rem/16)] font-medium text-text/70 mt-3 mb-1"
-          >
+          <h4 key={index} className="text-[calc(13rem/16)] font-medium text-text/70 mt-3 mb-1">
             {node.text}
           </h4>
         );
@@ -154,13 +143,8 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <dl key={index} className="mb-3 flex flex-col gap-2 text-[calc(13rem/16)]">
             {node.items.map((item, i) => (
-              <div
-                key={i}
-                className="bg-surface-2 p-2.5 rounded-md border border-border"
-              >
-                <dt className="font-semibold text-accent mb-0.5">
-                  {item.term}
-                </dt>
+              <div key={i} className="bg-surface-2 p-2.5 rounded-md border border-border">
+                <dt className="font-semibold text-accent mb-0.5">{item.term}</dt>
                 <dd className="text-muted leading-relaxed">{item.desc}</dd>
               </div>
             ))}
@@ -268,7 +252,9 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
             <div className={cn(`${c.iconClass} shrink-0 mt-0.5`)}>{c.icon}</div>
             <div>
               <span
-                className={cn(`${c.labelClass} font-mono text-[calc(10rem/16)] tracking-widest mr-2`)}
+                className={cn(
+                  `${c.labelClass} font-mono text-[calc(10rem/16)] tracking-widest mr-2`,
+                )}
               >
                 {c.label}
               </span>
@@ -299,31 +285,25 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
 /* ─── Helpers ──────────────────────────────────────────────────────────────── */
 
 const CaseDivider = () => (
-  <div
-    className="flex items-center gap-2 my-1"
-    role="separator"
-    aria-hidden="true"
-  >
+  <div className="flex items-center gap-2 my-1" role="separator" aria-hidden="true">
     <div className="flex-1 h-px bg-border" />
-    <span className="text-[calc(10rem/16)] font-mono text-border tracking-widest">
-      ···
-    </span>
+    <span className="text-[calc(10rem/16)] font-mono text-border tracking-widest">···</span>
     <div className="flex-1 h-px bg-border" />
   </div>
 );
 
 /* Type-difficulty badge */
 const TYPE_STYLES: Record<string, string> = {
-  Easy:   "bg-green-400/10  text-green-400  border-green-400/25",
+  Easy: "bg-green-400/10  text-green-400  border-green-400/25",
   Medium: "bg-yellow-400/10 text-yellow-400 border-yellow-400/25",
-  Hard:   "bg-red-400/10   text-red-400    border-red-400/25",
+  Hard: "bg-red-400/10   text-red-400    border-red-400/25",
 };
 
 interface ComplexityCardProps {
   title: string;
   icon: React.ReactNode;
   iconColorClass: string;
-  notationColorClass: string; 
+  notationColorClass: string;
   notation?: string;
   best?: ContentBlock;
   average?: ContentBlock;
@@ -347,7 +327,9 @@ const ComplexityCard = ({
       <h2 className="font-semibold text-[calc(13rem/16)] text-text">{title}</h2>
       {notation && (
         <span
-          className={cn(`ml-auto font-mono text-[calc(11rem/16)] px-2 py-0.5 rounded border ${notationColorClass}`)}
+          className={cn(
+            `ml-auto font-mono text-[calc(11rem/16)] px-2 py-0.5 rounded border ${notationColorClass}`,
+          )}
         >
           {notation}
         </span>
@@ -356,9 +338,19 @@ const ComplexityCard = ({
 
     {/* Best / Average / Worst */}
     <div className="p-4 flex flex-col">
-      {best    && <div>{renderNodes(best, true)}</div>}
-      {average && <><CaseDivider /><div>{renderNodes(average, true)}</div></>}
-      {worst   && <><CaseDivider /><div>{renderNodes(worst, true)}</div></>}
+      {best && <div>{renderNodes(best, true)}</div>}
+      {average && (
+        <>
+          <CaseDivider />
+          <div>{renderNodes(average, true)}</div>
+        </>
+      )}
+      {worst && (
+        <>
+          <CaseDivider />
+          <div>{renderNodes(worst, true)}</div>
+        </>
+      )}
     </div>
   </section>
 );
@@ -375,14 +367,12 @@ const DocParser = ({ data }: { data: any }) => {
   }
 
   /* ── TOPIC VIEW ─────────────────────────────────────────────────────────── */
-  
+
   if (Array.isArray(data.items)) {
     const topic = data as TopicItem;
     return (
       <div className="w-full h-full overflow-y-auto styled-scrollbar bg-bg">
-        <article className="max-w-4xl mx-auto px-6 py-8 pb-16">
-          {renderNodes(topic.about)}
-        </article>
+        <article className="max-w-4xl mx-auto px-6 py-8 pb-16">{renderNodes(topic.about)}</article>
       </div>
     );
   }
@@ -401,31 +391,34 @@ const DocParser = ({ data }: { data: any }) => {
               </h1>
               {sub.type && (
                 <span
-                  className={cn(`shrink-0 inline-block font-mono text-[calc(10rem/16)] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border ${
-                    TYPE_STYLES[sub.type] ?? TYPE_STYLES.Medium
-                  }`)}
+                  className={cn(
+                    `shrink-0 inline-block font-mono text-[calc(10rem/16)] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border ${
+                      TYPE_STYLES[sub.type] ?? TYPE_STYLES.Medium
+                    }`,
+                  )}
                 >
                   {sub.type.toUpperCase()}
                 </span>
               )}
             </div>
           ) : (
-            
             sub.type && (
               <span
-                className={cn(`inline-block font-mono text-[calc(10rem/16)] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border mb-4 ${
-                  TYPE_STYLES[sub.type] ?? TYPE_STYLES.Medium
-                }`)}
+                className={cn(
+                  `inline-block font-mono text-[calc(10rem/16)] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border mb-4 ${
+                    TYPE_STYLES[sub.type] ?? TYPE_STYLES.Medium
+                  }`,
+                )}
               >
                 {sub.type.toUpperCase()}
               </span>
             )
           )}
-          
+
           {renderNodes(
             sub.about && sub.about.length > 0 && sub.about[0].tag === "h1"
               ? sub.about.slice(1)
-              : sub.about
+              : sub.about,
           )}
         </section>
 
@@ -440,9 +433,7 @@ const DocParser = ({ data }: { data: any }) => {
                   Implementation &amp; Reasoning
                 </h2>
               </div>
-              <div className="p-4">
-                {renderNodes(sub.pseudoCodeandStepexplanation, true)}
-              </div>
+              <div className="p-4">{renderNodes(sub.pseudoCodeandStepexplanation, true)}</div>
             </section>
           )}
 
@@ -475,15 +466,13 @@ const DocParser = ({ data }: { data: any }) => {
           <section className="bg-surface border border-border rounded-lg overflow-hidden">
             <div className="bg-surface-2 px-4 py-2.5 border-b border-border flex items-center gap-2">
               <Lightbulb size={15} className="text-accent-4 shrink-0" />
-              <h2 className="font-semibold text-[calc(13rem/16)] text-text">
-                Related Algorithms
-              </h2>
+              <h2 className="font-semibold text-[calc(13rem/16)] text-text">Related Algorithms</h2>
             </div>
             <div className="p-4 flex flex-wrap gap-3">
               {sub.related.map((rel, i) => (
-                <a 
-                  key={i} 
-                  href={rel.href} 
+                <a
+                  key={i}
+                  href={rel.href}
                   className="font-mono text-[13px] text-accent hover:text-accent-2 transition-colors border border-border rounded px-3 py-1.5 bg-surface-2/50 hover:bg-surface-2"
                 >
                   {rel.name}

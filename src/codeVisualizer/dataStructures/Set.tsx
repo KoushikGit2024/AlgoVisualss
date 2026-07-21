@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
-import { DynamicPrimitive } from './DynamicPrimitive';
+import { motion } from "framer-motion";
+import { DynamicPrimitive } from "./DynamicPrimitive";
 
 interface SetProps {
   values: any[];
@@ -18,7 +18,7 @@ export default function Set({ values = [] }: SetProps) {
   return (
     <div className="flex flex-wrap gap-2 w-full max-w-[300px]">
       {values.map((v, i) => (
-        <motion.div 
+        <motion.div
           key={i}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}

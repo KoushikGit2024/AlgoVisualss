@@ -1,6 +1,6 @@
-import { ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { DynamicPrimitive } from './DynamicPrimitive';
+import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { DynamicPrimitive } from "./DynamicPrimitive";
 
 interface MapProps {
   entries: [any, any][];
@@ -19,7 +19,7 @@ export default function Map({ entries = [] }: MapProps) {
   return (
     <div className="flex flex-col gap-1 w-full max-w-[300px]">
       {entries.map(([k, v], i) => (
-        <motion.div 
+        <motion.div
           key={i}
           initial={{ opacity: 0, x: -5 }}
           animate={{ opacity: 1, x: 0 }}
@@ -32,7 +32,7 @@ export default function Map({ entries = [] }: MapProps) {
               <DynamicPrimitive value={k} />
             </span>
           </div>
-          
+
           {/* Arrow */}
           <div className="px-2 shrink-0 flex items-center justify-center">
             <ArrowRight size={12} className="text-muted opacity-50" />

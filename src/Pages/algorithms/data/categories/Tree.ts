@@ -1,30 +1,73 @@
 const TREES_SECTION = {
   name: "Trees",
   href: "/algorithms/trees",
-    iconId: "Tree",
-    hoverIconId: "Tree",
+  iconId: "Tree",
+  hoverIconId: "Tree",
 
   about: [
     { tag: "h1", text: "Trees" },
-    { tag: "p", text: "A tree is a connected, acyclic graph with a designated root, where every other vertex has exactly one parent — this hierarchical structure makes trees the natural representation for anything with nested relationships: file systems, organisation charts, expression parsing, and the indexing structures behind nearly every database." },
-    { tag: "p", text: "The single number that governs almost every tree algorithm's performance is its height h — the length of the longest path from root to leaf. A perfectly balanced binary tree has h = O(log n), giving fast O(log n) search, insert, and delete. But an unbalanced tree (e.g. one built by inserting already-sorted data into a plain BST) can degrade to h = O(n), turning every operation into a linear scan. This single fact — that height, not node count, determines speed — is why self-balancing trees (AVL, Red-Black) exist at all." },
+    {
+      tag: "p",
+      text: "A tree is a connected, acyclic graph with a designated root, where every other vertex has exactly one parent — this hierarchical structure makes trees the natural representation for anything with nested relationships: file systems, organisation charts, expression parsing, and the indexing structures behind nearly every database.",
+    },
+    {
+      tag: "p",
+      text: "The single number that governs almost every tree algorithm's performance is its height h — the length of the longest path from root to leaf. A perfectly balanced binary tree has h = O(log n), giving fast O(log n) search, insert, and delete. But an unbalanced tree (e.g. one built by inserting already-sorted data into a plain BST) can degrade to h = O(n), turning every operation into a linear scan. This single fact — that height, not node count, determines speed — is why self-balancing trees (AVL, Red-Black) exist at all.",
+    },
     { tag: "h2", text: "Why self-balancing trees exist" },
-    { tag: "p", text: "A plain Binary Search Tree gives no guarantee about its own shape — it's entirely a function of insertion order. AVL trees and Red-Black trees both solve this by enforcing a structural invariant after every insertion and deletion (rotations to restore balance), guaranteeing h = O(log n) no matter what order operations arrive in. The trade-off between them is rebalancing frequency vs. rebalancing cost — AVL trees are more rigidly balanced (faster lookups) but rebalance more often (slower writes); Red-Black trees are more loosely balanced (slightly slower lookups) but rebalance less often (faster writes)." },
-    { tag: "table",
+    {
+      tag: "p",
+      text: "A plain Binary Search Tree gives no guarantee about its own shape — it's entirely a function of insertion order. AVL trees and Red-Black trees both solve this by enforcing a structural invariant after every insertion and deletion (rotations to restore balance), guaranteeing h = O(log n) no matter what order operations arrive in. The trade-off between them is rebalancing frequency vs. rebalancing cost — AVL trees are more rigidly balanced (faster lookups) but rebalance more often (slower writes); Red-Black trees are more loosely balanced (slightly slower lookups) but rebalance less often (faster writes).",
+    },
+    {
+      tag: "table",
       headers: ["Structure", "Guarantee", "Lookup", "Insert/Delete", "Typical Use"],
       rows: [
-        ["Plain BST", "None — height depends on insertion order", "O(log n) avg / O(n) worst", "O(log n) avg / O(n) worst", "Simple ordered maps, teaching"],
-        ["AVL Tree", "Strictly balanced: height difference of subtrees ≤ 1", "O(log n) guaranteed", "O(log n) guaranteed", "Read-heavy workloads"],
-        ["Red-Black Tree", "Loosely balanced via coloring rules", "O(log n) guaranteed", "O(log n) guaranteed, fewer rotations", "Write-heavy workloads (most language standard libraries)"],
-        ["Tree Traversals", "N/A — visits every node", "O(n) to visit all nodes", "N/A", "Serialisation, expression evaluation, search"],
-        ["Lowest Common Ancestor", "Depends on tree type", "O(log n) for BST, O(n) general", "N/A", "Family-tree/version-control-style ancestry queries"]
-      ]
+        [
+          "Plain BST",
+          "None — height depends on insertion order",
+          "O(log n) avg / O(n) worst",
+          "O(log n) avg / O(n) worst",
+          "Simple ordered maps, teaching",
+        ],
+        [
+          "AVL Tree",
+          "Strictly balanced: height difference of subtrees ≤ 1",
+          "O(log n) guaranteed",
+          "O(log n) guaranteed",
+          "Read-heavy workloads",
+        ],
+        [
+          "Red-Black Tree",
+          "Loosely balanced via coloring rules",
+          "O(log n) guaranteed",
+          "O(log n) guaranteed, fewer rotations",
+          "Write-heavy workloads (most language standard libraries)",
+        ],
+        [
+          "Tree Traversals",
+          "N/A — visits every node",
+          "O(n) to visit all nodes",
+          "N/A",
+          "Serialisation, expression evaluation, search",
+        ],
+        [
+          "Lowest Common Ancestor",
+          "Depends on tree type",
+          "O(log n) for BST, O(n) general",
+          "N/A",
+          "Family-tree/version-control-style ancestry queries",
+        ],
+      ],
     },
-    { tag: "note", variant: "tip", text: "If you're asked for a self-balancing tree but don't know which kind, Red-Black is almost always the right default — it's what backs C++'s std::map, Java's TreeMap, and the Linux kernel's process scheduler, precisely because of its cheaper rebalancing." }
+    {
+      tag: "note",
+      variant: "tip",
+      text: "If you're asked for a self-balancing tree but don't know which kind, Red-Black is almost always the right default — it's what backs C++'s std::map, Java's TreeMap, and the Linux kernel's process scheduler, precisely because of its cheaper rebalancing.",
+    },
   ],
 
   items: [
-
     /* ════════════════════════════════════════════════════════════════════
        1. AVL TREES
     ════════════════════════════════════════════════════════════════════ */
@@ -35,84 +78,157 @@ const TREES_SECTION = {
 
       about: [
         { tag: "h1", text: "AVL Trees" },
-        { tag: "p", text: "An AVL tree, named after its inventors Georgy Adelson-Velsky and Evgenii Landis (1962), is a self-balancing Binary Search Tree where, for every node, the heights of its left and right subtrees differ by at most 1. This 'balance factor' constraint is checked and restored after every insertion or deletion, guaranteeing the tree's height never exceeds O(log n) regardless of the order operations occur in." },
-        { tag: "p", text: "Balance is restored using rotations — single (left or right) and double (left-right or right-left) — applied at the lowest unbalanced ancestor of a newly inserted or deleted node. AVL trees were the first self-balancing BST structure ever invented and remain the standard example for teaching how local structural fixes can maintain a global height guarantee." },
+        {
+          tag: "p",
+          text: "An AVL tree, named after its inventors Georgy Adelson-Velsky and Evgenii Landis (1962), is a self-balancing Binary Search Tree where, for every node, the heights of its left and right subtrees differ by at most 1. This 'balance factor' constraint is checked and restored after every insertion or deletion, guaranteeing the tree's height never exceeds O(log n) regardless of the order operations occur in.",
+        },
+        {
+          tag: "p",
+          text: "Balance is restored using rotations — single (left or right) and double (left-right or right-left) — applied at the lowest unbalanced ancestor of a newly inserted or deleted node. AVL trees were the first self-balancing BST structure ever invented and remain the standard example for teaching how local structural fixes can maintain a global height guarantee.",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Read-heavy workloads where lookups vastly outnumber insertions/deletions — AVL's stricter balance gives slightly faster average lookup than Red-Black trees",
-          "Applications needing a hard guarantee on worst-case search time, such as real-time systems",
-          "Database indexing and in-memory ordered maps where query latency matters more than update throughput",
-          "Anywhere a plain BST is being considered but insertion order can't be guaranteed to be random (e.g. data could arrive pre-sorted, which would degrade a plain BST to O(n))"
-        ]},
-        { tag: "table",
+        {
+          tag: "ul",
+          items: [
+            "Read-heavy workloads where lookups vastly outnumber insertions/deletions — AVL's stricter balance gives slightly faster average lookup than Red-Black trees",
+            "Applications needing a hard guarantee on worst-case search time, such as real-time systems",
+            "Database indexing and in-memory ordered maps where query latency matters more than update throughput",
+            "Anywhere a plain BST is being considered but insertion order can't be guaranteed to be random (e.g. data could arrive pre-sorted, which would degrade a plain BST to O(n))",
+          ],
+        },
+        {
+          tag: "table",
           headers: ["Rotation Type", "Trigger Condition", "Fix Applied"],
           rows: [
-            ["Left-Left (LL)", "Imbalance in the left subtree's left child", "Single right rotation"],
-            ["Right-Right (RR)", "Imbalance in the right subtree's right child", "Single left rotation"],
-            ["Left-Right (LR)", "Imbalance in the left subtree's right child", "Left rotation on child, then right rotation on node"],
-            ["Right-Left (RL)", "Imbalance in the right subtree's left child", "Right rotation on child, then left rotation on node"]
-          ]
+            [
+              "Left-Left (LL)",
+              "Imbalance in the left subtree's left child",
+              "Single right rotation",
+            ],
+            [
+              "Right-Right (RR)",
+              "Imbalance in the right subtree's right child",
+              "Single left rotation",
+            ],
+            [
+              "Left-Right (LR)",
+              "Imbalance in the left subtree's right child",
+              "Left rotation on child, then right rotation on node",
+            ],
+            [
+              "Right-Left (RL)",
+              "Imbalance in the right subtree's left child",
+              "Right rotation on child, then left rotation on node",
+            ],
+          ],
         },
-        { tag: "note", variant: "info", text: "AVL trees rebalance more aggressively than Red-Black trees, which is why they're favoured when lookups dominate — but that same aggressiveness means more rotations per write, which is why write-heavy systems usually prefer Red-Black trees instead." }
+        {
+          tag: "note",
+          variant: "info",
+          text: "AVL trees rebalance more aggressively than Red-Black trees, which is why they're favoured when lookups dominate — but that same aggressiveness means more rotations per write, which is why write-heavy systems usually prefer Red-Black trees instead.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(log n)",
         best: [
           { tag: "h2", text: "Best Case — O(log n)" },
-          { tag: "p", text: "Even in the most favourable scenario (e.g. searching for the root itself), the asymptotic classification remains O(log n) because the algorithm's structure guarantees this bound for the tree's height regardless of which specific node is targeted." },
-          { tag: "ul", items: [
-            "AVL's height invariant guarantees h = O(log n) at all times, for any sequence of insertions/deletions",
-            "Searching, inserting, or deleting always follows a root-to-leaf path bounded by this height",
-            "Best case (target found near the root): still classified O(log n) since the guarantee is structural, not value-dependent"
-          ]}
+          {
+            tag: "p",
+            text: "Even in the most favourable scenario (e.g. searching for the root itself), the asymptotic classification remains O(log n) because the algorithm's structure guarantees this bound for the tree's height regardless of which specific node is targeted.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "AVL's height invariant guarantees h = O(log n) at all times, for any sequence of insertions/deletions",
+              "Searching, inserting, or deleting always follows a root-to-leaf path bounded by this height",
+              "Best case (target found near the root): still classified O(log n) since the guarantee is structural, not value-dependent",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(log n)" },
-          { tag: "p", text: "Because the balance invariant is actively enforced after every modification, there's no 'typical' input that produces a worse shape than the guaranteed bound — average case equals the guaranteed worst case." },
-          { tag: "ul", items: [
-            "Search: traverse from root to a leaf, comparing at each level — O(h) = O(log n)",
-            "Insert: search for the insertion point (O(log n)), then rebalance along the path back to the root, performing at most O(log n) rotations — but each rotation is O(1), so total insert cost is O(log n)",
-            "Delete: similarly O(log n) for the search plus O(log n) for rebalancing"
-          ]}
+          {
+            tag: "p",
+            text: "Because the balance invariant is actively enforced after every modification, there's no 'typical' input that produces a worse shape than the guaranteed bound — average case equals the guaranteed worst case.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Search: traverse from root to a leaf, comparing at each level — O(h) = O(log n)",
+              "Insert: search for the insertion point (O(log n)), then rebalance along the path back to the root, performing at most O(log n) rotations — but each rotation is O(1), so total insert cost is O(log n)",
+              "Delete: similarly O(log n) for the search plus O(log n) for rebalancing",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(log n)" },
-          { tag: "p", text: "This is AVL's entire purpose: unlike a plain BST, there is no input sequence that can degrade an AVL tree's height beyond its mathematically proven bound." },
-          { tag: "ul", items: [
-            "Provable bound: an AVL tree of height h has at least F(h+2) − 1 nodes, where F is the Fibonacci sequence — inverting this gives h ≤ 1.44 log₂(n+2), i.e. O(log n)",
-            "Search/insert/delete all stay strictly within this bound — there is no adversarial sequence of operations that produces a degenerate (linear-height) shape",
-            "This is the key advantage over a plain BST, whose worst case is O(n)"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "This is AVL's entire purpose: unlike a plain BST, there is no input sequence that can degrade an AVL tree's height beyond its mathematically proven bound.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Provable bound: an AVL tree of height h has at least F(h+2) − 1 nodes, where F is the Fibonacci sequence — inverting this gives h ≤ 1.44 log₂(n+2), i.e. O(log n)",
+              "Search/insert/delete all stay strictly within this bound — there is no adversarial sequence of operations that produces a degenerate (linear-height) shape",
+              "This is the key advantage over a plain BST, whose worst case is O(n)",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case Space — O(n)" },
-          { tag: "p", text: "Storing n nodes always requires O(n) space for the node data itself, plus a small constant overhead per node for the balance factor (or height) field used to maintain the invariant." },
-          { tag: "ul", items: ["n node objects, each with left/right/parent pointers + a balance factor field: O(n)"] }
+          {
+            tag: "p",
+            text: "Storing n nodes always requires O(n) space for the node data itself, plus a small constant overhead per node for the balance factor (or height) field used to maintain the invariant.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "n node objects, each with left/right/parent pointers + a balance factor field: O(n)",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(n)" },
-          { tag: "p", text: "Total stored data is fixed by n regardless of the tree's exact shape, since the guaranteed-balanced structure doesn't change how many nodes need to be stored." },
-          { tag: "ul", items: ["O(n) for node storage", "O(log n) for the recursion stack during operations, due to the guaranteed logarithmic height"] }
+          {
+            tag: "p",
+            text: "Total stored data is fixed by n regardless of the tree's exact shape, since the guaranteed-balanced structure doesn't change how many nodes need to be stored.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(n) for node storage",
+              "O(log n) for the recursion stack during operations, due to the guaranteed logarithmic height",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(n)" },
-          { tag: "p", text: "No insertion/deletion sequence increases storage beyond the fixed per-node overhead — this is a hallmark difference from time complexity, since space doesn't depend on tree shape, only on node count." },
-          { tag: "ul", items: [
-            "O(n) total node storage, identical to a plain BST",
-            "O(log n) recursion/call-stack depth during any single operation — guaranteed by the height bound, unlike a plain BST's potential O(n) worst-case stack depth"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No insertion/deletion sequence increases storage beyond the fixed per-node overhead — this is a hallmark difference from time complexity, since space doesn't depend on tree shape, only on node count.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(n) total node storage, identical to a plain BST",
+              "O(log n) recursion/call-stack depth during any single operation — guaranteed by the height bound, unlike a plain BST's potential O(n) worst-case stack depth",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function insert(node, key):
+        {
+          tag: "code",
+          language: "text",
+          text: `function insert(node, key):
     if node is null:
         return new Node(key)
 
@@ -150,17 +266,24 @@ function rotateRight(y):
     y.left ← T2
     updateHeight(y)
     updateHeight(x)
-    return x                                 // new subtree root` },
+    return x                                 // new subtree root`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Insert exactly like a standard BST insertion: recurse left or right based on key comparison until reaching a null spot, then place the new node there.",
-          "As the recursion unwinds back up the path to the root, update each ancestor's height and compute its balance factor (left subtree height − right subtree height).",
-          "If any node's balance factor exceeds ±1, the AVL invariant has been violated at that node — identify which of the four imbalance cases applies (LL, RR, LR, RL) by comparing the inserted key against the unbalanced node's children.",
-          "Apply the corresponding rotation(s) to restore the height invariant at that node. A single rotation suffices for LL/RR cases; a double rotation (rotate the child, then the node) is needed for LR/RL cases.",
-          "Because rotations are O(1) and the path back to the root has length O(log n) (the tree's guaranteed height), at most O(log n) rotations are checked, with provably at most 2 actual rotations needed to fully rebalance after any single insertion."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Insert exactly like a standard BST insertion: recurse left or right based on key comparison until reaching a null spot, then place the new node there.",
+            "As the recursion unwinds back up the path to the root, update each ancestor's height and compute its balance factor (left subtree height − right subtree height).",
+            "If any node's balance factor exceeds ±1, the AVL invariant has been violated at that node — identify which of the four imbalance cases applies (LL, RR, LR, RL) by comparing the inserted key against the unbalanced node's children.",
+            "Apply the corresponding rotation(s) to restore the height invariant at that node. A single rotation suffices for LL/RR cases; a double rotation (rotate the child, then the node) is needed for LR/RL cases.",
+            "Because rotations are O(1) and the path back to the root has length O(log n) (the tree's guaranteed height), at most O(log n) rotations are checked, with provably at most 2 actual rotations needed to fully rebalance after any single insertion.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Each rotation is a local, BST-order-preserving restructuring: a right rotation around node y promotes y's left child x to take y's place, while preserving the in-order traversal sequence of all affected nodes (this can be verified by checking that the rotated subtree's in-order traversal is identical before and after). Since BST order is preserved by every rotation, search correctness is never compromised. The height-rebalancing guarantee follows from a classical proof: an AVL tree's minimum node count for height h grows according to the Fibonacci recurrence N(h) = N(h-1) + N(h-2) + 1, and solving this recurrence shows h = O(log n) is the only possibility consistent with the balance-factor-≤1 invariant being maintained after every single insertion or deletion." }
+        {
+          tag: "p",
+          text: "Each rotation is a local, BST-order-preserving restructuring: a right rotation around node y promotes y's left child x to take y's place, while preserving the in-order traversal sequence of all affected nodes (this can be verified by checking that the rotated subtree's in-order traversal is identical before and after). Since BST order is preserved by every rotation, search correctness is never compromised. The height-rebalancing guarantee follows from a classical proof: an AVL tree's minimum node count for height h grows according to the Fibonacci recurrence N(h) = N(h-1) + N(h-2) + 1, and solving this recurrence shows h = O(log n) is the only possibility consistent with the balance-factor-≤1 invariant being maintained after every single insertion or deletion.",
+        },
       ],
       codes: {
         "c++": `#include <iostream>
@@ -305,7 +428,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `# Each node stores its own subtree height so balance can be checked in O(1).
+        python: `# Each node stores its own subtree height so balance can be checked in O(1).
 class AVLNode:
     def __init__(self, value):
         self.value = value
@@ -426,7 +549,7 @@ if __name__ == "__main__":
     print("Root value after rebalancing:", root.value)
     print("Tree height:", get_height(root))
 `,
-        "java": `public class AVLTree {
+        java: `public class AVLTree {
 
     // Each node stores its own subtree height so balance can be checked in O(1).
     static class AVLNode {
@@ -559,7 +682,7 @@ if __name__ == "__main__":
     }
 }
 `,
-        "js": `// Each node stores its own subtree height so balance can be checked in O(1).
+        js: `// Each node stores its own subtree height so balance can be checked in O(1).
 class AVLNode {
     constructor(value) {
         this.value = value;
@@ -684,7 +807,7 @@ console.log("In-order traversal (sorted):", sortedOutput.join(" "));
 console.log("Root value after rebalancing:", root.value);
 console.log("Tree height:", getHeight(root));
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <stdlib.h>
 
 // Each node stores its own subtree height so balance can be checked in O(1).
@@ -944,7 +1067,7 @@ public static class AVLTree {
     }
 }
 `,
-        "swift": `import Foundation
+        swift: `import Foundation
 
 // Each node stores its own subtree height so balance can be checked in O(1).
 final class AVLNode {
@@ -1063,7 +1186,7 @@ print("In-order traversal (sorted): \(sortedOutput.map { String($0) }.joined(sep
 print("Root value after rebalancing: \(root!.value)")
 print("Tree height: \(getHeight(root))")
 `,
-        "kotlin": `// Each node stores its own subtree height so balance can be checked in O(1).
+        kotlin: `// Each node stores its own subtree height so balance can be checked in O(1).
 class AVLNode(var value: Int) {
     var height: Int = 1
     var left: AVLNode? = null
@@ -1176,7 +1299,7 @@ fun main() {
     println("Tree height: \${getHeight(root)}")
 }
 `,
-        "scala": `// Each node stores its own subtree height so balance can be checked in O(1).
+        scala: `// Each node stores its own subtree height so balance can be checked in O(1).
 class AVLNode(var value: Int) {
     var height: Int = 1
     var left: AVLNode = null
@@ -1289,7 +1412,7 @@ object AVLTree extends App {
     println(s"Tree height: \${getHeight(root)}")
 }
 `,
-        "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -1421,7 +1544,7 @@ func main() {
     fmt.Println("Tree height:", getHeight(root))
 }
 `,
-        "rust": `// Each node stores its own subtree height so balance can be checked in O(1).
+        rust: `// Each node stores its own subtree height so balance can be checked in O(1).
 struct AVLNode {
     value: i32,
     height: i32,
@@ -1558,8 +1681,8 @@ fn main() {
     }
     println!("Tree height: {}", get_height(&root));
 }
-`
-      }
+`,
+      },
     },
     /* ════════════════════════════════════════════════════════════════════
        2. TREE TRAVERSALS
@@ -1571,77 +1694,144 @@ fn main() {
 
       about: [
         { tag: "h1", text: "Tree Traversals" },
-        { tag: "p", text: "A tree traversal visits every node in a tree exactly once, in a specific order. The three classic depth-first orderings — pre-order, in-order, and post-order — differ only in WHEN the current node is processed relative to its children, while breadth-first (level-order) traversal visits nodes layer by layer using a queue, exactly like graph BFS." },
-        { tag: "p", text: "The choice of traversal order isn't arbitrary — each one corresponds to a specific real-world need. In-order traversal of a Binary Search Tree visits nodes in sorted order (a uniquely useful property). Pre-order naturally serialises a tree in a way that can reconstruct its exact shape. Post-order is the only safe order for deleting a tree node-by-node, since it processes children before their parent." },
+        {
+          tag: "p",
+          text: "A tree traversal visits every node in a tree exactly once, in a specific order. The three classic depth-first orderings — pre-order, in-order, and post-order — differ only in WHEN the current node is processed relative to its children, while breadth-first (level-order) traversal visits nodes layer by layer using a queue, exactly like graph BFS.",
+        },
+        {
+          tag: "p",
+          text: "The choice of traversal order isn't arbitrary — each one corresponds to a specific real-world need. In-order traversal of a Binary Search Tree visits nodes in sorted order (a uniquely useful property). Pre-order naturally serialises a tree in a way that can reconstruct its exact shape. Post-order is the only safe order for deleting a tree node-by-node, since it processes children before their parent.",
+        },
         { tag: "h2", text: "The four traversal orders" },
-        { tag: "table",
+        {
+          tag: "table",
           headers: ["Traversal", "Order", "Key Use Case"],
           rows: [
-            ["Pre-order", "Node → Left → Right", "Serialising a tree's structure for later reconstruction; copying a tree"],
+            [
+              "Pre-order",
+              "Node → Left → Right",
+              "Serialising a tree's structure for later reconstruction; copying a tree",
+            ],
             ["In-order", "Left → Node → Right", "Retrieving BST elements in sorted order"],
-            ["Post-order", "Left → Right → Node", "Safely deleting a tree (children before parent); evaluating expression trees"],
-            ["Level-order (BFS)", "Layer by layer, left to right", "Finding shortest depth to a node; printing a tree level by level"]
-          ]
+            [
+              "Post-order",
+              "Left → Right → Node",
+              "Safely deleting a tree (children before parent); evaluating expression trees",
+            ],
+            [
+              "Level-order (BFS)",
+              "Layer by layer, left to right",
+              "Finding shortest depth to a node; printing a tree level by level",
+            ],
+          ],
         },
-        { tag: "note", variant: "tip", text: "In-order traversal of a BST always produces sorted output — this single fact underlies many BST algorithms, including validating whether a tree is a correct BST in the first place." }
+        {
+          tag: "note",
+          variant: "tip",
+          text: "In-order traversal of a BST always produces sorted output — this single fact underlies many BST algorithms, including validating whether a tree is a correct BST in the first place.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case — O(n)" },
-          { tag: "p", text: "Every traversal order must visit all n nodes to be complete — there is no early-exit shortcut for a full traversal, regardless of the tree's shape." },
-          { tag: "ul", items: [
-            "Each node is visited exactly once: O(n)",
-            "Each visit does O(1) work (process the node, recurse into children/enqueue them)",
-            "Total: O(n), even in the most favourably-shaped tree"
-          ]}
+          {
+            tag: "p",
+            text: "Every traversal order must visit all n nodes to be complete — there is no early-exit shortcut for a full traversal, regardless of the tree's shape.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Each node is visited exactly once: O(n)",
+              "Each visit does O(1) work (process the node, recurse into children/enqueue them)",
+              "Total: O(n), even in the most favourably-shaped tree",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n)" },
-          { tag: "p", text: "Visiting every node exactly once with O(1) work per node is a structural property of the traversal, completely independent of the tree's shape or balance." },
-          { tag: "ul", items: [
-            "n node visits × O(1) work each = O(n)",
-            "Tree shape (balanced vs. skewed) affects auxiliary space, not the total time, since every node is still visited exactly once regardless"
-          ]}
+          {
+            tag: "p",
+            text: "Visiting every node exactly once with O(1) work per node is a structural property of the traversal, completely independent of the tree's shape or balance.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "n node visits × O(1) work each = O(n)",
+              "Tree shape (balanced vs. skewed) affects auxiliary space, not the total time, since every node is still visited exactly once regardless",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n)" },
-          { tag: "p", text: "No tree shape increases the time complexity beyond visiting every node once — a maximally skewed tree (essentially a linked list) still only requires n visits, just with worse space behaviour (see below)." },
-          { tag: "ul", items: [
-            "Worst case matches best/average exactly: O(n)",
-            "This matches the trivial lower bound: a complete traversal must examine every node at least once"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No tree shape increases the time complexity beyond visiting every node once — a maximally skewed tree (essentially a linked list) still only requires n visits, just with worse space behaviour (see below).",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Worst case matches best/average exactly: O(n)",
+              "This matches the trivial lower bound: a complete traversal must examine every node at least once",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(h)",
         best: [
           { tag: "h2", text: "Best Case Space — O(log n)" },
-          { tag: "p", text: "For a perfectly balanced tree, the recursion stack (for DFS-style traversals) only ever needs to hold one root-to-leaf path, which is O(log n) deep in a balanced tree." },
-          { tag: "ul", items: ["Recursion stack depth = tree height h = O(log n) for a balanced tree", "Level-order traversal's queue can hold up to O(n/2) nodes at the widest level, regardless of balance"] }
+          {
+            tag: "p",
+            text: "For a perfectly balanced tree, the recursion stack (for DFS-style traversals) only ever needs to hold one root-to-leaf path, which is O(log n) deep in a balanced tree.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Recursion stack depth = tree height h = O(log n) for a balanced tree",
+              "Level-order traversal's queue can hold up to O(n/2) nodes at the widest level, regardless of balance",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(h)" },
-          { tag: "p", text: "For DFS-style traversals, space is governed entirely by tree height h, not by the total node count n — this is the key distinction from BFS-style traversal." },
-          { tag: "ul", items: ["Pre/in/post-order recursion stack: O(h), where h depends on the tree's actual shape", "For a random/typical BST, h is usually O(log n) in practice"] }
+          {
+            tag: "p",
+            text: "For DFS-style traversals, space is governed entirely by tree height h, not by the total node count n — this is the key distinction from BFS-style traversal.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Pre/in/post-order recursion stack: O(h), where h depends on the tree's actual shape",
+              "For a random/typical BST, h is usually O(log n) in practice",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(n)" },
-          { tag: "p", text: "A maximally skewed tree (every node has only one child, forming a linked-list shape) has height h = n − 1, so the recursion stack for DFS traversals can grow to O(n)." },
-          { tag: "ul", items: [
-            "DFS recursion stack: O(h), which can be as bad as O(n) for a degenerate skewed tree",
-            "Level-order (BFS) traversal's queue: up to O(n) at the widest level of a wide/bushy tree, independent of height",
-            "This is why an iterative traversal with an explicit stack (rather than recursion) is preferred for very deep or unbalanced trees, to avoid native call-stack overflow"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "A maximally skewed tree (every node has only one child, forming a linked-list shape) has height h = n − 1, so the recursion stack for DFS traversals can grow to O(n).",
+          },
+          {
+            tag: "ul",
+            items: [
+              "DFS recursion stack: O(h), which can be as bad as O(n) for a degenerate skewed tree",
+              "Level-order (BFS) traversal's queue: up to O(n) at the widest level of a wide/bushy tree, independent of height",
+              "This is why an iterative traversal with an explicit stack (rather than recursion) is preferred for very deep or unbalanced trees, to avoid native call-stack overflow",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function preOrder(node):
+        {
+          tag: "code",
+          language: "text",
+          text: `function preOrder(node):
     if node is null: return
     process(node)
     preOrder(node.left)
@@ -1666,16 +1856,23 @@ function levelOrder(root):
         node ← dequeue(queue)
         process(node)
         if node.left:  enqueue(queue, node.left)
-        if node.right: enqueue(queue, node.right)` },
+        if node.right: enqueue(queue, node.right)`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Pre-order: process the current node first, then recurse left, then recurse right — the node is always 'visited' before either of its subtrees.",
-          "In-order: recurse left first, then process the current node, then recurse right — for a BST this guarantees sorted output, since everything in the left subtree is smaller and everything in the right subtree is larger.",
-          "Post-order: recurse left, then recurse right, then process the current node last — both children are fully handled before the parent, which is why it's the safe order for deletion.",
-          "Level-order: use a queue instead of recursion. Start with the root in the queue; repeatedly dequeue a node, process it, then enqueue its children — this naturally produces a layer-by-layer visiting order, identical in mechanism to graph BFS."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Pre-order: process the current node first, then recurse left, then recurse right — the node is always 'visited' before either of its subtrees.",
+            "In-order: recurse left first, then process the current node, then recurse right — for a BST this guarantees sorted output, since everything in the left subtree is smaller and everything in the right subtree is larger.",
+            "Post-order: recurse left, then recurse right, then process the current node last — both children are fully handled before the parent, which is why it's the safe order for deletion.",
+            "Level-order: use a queue instead of recursion. Start with the root in the queue; repeatedly dequeue a node, process it, then enqueue its children — this naturally produces a layer-by-layer visiting order, identical in mechanism to graph BFS.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "For the three DFS orders, correctness follows directly from the recursive definition: by induction on subtree size, each recursive call correctly traverses its entire subtree in the specified order (process/left/right in some sequence), and since the function is called on the left and right subtrees of every node, every node in the tree is eventually visited exactly once. For level-order, the queue's FIFO property guarantees that all nodes at depth d are dequeued (and their children enqueued) before any node at depth d+1 is dequeued, by the same inductive argument used to prove BFS correctness on graphs." }
+        {
+          tag: "p",
+          text: "For the three DFS orders, correctness follows directly from the recursive definition: by induction on subtree size, each recursive call correctly traverses its entire subtree in the specified order (process/left/right in some sequence), and since the function is called on the left and right subtrees of every node, every node in the tree is eventually visited exactly once. For level-order, the queue's FIFO property guarantees that all nodes at depth d are dequeued (and their children enqueued) before any node at depth d+1 is dequeued, by the same inductive argument used to prove BFS correctness on graphs.",
+        },
       ],
       codes: {
         "c++": `#include <iostream>
@@ -1782,7 +1979,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `from collections import deque
+        python: `from collections import deque
 
 
 # A minimal binary tree node used to demonstrate all four traversal orders.
@@ -1876,7 +2073,7 @@ if __name__ == "__main__":
     level_order_traversal(root, level_order_result)
     print("Level-order:", " ".join(str(v) for v in level_order_result))
 `,
-        "java": `import java.util.LinkedList;
+        java: `import java.util.LinkedList;
 import java.util.Queue;
 
 public class TreeTraversals {
@@ -1973,7 +2170,7 @@ public class TreeTraversals {
     }
 }
 `,
-        "js": `// A minimal binary tree node used to demonstrate all four traversal orders.
+        js: `// A minimal binary tree node used to demonstrate all four traversal orders.
 class TreeNode {
     constructor(value) {
         this.value = value;
@@ -2059,7 +2256,7 @@ const levelOrderResult = [];
 levelOrderTraversal(root, levelOrderResult);
 console.log("Level-order:", levelOrderResult.join(" "));
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <stdlib.h>
 
 // A minimal binary tree node used to demonstrate all four traversal orders.
@@ -2265,7 +2462,7 @@ public static class TreeTraversals {
     }
 }
 `,
-        "swift": `import Foundation
+        swift: `import Foundation
 
 // A minimal binary tree node used to demonstrate all four traversal orders.
 final class TreeNode {
@@ -2357,7 +2554,7 @@ var levelOrderResult: [Int] = []
 levelOrderTraversal(root, &levelOrderResult)
 print("Level-order: \(levelOrderResult.map { String($0) }.joined(separator: " "))")
 `,
-        "kotlin": `import java.util.LinkedList
+        kotlin: `import java.util.LinkedList
 
 // A minimal binary tree node used to demonstrate all four traversal orders.
 class TreeNode(var value: Int) {
@@ -2445,7 +2642,7 @@ fun main() {
     println("Level-order: \${levelOrderResult.joinToString(" ")}")
 }
 `,
-        "scala": `import scala.collection.mutable
+        scala: `import scala.collection.mutable
 
 // A minimal binary tree node used to demonstrate all four traversal orders.
 class TreeNode(var value: Int) {
@@ -2534,7 +2731,7 @@ object TreeTraversals extends App {
     println(s"Level-order: \${levelOrderResult.mkString(" ")}")
 }
 `,
-        "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -2638,7 +2835,7 @@ func main() {
     fmt.Println("Level-order:", levelOrderResult)
 }
 `,
-        "rust": `use std::collections::VecDeque;
+        rust: `use std::collections::VecDeque;
 use std::rc::Rc;
 use std::cell::RefCell;
 
@@ -2757,8 +2954,8 @@ fn main() {
     level_order_traversal(&root_option, &mut level_order_result);
     println!("Level-order: {:?}", level_order_result);
 }
-`
-      }
+`,
+      },
     },
     /* ════════════════════════════════════════════════════════════════════
        3. BINARY SEARCH TREE
@@ -2770,74 +2967,125 @@ fn main() {
 
       about: [
         { tag: "h1", text: "Binary Search Tree (BST)" },
-        { tag: "p", text: "A Binary Search Tree maintains the invariant that for every node, all keys in its left subtree are smaller, and all keys in its right subtree are larger. This ordering property allows search, insertion, and deletion to eliminate half the remaining search space at each step — the same logarithmic principle as binary search on a sorted array, but adapted to a dynamic structure that supports efficient insertion and deletion." },
-        { tag: "p", text: "Unlike a sorted array, a BST doesn't guarantee O(log n) operations — its performance depends entirely on the tree's height, which depends entirely on insertion order. A BST built from already-sorted input degenerates into what is effectively a linked list, with O(n) operations. This exact weakness is what motivates self-balancing variants like AVL and Red-Black trees." },
+        {
+          tag: "p",
+          text: "A Binary Search Tree maintains the invariant that for every node, all keys in its left subtree are smaller, and all keys in its right subtree are larger. This ordering property allows search, insertion, and deletion to eliminate half the remaining search space at each step — the same logarithmic principle as binary search on a sorted array, but adapted to a dynamic structure that supports efficient insertion and deletion.",
+        },
+        {
+          tag: "p",
+          text: "Unlike a sorted array, a BST doesn't guarantee O(log n) operations — its performance depends entirely on the tree's height, which depends entirely on insertion order. A BST built from already-sorted input degenerates into what is effectively a linked list, with O(n) operations. This exact weakness is what motivates self-balancing variants like AVL and Red-Black trees.",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "You need an ordered dynamic collection supporting fast search, insert, delete, and in-order (sorted) iteration",
-          "Implementing a simple ordered map/set when insertion order is known to be sufficiently randomised (avoiding the degenerate worst case)",
-          "As the conceptual foundation before reaching for a self-balancing variant (AVL, Red-Black) in production code",
-          "Range queries: 'find all keys between X and Y' is naturally efficient via a BST traversal that prunes subtrees outside the range"
-        ]},
-        { tag: "note", variant: "warning", text: "A plain BST gives no balance guarantee — inserting already-sorted data produces a degenerate O(n)-height tree, silently turning every 'O(log n)' operation into O(n). Production code should use a self-balancing variant unless insertion order is provably randomised." }
+        {
+          tag: "ul",
+          items: [
+            "You need an ordered dynamic collection supporting fast search, insert, delete, and in-order (sorted) iteration",
+            "Implementing a simple ordered map/set when insertion order is known to be sufficiently randomised (avoiding the degenerate worst case)",
+            "As the conceptual foundation before reaching for a self-balancing variant (AVL, Red-Black) in production code",
+            "Range queries: 'find all keys between X and Y' is naturally efficient via a BST traversal that prunes subtrees outside the range",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "warning",
+          text: "A plain BST gives no balance guarantee — inserting already-sorted data produces a degenerate O(n)-height tree, silently turning every 'O(log n)' operation into O(n). Production code should use a self-balancing variant unless insertion order is provably randomised.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(log n) avg / O(n) worst",
         best: [
           { tag: "h2", text: "Best Case — O(1)" },
-          { tag: "p", text: "The best case for any single operation occurs when the target happens to be the root itself, requiring just one comparison — though this is a property of the specific query, not a structural guarantee of the algorithm." },
-          { tag: "ul", items: [
-            "Searching for the root: 1 comparison — O(1)",
-            "This best case applies per-operation and doesn't reflect the tree's overall behaviour across many operations"
-          ]}
+          {
+            tag: "p",
+            text: "The best case for any single operation occurs when the target happens to be the root itself, requiring just one comparison — though this is a property of the specific query, not a structural guarantee of the algorithm.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Searching for the root: 1 comparison — O(1)",
+              "This best case applies per-operation and doesn't reflect the tree's overall behaviour across many operations",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(log n)" },
-          { tag: "p", text: "For a BST built from randomly-ordered insertions, the expected height is provably O(log n) — a well-known result from random BST analysis (the expected height of a randomly built BST on n keys is approximately 2 ln n ≈ 1.39 log₂ n)." },
-          { tag: "ul", items: [
-            "Search/insert/delete all follow a single root-to-leaf path, costing O(h) where h is the current height",
-            "For random insertion order, E[h] = O(log n), giving expected O(log n) per operation",
-            "This is a probabilistic guarantee, not a worst-case one — it depends on the assumption of randomised insertion order"
-          ]}
+          {
+            tag: "p",
+            text: "For a BST built from randomly-ordered insertions, the expected height is provably O(log n) — a well-known result from random BST analysis (the expected height of a randomly built BST on n keys is approximately 2 ln n ≈ 1.39 log₂ n).",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Search/insert/delete all follow a single root-to-leaf path, costing O(h) where h is the current height",
+              "For random insertion order, E[h] = O(log n), giving expected O(log n) per operation",
+              "This is a probabilistic guarantee, not a worst-case one — it depends on the assumption of randomised insertion order",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n)" },
-          { tag: "p", text: "If keys are inserted in already-sorted (or reverse-sorted) order, every new node becomes the rightmost (or leftmost) child of the previous one, producing a tree that is structurally identical to a linked list." },
-          { tag: "ul", items: [
-            "Sorted-order insertion produces a tree of height n − 1",
-            "Every search/insert/delete in this degenerate tree costs O(n), since the 'tree' is effectively a single chain",
-            "This is the fundamental motivation for self-balancing BST variants (AVL, Red-Black), which provably cap height at O(log n) regardless of insertion order"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "If keys are inserted in already-sorted (or reverse-sorted) order, every new node becomes the rightmost (or leftmost) child of the previous one, producing a tree that is structurally identical to a linked list.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Sorted-order insertion produces a tree of height n − 1",
+              "Every search/insert/delete in this degenerate tree costs O(n), since the 'tree' is effectively a single chain",
+              "This is the fundamental motivation for self-balancing BST variants (AVL, Red-Black), which provably cap height at O(log n) regardless of insertion order",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case Space — O(n)" },
-          { tag: "p", text: "Storing n nodes requires O(n) space for the node data itself, regardless of the tree's shape — this is identical across all cases since it only depends on node count." },
-          { tag: "ul", items: ["n node objects, each with key + left/right pointers: O(n)"] }
+          {
+            tag: "p",
+            text: "Storing n nodes requires O(n) space for the node data itself, regardless of the tree's shape — this is identical across all cases since it only depends on node count.",
+          },
+          { tag: "ul", items: ["n node objects, each with key + left/right pointers: O(n)"] },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(n)" },
-          { tag: "p", text: "Total node storage is fixed by n alone, while the recursion stack used during operations scales with the tree's height, which is O(log n) on average for randomly-built trees." },
-          { tag: "ul", items: ["O(n) node storage", "O(log n) expected recursion stack depth for random insertion order"] }
+          {
+            tag: "p",
+            text: "Total node storage is fixed by n alone, while the recursion stack used during operations scales with the tree's height, which is O(log n) on average for randomly-built trees.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(n) node storage",
+              "O(log n) expected recursion stack depth for random insertion order",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(n)" },
-          { tag: "p", text: "In a degenerate (linked-list-shaped) tree, the recursion stack during search/insert/delete can grow to O(n), matching the tree's worst-case height." },
-          { tag: "ul", items: [
-            "O(n) node storage, identical to best/average case",
-            "O(n) recursion stack depth in a degenerate, maximally-skewed tree — this is the same root cause as the O(n) worst-case time complexity"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "In a degenerate (linked-list-shaped) tree, the recursion stack during search/insert/delete can grow to O(n), matching the tree's worst-case height.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(n) node storage, identical to best/average case",
+              "O(n) recursion stack depth in a degenerate, maximally-skewed tree — this is the same root cause as the O(n) worst-case time complexity",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function search(node, key):
+        {
+          tag: "code",
+          language: "text",
+          text: `function search(node, key):
     if node is null or node.key == key:
         return node
     if key < node.key:
@@ -2870,17 +3118,24 @@ function delete(node, key):
         successor ← findMin(node.right)
         node.key ← successor.key
         node.right ← delete(node.right, successor.key)
-    return node` },
+    return node`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Search: compare the target key against the current node; if smaller, recurse left; if larger, recurse right; if equal, found. Each comparison eliminates one entire subtree from consideration.",
-          "Insert: follow the same comparison path as search until reaching a null spot, then attach the new node there — this always preserves the BST ordering invariant.",
-          "Delete (leaf node): simply remove it — no children to reattach.",
-          "Delete (one child): replace the node with its single child, splicing it directly into the parent's link.",
-          "Delete (two children): find the in-order successor (the smallest key in the right subtree, found by following left-child pointers from node.right), copy its key into the node being deleted, then recursively delete the successor from the right subtree (which is now an easier 0-or-1-child deletion)."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Search: compare the target key against the current node; if smaller, recurse left; if larger, recurse right; if equal, found. Each comparison eliminates one entire subtree from consideration.",
+            "Insert: follow the same comparison path as search until reaching a null spot, then attach the new node there — this always preserves the BST ordering invariant.",
+            "Delete (leaf node): simply remove it — no children to reattach.",
+            "Delete (one child): replace the node with its single child, splicing it directly into the parent's link.",
+            "Delete (two children): find the in-order successor (the smallest key in the right subtree, found by following left-child pointers from node.right), copy its key into the node being deleted, then recursively delete the successor from the right subtree (which is now an easier 0-or-1-child deletion).",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Search correctness follows directly from the BST invariant: if key < node.key, every key in the right subtree is guaranteed larger than key (by the invariant), so it cannot contain the target — recursing left is safe and complete. Insertion correctness follows because the new node is always placed at a position consistent with the invariant (smaller keys to the left, larger to the right of every ancestor on its path). Deletion's two-child case is the subtle one: replacing the deleted key with its in-order successor (the smallest key greater than it) preserves the invariant, because the successor is guaranteed to be larger than everything in the original left subtree and smaller than everything remaining in the right subtree — exactly the ordering position the deleted node occupied." }
+        {
+          tag: "p",
+          text: "Search correctness follows directly from the BST invariant: if key < node.key, every key in the right subtree is guaranteed larger than key (by the invariant), so it cannot contain the target — recursing left is safe and complete. Insertion correctness follows because the new node is always placed at a position consistent with the invariant (smaller keys to the left, larger to the right of every ancestor on its path). Deletion's two-child case is the subtle one: replacing the deleted key with its in-order successor (the smallest key greater than it) preserves the invariant, because the successor is guaranteed to be larger than everything in the original left subtree and smaller than everything remaining in the right subtree — exactly the ordering position the deleted node occupied.",
+        },
       ],
       codes: {
         "c++": `#include <iostream>
@@ -3006,7 +3261,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `# A standard BST node. Unlike some node-based structures elsewhere in this
+        python: `# A standard BST node. Unlike some node-based structures elsewhere in this
 # reference, a plain BST needs nothing beyond the key and its two children.
 class BSTNode:
     def __init__(self, value):
@@ -3109,7 +3364,7 @@ if __name__ == "__main__":
     print_in_order(root, after_70)
     print("After deleting 70:", " ".join(str(v) for v in after_70))
 `,
-        "java": `public class BinarySearchTree {
+        java: `public class BinarySearchTree {
 
     // A standard BST node. Unlike some node-based structures elsewhere in
     // this reference, a plain BST needs nothing beyond the key and its two
@@ -3220,7 +3475,7 @@ if __name__ == "__main__":
     }
 }
 `,
-        "js": `// A standard BST node. Unlike some node-based structures elsewhere in this
+        js: `// A standard BST node. Unlike some node-based structures elsewhere in this
 // reference, a plain BST needs nothing beyond the key and its two children.
 class BSTNode {
     constructor(value) {
@@ -3320,7 +3575,7 @@ const after70 = [];
 collectInOrder(root, after70);
 console.log("After deleting 70:", after70.join(" "));
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <stdlib.h>
 
 // A standard BST node. Unlike some node-based structures elsewhere in this
@@ -3542,7 +3797,7 @@ public static class BinarySearchTree {
     }
 }
 `,
-        "swift": `import Foundation
+        swift: `import Foundation
 
 // A standard BST node. Unlike some node-based structures elsewhere in this
 // reference, a plain BST needs nothing beyond the key and its two children.
@@ -3641,7 +3896,7 @@ var after70: [Int] = []
 collectInOrder(root, &after70)
 print("After deleting 70: \(after70.map { String($0) }.joined(separator: " "))")
 `,
-        "kotlin": `// A standard BST node. Unlike some node-based structures elsewhere in this
+        kotlin: `// A standard BST node. Unlike some node-based structures elsewhere in this
 // reference, a plain BST needs nothing beyond the key and its two children.
 class BSTNode(var value: Int) {
     var left: BSTNode? = null
@@ -3734,7 +3989,7 @@ fun main() {
     println("After deleting 70: \${after70.joinToString(" ")}")
 }
 `,
-        "scala": `// A standard BST node. Unlike some node-based structures elsewhere in this
+        scala: `// A standard BST node. Unlike some node-based structures elsewhere in this
 // reference, a plain BST needs nothing beyond the key and its two children.
 class BSTNode(var value: Int) {
     var left: BSTNode = null
@@ -3828,7 +4083,7 @@ object BinarySearchTree extends App {
     println(s"After deleting 70: \${after70.mkString(" ")}")
 }
 `,
-        "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -3941,7 +4196,7 @@ func main() {
     fmt.Println("After deleting 70:", after70)
 }
 `,
-        "rust": `/// A standard BST node. Unlike some node-based structures elsewhere in
+        rust: `/// A standard BST node. Unlike some node-based structures elsewhere in
 /// this reference, a plain BST needs nothing beyond the key and its two
 /// children.
 struct BSTNode {
@@ -4067,8 +4322,8 @@ fn main() {
     collect_in_order(&root, &mut after_70);
     println!("After deleting 70: {:?}", after_70);
 }
-`
-      }
+`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -4081,75 +4336,125 @@ fn main() {
 
       about: [
         { tag: "h1", text: "Lowest Common Ancestor (LCA)" },
-        { tag: "p", text: "The Lowest Common Ancestor of two nodes u and v in a tree is the deepest node that has both u and v as descendants (a node is considered a descendant of itself for this definition). It's a fundamental query that comes up anywhere hierarchical relationships matter: finding the common ancestor of two commits in a version-control history graph, the common category of two items in a taxonomy, or the meeting point of two file paths." },
-        { tag: "p", text: "The right algorithm depends heavily on the tree type and query pattern. For a general binary tree with a single query, a recursive post-order approach works in O(n). For a Binary Search Tree specifically, the ordering property allows a much faster O(h) approach that doesn't need to explore both subtrees. For many repeated queries on a static tree, preprocessing techniques (binary lifting, Euler tour + sparse table) achieve O(log n) or even O(1) per query." },
+        {
+          tag: "p",
+          text: "The Lowest Common Ancestor of two nodes u and v in a tree is the deepest node that has both u and v as descendants (a node is considered a descendant of itself for this definition). It's a fundamental query that comes up anywhere hierarchical relationships matter: finding the common ancestor of two commits in a version-control history graph, the common category of two items in a taxonomy, or the meeting point of two file paths.",
+        },
+        {
+          tag: "p",
+          text: "The right algorithm depends heavily on the tree type and query pattern. For a general binary tree with a single query, a recursive post-order approach works in O(n). For a Binary Search Tree specifically, the ordering property allows a much faster O(h) approach that doesn't need to explore both subtrees. For many repeated queries on a static tree, preprocessing techniques (binary lifting, Euler tour + sparse table) achieve O(log n) or even O(1) per query.",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Finding the common ancestor of two nodes in any tree structure (file systems, org charts, phylogenetic trees)",
-          "Computing the distance between two nodes in a tree: distance(u, v) = depth(u) + depth(v) − 2 × depth(LCA(u, v))",
-          "Git's merge-base computation (finding the common ancestor commit of two branches) is conceptually an LCA query on the commit DAG",
-          "Range/path queries on trees, where many algorithms first reduce the problem to 'find the LCA, then process the path through it'"
-        ]},
-        { tag: "note", variant: "tip", text: "Don't use the general O(n) binary-tree algorithm on a BST — exploiting the BST ordering property gives O(h) instead, often a dramatic speedup, since you never need to explore the subtree that can't contain either target." }
+        {
+          tag: "ul",
+          items: [
+            "Finding the common ancestor of two nodes in any tree structure (file systems, org charts, phylogenetic trees)",
+            "Computing the distance between two nodes in a tree: distance(u, v) = depth(u) + depth(v) − 2 × depth(LCA(u, v))",
+            "Git's merge-base computation (finding the common ancestor commit of two branches) is conceptually an LCA query on the commit DAG",
+            "Range/path queries on trees, where many algorithms first reduce the problem to 'find the LCA, then process the path through it'",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "Don't use the general O(n) binary-tree algorithm on a BST — exploiting the BST ordering property gives O(h) instead, often a dramatic speedup, since you never need to explore the subtree that can't contain either target.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case — O(1)" },
-          { tag: "p", text: "If one of the two target nodes happens to be an ancestor of the other and is found immediately at the root, the search can terminate in constant time — though this depends on the specific tree and query, not a structural guarantee." },
-          { tag: "ul", items: [
-            "If root itself is one of the two targets, it's immediately known to be the LCA (since a node is its own potential ancestor): O(1)",
-            "This is a favourable-input case, not the typical algorithmic guarantee"
-          ]}
+          {
+            tag: "p",
+            text: "If one of the two target nodes happens to be an ancestor of the other and is found immediately at the root, the search can terminate in constant time — though this depends on the specific tree and query, not a structural guarantee.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "If root itself is one of the two targets, it's immediately known to be the LCA (since a node is its own potential ancestor): O(1)",
+              "This is a favourable-input case, not the typical algorithmic guarantee",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n)" },
-          { tag: "p", text: "The general binary-tree LCA algorithm must, in the average case, still explore a substantial fraction of the tree to confirm both targets are found and correctly determine their meeting point, since it doesn't exploit any ordering property." },
-          { tag: "ul", items: [
-            "Post-order recursive search: each node is visited once to check if it equals either target, or to combine results from its children",
-            "On average, a significant portion of the tree must be explored before both targets are located: O(n)",
-            "For a BST specifically, the average case improves to O(log n) by exploiting the ordering invariant, identical to BST search's average case"
-          ]}
+          {
+            tag: "p",
+            text: "The general binary-tree LCA algorithm must, in the average case, still explore a substantial fraction of the tree to confirm both targets are found and correctly determine their meeting point, since it doesn't exploit any ordering property.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Post-order recursive search: each node is visited once to check if it equals either target, or to combine results from its children",
+              "On average, a significant portion of the tree must be explored before both targets are located: O(n)",
+              "For a BST specifically, the average case improves to O(log n) by exploiting the ordering invariant, identical to BST search's average case",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n)" },
-          { tag: "p", text: "If the two target nodes are deep in different subtrees (or the entire tree must be searched to locate them), the general algorithm visits every node exactly once in the worst case." },
-          { tag: "ul", items: [
-            "Every node is visited exactly once in a post-order traversal: O(n)",
-            "For a BST, the worst case is O(h), which is O(n) for a degenerate unbalanced tree but O(log n) for a balanced one — same height dependency as plain BST operations",
-            "With O(n) preprocessing (binary lifting / Euler tour + sparse table), each individual query afterward drops to O(log n) or O(1), trading preprocessing cost for fast repeated queries"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "If the two target nodes are deep in different subtrees (or the entire tree must be searched to locate them), the general algorithm visits every node exactly once in the worst case.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Every node is visited exactly once in a post-order traversal: O(n)",
+              "For a BST, the worst case is O(h), which is O(n) for a degenerate unbalanced tree but O(log n) for a balanced one — same height dependency as plain BST operations",
+              "With O(n) preprocessing (binary lifting / Euler tour + sparse table), each individual query afterward drops to O(log n) or O(1), trading preprocessing cost for fast repeated queries",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(h)",
         best: [
           { tag: "h2", text: "Best Case Space — O(1)" },
-          { tag: "p", text: "If the LCA is found immediately at the root with no recursion needed, no additional stack space beyond the initial call is used." },
-          { tag: "ul", items: ["Single function call, no recursion: O(1)"] }
+          {
+            tag: "p",
+            text: "If the LCA is found immediately at the root with no recursion needed, no additional stack space beyond the initial call is used.",
+          },
+          { tag: "ul", items: ["Single function call, no recursion: O(1)"] },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(h)" },
-          { tag: "p", text: "The recursive post-order search uses a call stack bounded by the tree's height, since the recursion follows root-to-leaf paths." },
-          { tag: "ul", items: ["Recursion stack depth: O(h), where h is the tree's height — O(log n) for a balanced tree"] }
+          {
+            tag: "p",
+            text: "The recursive post-order search uses a call stack bounded by the tree's height, since the recursion follows root-to-leaf paths.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Recursion stack depth: O(h), where h is the tree's height — O(log n) for a balanced tree",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(n)" },
-          { tag: "p", text: "For a degenerate, maximally-skewed tree, the recursion stack can grow to O(n), matching the tree's worst-case height." },
-          { tag: "ul", items: [
-            "Recursion stack: O(h), which is O(n) for a degenerate tree",
-            "Preprocessing-based approaches (binary lifting) trade this for O(n log n) upfront space in exchange for O(log n) query time regardless of tree shape"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "For a degenerate, maximally-skewed tree, the recursion stack can grow to O(n), matching the tree's worst-case height.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Recursion stack: O(h), which is O(n) for a degenerate tree",
+              "Preprocessing-based approaches (binary lifting) trade this for O(n log n) upfront space in exchange for O(log n) query time regardless of tree shape",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
         { tag: "p", text: "General binary tree LCA (works for any binary tree, not just a BST):" },
-        { tag: "code", language: "text", text:
-`function lowestCommonAncestor(root, p, q):
+        {
+          tag: "code",
+          language: "text",
+          text: `function lowestCommonAncestor(root, p, q):
     if root is null or root == p or root == q:
         return root
 
@@ -4158,17 +4463,24 @@ fn main() {
 
     if left is not null and right is not null:
         return root          // p and q found in different subtrees — root is the LCA
-    return left if left is not null else right` },
+    return left if left is not null else right`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Base case: if the current node is null, or matches either target node, return it immediately — this is the signal that propagates 'I found one of the targets here' up through the recursion.",
-          "Recurse into both the left and right subtrees, searching for either target in each.",
-          "If both the left and right recursive calls return a non-null result, that means p was found in one subtree and q in the other — the current node is exactly where their paths diverge, making it the LCA.",
-          "If only one side returned a non-null result, that side contains either one or both targets — propagate that result upward unchanged, since the true LCA must be at or above that point.",
-          "The call on the original root eventually returns the LCA once the recursion fully unwinds."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Base case: if the current node is null, or matches either target node, return it immediately — this is the signal that propagates 'I found one of the targets here' up through the recursion.",
+            "Recurse into both the left and right subtrees, searching for either target in each.",
+            "If both the left and right recursive calls return a non-null result, that means p was found in one subtree and q in the other — the current node is exactly where their paths diverge, making it the LCA.",
+            "If only one side returned a non-null result, that side contains either one or both targets — propagate that result upward unchanged, since the true LCA must be at or above that point.",
+            "The call on the original root eventually returns the LCA once the recursion fully unwinds.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Correctness follows from a key invariant: a non-null return value from a subtree's recursive call means that subtree contains at least one of the two target nodes (possibly both, if it's already found their LCA internally). When a node receives non-null results from BOTH its left and right recursive calls, this proves the two targets are split across its two subtrees — meaning this node is precisely the deepest node with both as descendants, satisfying the definition of LCA. If a node already equals one of the targets, it's correctly returned immediately, since (by definition) any node is its own ancestor, covering the edge case where one target is an ancestor of the other." }
+        {
+          tag: "p",
+          text: "Correctness follows from a key invariant: a non-null return value from a subtree's recursive call means that subtree contains at least one of the two target nodes (possibly both, if it's already found their LCA internally). When a node receives non-null results from BOTH its left and right recursive calls, this proves the two targets are split across its two subtrees — meaning this node is precisely the deepest node with both as descendants, satisfying the definition of LCA. If a node already equals one of the targets, it's correctly returned immediately, since (by definition) any node is its own ancestor, covering the edge case where one target is an ancestor of the other.",
+        },
       ],
       codes: {
         "c++": `#include <iostream>
@@ -4238,7 +4550,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `# A minimal binary tree node used to demonstrate the LCA algorithm.
+        python: `# A minimal binary tree node used to demonstrate the LCA algorithm.
 class TreeNode:
     def __init__(self, value):
         self.value = value
@@ -4293,7 +4605,7 @@ if __name__ == "__main__":
     ancestor_of_5_and_4 = lowest_common_ancestor(root, 5, 4)
     print("LCA(5, 4) =", ancestor_of_5_and_4.value if ancestor_of_5_and_4 else -1)
 `,
-        "java": `public class LowestCommonAncestor {
+        java: `public class LowestCommonAncestor {
 
     // A minimal binary tree node used to demonstrate the LCA algorithm.
     static class TreeNode {
@@ -4354,7 +4666,7 @@ if __name__ == "__main__":
     }
 }
 `,
-        "js": `// A minimal binary tree node used to demonstrate the LCA algorithm.
+        js: `// A minimal binary tree node used to demonstrate the LCA algorithm.
 class TreeNode {
     constructor(value) {
         this.value = value;
@@ -4407,7 +4719,7 @@ console.log("LCA(5, 1) =", ancestorOf5And1 !== null ? ancestorOf5And1.value : -1
 const ancestorOf5And4 = lowestCommonAncestor(root, 5, 4);
 console.log("LCA(5, 4) =", ancestorOf5And4 !== null ? ancestorOf5And4.value : -1);
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <stdlib.h>
 
 // A minimal binary tree node used to demonstrate the LCA algorithm.
@@ -4529,7 +4841,7 @@ public static class LowestCommonAncestor {
     }
 }
 `,
-        "swift": `import Foundation
+        swift: `import Foundation
 
 // A minimal binary tree node used to demonstrate the LCA algorithm.
 final class TreeNode {
@@ -4582,7 +4894,7 @@ print("LCA(5, 1) = \(ancestorOf5And1?.value ?? -1)")
 let ancestorOf5And4 = lowestCommonAncestor(root, 5, 4)
 print("LCA(5, 4) = \(ancestorOf5And4?.value ?? -1)")
 `,
-        "kotlin": `// A minimal binary tree node used to demonstrate the LCA algorithm.
+        kotlin: `// A minimal binary tree node used to demonstrate the LCA algorithm.
 class TreeNode(var value: Int) {
     var left: TreeNode? = null
     var right: TreeNode? = null
@@ -4630,7 +4942,7 @@ fun main() {
     println("LCA(5, 4) = \${ancestorOf5And4?.value ?: -1}")
 }
 `,
-        "scala": `// A minimal binary tree node used to demonstrate the LCA algorithm.
+        scala: `// A minimal binary tree node used to demonstrate the LCA algorithm.
 class TreeNode(var value: Int) {
     var left: TreeNode = null
     var right: TreeNode = null
@@ -4680,7 +4992,7 @@ object LowestCommonAncestor extends App {
     println(s"LCA(5, 4) = \${if (ancestorOf5And4 != null) ancestorOf5And4.value else -1}")
 }
 `,
-        "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -4750,7 +5062,7 @@ func main() {
     }
 }
 `,
-        "rust": `use std::rc::Rc;
+        rust: `use std::rc::Rc;
 use std::cell::RefCell;
 
 /// A minimal binary tree node used to demonstrate the LCA algorithm.
@@ -4831,8 +5143,8 @@ fn main() {
         None => println!("LCA(5, 4) = -1"),
     }
 }
-`
-      }
+`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -4845,84 +5157,152 @@ fn main() {
 
       about: [
         { tag: "h1", text: "Red-Black Trees" },
-        { tag: "p", text: "A Red-Black Tree is a self-balancing BST where every node is colored either red or black, and a set of coloring rules guarantees the tree's height never exceeds roughly 2 log₂(n+1) — looser than AVL's stricter balance, but cheaper to maintain. Invented by Rudolf Bayer in 1972 (originally as 'symmetric binary B-trees'), it's the most widely deployed self-balancing tree structure in real-world software." },
-        { tag: "p", text: "The five defining rules are: (1) every node is red or black, (2) the root is always black, (3) every leaf (null/nil) is considered black, (4) a red node never has a red child ('no two reds in a row'), and (5) every path from a given node to any of its descendant null leaves passes through the same number of black nodes ('black-height' is consistent). These rules together guarantee no root-to-leaf path is ever more than twice as long as any other, which is what bounds the height to O(log n)." },
+        {
+          tag: "p",
+          text: "A Red-Black Tree is a self-balancing BST where every node is colored either red or black, and a set of coloring rules guarantees the tree's height never exceeds roughly 2 log₂(n+1) — looser than AVL's stricter balance, but cheaper to maintain. Invented by Rudolf Bayer in 1972 (originally as 'symmetric binary B-trees'), it's the most widely deployed self-balancing tree structure in real-world software.",
+        },
+        {
+          tag: "p",
+          text: "The five defining rules are: (1) every node is red or black, (2) the root is always black, (3) every leaf (null/nil) is considered black, (4) a red node never has a red child ('no two reds in a row'), and (5) every path from a given node to any of its descendant null leaves passes through the same number of black nodes ('black-height' is consistent). These rules together guarantee no root-to-leaf path is ever more than twice as long as any other, which is what bounds the height to O(log n).",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Write-heavy workloads — Red-Black trees require fewer rotations per insertion/deletion than AVL trees, making writes cheaper at a small cost to lookup speed",
-          "Implementing language standard library ordered containers — this is what backs C++'s std::map/std::set, Java's TreeMap/TreeSet, and the Linux kernel's completely fair scheduler (CFS)",
-          "Any general-purpose balanced BST need where you don't have a strong reason to prefer AVL's stricter balance",
-          "Interval trees (used for efficient overlap queries) are commonly built as an augmented Red-Black tree"
-        ]},
-        { tag: "table",
+        {
+          tag: "ul",
+          items: [
+            "Write-heavy workloads — Red-Black trees require fewer rotations per insertion/deletion than AVL trees, making writes cheaper at a small cost to lookup speed",
+            "Implementing language standard library ordered containers — this is what backs C++'s std::map/std::set, Java's TreeMap/TreeSet, and the Linux kernel's completely fair scheduler (CFS)",
+            "Any general-purpose balanced BST need where you don't have a strong reason to prefer AVL's stricter balance",
+            "Interval trees (used for efficient overlap queries) are commonly built as an augmented Red-Black tree",
+          ],
+        },
+        {
+          tag: "table",
           headers: ["Property", "AVL Tree", "Red-Black Tree"],
           rows: [
-            ["Balance strictness", "Height difference ≤ 1 (strict)", "Height difference ≤ 2x (looser)"],
+            [
+              "Balance strictness",
+              "Height difference ≤ 1 (strict)",
+              "Height difference ≤ 2x (looser)",
+            ],
             ["Lookup speed", "Slightly faster (more balanced)", "Slightly slower"],
-            ["Insert/delete speed", "Slower (more rotations)", "Faster (fewer rotations, O(1) amortised recoloring)"],
-            ["Typical use", "Read-heavy", "Write-heavy / general-purpose"]
-          ]
+            [
+              "Insert/delete speed",
+              "Slower (more rotations)",
+              "Faster (fewer rotations, O(1) amortised recoloring)",
+            ],
+            ["Typical use", "Read-heavy", "Write-heavy / general-purpose"],
+          ],
         },
-        { tag: "note", variant: "info", text: "Red-Black trees are also the structural basis for 2-3-4 trees (a type of B-tree) — there's a direct, well-known correspondence between the two, which is part of why the coloring-based balance rules work at all." }
+        {
+          tag: "note",
+          variant: "info",
+          text: "Red-Black trees are also the structural basis for 2-3-4 trees (a type of B-tree) — there's a direct, well-known correspondence between the two, which is part of why the coloring-based balance rules work at all.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(log n)",
         best: [
           { tag: "h2", text: "Best Case — O(log n)" },
-          { tag: "p", text: "Just like AVL trees, the height guarantee is structural and unconditional, so even the most favourable single query is still classified by the algorithm's guaranteed bound, not by luck." },
-          { tag: "ul", items: [
-            "The 5 Red-Black invariants guarantee height ≤ 2 log₂(n+1) at all times, for any insertion/deletion sequence",
-            "Search, insert, and delete all follow a root-to-leaf path bounded by this height: O(log n)"
-          ]}
+          {
+            tag: "p",
+            text: "Just like AVL trees, the height guarantee is structural and unconditional, so even the most favourable single query is still classified by the algorithm's guaranteed bound, not by luck.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "The 5 Red-Black invariants guarantee height ≤ 2 log₂(n+1) at all times, for any insertion/deletion sequence",
+              "Search, insert, and delete all follow a root-to-leaf path bounded by this height: O(log n)",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(log n)" },
-          { tag: "p", text: "Because the coloring invariants are actively maintained after every modification, there's no input sequence that produces a worse average shape than the guaranteed bound." },
-          { tag: "ul", items: [
-            "Search: O(h) = O(log n)",
-            "Insert: O(log n) to find the insertion point, plus O(1) amortised recoloring/rotation to restore the invariants (a key advantage over AVL, where rebalancing can require more frequent rotations)",
-            "Delete: O(log n) to find the node, plus a bounded number of rotations (at most 3) to restore the invariants"
-          ]}
+          {
+            tag: "p",
+            text: "Because the coloring invariants are actively maintained after every modification, there's no input sequence that produces a worse average shape than the guaranteed bound.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Search: O(h) = O(log n)",
+              "Insert: O(log n) to find the insertion point, plus O(1) amortised recoloring/rotation to restore the invariants (a key advantage over AVL, where rebalancing can require more frequent rotations)",
+              "Delete: O(log n) to find the node, plus a bounded number of rotations (at most 3) to restore the invariants",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(log n)" },
-          { tag: "p", text: "Like AVL trees, this is the entire purpose of the structure: no input sequence can ever produce a Red-Black tree taller than its proven bound." },
-          { tag: "ul", items: [
-            "Provable bound: a Red-Black tree with n internal nodes has height at most 2 log₂(n+1)",
-            "This follows from the black-height invariant: a subtree rooted at any node with black-height bh has at least 2^bh − 1 internal nodes, and the no-two-reds-in-a-row rule means the longest possible path is at most twice the shortest",
-            "No adversarial insertion/deletion sequence can break this bound — it's restored after every single operation"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "Like AVL trees, this is the entire purpose of the structure: no input sequence can ever produce a Red-Black tree taller than its proven bound.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Provable bound: a Red-Black tree with n internal nodes has height at most 2 log₂(n+1)",
+              "This follows from the black-height invariant: a subtree rooted at any node with black-height bh has at least 2^bh − 1 internal nodes, and the no-two-reds-in-a-row rule means the longest possible path is at most twice the shortest",
+              "No adversarial insertion/deletion sequence can break this bound — it's restored after every single operation",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case Space — O(n)" },
-          { tag: "p", text: "Storing n nodes requires O(n) space, plus a single extra bit per node to store its color — a much smaller per-node overhead than AVL's integer height/balance-factor field." },
-          { tag: "ul", items: ["n node objects, each with left/right/parent pointers + a 1-bit color field: O(n)"] }
+          {
+            tag: "p",
+            text: "Storing n nodes requires O(n) space, plus a single extra bit per node to store its color — a much smaller per-node overhead than AVL's integer height/balance-factor field.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "n node objects, each with left/right/parent pointers + a 1-bit color field: O(n)",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(n)" },
-          { tag: "p", text: "Total stored data is fixed by n alone, since the guaranteed height bound doesn't change how many nodes need to be stored, only how they're arranged." },
-          { tag: "ul", items: ["O(n) for node storage", "O(log n) for the recursion/iteration depth during any single operation, due to the guaranteed logarithmic height"] }
+          {
+            tag: "p",
+            text: "Total stored data is fixed by n alone, since the guaranteed height bound doesn't change how many nodes need to be stored, only how they're arranged.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(n) for node storage",
+              "O(log n) for the recursion/iteration depth during any single operation, due to the guaranteed logarithmic height",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(n)" },
-          { tag: "p", text: "No insertion/deletion sequence increases storage beyond the fixed per-node overhead — exactly like AVL trees, space depends only on node count, not on tree shape." },
-          { tag: "ul", items: [
-            "O(n) total node storage",
-            "O(log n) recursion/iteration depth during any single operation — guaranteed by the height bound"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No insertion/deletion sequence increases storage beyond the fixed per-node overhead — exactly like AVL trees, space depends only on node count, not on tree shape.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(n) total node storage",
+              "O(log n) recursion/iteration depth during any single operation — guaranteed by the height bound",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "p", text: "A NIL sentinel node (always colored black) is used in place of null pointers, which avoids special-casing null children when checking colors or performing rotations:" },
-        { tag: "code", language: "text", text:
-`function insert(tree, key):
+        {
+          tag: "p",
+          text: "A NIL sentinel node (always colored black) is used in place of null pointers, which avoids special-casing null children when checking colors or performing rotations:",
+        },
+        {
+          tag: "code",
+          language: "text",
+          text: `function insert(tree, key):
     newNode ← new Node(key, color = RED, left = NIL, right = NIL)
     bstInsert(tree, newNode)              // standard BST insertion using NIL as the leaf marker
 
@@ -4972,17 +5352,24 @@ function fixInsertViolations(tree, node):
         if node == tree.root:
             break
 
-    tree.root.color ← BLACK                // rule: root is always black` },
+    tree.root.color ← BLACK                // rule: root is always black`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Insert the new node exactly like a standard BST insertion, but always color it red initially — this never violates the black-height rule (rule 5), since a new red leaf doesn't add to any path's black-node count.",
-          "Coloring the new node red CAN violate rule 4 (no two reds in a row) if its parent is also red — this is the only possible violation after a plain BST insertion, and it's fixed by examining the new node's 'uncle' (its grandparent's other child).",
-          "If the uncle is red: recolor the parent and uncle to black and the grandparent to red, then continue the fix-up process treating the grandparent as the new 'node' — this can propagate the red-red violation further up the tree.",
-          "If the uncle is black (or is the NIL sentinel, which counts as black): rotations are needed. A 'triangle' shape (node is on the opposite side of its parent than the parent is of the grandparent) is first rotated into a 'line' shape, then a single rotation plus a recolor of the parent/grandparent resolves the violation completely without needing to propagate further up.",
-          "Finally, the root is always recolored black, satisfying rule 2 unconditionally — this can never violate the black-height rule, since lowering one red root to black only ever increases (or leaves unchanged) the black count of paths through it, uniformly across the whole tree."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Insert the new node exactly like a standard BST insertion, but always color it red initially — this never violates the black-height rule (rule 5), since a new red leaf doesn't add to any path's black-node count.",
+            "Coloring the new node red CAN violate rule 4 (no two reds in a row) if its parent is also red — this is the only possible violation after a plain BST insertion, and it's fixed by examining the new node's 'uncle' (its grandparent's other child).",
+            "If the uncle is red: recolor the parent and uncle to black and the grandparent to red, then continue the fix-up process treating the grandparent as the new 'node' — this can propagate the red-red violation further up the tree.",
+            "If the uncle is black (or is the NIL sentinel, which counts as black): rotations are needed. A 'triangle' shape (node is on the opposite side of its parent than the parent is of the grandparent) is first rotated into a 'line' shape, then a single rotation plus a recolor of the parent/grandparent resolves the violation completely without needing to propagate further up.",
+            "Finally, the root is always recolored black, satisfying rule 2 unconditionally — this can never violate the black-height rule, since lowering one red root to black only ever increases (or leaves unchanged) the black count of paths through it, uniformly across the whole tree.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "The five Red-Black invariants together force a provable height bound: rule 4 (no two consecutive reds) means that on any root-to-leaf path, red nodes can never make up more than half the path, so the longest path is at most twice the length of the shortest. Rule 5 (equal black-height on every path) is what makes 'shortest path' a well-defined, consistent quantity. The fix-up procedure is correct because each of its three cases either resolves the violation completely (cases 2 and 3, via rotation) or provably preserves all other invariants while pushing the violation strictly higher up the tree (case 1, recoloring) — and since the tree has finite height, this propagation must terminate, either by reaching a black parent (no violation) or by reaching the root (which is then simply recolored black, always a safe final fix)." }
+        {
+          tag: "p",
+          text: "The five Red-Black invariants together force a provable height bound: rule 4 (no two consecutive reds) means that on any root-to-leaf path, red nodes can never make up more than half the path, so the longest path is at most twice the length of the shortest. Rule 5 (equal black-height on every path) is what makes 'shortest path' a well-defined, consistent quantity. The fix-up procedure is correct because each of its three cases either resolves the violation completely (cases 2 and 3, via rotation) or provably preserves all other invariants while pushing the violation strictly higher up the tree (case 1, recoloring) — and since the tree has finite height, this propagation must terminate, either by reaching a black parent (no violation) or by reaching the root (which is then simply recolored black, always a safe final fix).",
+        },
       ],
       codes: {
         "c++": `#include <iostream>
@@ -5186,7 +5573,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `class Color:
+        python: `class Color:
     """Simple enum-like constants for a node's color."""
     RED = "RED"
     BLACK = "BLACK"
@@ -5361,7 +5748,7 @@ if __name__ == "__main__":
     print("Root value:", tree.root.value)
     print("Root color:", "Black (required by rule 2)" if tree.root.color == Color.BLACK else "Red (invalid!)")
 `,
-        "java": `public class RedBlackTree {
+        java: `public class RedBlackTree {
 
     enum Color { RED, BLACK }
 
@@ -5550,7 +5937,7 @@ if __name__ == "__main__":
     }
 }
 `,
-        "js": `const Color = Object.freeze({ RED: "RED", BLACK: "BLACK" });
+        js: `const Color = Object.freeze({ RED: "RED", BLACK: "BLACK" });
 
 // A Red-Black tree node. A shared NIL sentinel (always black) is used in
 // place of null, which lets every rotation and color check treat
@@ -5731,7 +6118,7 @@ console.log("In-order traversal (value + color):", inOrderResult.join(" "));
 console.log("Root value:", treeRoot.value);
 console.log("Root color:", treeRoot.color === Color.BLACK ? "Black (required by rule 2)" : "Red (invalid!)");
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <stdlib.h>
 
 typedef enum { RED, BLACK } RedBlackColor;
@@ -6109,7 +6496,7 @@ public static class RedBlackTree {
     }
 }
 `,
-        "swift": `import Foundation
+        swift: `import Foundation
 
 enum RedBlackColor {
     case red
@@ -6295,7 +6682,7 @@ print("In-order traversal (value + color): \(inOrderResult.joined(separator: " "
 print("Root value: \(treeRoot.value)")
 print("Root color: \(treeRoot.color == .black ? "Black (required by rule 2)" : "Red (invalid!)")")
 `,
-        "kotlin": `enum class RedBlackColor { RED, BLACK }
+        kotlin: `enum class RedBlackColor { RED, BLACK }
 
 // A Red-Black tree node. A shared NIL sentinel (always black) is used in
 // place of null, which lets every rotation and color check treat
@@ -6469,7 +6856,7 @@ fun main() {
     println("Root color: \${if (treeRoot.color == RedBlackColor.BLACK) "Black (required by rule 2)" else "Red (invalid!)"}")
 }
 `,
-        "scala" : `object ColorValue extends Enumeration {
+        scala: `object ColorValue extends Enumeration {
     val RED, BLACK = Value
 }
 
@@ -6653,7 +7040,7 @@ object RedBlackTree extends App {
     println(s"Root color: \${if (treeRoot.color == ColorValue.BLACK) "Black (required by rule 2)" else "Red (invalid!)"}")
 }
 `,
-        "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -6849,7 +7236,7 @@ func main() {
     }
 }
 `,
-        "rust": `use std::cell::RefCell;
+        rust: `use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 #[derive(Clone, Copy, PartialEq)]
@@ -7135,10 +7522,9 @@ fn main() {
         );
     }
 }
-`
-      }
-    }
-
+`,
+      },
+    },
   ],
   desc: "BST, AVL, segment tree, traversals",
   complexity: "O(log n)",
@@ -7917,7 +8303,7 @@ fn main() {
 
 //     return 0;
 // }
-        
+
 // `
 //       }
 //     },
@@ -8349,4 +8735,4 @@ fn main() {
 //   featured: false,
 // };
 
-export default TREES_SECTION ;
+export default TREES_SECTION;

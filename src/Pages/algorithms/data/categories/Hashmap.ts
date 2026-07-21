@@ -1,29 +1,54 @@
 const HASH_MAPS_SECTION = {
   name: "Hash Maps",
   href: "/algorithms/hash_maps",
-    iconId: "Hashmap",
-    hoverIconId: "Hashmap",
+  iconId: "Hashmap",
+  hoverIconId: "Hashmap",
 
   about: [
     { tag: "h1", text: "Hash Maps" },
-    { tag: "p", text: "A hash map stores key-value pairs and uses a hash function to convert each key into an array index, giving average-case O(1) insertion, lookup, and deletion — a dramatic improvement over a linear scan's O(n) or a balanced tree's O(log n), at the cost of losing any ordering guarantee on the keys." },
-    { tag: "p", text: "The mechanics rest on two ideas: the hash function maps an arbitrary key to a fixed-size integer (the bucket index), and collision handling deals with the inevitable case where two different keys hash to the same bucket (most commonly via chaining — each bucket holds a small list of entries — or open addressing — probing for the next free slot). As long as the hash function distributes keys roughly uniformly and the load factor (entries ÷ buckets) is kept reasonable via resizing, the expected chain length per bucket stays O(1), which is the entire source of hash maps' average-case speed." },
+    {
+      tag: "p",
+      text: "A hash map stores key-value pairs and uses a hash function to convert each key into an array index, giving average-case O(1) insertion, lookup, and deletion — a dramatic improvement over a linear scan's O(n) or a balanced tree's O(log n), at the cost of losing any ordering guarantee on the keys.",
+    },
+    {
+      tag: "p",
+      text: "The mechanics rest on two ideas: the hash function maps an arbitrary key to a fixed-size integer (the bucket index), and collision handling deals with the inevitable case where two different keys hash to the same bucket (most commonly via chaining — each bucket holds a small list of entries — or open addressing — probing for the next free slot). As long as the hash function distributes keys roughly uniformly and the load factor (entries ÷ buckets) is kept reasonable via resizing, the expected chain length per bucket stays O(1), which is the entire source of hash maps' average-case speed.",
+    },
     { tag: "h2", text: "Why 'average case', not 'worst case'" },
-    { tag: "p", text: "Every operation in this section lists O(1) as the AVERAGE case, never the worst case. This isn't a minor caveat — it's structural: any fixed hash function can theoretically be defeated by an adversarially chosen set of keys that all collide into the same bucket, degrading that bucket's lookup to O(n) (or O(log n) if the bucket uses a balanced tree internally, as Java's HashMap does since Java 8). In practice, with a well-designed hash function and a non-adversarial key distribution, O(1) average case is what's reliably observed." },
-    { tag: "table",
+    {
+      tag: "p",
+      text: "Every operation in this section lists O(1) as the AVERAGE case, never the worst case. This isn't a minor caveat — it's structural: any fixed hash function can theoretically be defeated by an adversarially chosen set of keys that all collide into the same bucket, degrading that bucket's lookup to O(n) (or O(log n) if the bucket uses a balanced tree internally, as Java's HashMap does since Java 8). In practice, with a well-designed hash function and a non-adversarial key distribution, O(1) average case is what's reliably observed.",
+    },
+    {
+      tag: "table",
       headers: ["Concept", "Role"],
       rows: [
-        ["Hash function", "Maps an arbitrary key to a bucket index — quality determines collision rate"],
-        ["Load factor", "entries ÷ buckets — kept below a threshold (commonly ~0.75) by resizing, to bound expected chain length"],
-        ["Chaining", "Each bucket holds a list (or tree) of entries that hashed to it — the most common collision-resolution strategy"],
-        ["Open addressing", "On collision, probe for the next free slot within the array itself — no extra per-bucket structure needed"]
-      ]
+        [
+          "Hash function",
+          "Maps an arbitrary key to a bucket index — quality determines collision rate",
+        ],
+        [
+          "Load factor",
+          "entries ÷ buckets — kept below a threshold (commonly ~0.75) by resizing, to bound expected chain length",
+        ],
+        [
+          "Chaining",
+          "Each bucket holds a list (or tree) of entries that hashed to it — the most common collision-resolution strategy",
+        ],
+        [
+          "Open addressing",
+          "On collision, probe for the next free slot within the array itself — no extra per-bucket structure needed",
+        ],
+      ],
     },
-    { tag: "note", variant: "tip", text: "Hash maps are the single most common 'turn an O(n²) brute force into O(n)' tool in all of algorithm design — anywhere you're checking 'have I seen this value before' or 'how many times does this appear' inside a loop, a hash map almost certainly eliminates an inner O(n) scan." }
+    {
+      tag: "note",
+      variant: "tip",
+      text: "Hash maps are the single most common 'turn an O(n²) brute force into O(n)' tool in all of algorithm design — anywhere you're checking 'have I seen this value before' or 'how many times does this appear' inside a loop, a hash map almost certainly eliminates an inner O(n) scan.",
+    },
   ],
 
   items: [
-
     /* ════════════════════════════════════════════════════════════════════
        1. TWO SUM
     ════════════════════════════════════════════════════════════════════ */
@@ -34,66 +59,119 @@ const HASH_MAPS_SECTION = {
 
       about: [
         { tag: "h1", text: "Two Sum" },
-        { tag: "p", text: "Given an array of integers and a target value, Two Sum asks for the indices of the two numbers that add up to the target. It's one of the most famous interview questions precisely because of the gap between the obvious O(n²) brute-force solution (check every pair) and the elegant O(n) hash-map solution — a single-pass technique that should be immediately recognisable as the 'textbook' use case for a hash map's O(1) average lookup." },
-        { tag: "p", text: "The key insight: instead of searching for BOTH numbers of a pair, process the array once, and for each number, check whether its COMPLEMENT (target − current number) has ALREADY been seen. If it has, the pair is found immediately; if not, record the current number (and its index) for future lookups by later elements." },
+        {
+          tag: "p",
+          text: "Given an array of integers and a target value, Two Sum asks for the indices of the two numbers that add up to the target. It's one of the most famous interview questions precisely because of the gap between the obvious O(n²) brute-force solution (check every pair) and the elegant O(n) hash-map solution — a single-pass technique that should be immediately recognisable as the 'textbook' use case for a hash map's O(1) average lookup.",
+        },
+        {
+          tag: "p",
+          text: "The key insight: instead of searching for BOTH numbers of a pair, process the array once, and for each number, check whether its COMPLEMENT (target − current number) has ALREADY been seen. If it has, the pair is found immediately; if not, record the current number (and its index) for future lookups by later elements.",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "The literal Two Sum problem — finding a pair summing to a target in unsorted data, without the O(n log n) sort-then-two-pointer alternative (which works but doesn't preserve original indices without extra bookkeeping)",
-          "As the foundational template for an entire family of 'k-sum' problems (3Sum, 4Sum often reduce to repeated Two Sum sub-calls after fixing one or more values)",
-          "Any 'does there exist a pair (or complement) satisfying X' question over an unsorted, unindexed collection — the hash-map-while-scanning pattern generalises directly",
-          "A canonical illustration of trading O(n) space for an O(n²) → O(n) time improvement, the most common trade-off pattern in all of hash-map-based algorithm design"
-        ]},
-        { tag: "note", variant: "tip", text: "If the array is ALREADY sorted (or sorting it doesn't lose needed information, like original indices), the Two Pointers technique solves this in O(n) time and O(1) space instead — strictly better space, but it requires sorted input or destroys index information, which is exactly why the hash-map approach is preferred when original indices must be returned from unsorted input." }
+        {
+          tag: "ul",
+          items: [
+            "The literal Two Sum problem — finding a pair summing to a target in unsorted data, without the O(n log n) sort-then-two-pointer alternative (which works but doesn't preserve original indices without extra bookkeeping)",
+            "As the foundational template for an entire family of 'k-sum' problems (3Sum, 4Sum often reduce to repeated Two Sum sub-calls after fixing one or more values)",
+            "Any 'does there exist a pair (or complement) satisfying X' question over an unsorted, unindexed collection — the hash-map-while-scanning pattern generalises directly",
+            "A canonical illustration of trading O(n) space for an O(n²) → O(n) time improvement, the most common trade-off pattern in all of hash-map-based algorithm design",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "If the array is ALREADY sorted (or sorting it doesn't lose needed information, like original indices), the Two Pointers technique solves this in O(n) time and O(1) space instead — strictly better space, but it requires sorted input or destroys index information, which is exactly why the hash-map approach is preferred when original indices must be returned from unsorted input.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case — O(1)" },
-          { tag: "p", text: "If the very first two elements happen to sum to the target, the algorithm can terminate after just two iterations — though this is a property of the specific input, not a structural guarantee." },
-          { tag: "ul", items: ["If arr[0] and arr[1] sum to target: found after processing 2 elements — O(1)", "This is a favourable-input case, not the general bound"] }
+          {
+            tag: "p",
+            text: "If the very first two elements happen to sum to the target, the algorithm can terminate after just two iterations — though this is a property of the specific input, not a structural guarantee.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "If arr[0] and arr[1] sum to target: found after processing 2 elements — O(1)",
+              "This is a favourable-input case, not the general bound",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n)" },
-          { tag: "p", text: "A single pass through the array is performed, with each element triggering one O(1) average-case hash map lookup (checking for its complement) and one O(1) average-case hash map insertion (recording itself for future lookups)." },
-          { tag: "ul", items: [
-            "n elements, each with O(1) average hash map lookup + O(1) average insertion: O(n) total",
-            "No input distribution changes this fixed per-element work, beyond possibly terminating early if a match is found sooner"
-          ]}
+          {
+            tag: "p",
+            text: "A single pass through the array is performed, with each element triggering one O(1) average-case hash map lookup (checking for its complement) and one O(1) average-case hash map insertion (recording itself for future lookups).",
+          },
+          {
+            tag: "ul",
+            items: [
+              "n elements, each with O(1) average hash map lookup + O(1) average insertion: O(n) total",
+              "No input distribution changes this fixed per-element work, beyond possibly terminating early if a match is found sooner",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n)" },
-          { tag: "p", text: "If no pair sums to the target until the very last element (or no valid pair exists at all), the algorithm must process every element before concluding." },
-          { tag: "ul", items: [
-            "Worst case: full scan of all n elements, each with O(1) average hash operations: O(n)",
-            "This is a decisive improvement over the O(n²) brute-force nested-loop approach"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "If no pair sums to the target until the very last element (or no valid pair exists at all), the algorithm must process every element before concluding.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Worst case: full scan of all n elements, each with O(1) average hash operations: O(n)",
+              "This is a decisive improvement over the O(n²) brute-force nested-loop approach",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case Space — O(1)" },
-          { tag: "p", text: "If the answer is found immediately (e.g. the first two elements form the pair), the hash map holds only one entry at the moment of success." },
-          { tag: "ul", items: ["Hash map: as few as 1 entry if the match is found almost immediately — O(1) in this specific scenario"] }
+          {
+            tag: "p",
+            text: "If the answer is found immediately (e.g. the first two elements form the pair), the hash map holds only one entry at the moment of success.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Hash map: as few as 1 entry if the match is found almost immediately — O(1) in this specific scenario",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(n)" },
-          { tag: "p", text: "The hash map can grow to hold up to n entries (every element processed so far, in the case where the matching pair isn't found until late in the scan)." },
-          { tag: "ul", items: ["Hash map: up to O(n) entries in the typical case"] }
+          {
+            tag: "p",
+            text: "The hash map can grow to hold up to n entries (every element processed so far, in the case where the matching pair isn't found until late in the scan).",
+          },
+          { tag: "ul", items: ["Hash map: up to O(n) entries in the typical case"] },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(n)" },
-          { tag: "p", text: "If no valid pair exists at all, every single element gets inserted into the hash map before the scan concludes with no match found." },
-          { tag: "ul", items: ["Hash map: O(n), holding every element when no match is ever found"] }
-        ]
+          {
+            tag: "p",
+            text: "If no valid pair exists at all, every single element gets inserted into the hash map before the scan concludes with no match found.",
+          },
+          {
+            tag: "ul",
+            items: ["Hash map: O(n), holding every element when no match is ever found"],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function twoSum(nums, target):
+        {
+          tag: "code",
+          language: "text",
+          text: `function twoSum(nums, target):
     seenValueToIndex ← empty hash map        // value → index
 
     for i from 0 to length(nums) − 1:
@@ -102,17 +180,24 @@ const HASH_MAPS_SECTION = {
             return [seenValueToIndex[complement], i]
         seenValueToIndex[nums[i]] ← i
 
-    return NO_SOLUTION` },
+    return NO_SOLUTION`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Maintain a hash map from VALUE to its index, built up incrementally as the array is scanned.",
-          "For each new element, compute its complement — the value that, added to the current element, would equal the target.",
-          "Check if that complement has already been seen (i.e. it's already a key in the hash map, meaning it appeared at some EARLIER index). If so, the pair is found: return the earlier index (from the map) and the current index.",
-          "If the complement hasn't been seen yet, record the current element's value and index in the hash map, so that a LATER element can find it as ITS complement.",
-          "If the scan completes with no match found, no valid pair exists in the array."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Maintain a hash map from VALUE to its index, built up incrementally as the array is scanned.",
+            "For each new element, compute its complement — the value that, added to the current element, would equal the target.",
+            "Check if that complement has already been seen (i.e. it's already a key in the hash map, meaning it appeared at some EARLIER index). If so, the pair is found: return the earlier index (from the map) and the current index.",
+            "If the complement hasn't been seen yet, record the current element's value and index in the hash map, so that a LATER element can find it as ITS complement.",
+            "If the scan completes with no match found, no valid pair exists in the array.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "If a valid pair (i, j) with i < j exists such that nums[i] + nums[j] == target, then by the time the scan reaches index j, nums[i] has ALREADY been inserted into the hash map (since i < j and insertion happens immediately after each element is processed). At index j, the complement check (target − nums[j] == nums[i]) will correctly succeed, finding the pair. Because the algorithm checks for the complement BEFORE inserting the current element, a single element is never paired with itself (e.g. nums[i] == target/2 wouldn't incorrectly match against its own just-inserted entry), correctly handling that edge case as a natural consequence of the check-then-insert ordering." }
+        {
+          tag: "p",
+          text: "If a valid pair (i, j) with i < j exists such that nums[i] + nums[j] == target, then by the time the scan reaches index j, nums[i] has ALREADY been inserted into the hash map (since i < j and insertion happens immediately after each element is processed). At index j, the complement check (target − nums[j] == nums[i]) will correctly succeed, finding the pair. Because the algorithm checks for the complement BEFORE inserting the current element, a single element is never paired with itself (e.g. nums[i] == target/2 wouldn't incorrectly match against its own just-inserted entry), correctly handling that edge case as a natural consequence of the check-then-insert ordering.",
+        },
       ],
 
       codes: {
@@ -155,7 +240,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `def find_two_sum_indices(nums, target):
+        python: `def find_two_sum_indices(nums, target):
     """Return the indices of the two numbers in nums that add up to target.
 
     Scans the array once, using a dictionary to remember every value seen
@@ -185,7 +270,7 @@ if __name__ == "__main__":
     result = find_two_sum_indices(nums, target)
     print(f"Indices: {result[0]}, {result[1]}")
 `,
-        "java": `import java.util.HashMap;
+        java: `import java.util.HashMap;
 import java.util.Map;
 
 public class Main {
@@ -221,7 +306,7 @@ public class Main {
     }
 }
 `,
-        "js": `// Returns the indices of the two numbers in nums that add up to target.
+        js: `// Returns the indices of the two numbers in nums that add up to target.
 // Scans the array once, remembering every value seen so far and its index.
 function findTwoSumIndices(nums, target) {
     const valueToIndex = new Map(); // value seen so far -> its index
@@ -249,7 +334,7 @@ const target = 9;
 const result = findTwoSumIndices(nums, target);
 console.log(\`Indices: \${result[0]}, \${result[1]}\`);
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <stdlib.h>
 
 #define TABLE_SIZE 1024
@@ -356,7 +441,7 @@ class Program {
     }
 }
 `,
-        "swift": `import Foundation
+        swift: `import Foundation
 
 // Returns the indices of the two numbers in nums that add up to target.
 // Scans the array once, remembering every value seen so far and its index.
@@ -385,7 +470,7 @@ let target = 9
 let result = findTwoSumIndices(nums, target)
 print("Indices: \\(result[0]), \\(result[1])")
 `,
-        "kotlin": `fun findTwoSumIndices(nums: IntArray, target: Int): IntArray {
+        kotlin: `fun findTwoSumIndices(nums: IntArray, target: Int): IntArray {
     // value seen so far -> its index
     val valueToIndex = HashMap<Int, Int>()
 
@@ -415,7 +500,7 @@ fun main() {
     println("Indices: \${result[0]}, \${result[1]}")
 }
 `,
-        "scala": `import scala.collection.mutable
+        scala: `import scala.collection.mutable
 
 object Main extends App {
     // Returns the indices of the two numbers in nums that add up to target.
@@ -448,7 +533,7 @@ object Main extends App {
     println(s"Indices: \${result(0)}, \${result(1)}")
 }
 `,
-        "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -482,7 +567,7 @@ func main() {
     fmt.Printf("Indices: %d, %d\\n", firstIndex, secondIndex)
 }
 `,
-        "rust": `use std::collections::HashMap;
+        rust: `use std::collections::HashMap;
 
 // Returns the indices of the two numbers in nums that add up to target.
 // Scans the slice once, remembering every value seen so far and its index.
@@ -512,8 +597,8 @@ fn main() {
     let (first_index, second_index) = find_two_sum_indices(&nums, target);
     println!("Indices: {}, {}", first_index, second_index);
 }
-`
-      }
+`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -526,70 +611,117 @@ fn main() {
 
       about: [
         { tag: "h1", text: "Longest Consecutive Sequence" },
-        { tag: "p", text: "Given an unsorted array of integers, this problem asks for the length of the longest run of consecutive integers present in the array (not necessarily contiguous in the array itself — just consecutive as INTEGER VALUES, e.g. [100, 4, 200, 1, 3, 2] contains the consecutive run 1,2,3,4, of length 4). The obvious approach — sort first, then scan for runs — costs O(n log n); a hash-set-based approach achieves O(n)." },
-        { tag: "p", text: "The key trick avoiding O(n log n) sorting: put every number into a hash set for O(1) existence checks, then for each number, only START counting a run from it if num−1 is NOT in the set — meaning this number is genuinely the start of its run. This guarantees each run is counted exactly once, from its true beginning, rather than being recounted from every one of its members." },
+        {
+          tag: "p",
+          text: "Given an unsorted array of integers, this problem asks for the length of the longest run of consecutive integers present in the array (not necessarily contiguous in the array itself — just consecutive as INTEGER VALUES, e.g. [100, 4, 200, 1, 3, 2] contains the consecutive run 1,2,3,4, of length 4). The obvious approach — sort first, then scan for runs — costs O(n log n); a hash-set-based approach achieves O(n).",
+        },
+        {
+          tag: "p",
+          text: "The key trick avoiding O(n log n) sorting: put every number into a hash set for O(1) existence checks, then for each number, only START counting a run from it if num−1 is NOT in the set — meaning this number is genuinely the start of its run. This guarantees each run is counted exactly once, from its true beginning, rather than being recounted from every one of its members.",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Finding the longest run of consecutive integer VALUES in an unsorted collection, without needing the O(n log n) cost of actually sorting first",
-          "Any problem reducible to 'does a chain of consecutive keys exist, and how long is it' — generalises beyond integers to any totally-ordered, hashable key type with a well-defined 'successor' notion",
-          "A clean illustration of how a hash set's O(1) membership check can replace sorting entirely when the only thing that matters is consecutive-value runs, not full ordering",
-          "As a building block for interval-merging-style problems where checking 'is the next value already accounted for' needs to be fast"
-        ]},
-        { tag: "note", variant: "tip", text: "The 'only start counting from num−1 not in set' check is what keeps this O(n) instead of O(n²) — without it, every single number would redundantly re-walk its entire run from scratch, even ones in the middle." }
+        {
+          tag: "ul",
+          items: [
+            "Finding the longest run of consecutive integer VALUES in an unsorted collection, without needing the O(n log n) cost of actually sorting first",
+            "Any problem reducible to 'does a chain of consecutive keys exist, and how long is it' — generalises beyond integers to any totally-ordered, hashable key type with a well-defined 'successor' notion",
+            "A clean illustration of how a hash set's O(1) membership check can replace sorting entirely when the only thing that matters is consecutive-value runs, not full ordering",
+            "As a building block for interval-merging-style problems where checking 'is the next value already accounted for' needs to be fast",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "The 'only start counting from num−1 not in set' check is what keeps this O(n) instead of O(n²) — without it, every single number would redundantly re-walk its entire run from scratch, even ones in the middle.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case — O(n)" },
-          { tag: "p", text: "Building the hash set from the input array always requires visiting every element once, regardless of how favourably the values happen to be arranged — there's no shortcut even for the most consecutive-heavy input." },
-          { tag: "ul", items: [
-            "Inserting n elements into the hash set: O(n) average",
-            "Even if the entire array forms one giant consecutive run, every element still needs to be inserted and checked once: O(n)"
-          ]}
+          {
+            tag: "p",
+            text: "Building the hash set from the input array always requires visiting every element once, regardless of how favourably the values happen to be arranged — there's no shortcut even for the most consecutive-heavy input.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Inserting n elements into the hash set: O(n) average",
+              "Even if the entire array forms one giant consecutive run, every element still needs to be inserted and checked once: O(n)",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n)" },
-          { tag: "p", text: "Although the inner while-loop (walking forward through a run once a start is found) looks like it could create nested-loop behaviour, the 'only start from true run-starts' check ensures every number is visited by the inner loop AT MOST ONCE across the entire algorithm — an amortised argument identical in spirit to the monotonic stack pattern." },
-          { tag: "ul", items: [
-            "Outer loop: n iterations, one per array element, each doing an O(1) average hash-set lookup to check if it's a run-start",
-            "Inner while-loop (only entered for true run-starts): across the WHOLE algorithm, the total number of inner-loop steps equals exactly n, since every number belongs to exactly one run and is visited by the inner loop exactly once when that run is processed",
-            "Combined: O(n) + O(n) = O(n)"
-          ]}
+          {
+            tag: "p",
+            text: "Although the inner while-loop (walking forward through a run once a start is found) looks like it could create nested-loop behaviour, the 'only start from true run-starts' check ensures every number is visited by the inner loop AT MOST ONCE across the entire algorithm — an amortised argument identical in spirit to the monotonic stack pattern.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Outer loop: n iterations, one per array element, each doing an O(1) average hash-set lookup to check if it's a run-start",
+              "Inner while-loop (only entered for true run-starts): across the WHOLE algorithm, the total number of inner-loop steps equals exactly n, since every number belongs to exactly one run and is visited by the inner loop exactly once when that run is processed",
+              "Combined: O(n) + O(n) = O(n)",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n)" },
-          { tag: "p", text: "No value arrangement breaks the amortised bound — even an input forming one single run of length n (forcing the inner while-loop to walk all n elements in one shot) still totals exactly n inner-loop steps across the whole algorithm, matching the amortised argument exactly." },
-          { tag: "ul", items: [
-            "Worst case matches best/average: O(n)",
-            "This is a genuine improvement over the O(n log n) sort-based approach, achievable only because hash set membership checks replace the need for sorted adjacency"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No value arrangement breaks the amortised bound — even an input forming one single run of length n (forcing the inner while-loop to walk all n elements in one shot) still totals exactly n inner-loop steps across the whole algorithm, matching the amortised argument exactly.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Worst case matches best/average: O(n)",
+              "This is a genuine improvement over the O(n log n) sort-based approach, achievable only because hash set membership checks replace the need for sorted adjacency",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case Space — O(n)" },
-          { tag: "p", text: "The hash set must store every distinct value from the input array, requiring space proportional to the number of distinct elements regardless of how they're arranged." },
-          { tag: "ul", items: ["Hash set: up to n entries — O(n)"] }
+          {
+            tag: "p",
+            text: "The hash set must store every distinct value from the input array, requiring space proportional to the number of distinct elements regardless of how they're arranged.",
+          },
+          { tag: "ul", items: ["Hash set: up to n entries — O(n)"] },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(n)" },
-          { tag: "p", text: "Space usage is fixed by the number of distinct input values alone, since every value must be inserted into the set regardless of how many consecutive runs they form." },
-          { tag: "ul", items: ["Same O(n) bound regardless of how the values cluster into runs"] }
+          {
+            tag: "p",
+            text: "Space usage is fixed by the number of distinct input values alone, since every value must be inserted into the set regardless of how many consecutive runs they form.",
+          },
+          { tag: "ul", items: ["Same O(n) bound regardless of how the values cluster into runs"] },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(n)" },
-          { tag: "p", text: "No input configuration increases space beyond storing all distinct values in the hash set — this is both the floor and ceiling for the algorithm's memory footprint." },
-          { tag: "ul", items: ["O(n) total, identical across all cases — this is the unavoidable cost of trading O(n log n) sort time for O(n) hash-set-based time"] }
-        ]
+          {
+            tag: "p",
+            text: "No input configuration increases space beyond storing all distinct values in the hash set — this is both the floor and ceiling for the algorithm's memory footprint.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(n) total, identical across all cases — this is the unavoidable cost of trading O(n log n) sort time for O(n) hash-set-based time",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function longestConsecutiveSequence(nums):
+        {
+          tag: "code",
+          language: "text",
+          text: `function longestConsecutiveSequence(nums):
     numberSet ← hash set built from nums
     longestRunLength ← 0
 
@@ -602,17 +734,24 @@ fn main() {
                 currentRunLength ← currentRunLength + 1
             longestRunLength ← max(longestRunLength, currentRunLength)
 
-    return longestRunLength` },
+    return longestRunLength`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Insert every number from the input into a hash set, giving O(1) average-case membership checks for any value.",
-          "Iterate over the DISTINCT values in the set (not the raw array, so duplicates are never redundantly re-examined). For each number, check whether num − 1 is also in the set. If it IS, this number is somewhere in the MIDDLE or end of a run, not the start — skip it, since it will be correctly counted when processing its run's true starting number.",
-          "If num − 1 is NOT in the set, this number is genuinely the start of a consecutive run — begin counting forward: check if num + 1 is in the set, then num + 2, and so on, incrementing the length counter each time.",
-          "Once the run breaks (the next consecutive value isn't in the set), record the run's length if it's the longest seen so far.",
-          "After checking every number in the set this way, the longest recorded run length is the answer."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Insert every number from the input into a hash set, giving O(1) average-case membership checks for any value.",
+            "Iterate over the DISTINCT values in the set (not the raw array, so duplicates are never redundantly re-examined). For each number, check whether num − 1 is also in the set. If it IS, this number is somewhere in the MIDDLE or end of a run, not the start — skip it, since it will be correctly counted when processing its run's true starting number.",
+            "If num − 1 is NOT in the set, this number is genuinely the start of a consecutive run — begin counting forward: check if num + 1 is in the set, then num + 2, and so on, incrementing the length counter each time.",
+            "Once the run breaks (the next consecutive value isn't in the set), record the run's length if it's the longest seen so far.",
+            "After checking every number in the set this way, the longest recorded run length is the answer.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "The 'num − 1 not in set' check guarantees that the inner while-loop is entered exactly once per distinct consecutive run in the input, always starting from that run's true minimum value — this is what prevents the same run from being redundantly re-walked from every one of its members. Since every number belongs to exactly one maximal consecutive run, and that run is counted in full exactly once (when its start is processed), the algorithm correctly computes every run's true length and the maximum among them is correctly the longest consecutive sequence present in the input." }
+        {
+          tag: "p",
+          text: "The 'num − 1 not in set' check guarantees that the inner while-loop is entered exactly once per distinct consecutive run in the input, always starting from that run's true minimum value — this is what prevents the same run from being redundantly re-walked from every one of its members. Since every number belongs to exactly one maximal consecutive run, and that run is counted in full exactly once (when its start is processed), the algorithm correctly computes every run's true length and the maximum among them is correctly the longest consecutive sequence present in the input.",
+        },
       ],
 
       codes: {
@@ -657,7 +796,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `def longest_consecutive_sequence(nums):
+        python: `def longest_consecutive_sequence(nums):
     """Return the length of the longest run of consecutive integer values
     present in nums (values need not be adjacent within the list itself).
     """
@@ -687,7 +826,7 @@ if __name__ == "__main__":
     answer = longest_consecutive_sequence(nums)
     print(f"Longest Consecutive Sequence Length: {answer}")
 `,
-        "java": `import java.util.HashSet;
+        java: `import java.util.HashSet;
 import java.util.Set;
 
 public class Main {
@@ -728,7 +867,7 @@ public class Main {
     }
 }
 `,
-        "js": `// Returns the length of the longest run of consecutive integer values
+        js: `// Returns the length of the longest run of consecutive integer values
 // present in nums (values need not be adjacent within the array itself).
 function longestConsecutiveSequence(nums) {
     const numberSet = new Set(nums);
@@ -759,7 +898,7 @@ const nums = [100, 4, 200, 1, 3, 2];
 const answer = longestConsecutiveSequence(nums);
 console.log(\`Longest Consecutive Sequence Length: \${answer}\`);
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <stdlib.h>
 
 #define TABLE_SIZE 2048
@@ -875,7 +1014,7 @@ class Program {
     }
 }
 `,
-        "swift": `import Foundation
+        swift: `import Foundation
 
 // Returns the length of the longest run of consecutive integer values
 // present in nums (values need not be adjacent within the array itself).
@@ -908,7 +1047,7 @@ let nums = [100, 4, 200, 1, 3, 2]
 let answer = longestConsecutiveSequence(nums)
 print("Longest Consecutive Sequence Length: \\(answer)")
 `,
-        "kotlin": `fun longestConsecutiveSequence(nums: IntArray): Int {
+        kotlin: `fun longestConsecutiveSequence(nums: IntArray): Int {
     val numberSet = nums.toHashSet()
     var longestRunLength = 0
 
@@ -939,7 +1078,7 @@ fun main() {
     println("Longest Consecutive Sequence Length: $answer")
 }
 `,
-        "scala": `object Main extends App {
+        scala: `object Main extends App {
     // Returns the length of the longest run of consecutive integer values
     // present in nums (values need not be adjacent within the array itself).
     def longestConsecutiveSequence(nums: Array[Int]): Int = {
@@ -972,7 +1111,7 @@ fun main() {
     println(s"Longest Consecutive Sequence Length: $answer")
 }
 `,
-        "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -1016,7 +1155,7 @@ func main() {
     fmt.Printf("Longest Consecutive Sequence Length: %d\\n", answer)
 }
 `,
-        "rust": `use std::collections::HashSet;
+        rust: `use std::collections::HashSet;
 
 // Returns the length of the longest run of consecutive integer values
 // present in nums (values need not be adjacent within the slice itself).
@@ -1050,8 +1189,8 @@ fn main() {
     let answer = longest_consecutive_sequence(&nums);
     println!("Longest Consecutive Sequence Length: {}", answer);
 }
-`
-      }
+`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1064,69 +1203,126 @@ fn main() {
 
       about: [
         { tag: "h1", text: "Group Anagrams" },
-        { tag: "p", text: "Given an array of strings, Group Anagrams groups together every string that is an anagram of every other string in its group (i.e. they contain exactly the same characters, just rearranged — 'eat', 'tea', and 'ate' are all anagrams of each other). The key technique is finding a CANONICAL FORM for each string such that two strings are anagrams of each other if and only if they share the same canonical form — then a hash map from canonical form to a list of original strings groups everything in a single pass." },
-        { tag: "p", text: "The most common canonical form is the SORTED version of the string (since anagrams, by definition, contain the same multiset of characters, sorting them always produces an identical result). An alternative, often faster canonical form for strings limited to a small fixed alphabet (like lowercase English letters) is a character-frequency count — a 26-element tuple of counts — which avoids the O(k log k) cost of sorting each string entirely, since counting characters is only O(k)." },
+        {
+          tag: "p",
+          text: "Given an array of strings, Group Anagrams groups together every string that is an anagram of every other string in its group (i.e. they contain exactly the same characters, just rearranged — 'eat', 'tea', and 'ate' are all anagrams of each other). The key technique is finding a CANONICAL FORM for each string such that two strings are anagrams of each other if and only if they share the same canonical form — then a hash map from canonical form to a list of original strings groups everything in a single pass.",
+        },
+        {
+          tag: "p",
+          text: "The most common canonical form is the SORTED version of the string (since anagrams, by definition, contain the same multiset of characters, sorting them always produces an identical result). An alternative, often faster canonical form for strings limited to a small fixed alphabet (like lowercase English letters) is a character-frequency count — a 26-element tuple of counts — which avoids the O(k log k) cost of sorting each string entirely, since counting characters is only O(k).",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Grouping strings (or any collection) by some equivalence relation where a fast-to-compute CANONICAL FORM exists — anagram-grouping is the classic example, but the technique generalises",
-          "Detecting duplicate or rearranged content: file deduplication by content signature, detecting permuted password attempts, bioinformatics sequence comparison after accounting for rearrangement",
-          "As a clean illustration of the 'canonical key' hash-map pattern: instead of hashing the raw data directly, hash a TRANSFORMED version of it that's identical for all members of the same equivalence class",
-          "Frequency-count canonical forms (rather than sorting) generalise this same technique to an O(nk) solution when the alphabet is small and fixed, avoiding the O(k log k) per-string sorting cost entirely"
-        ]},
-        { tag: "note", variant: "tip", text: "The sorted-string canonical form is simple but costs O(k log k) per string; for problems specifically restricted to lowercase English letters, a 26-length frequency-count tuple as the key instead reduces this to O(k) per string, improving the overall bound from O(nk log k) to O(nk)." }
+        {
+          tag: "ul",
+          items: [
+            "Grouping strings (or any collection) by some equivalence relation where a fast-to-compute CANONICAL FORM exists — anagram-grouping is the classic example, but the technique generalises",
+            "Detecting duplicate or rearranged content: file deduplication by content signature, detecting permuted password attempts, bioinformatics sequence comparison after accounting for rearrangement",
+            "As a clean illustration of the 'canonical key' hash-map pattern: instead of hashing the raw data directly, hash a TRANSFORMED version of it that's identical for all members of the same equivalence class",
+            "Frequency-count canonical forms (rather than sorting) generalise this same technique to an O(nk) solution when the alphabet is small and fixed, avoiding the O(k log k) per-string sorting cost entirely",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "The sorted-string canonical form is simple but costs O(k log k) per string; for problems specifically restricted to lowercase English letters, a 26-length frequency-count tuple as the key instead reduces this to O(k) per string, improving the overall bound from O(nk log k) to O(nk).",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(nk log k)",
         best: [
           { tag: "h2", text: "Best Case — O(nk log k)" },
-          { tag: "p", text: "Every string must be canonicalised (sorted) and inserted into the hash map regardless of how many actual anagram groups exist — there's no shortcut even if every string happens to be in its own unique group." },
-          { tag: "ul", items: [
-            "n strings, each requiring O(k log k) to sort (where k is the maximum string length) and O(k) average to hash and insert into the map",
-            "Total: O(nk log k), even for the most favourable grouping outcome"
-          ]}
+          {
+            tag: "p",
+            text: "Every string must be canonicalised (sorted) and inserted into the hash map regardless of how many actual anagram groups exist — there's no shortcut even if every string happens to be in its own unique group.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "n strings, each requiring O(k log k) to sort (where k is the maximum string length) and O(k) average to hash and insert into the map",
+              "Total: O(nk log k), even for the most favourable grouping outcome",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(nk log k)" },
-          { tag: "p", text: "Every string undergoes the same fixed sorting and hash-map-insertion process regardless of the actual character content or how strings group together — sorting cost depends only on string length, not on content distribution." },
-          { tag: "ul", items: [
-            "n strings × O(k log k) sorting each = O(nk log k)",
-            "Hash map insertion using the sorted string as key: O(k) average per insertion (for hashing/comparing the key itself), dominated by the sorting cost"
-          ]}
+          {
+            tag: "p",
+            text: "Every string undergoes the same fixed sorting and hash-map-insertion process regardless of the actual character content or how strings group together — sorting cost depends only on string length, not on content distribution.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "n strings × O(k log k) sorting each = O(nk log k)",
+              "Hash map insertion using the sorted string as key: O(k) average per insertion (for hashing/comparing the key itself), dominated by the sorting cost",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(nk log k)" },
-          { tag: "p", text: "No input configuration increases the cost beyond sorting every string and inserting it into the hash map — this is simultaneously the best, average, and worst case, since sorting cost is determined entirely by string length, not content." },
-          { tag: "ul", items: [
-            "Worst case identical to best/average: O(nk log k)",
-            "The character-frequency-count alternative (for restricted alphabets, shown as a secondary implementation below) achieves O(nk) instead, avoiding the log k factor entirely by replacing sorting with a linear counting pass"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No input configuration increases the cost beyond sorting every string and inserting it into the hash map — this is simultaneously the best, average, and worst case, since sorting cost is determined entirely by string length, not content.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Worst case identical to best/average: O(nk log k)",
+              "The character-frequency-count alternative (for restricted alphabets, shown as a secondary implementation below) achieves O(nk) instead, avoiding the log k factor entirely by replacing sorting with a linear counting pass",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(nk)",
         best: [
           { tag: "h2", text: "Best Case Space — O(nk)" },
-          { tag: "p", text: "The hash map must ultimately store every original string (across all groups) plus their canonical-form keys, requiring space proportional to the total character count across all input strings." },
-          { tag: "ul", items: ["Total stored characters across all original strings and their canonical keys: O(nk)"] }
+          {
+            tag: "p",
+            text: "The hash map must ultimately store every original string (across all groups) plus their canonical-form keys, requiring space proportional to the total character count across all input strings.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Total stored characters across all original strings and their canonical keys: O(nk)",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(nk)" },
-          { tag: "p", text: "Space usage is fixed by the total input size (n strings of average length k) alone, regardless of how many distinct anagram groups actually form." },
-          { tag: "ul", items: ["Same O(nk) bound regardless of grouping distribution — whether all n strings form one giant group or n separate singleton groups"] }
+          {
+            tag: "p",
+            text: "Space usage is fixed by the total input size (n strings of average length k) alone, regardless of how many distinct anagram groups actually form.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Same O(nk) bound regardless of grouping distribution — whether all n strings form one giant group or n separate singleton groups",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(nk)" },
-          { tag: "p", text: "No grouping configuration increases space beyond storing all original strings and their canonical-form keys exactly once each." },
-          { tag: "ul", items: ["O(nk) total, identical across all cases — both the original strings and their sorted-key representations contribute O(nk) combined"] }
-        ]
+          {
+            tag: "p",
+            text: "No grouping configuration increases space beyond storing all original strings and their canonical-form keys exactly once each.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(nk) total, identical across all cases — both the original strings and their sorted-key representations contribute O(nk) combined",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function groupAnagrams(strings):
+        {
+          tag: "code",
+          language: "text",
+          text: `function groupAnagrams(strings):
     canonicalFormToGroup ← empty hash map     // canonical form → list of original strings
 
     for str_s in strings:
@@ -1135,16 +1331,23 @@ fn main() {
             canonicalFormToGroup[canonicalKey] ← empty list
         canonicalFormToGroup[canonicalKey].append(str_s)
 
-    return values of canonicalFormToGroup        // list of grouped lists` },
+    return values of canonicalFormToGroup        // list of grouped lists`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "For each string in the input, compute its canonical form — here, the characters sorted into a fixed order (e.g. 'tea' and 'eat' both sort to 'aet').",
-          "Use this canonical form as a hash map key. If it's a new key, initialise an empty list for it.",
-          "Append the ORIGINAL (unsorted) string to the list associated with its canonical key — this preserves the actual input strings in the output, while using the sorted version purely as the grouping mechanism.",
-          "After processing every string, the hash map's values (each a list of original strings) are exactly the anagram groups, since every string in the same list shares the same canonical form by construction."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "For each string in the input, compute its canonical form — here, the characters sorted into a fixed order (e.g. 'tea' and 'eat' both sort to 'aet').",
+            "Use this canonical form as a hash map key. If it's a new key, initialise an empty list for it.",
+            "Append the ORIGINAL (unsorted) string to the list associated with its canonical key — this preserves the actual input strings in the output, while using the sorted version purely as the grouping mechanism.",
+            "After processing every string, the hash map's values (each a list of original strings) are exactly the anagram groups, since every string in the same list shares the same canonical form by construction.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Two strings are anagrams of each other if and only if they contain the exact same multiset of characters — and sorting a string produces a canonical, order-independent representation of that multiset (any two strings with the same multiset of characters produce identical sorted output, and any two strings with different multisets produce different sorted output). This means the canonical-form hash map key correctly captures the 'is an anagram of' equivalence relation exactly: strings map to the same key if and only if they're anagrams of each other, so grouping by key correctly and completely partitions the input into anagram groups." }
+        {
+          tag: "p",
+          text: "Two strings are anagrams of each other if and only if they contain the exact same multiset of characters — and sorting a string produces a canonical, order-independent representation of that multiset (any two strings with the same multiset of characters produce identical sorted output, and any two strings with different multisets produce different sorted output). This means the canonical-form hash map key correctly captures the 'is an anagram of' equivalence relation exactly: strings map to the same key if and only if they're anagrams of each other, so grouping by key correctly and completely partitions the input into anagram groups.",
+        },
       ],
 
       codes: {
@@ -1189,7 +1392,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `def group_anagrams(words):
+        python: `def group_anagrams(words):
     """Group every string that is an anagram of another into the same list.
 
     Uses each string's sorted characters as a canonical grouping key.
@@ -1210,7 +1413,7 @@ if __name__ == "__main__":
     for group in groups:
         print(group)
 `,
-        "java": `import java.util.ArrayList;
+        java: `import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1245,7 +1448,7 @@ public class Main {
     }
 }
 `,
-        "js": `// Groups every string that is an anagram of another into the same list.
+        js: `// Groups every string that is an anagram of another into the same list.
 // Uses each string's sorted characters as a canonical grouping key.
 function groupAnagrams(words) {
     const canonicalFormToGroup = new Map();
@@ -1269,7 +1472,7 @@ for (const group of groups) {
     console.log(group);
 }
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -1386,7 +1589,7 @@ class Program {
     }
 }
 `,
-        "swift": `import Foundation
+        swift: `import Foundation
 
 // Groups every string that is an anagram of another into the same list.
 // Uses each string's sorted characters as a canonical grouping key.
@@ -1408,7 +1611,7 @@ for group in groups {
     print(group)
 }
 `,
-        "kotlin": `fun groupAnagrams(words: Array<String>): List<List<String>> {
+        kotlin: `fun groupAnagrams(words: Array<String>): List<List<String>> {
     val canonicalFormToGroup = HashMap<String, MutableList<String>>()
 
     for (word in words) {
@@ -1428,7 +1631,7 @@ fun main() {
     }
 }
 `,
-        "scala": `import scala.collection.mutable
+        scala: `import scala.collection.mutable
 
 object Main extends App {
     // Groups every string that is an anagram of another into the same list.
@@ -1450,7 +1653,7 @@ object Main extends App {
     groups.foreach(println)
 }
 `,
-        "go": `package main
+        go: `package main
 
 import (
     "fmt"
@@ -1487,7 +1690,7 @@ func main() {
     }
 }
 `,
-        "rust": `use std::collections::HashMap;
+        rust: `use std::collections::HashMap;
 
 // Groups every string that is an anagram of another into the same vector.
 // Uses each string's sorted characters as a canonical grouping key.
@@ -1516,8 +1719,8 @@ fn main() {
         println!("{:?}", group);
     }
 }
-`
-      }
+`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1530,72 +1733,128 @@ fn main() {
 
       about: [
         { tag: "h1", text: "Design Hashmap" },
-        { tag: "p", text: "Designing a hash map from scratch means implementing put, get, and remove without relying on a language's built-in hash map — forcing an explicit decision about the hash function, the underlying bucket array, and the collision-resolution strategy. The standard approach is SEPARATE CHAINING: an array of buckets, where each bucket holds a list of (key, value) pairs that all happen to hash to that same index." },
-        { tag: "p", text: "The hash function's job is converting an arbitrary key into a bucket index, typically via key.hashCode() mod numBuckets (or some bit-mixing variant to better distribute the bits of poor-quality hash codes). Resizing — growing the bucket array and re-distributing all existing entries once the load factor crosses a threshold — is what keeps the average chain length bounded as the map grows, which is the entire mechanism behind the structure's O(1) average-case guarantee. Without resizing, a fixed-size bucket array would degrade toward O(n) average lookup as more entries accumulate, no matter how good the hash function is." },
+        {
+          tag: "p",
+          text: "Designing a hash map from scratch means implementing put, get, and remove without relying on a language's built-in hash map — forcing an explicit decision about the hash function, the underlying bucket array, and the collision-resolution strategy. The standard approach is SEPARATE CHAINING: an array of buckets, where each bucket holds a list of (key, value) pairs that all happen to hash to that same index.",
+        },
+        {
+          tag: "p",
+          text: "The hash function's job is converting an arbitrary key into a bucket index, typically via key.hashCode() mod numBuckets (or some bit-mixing variant to better distribute the bits of poor-quality hash codes). Resizing — growing the bucket array and re-distributing all existing entries once the load factor crosses a threshold — is what keeps the average chain length bounded as the map grows, which is the entire mechanism behind the structure's O(1) average-case guarantee. Without resizing, a fixed-size bucket array would degrade toward O(n) average lookup as more entries accumulate, no matter how good the hash function is.",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Implementing the hash map ADT from primitives, typically as an interview question testing understanding of hashing, collision resolution, and amortised resizing",
-          "Understanding exactly how/why a hash map achieves O(1) average case — essential background before reasoning about hash map performance in any other algorithm in this whole reference",
-          "Building a custom hash map variant with non-standard requirements a language's built-in map doesn't support (e.g. a specific eviction policy, as in LRU/LFU Cache Design)",
-          "Embedded or resource-constrained environments where a language's standard hash map has more overhead than a minimal custom implementation needs"
-        ]},
-        { tag: "note", variant: "tip", text: "The resizing trigger (commonly: resize when load factor exceeds ~0.75) is what bounds expected chain length to O(1) as the map grows — the implementation below rebuilds the bucket array at double its previous size and re-hashes every existing entry into it whenever this threshold is crossed, exactly matching the mechanism described above." }
+        {
+          tag: "ul",
+          items: [
+            "Implementing the hash map ADT from primitives, typically as an interview question testing understanding of hashing, collision resolution, and amortised resizing",
+            "Understanding exactly how/why a hash map achieves O(1) average case — essential background before reasoning about hash map performance in any other algorithm in this whole reference",
+            "Building a custom hash map variant with non-standard requirements a language's built-in map doesn't support (e.g. a specific eviction policy, as in LRU/LFU Cache Design)",
+            "Embedded or resource-constrained environments where a language's standard hash map has more overhead than a minimal custom implementation needs",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "The resizing trigger (commonly: resize when load factor exceeds ~0.75) is what bounds expected chain length to O(1) as the map grows — the implementation below rebuilds the bucket array at double its previous size and re-hashes every existing entry into it whenever this threshold is crossed, exactly matching the mechanism described above.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(1) avg",
         best: [
           { tag: "h2", text: "Best Case — O(1)" },
-          { tag: "p", text: "If a key's bucket has zero collisions (it's the only entry hashed to that index), get/put/remove all complete in a single O(1) bucket-array access plus a trivial 0-or-1-element chain scan." },
-          { tag: "ul", items: [
-            "Hash computation: O(1) (assuming O(1) key hashing, typical for fixed-size keys like integers or short strings)",
-            "Bucket array access: O(1)",
-            "Empty or single-element chain scan: O(1)"
-          ]}
+          {
+            tag: "p",
+            text: "If a key's bucket has zero collisions (it's the only entry hashed to that index), get/put/remove all complete in a single O(1) bucket-array access plus a trivial 0-or-1-element chain scan.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Hash computation: O(1) (assuming O(1) key hashing, typical for fixed-size keys like integers or short strings)",
+              "Bucket array access: O(1)",
+              "Empty or single-element chain scan: O(1)",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(1)" },
-          { tag: "p", text: "With a well-distributed hash function and load factor kept bounded via resizing, the EXPECTED chain length per bucket is O(1) regardless of how many total entries are stored, since the bucket count grows proportionally with entry count." },
-          { tag: "ul", items: [
-            "Hash computation + bucket access: O(1)",
-            "Expected chain length: O(1), assuming uniform hash distribution and load factor maintained below a fixed threshold via periodic resizing",
-            "Resizing itself costs O(n) when triggered (rehashing every entry into the new, larger array), but happens only O(log n) times total across n insertions (since capacity doubles each time), giving amortised O(1) per insertion overall — directly analogous to dynamic array doubling"
-          ]}
+          {
+            tag: "p",
+            text: "With a well-distributed hash function and load factor kept bounded via resizing, the EXPECTED chain length per bucket is O(1) regardless of how many total entries are stored, since the bucket count grows proportionally with entry count.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Hash computation + bucket access: O(1)",
+              "Expected chain length: O(1), assuming uniform hash distribution and load factor maintained below a fixed threshold via periodic resizing",
+              "Resizing itself costs O(n) when triggered (rehashing every entry into the new, larger array), but happens only O(log n) times total across n insertions (since capacity doubles each time), giving amortised O(1) per insertion overall — directly analogous to dynamic array doubling",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n)" },
-          { tag: "p", text: "If every key happens to hash to the SAME bucket (either due to a poor hash function or an adversarially constructed key set designed to defeat a known hash function), that single bucket's chain degrades to a plain linked list of length n, and every operation touching it becomes O(n)." },
-          { tag: "ul", items: [
-            "Pathological all-collision case: O(n) per operation, since the entire chain must be scanned linearly",
-            "Some production hash maps (e.g. Java's HashMap since Java 8) mitigate this by converting sufficiently long chains into a balanced tree, capping the worst case at O(log n) instead of O(n) — a deliberate engineering response to exactly this adversarial scenario"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "If every key happens to hash to the SAME bucket (either due to a poor hash function or an adversarially constructed key set designed to defeat a known hash function), that single bucket's chain degrades to a plain linked list of length n, and every operation touching it becomes O(n).",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Pathological all-collision case: O(n) per operation, since the entire chain must be scanned linearly",
+              "Some production hash maps (e.g. Java's HashMap since Java 8) mitigate this by converting sufficiently long chains into a balanced tree, capping the worst case at O(log n) instead of O(n) — a deliberate engineering response to exactly this adversarial scenario",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case Space — O(n)" },
-          { tag: "p", text: "Storing n key-value pairs always requires O(n) space for the entries themselves, plus the bucket array, which is kept sized proportionally to n by the resizing logic in order to maintain a bounded load factor." },
-          { tag: "ul", items: ["n entries: O(n)", "Bucket array: O(n) (kept proportional to n by resizing whenever the load factor threshold is crossed)"] }
+          {
+            tag: "p",
+            text: "Storing n key-value pairs always requires O(n) space for the entries themselves, plus the bucket array, which is kept sized proportionally to n by the resizing logic in order to maintain a bounded load factor.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "n entries: O(n)",
+              "Bucket array: O(n) (kept proportional to n by resizing whenever the load factor threshold is crossed)",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(n)" },
-          { tag: "p", text: "Total space is fixed by the number of stored entries and the bucket array size, both of which scale linearly with n regardless of how entries distribute across buckets." },
-          { tag: "ul", items: ["Same O(n) bound regardless of hash distribution quality"] }
+          {
+            tag: "p",
+            text: "Total space is fixed by the number of stored entries and the bucket array size, both of which scale linearly with n regardless of how entries distribute across buckets.",
+          },
+          { tag: "ul", items: ["Same O(n) bound regardless of hash distribution quality"] },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(n)" },
-          { tag: "p", text: "Even in the pathological all-same-bucket collision case, total space usage doesn't change — it's still exactly n entries stored somewhere, just all within a single chain instead of distributed across many." },
-          { tag: "ul", items: ["O(n) total, identical regardless of collision pattern — the worst case affects TIME complexity dramatically, but not space complexity"] }
-        ]
+          {
+            tag: "p",
+            text: "Even in the pathological all-same-bucket collision case, total space usage doesn't change — it's still exactly n entries stored somewhere, just all within a single chain instead of distributed across many.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(n) total, identical regardless of collision pattern — the worst case affects TIME complexity dramatically, but not space complexity",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "p", text: "Separate chaining with array-of-lists buckets, plus load-factor-triggered resizing:" },
-        { tag: "code", language: "text", text:
-`class HashMap:
+        {
+          tag: "p",
+          text: "Separate chaining with array-of-lists buckets, plus load-factor-triggered resizing:",
+        },
+        {
+          tag: "code",
+          language: "text",
+          text: `class HashMap:
     buckets ← array of empty lists, size = INITIAL_CAPACITY
     entryCount ← 0
 
@@ -1634,17 +1893,24 @@ fn main() {
         for bucket in oldBuckets:
             for (key, value) in bucket:
                 bucketIndex ← hashKeyToIndex(key, length(buckets))
-                buckets[bucketIndex].append((key, value))   // re-hash into the new, larger array` },
+                buckets[bucketIndex].append((key, value))   // re-hash into the new, larger array`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "The hash function converts a key into a bucket index by computing its hash code and taking it modulo the current bucket array size.",
-          "put: compute the target bucket, then scan that bucket's chain for an existing entry with the same key (to update in place) — if none is found, append a new entry. If this insertion pushes the load factor (entryCount ÷ bucket count) above a threshold, trigger a resize.",
-          "get: compute the target bucket and linearly scan its chain for a matching key, returning its value if found.",
-          "remove: compute the target bucket, scan for the matching key, and remove that entry from the chain if found.",
-          "resize: allocate a new, larger bucket array (double the size) and re-insert every existing entry by re-computing its hash against the new array size — necessary because the modulo result depends on the bucket count, so every entry's correct bucket changes when that count changes. This directly implements the load-factor-bounding mechanism described in the introduction."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "The hash function converts a key into a bucket index by computing its hash code and taking it modulo the current bucket array size.",
+            "put: compute the target bucket, then scan that bucket's chain for an existing entry with the same key (to update in place) — if none is found, append a new entry. If this insertion pushes the load factor (entryCount ÷ bucket count) above a threshold, trigger a resize.",
+            "get: compute the target bucket and linearly scan its chain for a matching key, returning its value if found.",
+            "remove: compute the target bucket, scan for the matching key, and remove that entry from the chain if found.",
+            "resize: allocate a new, larger bucket array (double the size) and re-insert every existing entry by re-computing its hash against the new array size — necessary because the modulo result depends on the bucket count, so every entry's correct bucket changes when that count changes. This directly implements the load-factor-bounding mechanism described in the introduction.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Correctness of lookup follows directly from the hash function being deterministic: any key always maps to the same bucket index given the same bucket array size, so a key inserted into bucketIndex will always be found by computing that same bucketIndex during a later get or remove call (as long as no resize has happened in between, after which a re-hash correctly relocates it to its new appropriate bucket, since resize re-inserts every entry using the new array size before any further operation can query it). The chain-scanning within each bucket correctly handles collisions by checking key equality explicitly, not just hash equality, since multiple distinct keys can legitimately hash to the same bucket index. The O(1) average-case guarantee follows from the load-factor-triggered resizing keeping the ratio of entries to buckets bounded by a constant, which keeps the expected chain length — and therefore the expected scan cost — bounded by a constant as well." }
+        {
+          tag: "p",
+          text: "Correctness of lookup follows directly from the hash function being deterministic: any key always maps to the same bucket index given the same bucket array size, so a key inserted into bucketIndex will always be found by computing that same bucketIndex during a later get or remove call (as long as no resize has happened in between, after which a re-hash correctly relocates it to its new appropriate bucket, since resize re-inserts every entry using the new array size before any further operation can query it). The chain-scanning within each bucket correctly handles collisions by checking key equality explicitly, not just hash equality, since multiple distinct keys can legitimately hash to the same bucket index. The O(1) average-case guarantee follows from the load-factor-triggered resizing keeping the ratio of entries to buckets bounded by a constant, which keeps the expected chain length — and therefore the expected scan cost — bounded by a constant as well.",
+        },
       ],
 
       codes: {
@@ -1751,7 +2017,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `class SimpleHashMap:
+        python: `class SimpleHashMap:
     """A separate-chaining hash map that automatically resizes (doubling its
     bucket array) whenever the load factor crosses a fixed threshold.
     """
@@ -1835,7 +2101,7 @@ if __name__ == "__main__":
     print(f"bucket count after growth: {len(hash_map.buckets)}")
     print(f"get(15): {hash_map.get(15)}")
 `,
-        "java": `import java.util.ArrayList;
+        java: `import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
@@ -1948,7 +2214,7 @@ public class Main {
     }
 }
 `,
-        "js": `// A separate-chaining hash map that automatically resizes (doubling its
+        js: `// A separate-chaining hash map that automatically resizes (doubling its
 // bucket array) whenever the load factor crosses a fixed threshold.
 class SimpleHashMap {
     static INITIAL_CAPACITY = 4;
@@ -2043,7 +2309,7 @@ for (let i = 10; i < 20; i++) map.put(i, i * 100);
 console.log(\`bucket count after growth: \${map.buckets.length}\`);
 console.log(\`get(15): \${map.get(15)}\`);
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <stdlib.h>
 
 #define INITIAL_CAPACITY 4
@@ -2287,7 +2553,7 @@ class Program {
     }
 }
 `,
-        "swift": `import Foundation
+        swift: `import Foundation
 
 // A separate-chaining hash map that automatically resizes (doubling its
 // bucket array) whenever the load factor crosses a fixed threshold.
@@ -2386,7 +2652,7 @@ for i in 10..<20 { map.put(i, i * 100) }
 print("bucket count after growth: \\(map.bucketCount)")
 print("get(15): \\(map.get(15))")
 `,
-        "kotlin": `// A separate-chaining hash map that automatically resizes (doubling its
+        kotlin: `// A separate-chaining hash map that automatically resizes (doubling its
 // bucket array) whenever the load factor crosses a fixed threshold.
 class SimpleHashMap {
     private var buckets: MutableList<MutableList<Pair<Int, Int>>> =
@@ -2485,7 +2751,7 @@ fun main() {
     println("get(15): \${map.get(15)}")
 }
 `,
-        "scala": `import scala.collection.mutable.ListBuffer
+        scala: `import scala.collection.mutable.ListBuffer
 
 // A separate-chaining hash map that automatically resizes (doubling its
 // bucket array) whenever the load factor crosses a fixed threshold.
@@ -2575,7 +2841,7 @@ object Main extends App {
     println(s"get(15): \${map.get(15)}")
 }
 `,
-        "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -2691,7 +2957,7 @@ func main() {
     fmt.Printf("get(15): %d\\n", hashMap.Get(15))
 }
 `,
-        "rust": `// A separate-chaining hash map that automatically resizes (doubling its
+        rust: `// A separate-chaining hash map that automatically resizes (doubling its
 // bucket array) whenever the load factor crosses a fixed threshold.
 struct SimpleHashMap {
     buckets: Vec<Vec<(i32, i32)>>,
@@ -2798,8 +3064,8 @@ fn main() {
     println!("bucket count after growth: {}", map.bucket_count());
     println!("get(15): {}", map.get(15));
 }
-`
-      }
+`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -2812,73 +3078,130 @@ fn main() {
 
       about: [
         { tag: "h1", text: "LFU Cache Design" },
-        { tag: "p", text: "A Least Frequently Used (LFU) Cache is a fixed-capacity key-value store that, when full, evicts the entry with the SMALLEST access count (not the oldest, as in LRU) to make room for a new one — ties between equally-infrequent entries are broken by evicting the least-recently-used among them. It's a strictly harder design problem than LRU Cache (covered in the Linked Lists section), since it requires tracking TWO dimensions simultaneously: frequency count AND recency-within-that-frequency." },
-        { tag: "p", text: "The O(1)-per-operation solution requires THREE coordinated structures: a hash map from key to (value, frequency) for O(1) lookup, a hash map from frequency count to a DOUBLY LINKED LIST of keys with that exact frequency (ordered by recency within the frequency group, exactly like an LRU list), and a tracked 'minimum frequency currently in the cache' value to know instantly which frequency-bucket to evict from. The doubly linked list is what makes removing a specific key from the middle of its frequency bucket genuinely O(1) — with only a singly linked list or a plain array, removing an arbitrary element requires an O(k) scan to find it first." },
+        {
+          tag: "p",
+          text: "A Least Frequently Used (LFU) Cache is a fixed-capacity key-value store that, when full, evicts the entry with the SMALLEST access count (not the oldest, as in LRU) to make room for a new one — ties between equally-infrequent entries are broken by evicting the least-recently-used among them. It's a strictly harder design problem than LRU Cache (covered in the Linked Lists section), since it requires tracking TWO dimensions simultaneously: frequency count AND recency-within-that-frequency.",
+        },
+        {
+          tag: "p",
+          text: "The O(1)-per-operation solution requires THREE coordinated structures: a hash map from key to (value, frequency) for O(1) lookup, a hash map from frequency count to a DOUBLY LINKED LIST of keys with that exact frequency (ordered by recency within the frequency group, exactly like an LRU list), and a tracked 'minimum frequency currently in the cache' value to know instantly which frequency-bucket to evict from. The doubly linked list is what makes removing a specific key from the middle of its frequency bucket genuinely O(1) — with only a singly linked list or a plain array, removing an arbitrary element requires an O(k) scan to find it first.",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Designing a cache eviction policy where ACCESS FREQUENCY (not just recency) should determine what gets evicted — content that's accessed very often but happened to be touched a while ago shouldn't be evicted just because something less popular was touched more recently (the failure mode LRU is vulnerable to)",
-          "CDN and database buffer pool caching strategies where genuinely 'hot' (frequently accessed) data should be strongly preferred for retention over merely 'recently touched once' data",
-          "The natural escalation problem after mastering LRU Cache Design — demonstrates combining MULTIPLE hash maps and linked lists together to track two independent dimensions (frequency and recency) simultaneously, each in O(1)",
-          "Adaptive caching systems that blend frequency and recency (e.g. ARC — Adaptive Replacement Cache) build on the same multi-structure foundation established here"
-        ]},
-        { tag: "note", variant: "warning", text: "The trickiest part of LFU isn't tracking frequency — it's correctly maintaining the 'minimum frequency currently present' value across both increments (when an existing key is accessed) and evictions (when the minimum-frequency bucket becomes empty and the new minimum must be determined), since getting this wrong silently breaks the eviction-order guarantee. A second, equally common implementation mistake is storing each frequency bucket as a plain array or vector and removing a key from it with a linear scan — that silently downgrades every operation from the promised O(1) to O(bucket size), even though the rest of the design looks correct." }
+        {
+          tag: "ul",
+          items: [
+            "Designing a cache eviction policy where ACCESS FREQUENCY (not just recency) should determine what gets evicted — content that's accessed very often but happened to be touched a while ago shouldn't be evicted just because something less popular was touched more recently (the failure mode LRU is vulnerable to)",
+            "CDN and database buffer pool caching strategies where genuinely 'hot' (frequently accessed) data should be strongly preferred for retention over merely 'recently touched once' data",
+            "The natural escalation problem after mastering LRU Cache Design — demonstrates combining MULTIPLE hash maps and linked lists together to track two independent dimensions (frequency and recency) simultaneously, each in O(1)",
+            "Adaptive caching systems that blend frequency and recency (e.g. ARC — Adaptive Replacement Cache) build on the same multi-structure foundation established here",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "warning",
+          text: "The trickiest part of LFU isn't tracking frequency — it's correctly maintaining the 'minimum frequency currently present' value across both increments (when an existing key is accessed) and evictions (when the minimum-frequency bucket becomes empty and the new minimum must be determined), since getting this wrong silently breaks the eviction-order guarantee. A second, equally common implementation mistake is storing each frequency bucket as a plain array or vector and removing a key from it with a linear scan — that silently downgrades every operation from the promised O(1) to O(bucket size), even though the rest of the design looks correct.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(1)",
         best: [
           { tag: "h2", text: "Best Case — O(1)" },
-          { tag: "p", text: "Both get and put always perform a small, fixed number of hash map lookups and doubly-linked-list pointer operations, regardless of the cache's current contents or access history." },
-          { tag: "ul", items: [
-            "get: O(1) — look up the key's entry, increment its frequency, splice it out of its old frequency bucket's list using a stored iterator/pointer (no scan needed), and splice it into the new frequency bucket's list",
-            "put: O(1) — similar lookup/update, plus possibly an O(1) eviction from the minimum-frequency bucket's tail if the cache is full"
-          ]}
+          {
+            tag: "p",
+            text: "Both get and put always perform a small, fixed number of hash map lookups and doubly-linked-list pointer operations, regardless of the cache's current contents or access history.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "get: O(1) — look up the key's entry, increment its frequency, splice it out of its old frequency bucket's list using a stored iterator/pointer (no scan needed), and splice it into the new frequency bucket's list",
+              "put: O(1) — similar lookup/update, plus possibly an O(1) eviction from the minimum-frequency bucket's tail if the cache is full",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(1)" },
-          { tag: "p", text: "Every operation performs the same fixed sequence of hash map and doubly-linked-list operations regardless of how access frequencies happen to be distributed across the cache's current entries." },
-          { tag: "ul", items: [
-            "key → (value, frequency) hash map: O(1) average lookup/update",
-            "frequency → doubly-linked-list-of-keys hash map: O(1) average lookup of the correct frequency bucket, plus O(1) unlink/relink within that bucket's list — this O(1) unlink specifically requires storing, for every key, an iterator/pointer directly into its current position in its frequency bucket's list, so no linear scan is ever needed to locate it",
-            "Tracking and updating the minimum-frequency value: O(1) amortised, since it only ever needs to be checked or incremented by exactly 1 per operation"
-          ]}
+          {
+            tag: "p",
+            text: "Every operation performs the same fixed sequence of hash map and doubly-linked-list operations regardless of how access frequencies happen to be distributed across the cache's current entries.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "key → (value, frequency) hash map: O(1) average lookup/update",
+              "frequency → doubly-linked-list-of-keys hash map: O(1) average lookup of the correct frequency bucket, plus O(1) unlink/relink within that bucket's list — this O(1) unlink specifically requires storing, for every key, an iterator/pointer directly into its current position in its frequency bucket's list, so no linear scan is ever needed to locate it",
+              "Tracking and updating the minimum-frequency value: O(1) amortised, since it only ever needs to be checked or incremented by exactly 1 per operation",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(1)" },
-          { tag: "p", text: "Because every structural operation (hash map access, doubly-linked-list splice using a stored iterator) is individually O(1) by construction, no sequence of get/put operations can push any single operation beyond constant time — this mirrors LRU Cache's same guarantee, just with one additional coordinated hash map for frequency tracking." },
-          { tag: "ul", items: [
-            "All operations remain O(1) regardless of access pattern, assuming well-behaved (non-adversarial) hash functions for both hash maps involved",
-            "As with any hash-map-based structure, a pathological hash collision attack could theoretically degrade this, though this isn't characteristic of normal operation",
-            "This O(1) guarantee depends critically on using a genuine doubly linked list (with a stored per-key iterator) for each frequency bucket — an implementation that instead scans a plain array or vector to find and erase a key degrades to O(bucket size) per operation, which is no longer O(1)"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "Because every structural operation (hash map access, doubly-linked-list splice using a stored iterator) is individually O(1) by construction, no sequence of get/put operations can push any single operation beyond constant time — this mirrors LRU Cache's same guarantee, just with one additional coordinated hash map for frequency tracking.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "All operations remain O(1) regardless of access pattern, assuming well-behaved (non-adversarial) hash functions for both hash maps involved",
+              "As with any hash-map-based structure, a pathological hash collision attack could theoretically degrade this, though this isn't characteristic of normal operation",
+              "This O(1) guarantee depends critically on using a genuine doubly linked list (with a stored per-key iterator) for each frequency bucket — an implementation that instead scans a plain array or vector to find and erase a key degrades to O(bucket size) per operation, which is no longer O(1)",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case Space — O(n)" },
-          { tag: "p", text: "The cache stores at most 'capacity' entries by design, requiring space proportional to capacity across both the key-data hash map and the frequency-bucket structure." },
-          { tag: "ul", items: ["key → (value, frequency) map: up to capacity entries — O(n)", "frequency → linked-list map: total entries across all frequency buckets also bounded by capacity — O(n)", "key → list-iterator map: one entry per cached key — O(n)"] }
+          {
+            tag: "p",
+            text: "The cache stores at most 'capacity' entries by design, requiring space proportional to capacity across both the key-data hash map and the frequency-bucket structure.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "key → (value, frequency) map: up to capacity entries — O(n)",
+              "frequency → linked-list map: total entries across all frequency buckets also bounded by capacity — O(n)",
+              "key → list-iterator map: one entry per cached key — O(n)",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(n)" },
-          { tag: "p", text: "Space usage is bounded by the fixed cache capacity, which is a configuration parameter, identical in spirit to LRU Cache Design's space bound." },
-          { tag: "ul", items: ["All three coordinated structures combined stay capped at O(n), where n is the configured capacity, regardless of how access frequencies happen to distribute"] }
+          {
+            tag: "p",
+            text: "Space usage is bounded by the fixed cache capacity, which is a configuration parameter, identical in spirit to LRU Cache Design's space bound.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "All three coordinated structures combined stay capped at O(n), where n is the configured capacity, regardless of how access frequencies happen to distribute",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(n)" },
-          { tag: "p", text: "No access pattern increases space beyond the fixed capacity — eviction guarantees the cache never grows past its configured size limit, and the frequency-bucket structure's total entry count across all buckets always equals the number of cached keys, never more." },
-          { tag: "ul", items: [
-            "Combined structures: O(n), where n is the capacity — a hard upper bound enforced by the eviction policy, identical in spirit to LRU Cache Design's guarantee"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No access pattern increases space beyond the fixed capacity — eviction guarantees the cache never grows past its configured size limit, and the frequency-bucket structure's total entry count across all buckets always equals the number of cached keys, never more.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Combined structures: O(n), where n is the capacity — a hard upper bound enforced by the eviction policy, identical in spirit to LRU Cache Design's guarantee",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`class LFUCache:
+        {
+          tag: "code",
+          language: "text",
+          text: `class LFUCache:
     capacity ← given
     minFrequency ← 0
     keyToValueAndFrequency ← empty hash map        // key → (value, frequency)
@@ -2917,16 +3240,23 @@ fn main() {
         newFrequency ← oldFrequency + 1
         keyToValueAndFrequency[key].frequency ← newFrequency
         frequencyToKeyList[newFrequency].insertMostRecent(key)
-        keyToListIterator[key] ← frequencyToKeyList[newFrequency].iteratorToHead()` },
+        keyToListIterator[key] ← frequencyToKeyList[newFrequency].iteratorToHead()`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Maintain three coordinated structures: a hash map from key to its (value, current frequency); a hash map from a frequency value to a DOUBLY linked list of all keys CURRENTLY at exactly that frequency, ordered by recency (most-recent at the front, exactly like an LRU list within each frequency bucket); and a hash map from each key directly to its ITERATOR (pointer) into wherever it currently sits in its frequency bucket's list.",
-          "On get(key) (and on put for an existing key): look up the key's current frequency, use its STORED ITERATOR to remove it from that frequency's list in O(1) (no scanning needed to find it), increment its frequency by one, and insert it at the front of the NEW frequency's list — this correctly 'promotes' the key. Store the new iterator for this key immediately.",
-          "If removing the key emptied its OLD frequency bucket, and that old frequency was the tracked minimum, the minimum must now increase by exactly 1 (since the key being bumped was, by definition, originally at the minimum frequency if minFreq == oldFreq).",
-          "On put(key, value) for a NEW key: if the cache is at capacity, evict the least-recently-used key from the bucket at minFreq (the globally least-frequently-used group, with ties broken by recency, removed in O(1) from the list's tail) — then insert the new key at frequency 1, and reset minFreq to 1, since a freshly inserted key is always the new minimum."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Maintain three coordinated structures: a hash map from key to its (value, current frequency); a hash map from a frequency value to a DOUBLY linked list of all keys CURRENTLY at exactly that frequency, ordered by recency (most-recent at the front, exactly like an LRU list within each frequency bucket); and a hash map from each key directly to its ITERATOR (pointer) into wherever it currently sits in its frequency bucket's list.",
+            "On get(key) (and on put for an existing key): look up the key's current frequency, use its STORED ITERATOR to remove it from that frequency's list in O(1) (no scanning needed to find it), increment its frequency by one, and insert it at the front of the NEW frequency's list — this correctly 'promotes' the key. Store the new iterator for this key immediately.",
+            "If removing the key emptied its OLD frequency bucket, and that old frequency was the tracked minimum, the minimum must now increase by exactly 1 (since the key being bumped was, by definition, originally at the minimum frequency if minFreq == oldFreq).",
+            "On put(key, value) for a NEW key: if the cache is at capacity, evict the least-recently-used key from the bucket at minFreq (the globally least-frequently-used group, with ties broken by recency, removed in O(1) from the list's tail) — then insert the new key at frequency 1, and reset minFreq to 1, since a freshly inserted key is always the new minimum.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "The frequency-bucket structure correctly groups every cached key by its exact access count, and within each bucket, the doubly linked list correctly orders keys by recency, mirroring LRU Cache Design's own correctness argument but applied independently to each frequency level. Eviction always pulls from frequencyToKeyList[minFrequency], which by the maintained minFrequency invariant is guaranteed to be the genuinely lowest frequency currently present among ANY cached key — and within that bucket, removing from the least-recent end correctly breaks frequency ties using recency, satisfying the full LFU-with-recency-tiebreak specification. The minFrequency invariant itself is correctly maintained because it's only ever decreased to 1 on a fresh insertion (provably correct, since a frequency-1 key is always tied for the minimum) and only ever incremented when its OWN bucket becomes empty due to a bump (provably correct, since an empty bucket can no longer contain the minimum, and the bumped key's new frequency, oldFrequency+1, is the next viable candidate). The per-key stored iterator is what makes every list removal genuinely O(1): rather than searching a bucket's list for the key being moved, the algorithm jumps directly to its exact position using the iterator saved the last time that key was inserted or moved." }
+        {
+          tag: "p",
+          text: "The frequency-bucket structure correctly groups every cached key by its exact access count, and within each bucket, the doubly linked list correctly orders keys by recency, mirroring LRU Cache Design's own correctness argument but applied independently to each frequency level. Eviction always pulls from frequencyToKeyList[minFrequency], which by the maintained minFrequency invariant is guaranteed to be the genuinely lowest frequency currently present among ANY cached key — and within that bucket, removing from the least-recent end correctly breaks frequency ties using recency, satisfying the full LFU-with-recency-tiebreak specification. The minFrequency invariant itself is correctly maintained because it's only ever decreased to 1 on a fresh insertion (provably correct, since a frequency-1 key is always tied for the minimum) and only ever incremented when its OWN bucket becomes empty due to a bump (provably correct, since an empty bucket can no longer contain the minimum, and the bumped key's new frequency, oldFrequency+1, is the next viable candidate). The per-key stored iterator is what makes every list removal genuinely O(1): rather than searching a bucket's list for the key being moved, the algorithm jumps directly to its exact position using the iterator saved the last time that key was inserted or moved.",
+        },
       ],
 
       codes: {
@@ -3026,7 +3356,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `class LFUCache:
+        python: `class LFUCache:
     """A Least Frequently Used cache with true O(1) get/put.
 
     Achieved by pairing every key with a position inside a doubly linked
@@ -3157,7 +3487,7 @@ if __name__ == "__main__":
     print(f"get(3): {cache.get(3)}")  # 3
     print(f"get(4): {cache.get(4)}")  # 4
 `,
-        "java": `import java.util.HashMap;
+        java: `import java.util.HashMap;
 import java.util.Map;
 
 public class Main {
@@ -3300,7 +3630,7 @@ public class Main {
     }
 }
 `,
-        "js": `// A Least Frequently Used cache with true O(1) get/put, achieved by pairing
+        js: `// A Least Frequently Used cache with true O(1) get/put, achieved by pairing
 // every key with a node inside a doubly linked list per frequency bucket --
 // so removing a key from its bucket never requires scanning the bucket.
 
@@ -3438,7 +3768,7 @@ console.log(\`get(1): \${cache.get(1)}\`); // -1
 console.log(\`get(3): \${cache.get(3)}\`); // 3
 console.log(\`get(4): \${cache.get(4)}\`); // 4
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <stdlib.h>
 
 #define MAX_CAPACITY 16
@@ -3743,7 +4073,7 @@ class Program {
     }
 }
 `,
-        "swift": `import Foundation
+        swift: `import Foundation
 
 // A node in a frequency bucket's doubly linked list.
 final class Node {
@@ -3883,7 +4213,7 @@ print("get(1): \\(cache.get(1))") // -1
 print("get(3): \\(cache.get(3))") // 3
 print("get(4): \\(cache.get(4))") // 4
 `,
-        "kotlin": `// A node in a frequency bucket's doubly linked list.
+        kotlin: `// A node in a frequency bucket's doubly linked list.
 class Node(val key: Int) {
     var prev: Node? = null
     var next: Node? = null
@@ -4009,7 +4339,7 @@ fun main() {
     println("get(4): \${cache.get(4)}") // 4
 }
 `,
-        "scala": `import scala.collection.mutable
+        scala: `import scala.collection.mutable
 
 // A node in a frequency bucket's doubly linked list.
 class Node(val key: Int) {
@@ -4137,7 +4467,7 @@ object Main extends App {
     println(s"get(4): \${cache.get(4)}") // 4
 }
 `,
-        "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -4299,7 +4629,7 @@ func main() {
     fmt.Printf("get(4): %d\\n", cache.Get(4)) // 4
 }
 `,
-        "rust": `use std::cell::RefCell;
+        rust: `use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -4475,14 +4805,13 @@ fn main() {
     println!("get(3): {}", cache.get(3)); // 3
     println!("get(4): {}", cache.get(4)); // 4
 }
-`
-      }
-    }
-
+`,
+      },
+    },
   ],
   desc: "Frequency count, anagram, LRU cache",
   complexity: "O(1) avg",
-  featured: true
+  featured: true,
 };
 
 export default HASH_MAPS_SECTION;

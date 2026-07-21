@@ -9,11 +9,11 @@ async function getParser() {
     parserReady = (async () => {
       await Parser.init({
         locateFile(scriptName: string) {
-          return '/' + scriptName;
+          return "/" + scriptName;
         },
       });
       const parser = new Parser();
-      const Lang = await Language.load('/tree-sitter-cpp.wasm');
+      const Lang = await Language.load("/tree-sitter-cpp.wasm");
       parser.setLanguage(Lang);
       return parser;
     })();
@@ -45,13 +45,10 @@ self.onmessage = async (e) => {
     // NOTE: Do NOT console.log(snapshots) here — logging thousands of deeply
     // nested objects in a Worker thread causes the browser to OOM before
     // graphs when stringified for PostMessage.
-    
-    self.postMessage({ success: true, snapshots });
 
+    self.postMessage({ success: true, snapshots });
   } catch (error: any) {
-    const msg = typeof error?.message === "string"
-      ? error.message
-      : String(error);
+    const msg = typeof error?.message === "string" ? error.message : String(error);
     self.postMessage({ success: false, error: msg });
   }
 };

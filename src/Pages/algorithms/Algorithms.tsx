@@ -22,7 +22,7 @@ const Algorithms = () => {
       const topicData = ALGODATA.find(
         (item) =>
           item.href === topicPath ||
-          item.name.toLowerCase() === topic.replace(/[-_]/g, ' ').toLowerCase()
+          item.name.toLowerCase() === topic.replace(/[-_]/g, " ").toLowerCase(),
       ) as ALGODATAITEM;
 
       if (topicData) {
@@ -31,9 +31,7 @@ const Algorithms = () => {
         } else {
           const subTopicPath = `/algorithms/${topic}/${subTopic}`;
           // Match by href — handles bfs, lcs, lis, kadanes, etc. perfectly
-          const subTopicData = topicData?.items?.find(
-            (item) => item.href === subTopicPath
-          );
+          const subTopicData = topicData?.items?.find((item) => item.href === subTopicPath);
           setData(subTopicData as subTopicItems);
         }
       } else {
@@ -59,94 +57,120 @@ using namespace std;
 int main() {
   cout<<"Hello World"<<endl;
   return 0;
-}`
+}`,
       };
     }
-    
+
     return codes;
   };
 
-  const pageTitle = data && "name" in data ? data.name : (subTopic || topic || "Algorithm");
-  const pageDescription = data && "desc" in data ? (data as any).desc : "Interactive algorithm visualizer and documentation.";
-  const currentUrl = `https://algovisuals-na1c.onrender.com/algorithms/${topic}${subTopic ? `/${subTopic}` : ''}`;
-  
+  const pageTitle = data && "name" in data ? data.name : subTopic || topic || "Algorithm";
+  const pageDescription =
+    data && "desc" in data
+      ? (data as any).desc
+      : "Interactive algorithm visualizer and documentation.";
+  const currentUrl = `https://algovisuals-na1c.onrender.com/algorithms/${topic}${subTopic ? `/${subTopic}` : ""}`;
+
   // Breadcrumb schema
   const breadcrumbList = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://algovisuals-na1c.onrender.com/" },
-      { "@type": "ListItem", "position": 2, "name": "Algorithms", "item": "https://algovisuals-na1c.onrender.com/algorithms" },
-      ...(topic ? [{
+    itemListElement: [
+      {
         "@type": "ListItem",
-        "position": 3,
-        "name": topic.replace(/[-_]/g, ' '),
-        "item": `https://algovisuals-na1c.onrender.com/algorithms/${topic}`
-      }] : []),
-      ...(subTopic ? [{
+        position: 1,
+        name: "Home",
+        item: "https://algovisuals-na1c.onrender.com/",
+      },
+      {
         "@type": "ListItem",
-        "position": 4,
-        "name": subTopic.replace(/[-_]/g, ' '),
-        "item": currentUrl
-      }] : [])
-    ]
+        position: 2,
+        name: "Algorithms",
+        item: "https://algovisuals-na1c.onrender.com/algorithms",
+      },
+      ...(topic
+        ? [
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: topic.replace(/[-_]/g, " "),
+              item: `https://algovisuals-na1c.onrender.com/algorithms/${topic}`,
+            },
+          ]
+        : []),
+      ...(subTopic
+        ? [
+            {
+              "@type": "ListItem",
+              position: 4,
+              name: subTopic.replace(/[-_]/g, " "),
+              item: currentUrl,
+            },
+          ]
+        : []),
+    ],
   };
 
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": pageTitle,
-    "description": pageDescription,
-    "url": currentUrl,
-    "image": `https://ui-avatars.com/api/?name=${encodeURIComponent(pageTitle as string)}&background=13101F&color=818CF8&size=1200&font-size=0.33&length=3`,
-    "author": {
+    headline: pageTitle,
+    description: pageDescription,
+    url: currentUrl,
+    image: `https://ui-avatars.com/api/?name=${encodeURIComponent(pageTitle as string)}&background=13101F&color=818CF8&size=1200&font-size=0.33&length=3`,
+    author: {
       "@type": "Person",
-      "name": "Koushik"
+      name: "Koushik",
     },
-    "publisher": {
+    publisher: {
       "@type": "Organization",
-      "name": "AlgoVisuals",
-      "logo": {
+      name: "AlgoVisuals",
+      logo: {
         "@type": "ImageObject",
-        "url": "https://algovisuals-na1c.onrender.com/logo.png"
-      }
+        url: "https://algovisuals-na1c.onrender.com/logo.png",
+      },
     },
-    "datePublished": "2024-01-01T00:00:00Z",
-    "dateModified": new Date().toISOString().split('T')[0] + "T00:00:00Z"
+    datePublished: "2024-01-01T00:00:00Z",
+    dateModified: new Date().toISOString().split("T")[0] + "T00:00:00Z",
   };
 
   return (
     <div className="relative h-[calc(100vh-64px)] max-h-[calc(100vh-70px)] min-w-0 max-w-full flex flex-col bg-bg">
-      <SEO 
+      <SEO
         title={pageTitle as string}
         description={pageDescription}
         canonical={currentUrl}
         ogImage={`https://ui-avatars.com/api/?name=${encodeURIComponent(pageTitle as string)}&background=13101F&color=818CF8&size=1200&font-size=0.33&length=3`}
         jsonLd={[breadcrumbList, articleSchema]}
       />
-      
-      {(!topic) && (
+
+      {!topic && (
         <div className="w-full h-full flex items-center justify-center text-muted font-mono p-6">
           <p>Please select a topic from the sidebar.</p>
         </div>
       )}
 
-      {(topic && !subTopic && data) && (
+      {topic && !subTopic && data && (
         <div className="w-full h-full">
           <DocParser data={data} />
         </div>
       )}
 
-      {(topic && subTopic && data) && (
+      {topic && subTopic && data && (
         <div className="w-full h-full flex flex-col min-h-0 relative">
-
           {/* View Content */}
           <div className="flex-1 w-full h-full overflow-hidden min-h-0">
             <div className={`w-full h-full ${activeView === "docs" ? "block" : "hidden"}`}>
               <DocParser data={data} />
             </div>
             <div className={`w-full h-full ${activeView === "visualizer" ? "block" : "hidden"}`}>
-              <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-muted">Loading Editor...</div>}>
+              <Suspense
+                fallback={
+                  <div className="w-full h-full flex items-center justify-center text-muted">
+                    Loading Editor...
+                  </div>
+                }
+              >
                 <CodeWindow codeObject={getCodeObject()} />
               </Suspense>
             </div>
@@ -154,14 +178,13 @@ int main() {
         </div>
       )}
 
-      {(topic && !data) && (
+      {topic && !data && (
         <div className="w-full h-full flex flex-col items-center justify-center text-muted font-mono p-6">
           <p>Topic or Algorithm not found.</p>
         </div>
       )}
-      
     </div>
-  )
-}
+  );
+};
 
 export default Algorithms;

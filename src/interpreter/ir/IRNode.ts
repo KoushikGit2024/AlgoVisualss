@@ -28,7 +28,6 @@
 //               Updated IRNode and IRExpression unions to include all new nodes.
 // ============================================================================
 
-
 // ─── 1. Operator Type Aliases ─────────────────────────────────────────────────
 
 /**
@@ -45,10 +44,24 @@
  * cout/cin proxy object and route to the stream path.
  */
 export type BinaryOperator =
-  | "+" | "-"  | "*"  | "/"  | "%"
-  | "<" | ">"  | "<=" | ">=" | "==" | "!="
-  | "&&" | "||"
-  | "&" | "|"  | "^"  | "<<" | ">>";
+  | "+"
+  | "-"
+  | "*"
+  | "/"
+  | "%"
+  | "<"
+  | ">"
+  | "<="
+  | ">="
+  | "=="
+  | "!="
+  | "&&"
+  | "||"
+  | "&"
+  | "|"
+  | "^"
+  | "<<"
+  | ">>";
 
 /**
  * Every unary operator the ExpressionEvaluator can evaluate.
@@ -69,11 +82,7 @@ export type UpdateOperator = "++" | "--";
  * Compound variants (+=, -=, …) are handled by StatementExecutor.computeCompoundValue().
  */
 export type AssignmentOperator =
-  | "="
-  | "+=" | "-=" | "*=" | "/=" | "%="
-  | "&=" | "|=" | "^="
-  | "<<=" | ">>=";
-
+  "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=";
 
 // ─── 2. Core Union Types ──────────────────────────────────────────────────────
 
@@ -93,8 +102,8 @@ export type IRNode =
   | IRProgram
   | IRFunctionDeclaration
   | IRStructDeclaration
-  | IREnumDeclaration        // v2: enum / enum class
-  | IRTypeAlias              // v2: typedef / using
+  | IREnumDeclaration // v2: enum / enum class
+  | IRTypeAlias // v2: typedef / using
   | IRBlock
   // ── Statements ──────────────────────────────────────────────────────────
   | IRVariableDeclaration
@@ -106,10 +115,10 @@ export type IRNode =
   | IRForStatement
   | IRForRangeStatement
   | IRSwitchStatement
-  | IRTryStatement           // v2: try { } catch (T e) { } [finally { }]
-  | IRThrowStatement         // v2: throw <expr>;
-  | IRGotoStatement          // v2: goto <label>; (surfaced as a runtime error)
-  | IRLabeledStatement       // v2: <label>: <statement>
+  | IRTryStatement // v2: try { } catch (T e) { } [finally { }]
+  | IRThrowStatement // v2: throw <expr>;
+  | IRGotoStatement // v2: goto <label>; (surfaced as a runtime error)
+  | IRLabeledStatement // v2: <label>: <statement>
   | IRReturnStatement
   | IRBreakStatement
   | IRContinueStatement
@@ -146,9 +155,8 @@ export type IRExpression =
   | IRNewExpression
   | IRLambdaExpression
   | IRAssignment
-  | IRSizeofExpression       // v2: sizeof(type) / sizeof(expr)
-  | IRCommaExpression;       // v2: expr1, expr2  (comma operator)
-
+  | IRSizeofExpression // v2: sizeof(type) / sizeof(expr)
+  | IRCommaExpression; // v2: expr1, expr2  (comma operator)
 
 // ─── 3. Base Interface ────────────────────────────────────────────────────────
 
@@ -169,7 +177,6 @@ export interface IRBaseNode {
   line: number;
 }
 
-
 // ─── 4. Structural Nodes ─────────────────────────────────────────────────────
 
 /**
@@ -181,12 +188,12 @@ export interface IRBaseNode {
  * frame inside ExecutionEngine.run().
  */
 export interface IRProgram extends IRBaseNode {
-  kind:      "Program";
+  kind: "Program";
   functions: IRFunctionDeclaration[];
-  structs:   IRStructDeclaration[];
-  enums?:    IREnumDeclaration[];    // v2: collected at top level
-  aliases?:  IRTypeAlias[];          // v2: collected at top level
-  globals?:  IRVariableDeclaration[];
+  structs: IRStructDeclaration[];
+  enums?: IREnumDeclaration[]; // v2: collected at top level
+  aliases?: IRTypeAlias[]; // v2: collected at top level
+  globals?: IRVariableDeclaration[];
 }
 
 /**
@@ -197,15 +204,15 @@ export interface IRProgram extends IRBaseNode {
  * NewExpression or VariableDeclaration references the type name.
  */
 export interface IRStructDeclaration extends IRBaseNode {
-  kind:   "StructDeclaration";
-  name:   string;
+  kind: "StructDeclaration";
+  name: string;
   fields: {
-    name:          string;
-    type:          string;
+    name: string;
+    type: string;
     defaultValue?: IRExpression;
   }[];
   constructors?: IRFunctionDeclaration[]; // v2: explicitly defined constructors
-  methods?:      IRFunctionDeclaration[]; // v2: struct member functions
+  methods?: IRFunctionDeclaration[]; // v2: struct member functions
 }
 
 /**
@@ -226,11 +233,11 @@ export interface IRStructDeclaration extends IRBaseNode {
  *   enum class Color : uint8_t { RED = 1, GREEN, BLUE };
  */
 export interface IREnumDeclaration extends IRBaseNode {
-  kind:            "EnumDeclaration";
-  name:            string;
-  isClass:         boolean;
-  underlyingType:  string;
-  members:         IREnumMember[];
+  kind: "EnumDeclaration";
+  name: string;
+  isClass: boolean;
+  underlyingType: string;
+  members: IREnumMember[];
 }
 
 /**
@@ -241,7 +248,7 @@ export interface IREnumDeclaration extends IRBaseNode {
  * member), matching C++ auto-increment semantics.
  */
 export interface IREnumMember {
-  name:   string;
+  name: string;
   value?: IRExpression;
 }
 
@@ -257,8 +264,8 @@ export interface IREnumMember {
  * before all typeLower checks, so `vi v(n, 0)` resolves to `vector<int> v(n, 0)`.
  */
 export interface IRTypeAlias extends IRBaseNode {
-  kind:   "TypeAlias";
-  alias:  string;
+  kind: "TypeAlias";
+  alias: string;
   target: string;
 }
 
@@ -272,13 +279,13 @@ export interface IRTypeAlias extends IRBaseNode {
  * Both are used by ExecutionEngine.invokeFunction() when binding arguments.
  */
 export interface IRFunctionDeclaration extends IRBaseNode {
-  kind:       "FunctionDeclaration";
+  kind: "FunctionDeclaration";
   returnType: string;
-  name:       string;
+  name: string;
   parameters: {
-    name:          string;
-    type:          string;
-    isReference?:  boolean;
+    name: string;
+    type: string;
+    isReference?: boolean;
     defaultValue?: IRExpression;
   }[];
   body: IRBlock;
@@ -292,10 +299,9 @@ export interface IRFunctionDeclaration extends IRBaseNode {
  * exception propagates through mid-execution.
  */
 export interface IRBlock extends IRBaseNode {
-  kind:       "Block";
+  kind: "Block";
   statements: IRNode[];
 }
-
 
 // ─── 5. Statement Nodes (v1) ──────────────────────────────────────────────────
 
@@ -313,13 +319,13 @@ export interface IRBlock extends IRBaseNode {
  *              StatementExecutor routes to ScopeManager.defineStatic() when set.
  */
 export interface IRVariableDeclaration extends IRBaseNode {
-  kind:            "VariableDeclaration";
-  variableType:    string;
-  name:            string;
-  initializer?:    IRExpression;
+  kind: "VariableDeclaration";
+  variableType: string;
+  name: string;
+  initializer?: IRExpression;
   constructorArgs?: IRExpression[];
-  isConst?:        boolean;    // v2: const qualifier
-  isStatic?:       boolean;    // v2: static storage-class specifier
+  isConst?: boolean; // v2: const qualifier
+  isStatic?: boolean; // v2: static storage-class specifier
 }
 
 /**
@@ -330,10 +336,10 @@ export interface IRVariableDeclaration extends IRBaseNode {
  * and dereferenced pointers (`*ptr = x` — treated as identity in duck-typed JS).
  */
 export interface IRAssignment extends IRBaseNode {
-  kind:     "Assignment";
-  target:   IRExpression;
+  kind: "Assignment";
+  target: IRExpression;
   operator: AssignmentOperator;
-  value:    IRExpression;
+  value: IRExpression;
 }
 
 /**
@@ -342,30 +348,30 @@ export interface IRAssignment extends IRBaseNode {
  * and any expression statement not elevated to a more specific IR kind.
  */
 export interface IRExpressionStatement extends IRBaseNode {
-  kind:       "ExpressionStatement";
+  kind: "ExpressionStatement";
   expression: IRExpression;
 }
 
 /** An if / else-if / else statement. `alternate` is undefined for a bare `if`. */
 export interface IRIfStatement extends IRBaseNode {
-  kind:       "IfStatement";
-  condition:  IRExpression;
+  kind: "IfStatement";
+  condition: IRExpression;
   consequent: IRBlock;
   alternate?: IRBlock;
 }
 
 /** A while loop. Body executes only when condition is truthy. */
 export interface IRWhileStatement extends IRBaseNode {
-  kind:      "WhileStatement";
+  kind: "WhileStatement";
   condition: IRExpression;
-  body:      IRBlock;
+  body: IRBlock;
 }
 
 /** A do-while loop. Body executes at least once before condition is checked. */
 export interface IRDoWhileStatement extends IRBaseNode {
-  kind:      "DoWhileStatement";
+  kind: "DoWhileStatement";
   condition: IRExpression;
-  body:      IRBlock;
+  body: IRBlock;
 }
 
 /**
@@ -382,11 +388,11 @@ export interface IRDoWhileStatement extends IRBaseNode {
  *   - `undefined`    — for an empty update clause
  */
 export interface IRForStatement extends IRBaseNode {
-  kind:       "ForStatement";
-  init?:      IRVariableDeclaration | IRVariableDeclaration[] | IRAssignment;
+  kind: "ForStatement";
+  init?: IRVariableDeclaration | IRVariableDeclaration[] | IRAssignment;
   condition?: IRExpression;
-  update?:    IRAssignment | IRExpression;
-  body:       IRBlock;
+  update?: IRAssignment | IRExpression;
+  body: IRBlock;
 }
 
 /**
@@ -397,19 +403,19 @@ export interface IRForStatement extends IRBaseNode {
  * variables for each iteration.
  */
 export interface IRForRangeStatement extends IRBaseNode {
-  kind:         "ForRangeStatement";
+  kind: "ForRangeStatement";
   iteratorType: string;
   iteratorName: string;
-  isConst?:     boolean;
-  collection:   IRExpression;
-  body:         IRBlock;
+  isConst?: boolean;
+  collection: IRExpression;
+  body: IRBlock;
 }
 
 /** A single case or default clause within a switch statement. */
 export interface IRCaseClause extends IRBaseNode {
-  kind:       "CaseClause";
-  isDefault:  boolean;
-  value?:     IRExpression;    // undefined when isDefault is true
+  kind: "CaseClause";
+  isDefault: boolean;
+  value?: IRExpression; // undefined when isDefault is true
   statements: IRNode[];
 }
 
@@ -420,14 +426,14 @@ export interface IRCaseClause extends IRBaseNode {
  * BreakSignal is thrown or all cases are exhausted.
  */
 export interface IRSwitchStatement extends IRBaseNode {
-  kind:      "SwitchStatement";
+  kind: "SwitchStatement";
   condition: IRExpression;
-  cases:     IRCaseClause[];
+  cases: IRCaseClause[];
 }
 
 /** A return statement, with an optional return value expression. */
 export interface IRReturnStatement extends IRBaseNode {
-  kind:      "ReturnStatement";
+  kind: "ReturnStatement";
   argument?: IRExpression;
 }
 
@@ -457,7 +463,7 @@ export interface IRContinueStatement extends IRBaseNode {
  * evaluates each argument and emits a WRITE event with the concatenated string.
  */
 export interface IRCoutStatement extends IRBaseNode {
-  kind:      "CoutStatement";
+  kind: "CoutStatement";
   arguments: IRExpression[];
 }
 
@@ -472,7 +478,6 @@ export interface IRCoutStatement extends IRBaseNode {
 export interface IREmptyStatement extends IRBaseNode {
   kind: "EmptyStatement";
 }
-
 
 // ─── 6. New Statement Nodes (v2) ─────────────────────────────────────────────
 
@@ -499,9 +504,9 @@ export interface IREmptyStatement extends IRBaseNode {
  *   }
  */
 export interface IRTryStatement extends IRBaseNode {
-  kind:          "TryStatement";
-  body:          IRBlock;
-  handlers:      IRCatchClause[];
+  kind: "TryStatement";
+  body: IRBlock;
+  handlers: IRCatchClause[];
   finallyBlock?: IRBlock;
 }
 
@@ -518,11 +523,11 @@ export interface IRTryStatement extends IRBaseNode {
  * `body`         — The handler block executed when this clause matches.
  */
 export interface IRCatchClause extends IRBaseNode {
-  kind:        "CatchClause";
-  catchType?:  string;
+  kind: "CatchClause";
+  catchType?: string;
   catchParam?: string;
-  catchAll:    boolean;
-  body:        IRBlock;
+  catchAll: boolean;
+  body: IRBlock;
 }
 
 /**
@@ -542,7 +547,7 @@ export interface IRCatchClause extends IRBaseNode {
  *   throw;                            → argument: undefined (re-throw)
  */
 export interface IRThrowStatement extends IRBaseNode {
-  kind:      "ThrowStatement";
+  kind: "ThrowStatement";
   argument?: IRExpression;
 }
 
@@ -557,7 +562,7 @@ export interface IRThrowStatement extends IRBaseNode {
  * `label` — the target label name (e.g. `goto cleanup;` → label: "cleanup").
  */
 export interface IRGotoStatement extends IRBaseNode {
-  kind:  "GotoStatement";
+  kind: "GotoStatement";
   label: string;
 }
 
@@ -573,19 +578,18 @@ export interface IRGotoStatement extends IRBaseNode {
  * `statement` — the statement that follows the label.
  */
 export interface IRLabeledStatement extends IRBaseNode {
-  kind:      "LabeledStatement";
-  label:     string;
+  kind: "LabeledStatement";
+  label: string;
   statement: IRNode;
 }
-
 
 // ─── 7. Expression Nodes (v1) ─────────────────────────────────────────────────
 
 /** A compile-time constant: number, boolean, string, char, or null. */
 export interface IRLiteral extends IRBaseNode {
-  kind:      "Literal";
+  kind: "Literal";
   valueType: string;
-  value:     number | boolean | string | null;
+  value: number | boolean | string | null;
 }
 
 /**
@@ -608,7 +612,7 @@ export interface IRIdentifier extends IRBaseNode {
 
 /** A unary operation: `!x`, `-n`, `~bits`, `*ptr`, `&x`. */
 export interface IRUnaryExpression extends IRBaseNode {
-  kind:     "UnaryExpression";
+  kind: "UnaryExpression";
   operator: UnaryOperator;
   argument: IRExpression;
 }
@@ -621,10 +625,10 @@ export interface IRUnaryExpression extends IRBaseNode {
  * when necessary.
  */
 export interface IRBinaryExpression extends IRBaseNode {
-  kind:     "BinaryExpression";
+  kind: "BinaryExpression";
   operator: BinaryOperator;
-  left:     IRExpression;
-  right:    IRExpression;
+  left: IRExpression;
+  right: IRExpression;
 }
 
 /**
@@ -633,8 +637,8 @@ export interface IRBinaryExpression extends IRBaseNode {
  * resolution, and finally calls invokeFunction() for user-defined functions.
  */
 export interface IRFunctionCall extends IRBaseNode {
-  kind:      "FunctionCall";
-  callee:    string;
+  kind: "FunctionCall";
+  callee: string;
   arguments: IRExpression[];
 }
 
@@ -646,10 +650,10 @@ export interface IRFunctionCall extends IRBaseNode {
  * value, computes the new value, writes back, and returns the appropriate one.
  */
 export interface IRUpdateExpression extends IRBaseNode {
-  kind:     "UpdateExpression";
+  kind: "UpdateExpression";
   operator: UpdateOperator;
   argument: IRExpression;
-  prefix:   boolean;
+  prefix: boolean;
 }
 
 /**
@@ -657,17 +661,17 @@ export interface IRUpdateExpression extends IRBaseNode {
  * ExpressionEvaluator dispatches on the backing type (Array, Map, mock container).
  */
 export interface IRSubscriptExpression extends IRBaseNode {
-  kind:   "SubscriptExpression";
+  kind: "SubscriptExpression";
   object: IRExpression;
-  index:  IRExpression;
+  index: IRExpression;
 }
 
 /** A ternary / conditional expression: `cond ? consequent : alternate`. */
 export interface IRTernaryExpression extends IRBaseNode {
-  kind:       "TernaryExpression";
-  condition:  IRExpression;
+  kind: "TernaryExpression";
+  condition: IRExpression;
   consequent: IRExpression;
-  alternate:  IRExpression;
+  alternate: IRExpression;
 }
 
 /**
@@ -677,7 +681,7 @@ export interface IRTernaryExpression extends IRBaseNode {
  * mock containers if the target type is a vector/list/etc.
  */
 export interface IRInitializerList extends IRBaseNode {
-  kind:     "InitializerList";
+  kind: "InitializerList";
   elements: IRExpression[];
 }
 
@@ -688,10 +692,10 @@ export interface IRInitializerList extends IRBaseNode {
  * for the struct-array field-map heuristic.
  */
 export interface IRMemberExpression extends IRBaseNode {
-  kind:     "MemberExpression";
-  object:   IRExpression;
+  kind: "MemberExpression";
+  object: IRExpression;
   property: string;
-  arrow:    boolean;
+  arrow: boolean;
 }
 
 /**
@@ -700,11 +704,11 @@ export interface IRMemberExpression extends IRBaseNode {
  * backing JS type (Array, Set, Map, string, mock container).
  */
 export interface IRMethodCall extends IRBaseNode {
-  kind:      "MethodCall";
-  object:    IRExpression;
-  method:    string;
+  kind: "MethodCall";
+  object: IRExpression;
+  method: string;
   arguments: IRExpression[];
-  arrow:     boolean;
+  arrow: boolean;
 }
 
 /**
@@ -715,8 +719,8 @@ export interface IRMethodCall extends IRBaseNode {
  *   - Unknown type              → generic node heuristic (val/next/left/right)
  */
 export interface IRNewExpression extends IRBaseNode {
-  kind:      "NewExpression";
-  typeName:  string;
+  kind: "NewExpression";
+  typeName: string;
   arguments: IRExpression[];
 }
 
@@ -728,11 +732,10 @@ export interface IRNewExpression extends IRBaseNode {
  * executes the body in a new lambda frame when called.
  */
 export interface IRLambdaExpression extends IRBaseNode {
-  kind:       "LambdaExpression";
+  kind: "LambdaExpression";
   parameters: { name: string; type: string }[];
-  body:       IRBlock;
+  body: IRBlock;
 }
-
 
 // ─── 8. New Expression Nodes (v2) ────────────────────────────────────────────
 
@@ -753,9 +756,9 @@ export interface IRLambdaExpression extends IRBaseNode {
  * Exactly one of the two will be defined.
  */
 export interface IRSizeofExpression extends IRBaseNode {
-  kind:          "SizeofExpression";
-  operandType?:  string;        // sizeof(int) → "int"
-  operandExpr?:  IRExpression;  // sizeof(x)   → IRIdentifier("x")
+  kind: "SizeofExpression";
+  operandType?: string; // sizeof(int) → "int"
+  operandExpr?: IRExpression; // sizeof(x)   → IRIdentifier("x")
 }
 
 /**
@@ -772,7 +775,7 @@ export interface IRSizeofExpression extends IRBaseNode {
  * evaluates and returns `right`.
  */
 export interface IRCommaExpression extends IRBaseNode {
-  kind:  "CommaExpression";
-  left:  IRExpression;
+  kind: "CommaExpression";
+  left: IRExpression;
   right: IRExpression;
 }

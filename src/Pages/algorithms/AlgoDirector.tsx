@@ -1,26 +1,35 @@
 import { useState, useEffect } from "react";
-import ALGODATA from "./data/AlgoData"
+import ALGODATA from "./data/AlgoData";
 import "./AlgoDirector.css";
-import { cn } from '../../lib/utils';
+import { cn } from "../../lib/utils";
 import SEO from "../../components/SEO";
 import { CategoryIcon } from "../../components/icons";
 
 /* ─── Complexity filter config ──────────────────────────────────────────────── */
 type Algorithm = (typeof ALGODATA)[number];
 const FILTERS = [
-  { label: "All",         test: () => true },
-  { label: "O(1)",        test: (a: Algorithm) => a.complexity && a.complexity.startsWith("O(1)") },
-  { label: "O(log n)",    test: (a: Algorithm) => a.complexity === "O(log n)" || a.complexity === "O(m)" },
-  { label: "O(n)",        test: (a: Algorithm) => a.complexity && ["O(n)", "O(n + m)", "O(V + E)"].includes(a.complexity) },
-  { label: "O(n log n)",  test: (a: Algorithm) => a.complexity === "O(n log n)" },
-  { label: "Complex",     test: (a: Algorithm) => a.complexity === "O(n²)" || a.complexity === "O(2ⁿ)" },
+  { label: "All", test: () => true },
+  { label: "O(1)", test: (a: Algorithm) => a.complexity && a.complexity.startsWith("O(1)") },
+  {
+    label: "O(log n)",
+    test: (a: Algorithm) => a.complexity === "O(log n)" || a.complexity === "O(m)",
+  },
+  {
+    label: "O(n)",
+    test: (a: Algorithm) => a.complexity && ["O(n)", "O(n + m)", "O(V + E)"].includes(a.complexity),
+  },
+  { label: "O(n log n)", test: (a: Algorithm) => a.complexity === "O(n log n)" },
+  {
+    label: "Complex",
+    test: (a: Algorithm) => a.complexity === "O(n²)" || a.complexity === "O(2ⁿ)",
+  },
 ];
 
 /* ─── Component ─────────────────────────────────────────────────────────────── */
 export default function AlgoDirector() {
-  const [query,       setQuery]       = useState("");
+  const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
-  const [mounted,     setMounted]     = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80);
@@ -37,60 +46,67 @@ export default function AlgoDirector() {
     return matchSearch && currentFilter.test(a);
   });
 
-  const totalPatterns  = ALGODATA.reduce((s, a) => s + (a.items?.length || 0), 0);
-  const filteredPatt   = filtered.reduce((s, a) => s + (a.items?.length || 0), 0);
+  const totalPatterns = ALGODATA.reduce((s, a) => s + (a.items?.length || 0), 0);
+  const filteredPatt = filtered.reduce((s, a) => s + (a.items?.length || 0), 0);
 
   return (
     <div className="min-h-screen bg-[var(--bg,#0D0B14)] text-[var(--text,#EDE9FF)] font-['Syne',system-ui,sans-serif] relative overflow-x-hidden">
-      <SEO 
-        title="Algorithm Reference Index" 
-        description="Explore our comprehensive library of algorithms and data structures. Filter by complexity and discover patterns." 
+      <SEO
+        title="Algorithm Reference Index"
+        description="Explore our comprehensive library of algorithms and data structures. Filter by complexity and discover patterns."
         canonical="https://algovisuals-na1c.onrender.com/algorithms"
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "CollectionPage",
-          "name": "Algorithm Reference Index",
-          "url": "https://algovisuals-na1c.onrender.com/algorithms",
-          "description": "Explore our comprehensive library of algorithms and data structures.",
-          "isPartOf": {
+          name: "Algorithm Reference Index",
+          url: "https://algovisuals-na1c.onrender.com/algorithms",
+          description: "Explore our comprehensive library of algorithms and data structures.",
+          isPartOf: {
             "@type": "WebSite",
-            "name": "AlgoVisuals",
-            "url": "https://algovisuals-na1c.onrender.com/"
-          }
+            name: "AlgoVisuals",
+            url: "https://algovisuals-na1c.onrender.com/",
+          },
         }}
       />
       {/* Background Grid Pattern */}
       <div className="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(circle,rgba(129,140,248,0.055)_1px,transparent_1px)] bg-[size:28px_28px]" />
 
       <div className="relative z-10 max-w-[1280px] mx-auto px-[18px] pt-[32px] pb-[64px] sm:px-[28px] sm:pt-[48px] sm:pb-[100px]">
-
         {/* ── Header ── */}
-        <header className="mb-10" style={{ animation: "adHdr 0.55s cubic-bezier(0.2,0,0,1) forwards" }}>
+        <header
+          className="mb-10"
+          style={{ animation: "adHdr 0.55s cubic-bezier(0.2,0,0,1) forwards" }}
+        >
           <div className="inline-flex items-center gap-[10px] font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(10rem/16)] text-[var(--accent,#818CF8)] uppercase tracking-[0.2em] mb-4">
-            <span 
-              className="w-[5px] h-[5px] rounded-full bg-[var(--accent,#818CF8)] shrink-0" 
+            <span
+              className="w-[5px] h-[5px] rounded-full bg-[var(--accent,#818CF8)] shrink-0"
               style={{ animation: "adBlink 2.4s ease-in-out infinite" }}
-              aria-hidden="true" 
+              aria-hidden="true"
             />
             Algorithm Reference Index
           </div>
-          
+
           <h1 className="text-[clamp(32px,5vw,48px)] font-bold leading-[1.1] tracking-[-0.02em] mb-4 text-[var(--text,#EDE9FF)]">
             Algorithm Reference
           </h1>
-          
-          <div 
-            className="w-full h-px bg-[var(--border,#2A2445)] my-4" 
+
+          <div
+            className="w-full h-px bg-[var(--border,#2A2445)] my-4"
             style={{ animation: "adFade 0.6s ease 0.3s both" }}
-            role="separator" 
+            role="separator"
           />
-          
-          <div className="flex items-center gap-0 flex-wrap" style={{ animation: "adFade 0.5s ease 0.25s both" }}>
+
+          <div
+            className="flex items-center gap-0 flex-wrap"
+            style={{ animation: "adFade 0.5s ease 0.25s both" }}
+          >
             <div className="font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(11rem/16)] sm:text-[calc(12rem/16)] text-[var(--muted,#6B6487)] px-[12px] sm:px-[18px] border-r border-[var(--border,#2A2445)] first:pl-0">
-              <strong className="text-[var(--text,#EDE9FF)] font-medium">{ALGODATA.length}</strong> topics
+              <strong className="text-[var(--text,#EDE9FF)] font-medium">{ALGODATA.length}</strong>{" "}
+              topics
             </div>
             <div className="font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(11rem/16)] sm:text-[calc(12rem/16)] text-[var(--muted,#6B6487)] px-[12px] sm:px-[18px] border-r border-[var(--border,#2A2445)]">
-              <strong className="text-[var(--text,#EDE9FF)] font-medium">{totalPatterns}</strong> patterns
+              <strong className="text-[var(--text,#EDE9FF)] font-medium">{totalPatterns}</strong>{" "}
+              patterns
             </div>
             <div className="font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(11rem/16)] sm:text-[calc(12rem/16)] text-[var(--muted,#6B6487)] px-[12px] sm:px-[18px]">
               v2.1
@@ -99,9 +115,15 @@ export default function AlgoDirector() {
         </header>
 
         {/* ── Controls ── */}
-        <div className="flex flex-col gap-3 mb-8" style={{ animation: "adFade 0.5s ease 0.2s both" }}>
+        <div
+          className="flex flex-col gap-3 mb-8"
+          style={{ animation: "adFade 0.5s ease 0.2s both" }}
+        >
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(15rem/16)] text-[var(--accent,#818CF8)] pointer-events-none select-none opacity-50" aria-hidden="true">
+            <span
+              className="absolute left-4 top-1/2 -translate-y-1/2 font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(15rem/16)] text-[var(--accent,#818CF8)] pointer-events-none select-none opacity-50"
+              aria-hidden="true"
+            >
               /
             </span>
             <input
@@ -117,11 +139,13 @@ export default function AlgoDirector() {
             {FILTERS.map((f) => (
               <button
                 key={f.label}
-                className={cn(`font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(11rem/16)] px-[14px] py-[5px] rounded-[7px] border bg-transparent cursor-pointer transition-colors duration-150 tracking-[0.04em] hover:border-[var(--accent,#818CF8)] hover:text-[var(--accent,#818CF8)] ${
-                  activeFilter === f.label 
-                    ? "bg-[rgba(129,140,248,0.10)] border-[var(--accent,#818CF8)] text-[var(--accent,#818CF8)]" 
-                    : "border-[var(--border,#2A2445)] text-[var(--muted,#6B6487)]"
-                }`)}
+                className={cn(
+                  `font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(11rem/16)] px-[14px] py-[5px] rounded-[7px] border bg-transparent cursor-pointer transition-colors duration-150 tracking-[0.04em] hover:border-[var(--accent,#818CF8)] hover:text-[var(--accent,#818CF8)] ${
+                    activeFilter === f.label
+                      ? "bg-[rgba(129,140,248,0.10)] border-[var(--accent,#818CF8)] text-[var(--accent,#818CF8)]"
+                      : "border-[var(--border,#2A2445)] text-[var(--muted,#6B6487)]"
+                  }`,
+                )}
                 onClick={() => setActiveFilter(f.label)}
                 aria-pressed={activeFilter === f.label}
               >
@@ -131,8 +155,8 @@ export default function AlgoDirector() {
           </div>
         </div>
 
-        <div 
-          className="flex items-center justify-between mb-[18px] font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(11rem/16)] text-[rgba(107,100,135,0.6)] tracking-[0.06em]" 
+        <div
+          className="flex items-center justify-between mb-[18px] font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(11rem/16)] text-[rgba(107,100,135,0.6)] tracking-[0.06em]"
           style={{ animation: "adFade 0.4s ease both" }}
           aria-live="polite"
         >
@@ -146,8 +170,12 @@ export default function AlgoDirector() {
         <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-2 sm:gap-[10px]">
           {filtered.length === 0 ? (
             <div className="col-span-full py-[90px] text-center text-[rgba(107,100,135,0.4)]">
-              <span className="text-[calc(38rem/16)] block mb-3.5 opacity-40" aria-hidden="true">◌</span>
-              <p className="font-['JetBrains_Mono','Fira_Code',monospace] text-xs tracking-[0.06em]">no algorithms match your query</p>
+              <span className="text-[calc(38rem/16)] block mb-3.5 opacity-40" aria-hidden="true">
+                ◌
+              </span>
+              <p className="font-['JetBrains_Mono','Fira_Code',monospace] text-xs tracking-[0.06em]">
+                no algorithms match your query
+              </p>
             </div>
           ) : (
             filtered.map((algo, i) => (
@@ -155,7 +183,6 @@ export default function AlgoDirector() {
             ))
           )}
         </div>
-
       </div>
     </div>
   );
@@ -187,11 +214,17 @@ function AlgoCard({ algo, index, mounted }: AlgoCardProps) {
       <div className="absolute left-0 top-[24%] bottom-[24%] w-[2px] bg-[var(--accent,#818CF8)] rounded-r-[2px] opacity-0 transition-all duration-[0.22s] ease-in-out group-hover:opacity-100 group-hover:top-[16%] group-hover:bottom-[16%]" />
 
       {/* Background Number */}
-      <span className="absolute -bottom-[6px] right-[10px] font-['Syne',system-ui,sans-serif] font-extrabold text-[calc(72rem/16)] text-[rgba(129,140,248,0.04)] leading-none pointer-events-none select-none transition-colors duration-[0.22s] ease-in-out group-hover:text-[rgba(129,140,248,0.065)]" aria-hidden="true">
+      <span
+        className="absolute -bottom-[6px] right-[10px] font-['Syne',system-ui,sans-serif] font-extrabold text-[calc(72rem/16)] text-[rgba(129,140,248,0.04)] leading-none pointer-events-none select-none transition-colors duration-[0.22s] ease-in-out group-hover:text-[rgba(129,140,248,0.065)]"
+        aria-hidden="true"
+      >
         {patternCount}
       </span>
 
-      <span className="absolute top-[18px] right-[18px] font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(10rem/16)] text-[var(--border,#2A2445)] tracking-[0.06em] transition-colors duration-[0.22s] ease-in-out group-hover:text-[rgba(129,140,248,0.35)]" aria-hidden="true">
+      <span
+        className="absolute top-[18px] right-[18px] font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(10rem/16)] text-[var(--border,#2A2445)] tracking-[0.06em] transition-colors duration-[0.22s] ease-in-out group-hover:text-[rgba(129,140,248,0.35)]"
+        aria-hidden="true"
+      >
         {String(index + 1).padStart(2, "0")}
       </span>
 
@@ -230,7 +263,10 @@ function AlgoCard({ algo, index, mounted }: AlgoCardProps) {
           {algo.complexity}
         </code>
         <span className="font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(11rem/16)] text-[rgba(107,100,135,0.55)] flex items-center gap-[6px] transition-colors duration-[0.22s] ease-in-out group-hover:text-[var(--muted,#6B6487)]">
-          <span className="w-[3px] h-[3px] rounded-full bg-[var(--border,#2A2445)] transition-colors duration-[0.22s] ease-in-out group-hover:bg-[var(--accent,#818CF8)]" aria-hidden="true" />
+          <span
+            className="w-[3px] h-[3px] rounded-full bg-[var(--border,#2A2445)] transition-colors duration-[0.22s] ease-in-out group-hover:bg-[var(--accent,#818CF8)]"
+            aria-hidden="true"
+          />
           {patternCount} patterns
         </span>
       </div>

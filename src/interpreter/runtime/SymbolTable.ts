@@ -21,7 +21,6 @@
 
 import type { CppType, CppValue } from "../types";
 
-
 // ─── Symbol Interface ─────────────────────────────────────────────────────────
 
 /**
@@ -44,16 +43,16 @@ import type { CppType, CppValue } from "../types";
  */
 export interface Symbol {
   /** The identifier as it appears in C++ source (used by the UI label). */
-  name:     string;
+  name: string;
   /** Resolved C++ type string (e.g. "int", "vector<int>", "auto"). */
-  type:     CppType;
+  type: CppType;
   /** The duck-typed JavaScript value representing the C++ runtime value. */
-  value:    CppValue;
+  value: CppValue;
   /**
    * True when the variable was declared with the `const` qualifier.
    * Enforced by assign(): a ConstAssignmentError is thrown on any write attempt.
    */
-  isConst:  boolean;
+  isConst: boolean;
   /**
    * True when the variable was declared with the `static` qualifier inside
    * a function body. The engine stores the persistent value in
@@ -61,7 +60,6 @@ export interface Symbol {
    */
   isStatic: boolean;
 }
-
 
 // ─── ConstAssignmentError ────────────────────────────────────────────────────
 
@@ -80,13 +78,12 @@ export class ConstAssignmentError extends Error {
   constructor(name: string) {
     super(
       `Const Violation: Cannot assign to '${name}' because it was declared const. ` +
-      `In C++, this would be a compile-time error.`
+        `In C++, this would be a compile-time error.`,
     );
     this.variableName = name;
     Object.setPrototypeOf(this, ConstAssignmentError.prototype);
   }
 }
-
 
 // ─── SymbolTable ─────────────────────────────────────────────────────────────
 
@@ -108,7 +105,6 @@ export class SymbolTable {
     this.symbols = new Map<string, Symbol>();
   }
 
-
   // ── Core API ──────────────────────────────────────────────────────────────
 
   /**
@@ -126,16 +122,16 @@ export class SymbolTable {
    *   by pushing a new SymbolTable, so this table never sees the outer name.
    */
   public define(
-    name:     string,
-    type:     CppType,
-    value:    CppValue,
-    isConst:  boolean = false,
+    name: string,
+    type: CppType,
+    value: CppValue,
+    isConst: boolean = false,
     isStatic: boolean = false,
   ): void {
     if (this.symbols.has(name)) {
       throw new Error(
         `Compiler Error: Variable '${name}' is already defined in this scope. ` +
-        `Redeclaration in the same block is not permitted in C++.`
+          `Redeclaration in the same block is not permitted in C++.`,
       );
     }
     this.symbols.set(name, { name, type, value, isConst, isStatic });
@@ -163,7 +159,7 @@ export class SymbolTable {
     if (!symbol) {
       throw new Error(
         `[SymbolTable.redefine] Internal error: '${name}' not found. ` +
-        `Call define() before redefine().`
+          `Call define() before redefine().`,
       );
     }
     // Preserve all metadata (type, isConst, isStatic); only update value.
@@ -188,7 +184,7 @@ export class SymbolTable {
     const symbol = this.symbols.get(name);
     if (!symbol) {
       throw new Error(
-        `Memory Access Violation: Variable '${name}' is not defined in this scope block.`
+        `Memory Access Violation: Variable '${name}' is not defined in this scope block.`,
       );
     }
 
@@ -214,9 +210,7 @@ export class SymbolTable {
   public get(name: string): Symbol {
     const symbol = this.symbols.get(name);
     if (!symbol) {
-      throw new Error(
-        `Memory Access Violation: Variable '${name}' is not defined.`
-      );
+      throw new Error(`Memory Access Violation: Variable '${name}' is not defined.`);
     }
     return symbol;
   }
@@ -251,7 +245,6 @@ export class SymbolTable {
     return this.symbols.get(name)?.isStatic ?? false;
   }
 
-
   // ── Snapshot Support ──────────────────────────────────────────────────────
 
   /**
@@ -273,7 +266,6 @@ export class SymbolTable {
     }
     return record;
   }
-
 
   // ── Debug Utilities ───────────────────────────────────────────────────────
 

@@ -25,9 +25,8 @@
 //               filter mutation via setFilter() / clearFilter().
 // ============================================================================
 
-import { EventType }          from "../types";
+import { EventType } from "../types";
 import type { ExecutionEvent, EventFilter } from "../types";
-
 
 // ─── Callback Type ────────────────────────────────────────────────────────────
 
@@ -37,7 +36,6 @@ import type { ExecutionEvent, EventFilter } from "../types";
  * Must be synchronous — the emitter does not await async callbacks.
  */
 export type EventCallback = (event: ExecutionEvent) => void;
-
 
 // ─── Default filter values ────────────────────────────────────────────────────
 
@@ -50,7 +48,6 @@ export type EventCallback = (event: ExecutionEvent) => void;
  * Typical interactive programs produce < 10,000 snapshots.
  */
 const ABSOLUTE_MAX_SNAPSHOTS = 10_000_000;
-
 
 // ─── EventEmitter ─────────────────────────────────────────────────────────────
 
@@ -76,7 +73,6 @@ const ABSOLUTE_MAX_SNAPSHOTS = 10_000_000;
  *   before the ceiling takes effect, so the UI can display a warning.
  */
 export class EventEmitter {
-
   /** Registered listener callbacks. */
   private listeners: EventCallback[];
 
@@ -112,14 +108,13 @@ export class EventEmitter {
   private ceilingWarningEmitted: boolean;
 
   constructor() {
-    this.listeners              = [];
-    this.stepCounter            = 0;
-    this.filter                 = null;
-    this.suppressedCount        = 0;
-    this.totalEmitted           = 0;
-    this.ceilingWarningEmitted  = false;
+    this.listeners = [];
+    this.stepCounter = 0;
+    this.filter = null;
+    this.suppressedCount = 0;
+    this.totalEmitted = 0;
+    this.ceilingWarningEmitted = false;
   }
-
 
   // ── Subscription ──────────────────────────────────────────────────────────
 
@@ -149,7 +144,6 @@ export class EventEmitter {
     };
   }
 
-
   // ── Emission ──────────────────────────────────────────────────────────────
 
   /**
@@ -168,12 +162,7 @@ export class EventEmitter {
    * @param type    - The event category (see EventType enum).
    * @param payload - Contextual data for this specific event.
    */
-  public emit(
-    line:    number,
-    type:    EventType,
-    payload: Record<string, unknown>,
-  ): void {
-
+  public emit(line: number, type: EventType, payload: Record<string, unknown>): void {
     // ── Step 1: Ceiling check ─────────────────────────────────────────────
     const ceiling = this.filter?.maxSnapshots ?? ABSOLUTE_MAX_SNAPSHOTS;
 
@@ -215,20 +204,16 @@ export class EventEmitter {
    * @param type    - Event category.
    * @param payload - Event payload.
    */
-  private deliverEvent(
-    line:    number,
-    type:    EventType,
-    payload: Record<string, unknown>,
-  ): void {
+  private deliverEvent(line: number, type: EventType, payload: Record<string, unknown>): void {
     const event: ExecutionEvent = {
       // Prefer the Web Crypto API for UUID generation; fall back to a
       // Math.random-based approach for environments without crypto support
       // (e.g. some Jest test environments without jsdom).
-      id: (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function")
-        ? crypto.randomUUID()
-        : Math.random().toString(36).slice(2, 11) +
-          Math.random().toString(36).slice(2, 11),
-      step:    ++this.stepCounter,
+      id:
+        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : Math.random().toString(36).slice(2, 11) + Math.random().toString(36).slice(2, 11),
+      step: ++this.stepCounter,
       line,
       type,
       payload,
@@ -240,7 +225,6 @@ export class EventEmitter {
 
     this.totalEmitted++;
   }
-
 
   // ── Filter Management ─────────────────────────────────────────────────────
 
@@ -313,7 +297,6 @@ export class EventEmitter {
     }
   }
 
-
   // ── Telemetry ─────────────────────────────────────────────────────────────
 
   /**
@@ -342,7 +325,6 @@ export class EventEmitter {
     return this.stepCounter;
   }
 
-
   // ── Lifecycle ─────────────────────────────────────────────────────────────
 
   /**
@@ -366,9 +348,9 @@ export class EventEmitter {
    * begins, ensuring a clean slate even if a previous run crashed mid-way.
    */
   public reset(): void {
-    this.stepCounter           = 0;
-    this.suppressedCount       = 0;
-    this.totalEmitted          = 0;
+    this.stepCounter = 0;
+    this.suppressedCount = 0;
+    this.totalEmitted = 0;
     this.ceilingWarningEmitted = false;
     // Intentionally NOT resetting: this.listeners, this.filter
   }
