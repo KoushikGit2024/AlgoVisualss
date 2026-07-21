@@ -13,8 +13,7 @@ import {
   ListOrdered,
   Database,
   Type,
-  Binary,
-  Hash
+  Binary
 } from "lucide-react";
 
 const DATA_STRUCTURES = [
@@ -36,7 +35,7 @@ const DATA_STRUCTURES = [
     auxiliary: [
       { role: "Edge list", trigger: "Any variable containing `edge` (e.g., `graph_edges`)", notes: "Expected format: `[[u, v], [x, y]]`" },
       { role: "Visited state", trigger: "Any variable containing `visit`", notes: "Elements set to `1` pulse with the highlight color" },
-      { role: "Pointer badges", trigger: "`node`, `curr`, `u`, `v`, or `ptr_n*` prefix", notes: "All matching variables render as floating badges simultaneously" },
+      { role: "Pointer badges", trigger: "Any pointer variable or index", notes: "Automatically tracked by the engine. Renders as floating badges." },
       { role: "Active node", trigger: "A variable exactly named `current`", notes: "Highlights the node as actively being processed (e.g., in BFS/DFS)" }
     ]
   },
@@ -57,8 +56,7 @@ const DATA_STRUCTURES = [
     ],
     shape: "Can be a pointer-based tree (struct with `value` + `left`/`right` pointers) OR an array of objects with `id` and `value` fields.",
     auxiliary: [
-      { role: "Core pointers", trigger: "`root`, `curr`, `parent`, `temp`", notes: "Stores target node's `id`" },
-      { role: "Branch pointers", trigger: "`left`, `right`", notes: "Badges attach above the target node" }
+      { role: "Pointers", trigger: "Any pointer variable", notes: "Automatically tracked by the engine. Stores target node's `id`" }
     ]
   },
   {
@@ -76,7 +74,7 @@ const DATA_STRUCTURES = [
     ],
     shape: "A struct containing a `children` map/array OR an array of objects with `id`, `value`, and `children`.",
     auxiliary: [
-      { role: "Core pointers", trigger: "`curr`, `node`, `ptr`, `temp`", notes: "Stores target node's `id`" }
+      { role: "Pointers", trigger: "Any pointer variable", notes: "Automatically tracked by the engine." }
     ]
   },
   {
@@ -86,27 +84,12 @@ const DATA_STRUCTURES = [
     textColor: "text-accent-2",
     description: "Renders a 2D grid/matrix layout. Automatically handles and aligns jagged/irregular arrays where rows have varying lengths.",
     prefixes: [
-      { prefix: "mat", example: "vector<vector<int>> mat_grid" },
-      { prefix: "grid", example: "vector<vector<int>> grid" },
-      { prefix: "board", example: "char board[8][8]" },
-      { prefix: "dp", example: "vector<vector<int>> dp_table" },
-      { prefix: "table", example: "int table[5][5]" },
-      { prefix: "matrix", example: "vector<vector<int>> matrix_data" },
-      { prefix: "vec2d", example: "vector<vector<int>> vec2d_arr" },
-      { prefix: "array2d", example: "vector<vector<int>> array2d_nums" },
-      { prefix: "grid2d", example: "vector<vector<int>> grid2d_board" },
-      { prefix: "matrix2d", example: "vector<vector<int>> matrix2d_dp" },
-      { prefix: "table2d", example: "int table2d[10][10]" },
-      { prefix: "res", example: "vector<vector<int>> res_out" },
-      { prefix: "map2d", example: "vector<vector<int>> map2d" },
-      { prefix: "pixels", example: "vector<vector<int>> pixels" },
-      { prefix: "image", example: "vector<vector<int>> image" },
-      { prefix: "layout", example: "vector<vector<int>> layout" }
+      { prefix: "ANY NAME", example: "vector<vector<int>> matrix_data" },
+      { prefix: "ANY NAME", example: "int table2d[10][10]" }
     ],
-    shape: "Value must be a 2D array (array of arrays). Supports jagged/irregular rows.",
+    shape: "Value must be a 2D array (array of arrays). Supports jagged/irregular rows. Detection is completely automatic based on structure, no naming prefix is required!",
     auxiliary: [
-      { role: "Row", trigger: "`r`, `row`, `*_r`, `r_*`", notes: "Both a row and column variable must exist to drop a pointer." },
-      { role: "Column", trigger: "`c`, `col`, `*_c`, `c_*`", notes: "" }
+      { role: "Row/Column pointers", trigger: "Any variables used as 2D indices (e.g., `mat[r][c]`)", notes: "Automatically tracked by the engine during access." }
     ]
   },
   {
@@ -116,30 +99,12 @@ const DATA_STRUCTURES = [
     textColor: "text-accent-3",
     description: "Renders a linear array.",
     prefixes: [
-      { prefix: "arr", example: "vector<int> arr" },
-      { prefix: "vec", example: "vector<string> vec_names" },
-      { prefix: "nums", example: "vector<int> nums" },
-      { prefix: "seq", example: "vector<float> seq" },
-      { prefix: "dp", example: "vector<int> dp_table" },
-      { prefix: "list", example: "vector<int> list_items" },
-      { prefix: "buffer", example: "char buffer[256]" },
-      { prefix: "cache", example: "vector<int> cache_arr" },
-      { prefix: "res", example: "vector<int> res_out" },
-      { prefix: "array", example: "array<int, 5> array_data" },
-      { prefix: "tuple", example: "vector<int> tuple_vals" },
-      { prefix: "valarray", example: "valarray<int> valarray_nums" },
-      { prefix: "collection", example: "vector<int> collection_list" },
-      { prefix: "items", example: "vector<int> items" },
-      { prefix: "elements", example: "vector<int> elements" },
-      { prefix: "values", example: "vector<int> values" },
-      { prefix: "data", example: "vector<int> data" },
-      { prefix: "records", example: "vector<int> records" }
+      { prefix: "ANY NAME", example: "vector<int> arr" },
+      { prefix: "ANY NAME", example: "array<int, 5> array_data" }
     ],
-    shape: "Value must be a flat array of primitives (numbers, strings, booleans).",
+    shape: "Value must be a flat array of primitives (numbers, strings, booleans). Detection is completely automatic based on structure, no naming prefix is required!",
     auxiliary: [
-      { role: "Generic indexers", trigger: "`i`, `j`, `k`", notes: "" },
-      { role: "Algorithmic pointers", trigger: "`left`, `right`, `mid`, `curr`, `ptr`", notes: "" },
-      { role: "Composite examples", trigger: "`ptr_i`, `left_idx`", notes: "" },
+      { role: "Indexers / Pointers", trigger: "Any variable used as an index (e.g., `arr[i]`)", notes: "Automatically tracked by the engine." },
       { role: "Range Highlighting", trigger: "Pairs: `left`/`right`, `l`/`r`, `start`/`end`, `low`/`high`, `first`/`last`", notes: "If a pointer pair exists in the scope, the elements between them are automatically highlighted as a range." }
     ]
   },
@@ -154,7 +119,7 @@ const DATA_STRUCTURES = [
     ],
     shape: "Flat numeric array. Triggers automatically based on URL routing (`/algorithms/sorting`).",
     auxiliary: [
-      { role: "Pointers", trigger: "`i`, `j`, `k`, `left`, `right`, `curr`", notes: "" }
+      { role: "Pointers", trigger: "Any variable used as an index", notes: "Automatically tracked by the engine." }
     ]
   },
   {
@@ -188,8 +153,7 @@ const DATA_STRUCTURES = [
     ],
     shape: "Value must be a flat array of primitives.",
     auxiliary: [
-      { role: "Standard ends", trigger: "`front`, `back`, `rear`, `head`, `tail`", notes: "" },
-      { role: "General trackers", trigger: "`curr`, `ptr_front`", notes: "" }
+      { role: "Pointers", trigger: "Any pointer variable", notes: "Automatically tracked by the engine." }
     ]
   },
   {
@@ -207,7 +171,7 @@ const DATA_STRUCTURES = [
     ],
     shape: "Value must be a flat array of primitives.",
     auxiliary: [
-      { role: "Stack pointers", trigger: "`top`, `peek`, `curr`", notes: "Pointer badges attach to the right side of the element." }
+      { role: "Stack pointers", trigger: "Any pointer variable", notes: "Automatically tracked by the engine. Pointer badges attach to the right side." }
     ]
   },
   {
@@ -217,23 +181,12 @@ const DATA_STRUCTURES = [
     textColor: "text-ds-string",
     description: "Renders characters continuously with distinct text-specific styling.",
     prefixes: [
-      { prefix: "str", example: "string str_val" },
-      { prefix: "text", example: "string text_data" },
-      { prefix: "word", example: "string word" },
-      { prefix: "chars", example: "vector<char> chars" },
-      { prefix: "msg", example: "string msg" },
-      { prefix: "string", example: "string string_data" },
-      { prefix: "sentence", example: "string sentence" },
-      { prefix: "paragraph", example: "string paragraph" },
-      { prefix: "pattern", example: "string pattern" },
-      { prefix: "substring", example: "string substring" },
-      { prefix: "sub", example: "string sub" },
-      { prefix: "letters", example: "string letters" },
-      { prefix: "characters", example: "string characters" }
+      { prefix: "ANY NAME", example: "string string_data" },
+      { prefix: "ANY NAME", example: "vector<char> chars" }
     ],
-    shape: "Value must be a Javascript primitive string or an array of characters.",
+    shape: "Value must be a Javascript primitive string or an array of characters. Detection is completely automatic based on structure.",
     auxiliary: [
-      { role: "Indexers", trigger: "`i`, `j`, `k`, `left`, `right`, `mid`, `curr`, `ptr`", notes: "" }
+      { role: "Indexers", trigger: "Any variable used as an index", notes: "Automatically tracked by the engine." }
     ]
   },
   {
@@ -243,20 +196,10 @@ const DATA_STRUCTURES = [
     textColor: "text-success",
     description: "Renders key-value pairs.",
     prefixes: [
-      { prefix: "map", example: "unordered_map<int, int> map_freq" },
-      { prefix: "dict", example: "map<string, int> dict" },
-      { prefix: "freq", example: "unordered_map<char, int> freq" },
-      { prefix: "count", example: "unordered_map<int, int> count" },
-      { prefix: "hash", example: "unordered_map<int, int> hash" },
-      { prefix: "memo", example: "unordered_map<int, int> memo" },
-      { prefix: "cache_map", example: "unordered_map<int, int> cache_map" },
-      { prefix: "mapping", example: "unordered_map<int, int> mapping" },
-      { prefix: "lookup", example: "unordered_map<int, int> lookup" },
-      { prefix: "occurrences", example: "unordered_map<int, int> occurrences" },
-      { prefix: "frequencies", example: "unordered_map<int, int> frequencies" },
-      { prefix: "counter", example: "unordered_map<int, int> counter" }
+      { prefix: "ANY NAME", example: "unordered_map<int, int> map_freq" },
+      { prefix: "ANY NAME", example: "map<string, int> dict" }
     ],
-    shape: "Value must be a map object internally emitted by the engine.",
+    shape: "Value must be a map object internally emitted by the engine. Detection is automatic.",
     auxiliary: []
   },
   {
@@ -266,13 +209,10 @@ const DATA_STRUCTURES = [
     textColor: "text-success",
     description: "Renders unique set elements as distinct badges.",
     prefixes: [
-      { prefix: "set", example: "unordered_set<int> set_data" },
-      { prefix: "seen", example: "unordered_set<int> seen" },
-      { prefix: "visited", example: "unordered_set<int> visited_nodes" },
-      { prefix: "hash_set", example: "unordered_set<int> hash_set" },
-      { prefix: "unique", example: "unordered_set<int> unique_vals" }
+      { prefix: "ANY NAME", example: "unordered_set<int> set_data" },
+      { prefix: "ANY NAME", example: "set<int> unique_vals" }
     ],
-    shape: "Value must be a set object internally emitted by the engine.",
+    shape: "Value must be a set object internally emitted by the engine. Detection is automatic.",
     auxiliary: []
   },
   {
@@ -282,38 +222,10 @@ const DATA_STRUCTURES = [
     textColor: "text-ds-bitset",
     description: "Renders an integer or boolean array as a strip of glowing bits.",
     prefixes: [
-      { prefix: "mask", example: "int mask = 5" },
-      { prefix: "bits", example: "vector<bool> bits" },
-      { prefix: "flags", example: "int flags" },
-      { prefix: "bitset", example: "bitset<32> b" },
-      { prefix: "state_mask", example: "int state_mask" },
-      { prefix: "status_bits", example: "int status_bits" },
-      { prefix: "binary_flags", example: "int binary_flags" },
-      { prefix: "bitmask", example: "int bitmask" }
+      { prefix: "ANY NAME", example: "vector<bool> bits" },
+      { prefix: "ANY NAME", example: "bitset<32> b" }
     ],
-    shape: "Value must be a Javascript primitive number or an array of booleans.",
-    auxiliary: []
-  },
-  {
-    title: "Standalone Scalars \u2014 <Scalar />",
-    icon: <Hash className="text-ds-scalar" size={18} />,
-    color: "border-ds-scalar/30 bg-ds-scalar/5",
-    textColor: "text-ds-scalar",
-    description: "Renders a large, prominent dashboard counter for crucial tracking variables.",
-    prefixes: [
-      { prefix: "ans", example: "int ans = 0" },
-      { prefix: "sum", example: "long long sum = 0" },
-      { prefix: "count", example: "int count" },
-      { prefix: "total", example: "int total" },
-      { prefix: "result", example: "int result" },
-      { prefix: "max_val", example: "int max_val" },
-      { prefix: "min_val", example: "int min_val" },
-      { prefix: "cnt", example: "int cnt" },
-      { prefix: "res_val", example: "int res_val" },
-      { prefix: "diff", example: "int diff" },
-      { prefix: "target", example: "int target" }
-    ],
-    shape: "Value must be a primitive number, string, or boolean.",
+    shape: "Value must be a Javascript primitive number or an array of booleans. Detection is automatic.",
     auxiliary: []
   }
 ];
@@ -505,17 +417,16 @@ export default function VisualizerNamingConventions() {
                 { c: "<Graph />", p: "adj, graph, network", s: "2D array", a: "*edge*, *visit*, node/curr/u/v" },
                 { c: "<TrieTree />", p: "trie, prefix_tree, ptree", s: "Struct OR Array", a: "curr, node, ptr, temp" },
                 { c: "<Tree />", p: "tree, bst, root, heap, forest", s: "Struct OR Array", a: "root, curr, parent, temp, left, right" },
-                { c: "<D2Array />", p: "mat, grid, board, dp, table, matrix, res", s: "2D array (Jagged allowed)", a: "r/row/r_*, c/col/c_* (both req)" },
-                { c: "<D1Array />", p: "arr, vec, nums, seq, dp, list, buffer, cache, res", s: "Flat array", a: "i, j, k, left, right, mid, curr, ptr" },
+                { c: "<D2Array />", p: "(Any Name)", s: "2D array (Jagged allowed)", a: "r/row/r_*, c/col/c_* (both req)" },
+                { c: "<D1Array />", p: "(Any Name)", s: "Flat array", a: "i, j, k, left, right, mid, curr, ptr" },
                 { c: "<SortBars />", p: "arr", s: "Numeric array on sorting pages", a: "i, j, k" },
                 { c: "<LinkedList />", p: "(Any Name)", s: "Struct with `value` & `next`", a: "All node pointers automatically attach" },
                 { c: "<Queue />", p: "queue, deque, line, queue_nodes, tasks", s: "Flat array", a: "front, back, rear, head, tail, curr" },
                 { c: "<Stack />", p: "stack, stk, history, undo, frames", s: "Flat array", a: "top, peek" },
-                { c: "<Map />", p: "map, dict, freq, count, hash, cache_map, memo, mapping, lookup, occurrences, frequencies, counter", s: "Map Object", a: "None" },
-                { c: "<Set />", p: "set, seen, visited, hash_set, unique", s: "Set Object", a: "None" },
-                { c: "<String />", p: "str, text, word, chars, msg, string, sentence, paragraph, pattern, substring, sub, letters, characters", s: "String / Char Array", a: "i, j, k, left, right, mid, curr, ptr" },
-                { c: "<Bitset />", p: "mask, bits, flags, bitset, state_mask, status_bits, binary_flags, bitmask", s: "Number / Bool Array", a: "None" },
-                { c: "<Scalar />", p: "ans, sum, count, total, result, max_val, min_val, cnt, res_val, diff, target", s: "Primitive", a: "None" }
+                { c: "<Map />", p: "(Any Name)", s: "Map Object", a: "None" },
+                { c: "<Set />", p: "(Any Name)", s: "Set Object", a: "None" },
+                { c: "<String />", p: "(Any Name)", s: "String / Char Array", a: "i, j, k, left, right, mid, curr, ptr" },
+                { c: "<Bitset />", p: "(Any Name)", s: "Number / Bool Array", a: "None" }
               ].map((row, i) => (
                 <tr key={i} className="border-b border-border last:border-b-0 hover:bg-surface-2 transition-colors">
                   <td className="px-3 py-2 border-r border-border text-text font-mono whitespace-nowrap">{row.c}</td>

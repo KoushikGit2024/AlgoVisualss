@@ -791,11 +791,27 @@ export class StatementExecutor {
       const targetNode = stmt.target as IRSubscriptExpression;
       const index      = this.evaluator.evaluate(targetNode.index) as string | number;
 
+      // Extract the exact identifier used as the index, if any
+      const indexVariables: string[] = [];
+      let currIndexNode = targetNode.index;
+      if (currIndexNode.kind === "Identifier") {
+          indexVariables.push((currIndexNode as any).name);
+      }
+      
+      // Walk down the object to collect multiple index variables (for 2D/3D arrays)
+      let currObjNode = targetNode.object;
+      while (currObjNode.kind === "SubscriptExpression") {
+          const innerSub = currObjNode as IRSubscriptExpression;
+          if (innerSub.index.kind === "Identifier") {
+              indexVariables.push((innerSub.index as any).name);
+          }
+          currObjNode = innerSub.object;
+      }
+
       let targetObj: any  = null;
-      let arrayName       = "container";
+      let arrayName       = currObjNode.kind === "Identifier" ? (currObjNode as IRIdentifier).name : "container";
 
       if (targetNode.object.kind === "Identifier") {
-        arrayName = (targetNode.object as IRIdentifier).name;
         try {
           targetObj = this.evaluator.evaluate(targetNode.object);
         } catch {
@@ -837,6 +853,7 @@ export class StatementExecutor {
       this.eventEmitter.emit(stmt.line, EventType.ASSIGNMENT, {
         variable: `${arrayName}[${index}]`,
         value:    finalValue,
+        indexVariables: indexVariables.length > 0 ? indexVariables : undefined,
       });
     }
 

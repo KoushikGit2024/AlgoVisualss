@@ -30,10 +30,10 @@ import MapComponent from '../dataStructures/Map';
 import SetComponent from '../dataStructures/Set';
 import StringComponent from '../dataStructures/String';
 import Bitset from '../dataStructures/Bitset';
-import Scalar from '../dataStructures/Scalar';
 import SortBars from '../dataStructures/SortBars';
 import { DraggableWindow, type WindowState } from './DraggableWindow';
 import { detectVisualizer, deepUnwrap, type CanvasState } from './detectVisualizer';
+import { usePointerHistory } from './hooks/usePointerHistory';
 import { cn } from '../../lib/utils';
 
 const VisualGround = ({
@@ -316,7 +316,9 @@ const VisualGround = ({
   }, [consoleOutput]);
 
   // ─── VISUALIZER DETECTION ───
-  const canvasStates: CanvasState[] = useMemo(() => detectVisualizer(vars, currentEvent), [vars, currentEvent]);
+  const pointerHistory = usePointerHistory(snapshots);
+  const currentPointerContext = pointerHistory[currentStep] || {};
+  const canvasStates: CanvasState[] = useMemo(() => detectVisualizer(vars, currentEvent, currentPointerContext), [vars, currentEvent, currentPointerContext]);
 
   const groupedStates = useMemo(() => {
     const groups: Record<string, CanvasState[]> = {};
@@ -346,19 +348,12 @@ const VisualGround = ({
         keys.forEach((key, idx) => {
           z += 1;
           if (keys.length === 1) {
-            // Scalars stay small in the corner even when alone
-            if (key === 'scalar') {
-              next[key] = { isMinimized: false, isMaximized: false, snap: 'none', zIndex: z };
-            } else {
-              next[key] = { isMinimized: false, isMaximized: true, snap: 'none', zIndex: z };
-            }
-
+            next[key] = { isMinimized: false, isMaximized: true, snap: 'none', zIndex: z };
           } else if (keys.length === 2) {
             next[key] = {
               isMinimized: false,
               isMaximized: false,
-              // If one of the two is a scalar, give it corner treatment
-              snap: key === 'scalar' ? 'none' : (idx === 0 ? 'left' : 'right'),
+              snap: (idx === 0 ? 'left' : 'right'),
               zIndex: z,
             };
           } else {
@@ -513,23 +508,19 @@ const VisualGround = ({
               // Each is offset by 40px from the previous one, capped at 4 positions.
               const defaultX = (idx % 4) * 40 + 20;
               const defaultY = (idx % 4) * 40 + 20;
-              // Scalars: pin to bottom-right corner
-              const isScalar    = type === 'scalar';
 
               return (
                 <DraggableWindow
                   key={type}
                   id={type}
                   title={`${type}s`}
-                  defaultPosition={{ x: isScalar ? 0 : defaultX, y: isScalar ? 0 : defaultY }}
-                  defaultSize={isScalar ? { width: 250, minWidth: 150, height: 150, minHeight: 100 } : undefined}
-                  cornerAnchor={isScalar ? 'bottom-right' : undefined}
+                  defaultPosition={{ x: defaultX, y: defaultY }}
                   windowState={ws}
                   updateWindow={(partial) => updateWindow(type, partial)}
                   bringToFront={() => bringToFront(type)}
                   parentRef={layoutAreaRef}
                 >
-                  <div className={cn(`flex flex-wrap gap-4 items-center justify-center p-2 ${isScalar ? '' : 'min-w-[40px] min-h-[150px]'}`)}>
+                  <div className={cn(`flex flex-wrap gap-4 items-center justify-center p-2 min-w-[40px] min-h-[150px]`)}>
                     {states.map((state) => (
                       <div
                         key={state.id}
@@ -551,7 +542,6 @@ const VisualGround = ({
                           {state.type === 'set'        && <SetComponent {...(state.props as any)} />}
                           {state.type === 'string'     && <StringComponent {...(state.props as any)} />}
                           {state.type === 'bitset'     && <Bitset {...(state.props as any)} />}
-                          {state.type === 'scalar'     && <Scalar {...(state.props as any)} />}
                           {state.type === 'sortbars'   && <SortBars {...(state.props as any)} />}
                         </div>
                       </div>

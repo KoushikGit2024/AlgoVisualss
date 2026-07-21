@@ -1,5 +1,6 @@
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { cn } from '../../lib/utils';
+import { DynamicPrimitive } from './DynamicPrimitive';
 
 export interface D1ArrayProps {
   value: (number | string)[];
@@ -136,12 +137,13 @@ const D1Array = ({
               bgClass = "bg-surface-2"; borderClass = "border-border-2";
             }
 
-            const safeValToDisplay = typeof val === 'object' ? JSON.stringify(val) : String(val);
+            const isComplex = typeof val === 'object' && val !== null;
+            const safeValToDisplay = isComplex ? JSON.stringify(val) : String(val);
             const valLen = safeValToDisplay.length;
             const fontSizeClass = valLen > 4 ? (valLen > 6 ? (valLen > 8 ? 'text-[calc(8rem/16)]' : 'text-[9.5px]') : 'text-[calc(11rem/16)]') : 'text-[calc(14rem/16)]';
 
             return (
-              <motion.div key={`cell-container-${idx}`} layout variants={cellVariants} className="flex flex-col items-center relative w-12 shrink-0">
+              <motion.div key={`cell-container-${idx}`} layout variants={cellVariants} className="flex flex-col items-center relative min-w-[3rem] shrink-0">
                 <motion.span layout className="text-[calc(10rem/16)] text-muted font-mono mb-1">
                   {idx}
                 </motion.span>
@@ -152,14 +154,20 @@ const D1Array = ({
                   animate={{ scale: activeScale, zIndex: activeZIndex }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
                   className={cn(`
-                    w-full aspect-square px-1 flex items-center justify-center font-mono font-medium 
+                    min-w-full min-h-[3rem] px-1.5 py-1.5 flex items-center justify-center font-mono font-medium 
                     rounded-sm border transition-colors duration-200 shrink-0
                     ${bgClass} ${borderClass} ${textClass} ${shadowClass}
                   `)}
                 >
-                  <span className={cn("break-all leading-tight text-center w-full", fontSizeClass)} style={{ wordBreak: 'break-word' }}>
-                    {safeValToDisplay}
-                  </span>
+                  {isComplex ? (
+                     <div className="w-full h-full flex items-center justify-center">
+                        <DynamicPrimitive value={val} />
+                     </div>
+                  ) : (
+                     <span className={cn("break-all leading-tight text-center w-full", fontSizeClass)} style={{ wordBreak: 'break-word' }}>
+                       {safeValToDisplay}
+                     </span>
+                  )}
                 </motion.div>
 
                 {/* Bottom Pointers */}

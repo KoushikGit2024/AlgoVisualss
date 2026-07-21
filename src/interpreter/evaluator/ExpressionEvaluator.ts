@@ -362,6 +362,23 @@ export class ExpressionEvaluator {
         const targetObj = this.evaluate(subExpr.object) as any;
         const index     = this.evaluate(subExpr.index) as string | number;
 
+        // Extract the exact identifier used as the index, if any
+        const indexVariables: string[] = [];
+        let currIndexNode = subExpr.index;
+        if (currIndexNode.kind === "Identifier") {
+            indexVariables.push((currIndexNode as any).name);
+        }
+        
+        // Walk down the object to collect multiple index variables (for 2D/3D arrays)
+        let currObjNode = subExpr.object;
+        while (currObjNode.kind === "SubscriptExpression") {
+            const innerSub = currObjNode as IRSubscriptExpression;
+            if (innerSub.index.kind === "Identifier") {
+                indexVariables.push((innerSub.index as any).name);
+            }
+            currObjNode = innerSub.object;
+        }
+
         if (targetObj === null || targetObj === undefined) {
           const vName = subExpr.object.kind === "Identifier"
             ? (subExpr.object as IRIdentifier).name
@@ -387,13 +404,14 @@ export class ExpressionEvaluator {
           val = targetObj[index];
         }
 
-        const safeName = subExpr.object.kind === "Identifier"
-          ? (subExpr.object as IRIdentifier).name
+        const safeName = currObjNode.kind === "Identifier"
+          ? (currObjNode as IRIdentifier).name
           : "container";
 
         this.eventEmitter.emit(expr.line, EventType.READ, {
           variable: `${safeName}[${index}]`,
           value:    val,
+          indexVariables: indexVariables.length > 0 ? indexVariables : undefined,
         });
 
         return val;
