@@ -1,6 +1,6 @@
 import { useMemo, useRef } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
-import { cn } from '../../lib/utils';
+import { cn } from "../../lib/utils";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -145,7 +145,7 @@ const Tree = ({
 
   const { finalLayout, treeWidth, treeDepth } = useMemo(
     () => buildLayout(nodes, rootId),
-    [nodes, rootId]
+    [nodes, rootId],
   );
 
   const getPos = (id: string) => finalLayout.get(id) ?? { x: 50, y: 50 };
@@ -160,7 +160,12 @@ const Tree = ({
 
   const nodeVariants: Variants = {
     hidden: { opacity: 0, scale: 0.4, y: -15 },
-    show: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 320, damping: 24 } },
+    show: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: { type: "spring", stiffness: 320, damping: 24 },
+    },
     exit: { opacity: 0, scale: 0.4, transition: { duration: 0.15 } },
   };
 
@@ -217,8 +222,10 @@ const Tree = ({
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.35, ease: "easeOut" }}
-                      x1={`${src.x}%`} y1={`${src.y}%`}
-                      x2={`${tgt.x}%`} y2={`${tgt.y}%`}
+                      x1={`${src.x}%`}
+                      y1={`${src.y}%`}
+                      x2={`${tgt.x}%`}
+                      y2={`${tgt.y}%`}
                       className="stroke-border transition-colors duration-300"
                       strokeWidth={isSegTree ? 1.5 : 2}
                       strokeDasharray={isSegTree ? "4 2" : undefined}
@@ -236,7 +243,7 @@ const Tree = ({
                         {label}
                       </text>
                     )}
-                  </g>
+                  </g>,
                 );
               }
               return edges;
@@ -250,44 +257,103 @@ const Tree = ({
             {nodes.map((node) => {
               const meta = extractMeta(node.__raw, treeKind);
 
-              const isDelete    = deleteNodes?.includes(node.id);
-              const isSwap      = swapNodes?.includes(node.id);
-              const isWrite     = writeNodes?.includes(node.id);
-              const isInsert    = insertNodes?.includes(node.id);
-              const isFound     = foundNodes?.includes(node.id);
-              const isCompare   = compareNodes?.includes(node.id);
-              const isRead      = readNodes?.includes(node.id);
+              const isDelete = deleteNodes?.includes(node.id);
+              const isSwap = swapNodes?.includes(node.id);
+              const isWrite = writeNodes?.includes(node.id);
+              const isInsert = insertNodes?.includes(node.id);
+              const isFound = foundNodes?.includes(node.id);
+              const isCompare = compareNodes?.includes(node.id);
+              const isRead = readNodes?.includes(node.id);
               const isHighlight = highLightNodes?.includes(node.id);
 
-              let bg     = meta.colorTag === "red"   ? "bg-red-500/15"
-                         : meta.colorTag === "black" ? "bg-zinc-800/40"
-                         : "bg-surface";
-              let border = meta.colorTag === "red"   ? "border-red-500"
-                         : meta.colorTag === "black" ? "border-zinc-500"
-                         : "border-border";
-              let text   = "text-text";
+              let bg =
+                meta.colorTag === "red"
+                  ? "bg-red-500/15"
+                  : meta.colorTag === "black"
+                    ? "bg-zinc-800/40"
+                    : "bg-surface";
+              let border =
+                meta.colorTag === "red"
+                  ? "border-red-500"
+                  : meta.colorTag === "black"
+                    ? "border-zinc-500"
+                    : "border-border";
+              let text = "text-text";
               let shadow = "shadow-sm";
-              let scale  = 1;
-              let zIdx   = 1;
+              let scale = 1;
+              let zIdx = 1;
 
-              if      (isFound)     { bg = "bg-ds-read/20";  border = "border-ds-read";  text = "text-ds-read";  shadow = "shadow-none"; scale = 1.12; zIdx = 30; }
-              else if (isDelete)    { bg = "bg-failure/20";    border = "border-failure";    text = "text-failure";    shadow = "shadow-none"; scale = 0.95; zIdx = 10; }
-              else if (isSwap)      { bg = "bg-accent-3/20";     border = "border-accent-3";    text = "text-accent-3";    shadow = "shadow-none"; scale = 1.06; zIdx = 20; }
-              else if (isInsert)    { bg = "bg-ds-write/20";  border = "border-ds-write"; text = "text-ds-write"; shadow = "shadow-none"; scale = 1.10; zIdx = 25; }
-              else if (isWrite)     { bg = "bg-success/20";      border = "border-success";     text = "text-success";     shadow = "shadow-none"; scale = 1.06; zIdx = 20; }
-              else if (isCompare)   { bg = "bg-orange-500/20";   border = "border-orange-500";  text = "text-orange-500";  shadow = "shadow-none"; scale = 1.03; zIdx = 15; }
-              else if (isRead)      { bg = "bg-accent/20";       border = "border-accent";      text = "text-accent";      shadow = "shadow-none"; scale = 1.03; zIdx = 10; }
-              else if (isHighlight) { border = "border-accent-2"; text = "text-accent-2"; zIdx = 5; }
+              if (isFound) {
+                bg = "bg-ds-read/20";
+                border = "border-ds-read";
+                text = "text-ds-read";
+                shadow = "shadow-none";
+                scale = 1.12;
+                zIdx = 30;
+              } else if (isDelete) {
+                bg = "bg-failure/20";
+                border = "border-failure";
+                text = "text-failure";
+                shadow = "shadow-none";
+                scale = 0.95;
+                zIdx = 10;
+              } else if (isSwap) {
+                bg = "bg-accent-3/20";
+                border = "border-accent-3";
+                text = "text-accent-3";
+                shadow = "shadow-none";
+                scale = 1.06;
+                zIdx = 20;
+              } else if (isInsert) {
+                bg = "bg-ds-write/20";
+                border = "border-ds-write";
+                text = "text-ds-write";
+                shadow = "shadow-none";
+                scale = 1.1;
+                zIdx = 25;
+              } else if (isWrite) {
+                bg = "bg-success/20";
+                border = "border-success";
+                text = "text-success";
+                shadow = "shadow-none";
+                scale = 1.06;
+                zIdx = 20;
+              } else if (isCompare) {
+                bg = "bg-orange-500/20";
+                border = "border-orange-500";
+                text = "text-orange-500";
+                shadow = "shadow-none";
+                scale = 1.03;
+                zIdx = 15;
+              } else if (isRead) {
+                bg = "bg-accent/20";
+                border = "border-accent";
+                text = "text-accent";
+                shadow = "shadow-none";
+                scale = 1.03;
+                zIdx = 10;
+              } else if (isHighlight) {
+                border = "border-accent-2";
+                text = "text-accent-2";
+                zIdx = 5;
+              }
 
-              const pos      = getPos(node.id);
-              const dispVal  = typeof node.value === "object" ? JSON.stringify(node.value) : String(node.value);
+              const pos = getPos(node.id);
+              const dispVal =
+                typeof node.value === "object" ? JSON.stringify(node.value) : String(node.value);
               const cellPtrs = pointers.filter((p) => p.nodeId === node.id);
-              const nodeSize = treeKind === "segment" ? "w-10 h-10 text-[calc(11rem/16)]" : "w-12 h-12 text-[calc(13rem/16)]";
+              const nodeSize =
+                treeKind === "segment"
+                  ? "w-10 h-10 text-[calc(11rem/16)]"
+                  : "w-12 h-12 text-[calc(13rem/16)]";
 
               return (
                 <motion.div
                   key={`node-${node.id}`}
-                  variants={nodeVariants} initial="hidden" animate="show" exit="exit"
+                  variants={nodeVariants}
+                  initial="hidden"
+                  animate="show"
+                  exit="exit"
                   className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2"
                   style={{ left: `${pos.x}%`, top: `${pos.y}%`, zIndex: zIdx }}
                 >
@@ -316,7 +382,9 @@ const Tree = ({
                     <AnimatePresence mode="wait">
                       <motion.span
                         key={`v-${dispVal}`}
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                         transition={{ duration: 0.08 }}
                       >
                         {dispVal}
@@ -341,7 +409,9 @@ const Tree = ({
                           <motion.div
                             key={ptr.name}
                             layoutId={`ptr-tree-${ptr.name}`}
-                            initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.5 }}
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.5 }}
                             transition={{ type: "spring", stiffness: 400, damping: 25, mass: 0.8 }}
                             className="bg-accent-3 text-white shadow-md border border-bg rounded-full px-1.5 py-[2px] flex items-center justify-center"
                           >

@@ -1,14 +1,14 @@
-import { useMemo } from 'react';
-import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import { cn } from '../../lib/utils';
+import { useMemo } from "react";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { cn } from "../../lib/utils";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface TrieNodeData {
   id: string;
-  value: string | number;      // The character label (e.g. 'a', 'b', or 'root')
-  children: string[];          // IDs of child nodes
-  isEnd?: boolean;             // True when this node marks end of a word
+  value: string | number; // The character label (e.g. 'a', 'b', or 'root')
+  children: string[]; // IDs of child nodes
+  isEnd?: boolean; // True when this node marks end of a word
 }
 
 export interface TrieTreeProps {
@@ -33,11 +33,11 @@ export interface TrieTreeProps {
 // The canvas grows with both the leaf count (width) and the depth (height),
 // so wide/bushy tries naturally get wider instead of nodes overlapping.
 
-const NODE_DIAMETER = 40;  // px, matches the w-10 h-10 node circle
-const H_GAP = 28;          // horizontal gap between adjacent leaf slots
-const V_GAP = 78;          // vertical gap between depth levels
-const PAD_H = 32;          // horizontal canvas padding
-const PAD_TOP = 36;        // vertical canvas padding
+const NODE_DIAMETER = 40; // px, matches the w-10 h-10 node circle
+const H_GAP = 28; // horizontal gap between adjacent leaf slots
+const V_GAP = 78; // vertical gap between depth levels
+const PAD_H = 32; // horizontal canvas padding
+const PAD_TOP = 36; // vertical canvas padding
 
 interface LayoutResult {
   positions: Map<string, { x: number; y: number }>;
@@ -49,7 +49,7 @@ interface LayoutResult {
 
 function layoutTrie(nodes: TrieNodeData[], rootId: string): LayoutResult {
   const nodeMap = new Map<string, TrieNodeData>();
-  nodes.forEach(n => nodeMap.set(n.id, n));
+  nodes.forEach((n) => nodeMap.set(n.id, n));
 
   // ── 1. BFS depth pass ─────────────────────────────────────────────────────
   const depths = new Map<string, number>();
@@ -63,7 +63,7 @@ function layoutTrie(nodes: TrieNodeData[], rootId: string): LayoutResult {
     visited.add(id);
     depths.set(id, d);
     if (d > maxDepth) maxDepth = d;
-    nodeMap.get(id)?.children.forEach(c => {
+    nodeMap.get(id)?.children.forEach((c) => {
       if (!visited.has(c)) q.push([c, d + 1]);
     });
   }
@@ -74,7 +74,7 @@ function layoutTrie(nodes: TrieNodeData[], rootId: string): LayoutResult {
 
   function place(id: string): number {
     if (!visited.has(id)) return leaf;
-    const children = (nodeMap.get(id)?.children ?? []).filter(c => visited.has(c));
+    const children = (nodeMap.get(id)?.children ?? []).filter((c) => visited.has(c));
     if (children.length === 0) {
       const slot = leaf;
       xSlot.set(id, slot);
@@ -111,30 +111,29 @@ function layoutTrie(nodes: TrieNodeData[], rootId: string): LayoutResult {
 const TrieTree = ({
   nodes = [],
   rootId,
-  pointers       = [],
+  pointers = [],
   highLightNodes = [],
-  readNodes      = [],
-  writeNodes     = [],
-  compareNodes   = [],
-  deleteNodes    = [],
-  insertNodes    = [],
-  foundNodes     = [],
+  readNodes = [],
+  writeNodes = [],
+  compareNodes = [],
+  deleteNodes = [],
+  insertNodes = [],
+  foundNodes = [],
 }: TrieTreeProps) => {
-
   const { layout, actualRootId, canvasW, canvasH } = useMemo(() => {
-    if (nodes.length === 0) return { layout: null, actualRootId: '', canvasW: 320, canvasH: 180 };
+    if (nodes.length === 0) return { layout: null, actualRootId: "", canvasW: 320, canvasH: 180 };
 
     const childSet = new Set<string>();
-    nodes.forEach(n => n.children.forEach(c => childSet.add(c)));
-    const rid = rootId ?? nodes.find(n => !childSet.has(n.id))?.id ?? nodes[0].id;
+    nodes.forEach((n) => n.children.forEach((c) => childSet.add(c)));
+    const rid = rootId ?? nodes.find((n) => !childSet.has(n.id))?.id ?? nodes[0].id;
     const r = layoutTrie(nodes, rid);
     return { layout: r.positions, actualRootId: rid, canvasW: r.canvasW, canvasH: r.canvasH };
   }, [nodes, rootId]);
 
   const nodeVariants: Variants = {
-    hidden:  { opacity: 0, scale: 0.35 },
-    visible: { opacity: 1, scale: 1,   transition: { type: 'spring', stiffness: 300, damping: 20 } },
-    exit:    { opacity: 0, scale: 0.3, transition: { duration: 0.13 } },
+    hidden: { opacity: 0, scale: 0.35 },
+    visible: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 300, damping: 20 } },
+    exit: { opacity: 0, scale: 0.3, transition: { duration: 0.13 } },
   };
 
   if (nodes.length === 0 || !layout) {
@@ -152,25 +151,26 @@ const TrieTree = ({
     <div className="overflow-auto styled-scrollbar w-full h-full relative">
       {/* Pixel-sized canvas — grows with leaf count (width) and depth (height) */}
       <div className="relative shrink-0" style={{ width: canvasW, height: canvasH }}>
-
         {/* ── SVG layer: tree-style edges (gentle curve down from parent to child) ── */}
         <svg
           className="absolute inset-0 pointer-events-none z-0"
           width={canvasW}
           height={canvasH}
-          style={{ overflow: 'visible' }}
+          style={{ overflow: "visible" }}
         >
           <AnimatePresence>
-            {nodes.map(node => {
+            {nodes.map((node) => {
               const src = layout.get(node.id);
               if (!src) return null;
-              return node.children.map(cId => {
+              return node.children.map((cId) => {
                 const tgt = layout.get(cId);
                 if (!tgt) return null;
 
                 const active =
-                  readNodes.includes(node.id) || readNodes.includes(cId) ||
-                  writeNodes.includes(cId)    || insertNodes.includes(cId) ||
+                  readNodes.includes(node.id) ||
+                  readNodes.includes(cId) ||
+                  writeNodes.includes(cId) ||
+                  insertNodes.includes(cId) ||
                   foundNodes.includes(cId);
 
                 // Branch downward from the bottom of the parent circle to the
@@ -178,8 +178,8 @@ const TrieTree = ({
                 // this reads as a tree branch rather than a flat S-curve.
                 const r = NODE_DIAMETER / 2;
                 const startY = src.y + r;
-                const endY   = tgt.y - r;
-                const midY   = (startY + endY) / 2;
+                const endY = tgt.y - r;
+                const midY = (startY + endY) / 2;
                 const d = `M${src.x},${startY} C${src.x},${midY} ${tgt.x},${midY} ${tgt.x},${endY}`;
 
                 return (
@@ -187,7 +187,7 @@ const TrieTree = ({
                     key={`e-${node.id}-${cId}`}
                     d={d}
                     fill="none"
-                    stroke={active ? 'var(--accent)' : 'var(--border)'}
+                    stroke={active ? "var(--accent)" : "var(--border)"}
                     strokeWidth={active ? 2.2 : 1.6}
                     strokeOpacity={active ? 1 : 0.5}
                     initial={{ opacity: 0, pathLength: 0 }}
@@ -203,35 +203,76 @@ const TrieTree = ({
 
         {/* ── Node layer ───────────────────────────────────────────────── */}
         <AnimatePresence mode="popLayout">
-          {nodes.map(node => {
+          {nodes.map((node) => {
             const pos = layout.get(node.id);
             if (!pos) return null;
 
-            const isFound   = foundNodes.includes(node.id);
-            const isDelete  = deleteNodes.includes(node.id);
-            const isInsert  = insertNodes.includes(node.id);
-            const isWrite   = writeNodes.includes(node.id);
+            const isFound = foundNodes.includes(node.id);
+            const isDelete = deleteNodes.includes(node.id);
+            const isInsert = insertNodes.includes(node.id);
+            const isWrite = writeNodes.includes(node.id);
             const isCompare = compareNodes.includes(node.id);
-            const isRead    = readNodes.includes(node.id);
-            const isHigh    = highLightNodes.includes(node.id);
-            const isRoot    = node.id === actualRootId;
+            const isRead = readNodes.includes(node.id);
+            const isHigh = highLightNodes.includes(node.id);
+            const isRoot = node.id === actualRootId;
 
-            let bg     = isRoot ? 'bg-surface-2/90' : 'bg-surface/70 backdrop-blur-sm';
-            let border = isRoot ? 'border-accent/70' : 'border-border';
-            let text   = isRoot ? 'text-accent font-bold' : 'text-text';
-            let shadow = '';
-            let scale  = 1;
-            let zIdx   = isRoot ? 5 : 1;
+            let bg = isRoot ? "bg-surface-2/90" : "bg-surface/70 backdrop-blur-sm";
+            let border = isRoot ? "border-accent/70" : "border-border";
+            let text = isRoot ? "text-accent font-bold" : "text-text";
+            let shadow = "";
+            let scale = 1;
+            let zIdx = isRoot ? 5 : 1;
 
-            if      (isFound)   { bg = 'bg-ds-read/20';  border = 'border-ds-read';  text = 'text-ds-read';  shadow = 'shadow-none'; scale = 1.18; zIdx = 30; }
-            else if (isDelete)  { bg = 'bg-failure/10';     border = 'border-failure/80';  text = 'text-failure';     shadow = 'shadow-none';  scale = 0.9;  zIdx = 10; }
-            else if (isInsert)  { bg = 'bg-ds-write/20'; border = 'border-ds-write'; text = 'text-ds-write'; shadow = 'shadow-none';  scale = 1.15; zIdx = 25; }
-            else if (isWrite)   { bg = 'bg-success/15';     border = 'border-success';     text = 'text-success';     shadow = 'shadow-none';  scale = 1.1;  zIdx = 20; }
-            else if (isCompare) { bg = 'bg-orange-500/15';  border = 'border-orange-400';  text = 'text-orange-300';  shadow = 'shadow-none';   scale = 1.05; zIdx = 15; }
-            else if (isRead)    { bg = 'bg-accent/15';      border = 'border-accent';      text = 'text-accent';      shadow = 'shadow-none';     scale = 1.05; zIdx = 10; }
-            else if (isHigh)    { bg = 'bg-accent-2/20';    border = 'border-accent-2';    text = 'text-accent-2';    zIdx = 5; }
+            if (isFound) {
+              bg = "bg-ds-read/20";
+              border = "border-ds-read";
+              text = "text-ds-read";
+              shadow = "shadow-none";
+              scale = 1.18;
+              zIdx = 30;
+            } else if (isDelete) {
+              bg = "bg-failure/10";
+              border = "border-failure/80";
+              text = "text-failure";
+              shadow = "shadow-none";
+              scale = 0.9;
+              zIdx = 10;
+            } else if (isInsert) {
+              bg = "bg-ds-write/20";
+              border = "border-ds-write";
+              text = "text-ds-write";
+              shadow = "shadow-none";
+              scale = 1.15;
+              zIdx = 25;
+            } else if (isWrite) {
+              bg = "bg-success/15";
+              border = "border-success";
+              text = "text-success";
+              shadow = "shadow-none";
+              scale = 1.1;
+              zIdx = 20;
+            } else if (isCompare) {
+              bg = "bg-orange-500/15";
+              border = "border-orange-400";
+              text = "text-orange-300";
+              shadow = "shadow-none";
+              scale = 1.05;
+              zIdx = 15;
+            } else if (isRead) {
+              bg = "bg-accent/15";
+              border = "border-accent";
+              text = "text-accent";
+              shadow = "shadow-none";
+              scale = 1.05;
+              zIdx = 10;
+            } else if (isHigh) {
+              bg = "bg-accent-2/20";
+              border = "border-accent-2";
+              text = "text-accent-2";
+              zIdx = 5;
+            }
 
-            const cellPtrs = pointers.filter(p => p.nodeId === node.id);
+            const cellPtrs = pointers.filter((p) => p.nodeId === node.id);
 
             return (
               <motion.div
@@ -246,7 +287,7 @@ const TrieTree = ({
                 <motion.div
                   layout
                   animate={{ scale }}
-                  transition={{ type: 'spring', stiffness: 380, damping: 24 }}
+                  transition={{ type: "spring", stiffness: 380, damping: 24 }}
                   className={cn(`
                     w-10 h-10 flex items-center justify-center relative
                     font-mono text-[calc(13rem/16)] rounded-full border-2 shrink-0
@@ -257,7 +298,9 @@ const TrieTree = ({
                   <AnimatePresence mode="wait">
                     <motion.span
                       key={`l-${node.id}-${String(node.value)}`}
-                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
                       transition={{ duration: 0.08 }}
                       className="select-none leading-none"
                     >
@@ -278,17 +321,19 @@ const TrieTree = ({
 
                 {/* Pointer badges */}
                 {cellPtrs.length > 0 && (
-                  <div className="absolute top-0 right-0 flex flex-col gap-0.5 z-30
-                                  translate-x-[45%] -translate-y-[45%]">
+                  <div
+                    className="absolute top-0 right-0 flex flex-col gap-0.5 z-30
+                                  translate-x-[45%] -translate-y-[45%]"
+                  >
                     <AnimatePresence>
-                      {cellPtrs.map(ptr => (
+                      {cellPtrs.map((ptr) => (
                         <motion.div
                           key={ptr.name}
                           layoutId={`ptr-trie-${ptr.name}`}
                           initial={{ opacity: 0, scale: 0.5 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.5 }}
-                          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 25 }}
                           className="bg-accent-3 text-white shadow-md border border-bg
                                      rounded-full px-1.5 py-[2px]"
                         >

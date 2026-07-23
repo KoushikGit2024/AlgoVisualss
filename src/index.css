@@ -5,7 +5,7 @@
 }
 
 *:focus-visible {
-  outline: 2px solid var(--accent, #818CF8);
+  outline: 2px solid var(--accent, #818cf8);
   outline-offset: 2px;
 }
 
@@ -87,5 +87,3 @@ a.secondary {
     --button-secondary-border: #1a1a1a;
   }
 }
-
-

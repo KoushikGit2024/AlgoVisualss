@@ -1,29 +1,58 @@
 const HEAP_SECTION = {
   name: "Heap",
   href: "/algorithms/heap",
-    iconId: "Heap",
-    hoverIconId: "Heap",
+  iconId: "Heap",
+  hoverIconId: "Heap",
 
   about: [
     { tag: "h1", text: "Heap" },
-    { tag: "p", text: "A heap is a complete binary tree (array-backed, no pointers needed) satisfying the heap property: in a min-heap, every parent is ≤ its children; in a max-heap, every parent is ≥ its children. This guarantees the minimum (or maximum) element is always at the root, retrievable in O(1), while insertion and removal of that root both cost O(log n) — a heap deliberately gives up full sorted order to get a much cheaper 'give me the extreme element' operation." },
-    { tag: "p", text: "The recurring theme across every algorithm in this section is the same trade-off: a heap is the right structure exactly when you repeatedly need 'the current best/smallest/largest of what remains' and don't care about the relative order of everything else. If you needed FULL sorted order, you'd just sort (or use a self-balancing BST); a heap's entire value proposition is being cheaper than full ordering when you only ever need the extreme element, repeatedly." },
+    {
+      tag: "p",
+      text: "A heap is a complete binary tree (array-backed, no pointers needed) satisfying the heap property: in a min-heap, every parent is ≤ its children; in a max-heap, every parent is ≥ its children. This guarantees the minimum (or maximum) element is always at the root, retrievable in O(1), while insertion and removal of that root both cost O(log n) — a heap deliberately gives up full sorted order to get a much cheaper 'give me the extreme element' operation.",
+    },
+    {
+      tag: "p",
+      text: "The recurring theme across every algorithm in this section is the same trade-off: a heap is the right structure exactly when you repeatedly need 'the current best/smallest/largest of what remains' and don't care about the relative order of everything else. If you needed FULL sorted order, you'd just sort (or use a self-balancing BST); a heap's entire value proposition is being cheaper than full ordering when you only ever need the extreme element, repeatedly.",
+    },
     { tag: "h2", text: "The 'k' trick: bounding heap size" },
-    { tag: "p", text: "A huge fraction of heap-based algorithms achieve their efficiency by deliberately keeping the heap small — size k, not size n — even when processing n total elements. Maintaining a heap of size k and discarding anything that can't possibly improve the current top-k answer turns an O(n log n) full-sort-based approach into O(n log k), which is a meaningful improvement whenever k is much smaller than n (e.g. finding the top 10 of a billion records)." },
-    { tag: "table",
+    {
+      tag: "p",
+      text: "A huge fraction of heap-based algorithms achieve their efficiency by deliberately keeping the heap small — size k, not size n — even when processing n total elements. Maintaining a heap of size k and discarding anything that can't possibly improve the current top-k answer turns an O(n log n) full-sort-based approach into O(n log k), which is a meaningful improvement whenever k is much smaller than n (e.g. finding the top 10 of a billion records).",
+    },
+    {
+      tag: "table",
       headers: ["Algorithm", "Heap Type & Size", "Core Technique"],
       rows: [
-        ["Kth Largest Element", "Min-heap, size k", "Keep only the k largest seen so far; the heap's root is the answer"],
-        ["Merge K Sorted Lists", "Min-heap, size ≤ k", "Always extract the globally smallest 'current front' across k lists"],
-        ["Top K Frequent Elements", "Min-heap, size k (by frequency)", "Same size-k-heap trick, keyed by frequency instead of value"],
-        ["Find Median from Data Stream", "Two heaps (max-heap + min-heap), combined size n", "Split the stream into a 'lower half' max-heap and 'upper half' min-heap, kept balanced"]
-      ]
+        [
+          "Kth Largest Element",
+          "Min-heap, size k",
+          "Keep only the k largest seen so far; the heap's root is the answer",
+        ],
+        [
+          "Merge K Sorted Lists",
+          "Min-heap, size ≤ k",
+          "Always extract the globally smallest 'current front' across k lists",
+        ],
+        [
+          "Top K Frequent Elements",
+          "Min-heap, size k (by frequency)",
+          "Same size-k-heap trick, keyed by frequency instead of value",
+        ],
+        [
+          "Find Median from Data Stream",
+          "Two heaps (max-heap + min-heap), combined size n",
+          "Split the stream into a 'lower half' max-heap and 'upper half' min-heap, kept balanced",
+        ],
+      ],
     },
-    { tag: "note", variant: "tip", text: "Watch for the counter-intuitive heap-type choice in 'Kth Largest': a MIN-heap of size k (not a max-heap) is what's used — because the smallest element of the top-k group is exactly the one you want to compare new candidates against, and the smallest element of a min-heap is its O(1)-accessible root." }
+    {
+      tag: "note",
+      variant: "tip",
+      text: "Watch for the counter-intuitive heap-type choice in 'Kth Largest': a MIN-heap of size k (not a max-heap) is what's used — because the smallest element of the top-k group is exactly the one you want to compare new candidates against, and the smallest element of a min-heap is its O(1)-accessible root.",
+    },
   ],
 
   items: [
-
     /* ════════════════════════════════════════════════════════════════════
        1. KTH LARGEST ELEMENT
     ════════════════════════════════════════════════════════════════════ */
@@ -34,69 +63,121 @@ const HEAP_SECTION = {
 
       about: [
         { tag: "h1", text: "Kth Largest Element" },
-        { tag: "p", text: "Given an unsorted array, find the Kth largest element (the Kth largest VALUE, counting duplicates separately, not the Kth distinct value). Full sorting solves this in O(n log n), but a min-heap of size k achieves O(n log k) — a meaningful improvement whenever k is small relative to n, which is the common case (e.g. 'find the 5th highest score among a million submissions')." },
-        { tag: "p", text: "The technique maintains a min-heap containing exactly the k largest elements seen so far. For every new element, if the heap has fewer than k elements, it's added unconditionally; once the heap has k elements, a new element is only added (after evicting the current minimum) if it's larger than the heap's current minimum — meaning it genuinely belongs among the top k. After processing the entire array, the heap's root (its minimum) is exactly the Kth largest element overall." },
+        {
+          tag: "p",
+          text: "Given an unsorted array, find the Kth largest element (the Kth largest VALUE, counting duplicates separately, not the Kth distinct value). Full sorting solves this in O(n log n), but a min-heap of size k achieves O(n log k) — a meaningful improvement whenever k is small relative to n, which is the common case (e.g. 'find the 5th highest score among a million submissions').",
+        },
+        {
+          tag: "p",
+          text: "The technique maintains a min-heap containing exactly the k largest elements seen so far. For every new element, if the heap has fewer than k elements, it's added unconditionally; once the heap has k elements, a new element is only added (after evicting the current minimum) if it's larger than the heap's current minimum — meaning it genuinely belongs among the top k. After processing the entire array, the heap's root (its minimum) is exactly the Kth largest element overall.",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Finding the Kth largest (or smallest, with a max-heap instead) element when k is much smaller than n, avoiding the cost of fully sorting the entire dataset",
-          "Streaming data scenarios where you need to maintain 'the current Kth largest seen so far' as new elements continuously arrive, without re-sorting from scratch on every new arrival",
-          "As the direct foundation for Top K Frequent Elements (below), which applies the exact same size-k-min-heap technique, just keyed by frequency instead of raw value",
-          "QuickSelect (a Quick-Sort-partition-based alternative) achieves O(n) average case for this same problem, but with O(n²) worst case and no support for STREAMING input — the heap approach trades some average-case speed for streaming capability and a reliable O(n log k) bound"
-        ]},
-        { tag: "note", variant: "tip", text: "Don't use a max-heap of the full array for this problem — that would require O(n) heap construction plus k extractions at O(log n) each, giving O(n + k log n), which is WORSE than the size-k min-heap's O(n log k) whenever k is small relative to n." }
+        {
+          tag: "ul",
+          items: [
+            "Finding the Kth largest (or smallest, with a max-heap instead) element when k is much smaller than n, avoiding the cost of fully sorting the entire dataset",
+            "Streaming data scenarios where you need to maintain 'the current Kth largest seen so far' as new elements continuously arrive, without re-sorting from scratch on every new arrival",
+            "As the direct foundation for Top K Frequent Elements (below), which applies the exact same size-k-min-heap technique, just keyed by frequency instead of raw value",
+            "QuickSelect (a Quick-Sort-partition-based alternative) achieves O(n) average case for this same problem, but with O(n²) worst case and no support for STREAMING input — the heap approach trades some average-case speed for streaming capability and a reliable O(n log k) bound",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "Don't use a max-heap of the full array for this problem — that would require O(n) heap construction plus k extractions at O(log n) each, giving O(n + k log n), which is WORSE than the size-k min-heap's O(n log k) whenever k is small relative to n.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(n log k)",
         best: [
           { tag: "h2", text: "Best Case — O(n log k)" },
-          { tag: "p", text: "Every element must be at least compared against the heap's current minimum (an O(1) check) to determine whether it belongs in the top k — there's no shortcut even for the most favourable arrangement, since this comparison is required to maintain correctness." },
-          { tag: "ul", items: [
-            "n elements, each requiring at minimum an O(1) comparison against the heap's root",
-            "If most elements are smaller than the current minimum (best case for SKIPPING heap modification), most of those n comparisons are O(1) and only the first k insertions cost O(log k) each: O(k log k) + O(n) = O(n) for very favourable inputs, but classified O(n log k) as the general structural bound"
-          ]}
+          {
+            tag: "p",
+            text: "Every element must be at least compared against the heap's current minimum (an O(1) check) to determine whether it belongs in the top k — there's no shortcut even for the most favourable arrangement, since this comparison is required to maintain correctness.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "n elements, each requiring at minimum an O(1) comparison against the heap's root",
+              "If most elements are smaller than the current minimum (best case for SKIPPING heap modification), most of those n comparisons are O(1) and only the first k insertions cost O(log k) each: O(k log k) + O(n) = O(n) for very favourable inputs, but classified O(n log k) as the general structural bound",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n log k)" },
-          { tag: "p", text: "For typical input, a meaningful fraction of the n elements will be large enough to warrant a heap insertion (push + pop of the current min), each costing O(log k)." },
-          { tag: "ul", items: [
-            "n elements, each requiring an O(1) comparison plus, for elements that qualify, an O(log k) heap insertion-and-eviction: O(n log k) total",
-            "Since k ≤ n always, this is never worse than O(n log n), and is strictly better whenever k is meaningfully smaller than n"
-          ]}
+          {
+            tag: "p",
+            text: "For typical input, a meaningful fraction of the n elements will be large enough to warrant a heap insertion (push + pop of the current min), each costing O(log k).",
+          },
+          {
+            tag: "ul",
+            items: [
+              "n elements, each requiring an O(1) comparison plus, for elements that qualify, an O(log k) heap insertion-and-eviction: O(n log k) total",
+              "Since k ≤ n always, this is never worse than O(n log n), and is strictly better whenever k is meaningfully smaller than n",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n log k)" },
-          { tag: "p", text: "If the array is sorted in strictly increasing order, every single element from some point onward triggers a heap insertion (since each new element is larger than everything seen before it), maximising the number of O(log k) operations." },
-          { tag: "ul", items: [
-            "Worst case: up to n elements each requiring an O(log k) heap operation: O(n log k)",
-            "This remains the standard bound regardless of input arrangement — no input configuration pushes the cost beyond O(n log k)"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "If the array is sorted in strictly increasing order, every single element from some point onward triggers a heap insertion (since each new element is larger than everything seen before it), maximising the number of O(log k) operations.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Worst case: up to n elements each requiring an O(log k) heap operation: O(n log k)",
+              "This remains the standard bound regardless of input arrangement — no input configuration pushes the cost beyond O(n log k)",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(k)",
         best: [
           { tag: "h2", text: "Best Case Space — O(k)" },
-          { tag: "p", text: "The heap is deliberately bounded to hold at most k elements at any time, regardless of how many total elements (n) have been processed — this is the entire structural point of the technique." },
-          { tag: "ul", items: ["Heap: at most k elements — O(k)"] }
+          {
+            tag: "p",
+            text: "The heap is deliberately bounded to hold at most k elements at any time, regardless of how many total elements (n) have been processed — this is the entire structural point of the technique.",
+          },
+          { tag: "ul", items: ["Heap: at most k elements — O(k)"] },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(k)" },
-          { tag: "p", text: "Space usage is fixed by k alone, since the algorithm actively evicts the minimum whenever the heap would exceed size k — it never grows proportionally to n." },
-          { tag: "ul", items: ["Heap: O(k), regardless of n or value distribution — a dramatic space saving over full-sort approaches when k ≪ n"] }
+          {
+            tag: "p",
+            text: "Space usage is fixed by k alone, since the algorithm actively evicts the minimum whenever the heap would exceed size k — it never grows proportionally to n.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Heap: O(k), regardless of n or value distribution — a dramatic space saving over full-sort approaches when k ≪ n",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(k)" },
-          { tag: "p", text: "No input configuration grows the heap beyond k elements — this is an enforced structural invariant, not just a typical-case behaviour." },
-          { tag: "ul", items: ["Heap: strictly bounded at O(k), identical across all cases — this is the key advantage over full-array sorting's O(n) space requirement"] }
-        ]
+          {
+            tag: "p",
+            text: "No input configuration grows the heap beyond k elements — this is an enforced structural invariant, not just a typical-case behaviour.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Heap: strictly bounded at O(k), identical across all cases — this is the key advantage over full-array sorting's O(n) space requirement",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function findKthLargest(nums, k):
+        {
+          tag: "code",
+          language: "text",
+          text: `function findKthLargest(nums, k):
     queue_minHeap ← empty min-heap
 
     for num in nums:
@@ -104,16 +185,23 @@ const HEAP_SECTION = {
         if size(queue_minHeap) > k:
             pop(queue_minHeap)            // evict the current smallest of the top-k candidates
 
-    return peek(queue_minHeap)            // the heap's minimum is the Kth largest overall` },
+    return peek(queue_minHeap)            // the heap's minimum is the Kth largest overall`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Maintain a min-heap that is never allowed to exceed size k.",
-          "For each new element, push it onto the heap unconditionally — this might temporarily grow the heap to size k+1.",
-          "If the heap now exceeds size k, pop the minimum — this correctly evicts whichever element among the current top-(k+1) candidates is the smallest, since a min-heap's pop always removes the minimum.",
-          "After processing all n elements, exactly k elements remain in the heap: the k largest elements from the entire array, and the heap's root (its minimum, accessible in O(1)) is, among those k, the smallest — which is exactly the Kth largest element of the original array."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Maintain a min-heap that is never allowed to exceed size k.",
+            "For each new element, push it onto the heap unconditionally — this might temporarily grow the heap to size k+1.",
+            "If the heap now exceeds size k, pop the minimum — this correctly evicts whichever element among the current top-(k+1) candidates is the smallest, since a min-heap's pop always removes the minimum.",
+            "After processing all n elements, exactly k elements remain in the heap: the k largest elements from the entire array, and the heap's root (its minimum, accessible in O(1)) is, among those k, the smallest — which is exactly the Kth largest element of the original array.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Invariant: after processing any prefix of the input, the heap contains exactly the k largest elements seen SO FAR (or fewer than k, if fewer than k elements have been processed yet). This holds by induction: each new element is unconditionally added, and if this would exceed k elements, the single smallest among the current k+1 candidates is removed — correctly restoring the invariant, since removing the smallest of (top-k-so-far plus the new element) is exactly how to determine the new top-k set. By induction, after all n elements are processed, the heap holds exactly the true k largest elements of the entire array, and since it's a min-heap, its root is the smallest of those k — which, by definition, is the Kth largest element overall." }
+        {
+          tag: "p",
+          text: "Invariant: after processing any prefix of the input, the heap contains exactly the k largest elements seen SO FAR (or fewer than k, if fewer than k elements have been processed yet). This holds by induction: each new element is unconditionally added, and if this would exceed k elements, the single smallest among the current k+1 candidates is removed — correctly restoring the invariant, since removing the smallest of (top-k-so-far plus the new element) is exactly how to determine the new top-k set. By induction, after all n elements are processed, the heap holds exactly the true k largest elements of the entire array, and since it's a min-heap, its root is the smallest of those k — which, by definition, is the Kth largest element overall.",
+        },
       ],
       codes: {
         "c++": `#include <iostream>
@@ -143,7 +231,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `import heapq
+        python: `import heapq
 
 def find_kth_largest(nums, k):
     min_heap = []
@@ -160,7 +248,7 @@ if __name__ == "__main__":
     k = 2
     print(f"The {k}th largest element is: {find_kth_largest(nums, k)}")
 `,
-        "java": `import java.util.PriorityQueue;
+        java: `import java.util.PriorityQueue;
 
 public class Main {
     public static int findKthLargest(int[] nums, int k) {
@@ -183,7 +271,7 @@ public class Main {
     }
 }
 `,
-        "js": `function findKthLargest(nums, k) {
+        js: `function findKthLargest(nums, k) {
     // Simple array-backed min-heap via sorted insertion is O(n) per op;
     // for clarity we use a binary-heap-backed min-heap here.
     const queue_minHeap = [];
@@ -242,7 +330,7 @@ const nums = [3, 2, 1, 5, 6, 4];
 const k = 2;
 console.log(\`The \${k}th largest element is: \${findKthLargest(nums, k)}\`);
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 
 // Simple min-heap of fixed capacity k, implemented as an array.
 void siftUp(int* heap, int i) {
@@ -321,7 +409,7 @@ class Program {
     }
 }
 `,
-        "swift": `func findKthLargest(_ nums: [Int], _ k: Int) -> Int {
+        swift: `func findKthLargest(_ nums: [Int], _ k: Int) -> Int {
     var queue_minHeap: [Int] = []
 
     func siftUp() {
@@ -365,7 +453,7 @@ let nums = [3, 2, 1, 5, 6, 4]
 let k = 2
 print("The \\(k)th largest element is: \\(findKthLargest(nums, k))")
 `,
-        "kotlin": `import java.util.PriorityQueue
+        kotlin: `import java.util.PriorityQueue
 
 fun findKthLargest(nums: IntArray, k: Int): Int {
     val queue_minHeap = PriorityQueue<Int>()
@@ -386,7 +474,7 @@ fun main() {
     println("The \${k}th largest element is: \${findKthLargest(nums, k)}")
 }
 `,
-        "scala": `import scala.collection.mutable
+        scala: `import scala.collection.mutable
 
 object Main extends App {
     def findKthLargest(nums: Array[Int], k: Int): Int = {
@@ -407,7 +495,7 @@ object Main extends App {
     println(s"The \${k}th largest element is: \${findKthLargest(nums, k)}")
 }
 `,
-        "go": `package main
+        go: `package main
 
 import (
     "container/heap"
@@ -448,7 +536,7 @@ func main() {
     fmt.Printf("The %dth largest element is: %d\\n", k, findKthLargest(nums, k))
 }
 `,
-        "rust": `use std::collections::BinaryHeap;
+        rust: `use std::collections::BinaryHeap;
 use std::cmp::Reverse;
 
 fn find_kth_largest(nums: &[i32], k: usize) -> i32 {
@@ -469,8 +557,8 @@ fn main() {
     let k = 2;
     println!("The {}th largest element is: {}", k, find_kth_largest(&nums, k));
 }
-`
-      }
+`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -483,70 +571,122 @@ fn main() {
 
       about: [
         { tag: "h1", text: "Merge K Sorted Lists" },
-        { tag: "p", text: "Given k already-sorted linked lists, this problem asks for a single sorted list containing all their elements combined. Merging them pairwise (merge list 1 with list 2, then merge that result with list 3, and so on) costs O(N·k) in the worst case, where N is the total number of elements across all lists — a min-heap-based approach achieves the better O(N log k)." },
-        { tag: "p", text: "The technique generalises the standard two-list merge (from Merge Sort) by replacing the 'compare two front elements' step with 'find the minimum among up to k front elements', using a min-heap to make that minimum-finding step O(log k) instead of O(k). The heap holds at most one node from each of the k lists at any time — specifically, the current 'front' (unprocessed) node of each list that still has remaining elements." },
+        {
+          tag: "p",
+          text: "Given k already-sorted linked lists, this problem asks for a single sorted list containing all their elements combined. Merging them pairwise (merge list 1 with list 2, then merge that result with list 3, and so on) costs O(N·k) in the worst case, where N is the total number of elements across all lists — a min-heap-based approach achieves the better O(N log k).",
+        },
+        {
+          tag: "p",
+          text: "The technique generalises the standard two-list merge (from Merge Sort) by replacing the 'compare two front elements' step with 'find the minimum among up to k front elements', using a min-heap to make that minimum-finding step O(log k) instead of O(k). The heap holds at most one node from each of the k lists at any time — specifically, the current 'front' (unprocessed) node of each list that still has remaining elements.",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Merging more than 2 sorted sequences simultaneously, where a sequence of pairwise merges would be asymptotically slower",
-          "External sorting (merging many sorted runs/chunks too large to fit in memory simultaneously) — database systems and large-scale sort-merge operations use exactly this k-way merge technique",
-          "Distributed systems combining sorted result streams from multiple shards/nodes into one globally sorted output",
-          "As a direct generalisation of the two-pointer merge technique (see Linked Lists: Merge Sorted Lists) to k inputs instead of 2, using a heap to handle the 'which of k candidates is smallest' decision efficiently"
-        ]},
-        { tag: "note", variant: "tip", text: "Pairwise merging (merge lists one at a time into a running result) is also O(N log k) if done via DIVIDE AND CONQUER (merge pairs of lists, then merge pairs of results, halving the list count each round) — the heap-based approach achieves the same asymptotic bound with a different, often simpler-to-implement, mechanism." }
+        {
+          tag: "ul",
+          items: [
+            "Merging more than 2 sorted sequences simultaneously, where a sequence of pairwise merges would be asymptotically slower",
+            "External sorting (merging many sorted runs/chunks too large to fit in memory simultaneously) — database systems and large-scale sort-merge operations use exactly this k-way merge technique",
+            "Distributed systems combining sorted result streams from multiple shards/nodes into one globally sorted output",
+            "As a direct generalisation of the two-pointer merge technique (see Linked Lists: Merge Sorted Lists) to k inputs instead of 2, using a heap to handle the 'which of k candidates is smallest' decision efficiently",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "Pairwise merging (merge lists one at a time into a running result) is also O(N log k) if done via DIVIDE AND CONQUER (merge pairs of lists, then merge pairs of results, halving the list count each round) — the heap-based approach achieves the same asymptotic bound with a different, often simpler-to-implement, mechanism.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(N log k)",
         best: [
           { tag: "h2", text: "Best Case — O(N log k)" },
-          { tag: "p", text: "Every one of the N total nodes across all k lists must be extracted from the heap and appended to the result exactly once — there's no shortcut even for the most favourably arranged input values." },
-          { tag: "ul", items: [
-            "Initial heap construction: insert the first node of each of the k lists — O(k log k)",
-            "N total extract-min operations (one per node across all lists), each O(log k) since the heap never holds more than k elements at once: O(N log k)",
-            "Combined: O(k log k) + O(N log k) = O(N log k), since N ≥ k always"
-          ]}
+          {
+            tag: "p",
+            text: "Every one of the N total nodes across all k lists must be extracted from the heap and appended to the result exactly once — there's no shortcut even for the most favourably arranged input values.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Initial heap construction: insert the first node of each of the k lists — O(k log k)",
+              "N total extract-min operations (one per node across all lists), each O(log k) since the heap never holds more than k elements at once: O(N log k)",
+              "Combined: O(k log k) + O(N log k) = O(N log k), since N ≥ k always",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(N log k)" },
-          { tag: "p", text: "Every node extraction and the corresponding insertion of that list's next node both cost O(log k), regardless of how the N total elements happen to be distributed across the k lists or what their actual values are." },
-          { tag: "ul", items: [
-            "N extract-min + N insert operations (one pair per node processed), each O(log k): O(N log k) total",
-            "No input distribution changes this fixed per-node cost"
-          ]}
+          {
+            tag: "p",
+            text: "Every node extraction and the corresponding insertion of that list's next node both cost O(log k), regardless of how the N total elements happen to be distributed across the k lists or what their actual values are.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "N extract-min + N insert operations (one pair per node processed), each O(log k): O(N log k) total",
+              "No input distribution changes this fixed per-node cost",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(N log k)" },
-          { tag: "p", text: "No arrangement of values across the k lists increases the cost beyond the fixed per-node O(log k) heap operations — this is simultaneously the best, average, and worst case, since the heap always maintains exactly the same structural size bound (at most k elements) throughout." },
-          { tag: "ul", items: [
-            "Worst case matches best/average exactly: O(N log k)",
-            "This is a genuine improvement over naive pairwise merging's O(N·k) worst case, achieved entirely by using the heap to find the minimum-of-k-candidates in O(log k) instead of O(k)"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No arrangement of values across the k lists increases the cost beyond the fixed per-node O(log k) heap operations — this is simultaneously the best, average, and worst case, since the heap always maintains exactly the same structural size bound (at most k elements) throughout.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Worst case matches best/average exactly: O(N log k)",
+              "This is a genuine improvement over naive pairwise merging's O(N·k) worst case, achieved entirely by using the heap to find the minimum-of-k-candidates in O(log k) instead of O(k)",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(k)",
         best: [
           { tag: "h2", text: "Best Case Space — O(k)" },
-          { tag: "p", text: "The heap never holds more than one node per input list at any given time, so its size is structurally bounded by k regardless of how many total elements (N) exist across all lists." },
-          { tag: "ul", items: ["Heap: at most k entries (one current-front node per non-exhausted list) — O(k)"] }
+          {
+            tag: "p",
+            text: "The heap never holds more than one node per input list at any given time, so its size is structurally bounded by k regardless of how many total elements (N) exist across all lists.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Heap: at most k entries (one current-front node per non-exhausted list) — O(k)",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(k)" },
-          { tag: "p", text: "Space usage is fixed by k alone, since the heap's size invariant (at most one entry per list) doesn't depend on N, the total element count, or how elements are distributed across the lists." },
-          { tag: "ul", items: ["Heap: O(k), regardless of N — the merged output itself is typically built by relinking existing nodes (as in Merge Sorted Lists), not allocating new ones, so it doesn't add to auxiliary space"] }
+          {
+            tag: "p",
+            text: "Space usage is fixed by k alone, since the heap's size invariant (at most one entry per list) doesn't depend on N, the total element count, or how elements are distributed across the lists.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Heap: O(k), regardless of N — the merged output itself is typically built by relinking existing nodes (as in Merge Sorted Lists), not allocating new ones, so it doesn't add to auxiliary space",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(k)" },
-          { tag: "p", text: "No distribution of values or list lengths grows the heap beyond k elements — this is an enforced structural invariant of the algorithm, just like the Kth Largest Element technique above." },
-          { tag: "ul", items: ["Heap: strictly bounded at O(k), identical across all cases"] }
-        ]
+          {
+            tag: "p",
+            text: "No distribution of values or list lengths grows the heap beyond k elements — this is an enforced structural invariant of the algorithm, just like the Kth Largest Element technique above.",
+          },
+          { tag: "ul", items: ["Heap: strictly bounded at O(k), identical across all cases"] },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function mergeKLists(lists):
+        {
+          tag: "code",
+          language: "text",
+          text: `function mergeKLists(lists):
     queue_minHeap ← empty min-heap          // ordered by node value
 
     for list in lists:
@@ -564,17 +704,24 @@ fn main() {
         if smallestNode.next is not null:
             push(queue_minHeap, smallestNode.next)   // advance that list, push its new front
 
-    return dummy.next` },
+    return dummy.next`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Initialise the heap with the head node of every non-empty input list — at most k entries, one per list.",
-          "Repeatedly extract the minimum-value node from the heap (this is, among all k lists' current fronts, the globally smallest available value) and append it to the merged result.",
-          "If the just-extracted node has a next node in its original list, push THAT node onto the heap — this correctly 'advances' that particular list's contribution by one step.",
-          "Repeat until the heap is empty, meaning every node from every list has been extracted and appended to the result exactly once.",
-          "Using a dummy sentinel head (exactly as in the two-list merge technique) avoids any special-casing for the very first node of the merged result."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Initialise the heap with the head node of every non-empty input list — at most k entries, one per list.",
+            "Repeatedly extract the minimum-value node from the heap (this is, among all k lists' current fronts, the globally smallest available value) and append it to the merged result.",
+            "If the just-extracted node has a next node in its original list, push THAT node onto the heap — this correctly 'advances' that particular list's contribution by one step.",
+            "Repeat until the heap is empty, meaning every node from every list has been extracted and appended to the result exactly once.",
+            "Using a dummy sentinel head (exactly as in the two-list merge technique) avoids any special-casing for the very first node of the merged result.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Invariant: at every point, the heap contains exactly the current 'front' node of every list that still has unprocessed elements, and everything already appended to the result is correctly sorted and represents exactly the globally smallest (length-so-far) elements available across all k lists' remaining portions. Each iteration correctly extends this invariant: the heap's minimum is, by construction, the smallest among all k lists' current fronts — and since every individual list is itself sorted, no list's LATER elements could possibly be smaller than its own current front, so the heap's global minimum really is the smallest element available from the combination of everything not yet merged. By induction over the N total extraction steps, the final result is fully and correctly sorted." }
+        {
+          tag: "p",
+          text: "Invariant: at every point, the heap contains exactly the current 'front' node of every list that still has unprocessed elements, and everything already appended to the result is correctly sorted and represents exactly the globally smallest (length-so-far) elements available across all k lists' remaining portions. Each iteration correctly extends this invariant: the heap's minimum is, by construction, the smallest among all k lists' current fronts — and since every individual list is itself sorted, no list's LATER elements could possibly be smaller than its own current front, so the heap's global minimum really is the smallest element available from the combination of everything not yet merged. By induction over the N total extraction steps, the final result is fully and correctly sorted.",
+        },
       ],
       codes: {
         "c++": `#include <iostream>
@@ -650,7 +797,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `import heapq
+        python: `import heapq
 
 class ListNode:
     def __init__(self, val=0, next=None):
@@ -697,7 +844,7 @@ if __name__ == "__main__":
     print("Merged List: ", end="")
     print_list(merged_head)
 `,
-        "java": `import java.util.PriorityQueue;
+        java: `import java.util.PriorityQueue;
 
 public class Main {
     static class ListNode {
@@ -760,7 +907,7 @@ public class Main {
     }
 }
 `,
-        "js": `class ListNode {
+        js: `class ListNode {
     constructor(val, next = null) {
         this.val = val;
         this.next = next;
@@ -853,7 +1000,7 @@ const mergedHead = mergeKLists(lists);
 process.stdout.write("Merged List: ");
 printList(mergedHead);
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <stdlib.h>
 
 typedef struct ListNode {
@@ -1027,7 +1174,7 @@ class Program {
     }
 }
 `,
-        "swift": `class ListNode {
+        swift: `class ListNode {
     var val: Int
     var next: ListNode?
     init(_ val: Int) { self.val = val }
@@ -1119,7 +1266,7 @@ let mergedHead = mergeKLists(lists)
 print("Merged List: ", terminator: "")
 printList(mergedHead)
 `,
-        "kotlin": `import java.util.PriorityQueue
+        kotlin: `import java.util.PriorityQueue
 
 class ListNode(var value: Int) {
     var next: ListNode? = null
@@ -1173,7 +1320,7 @@ fun main() {
     printList(mergedHead)
 }
 `,
-        "scala": `import scala.collection.mutable
+        scala: `import scala.collection.mutable
 
 class ListNode(var value: Int, var next: ListNode = null)
 
@@ -1224,7 +1371,7 @@ object Main extends App {
     printList(mergedHead)
 }
 `,
-        "go": `package main
+        go: `package main
 
 import (
     "container/heap"
@@ -1306,7 +1453,7 @@ func main() {
     printList(mergedHead)
 }
 `,
-        "rust": `use std::cmp::Ordering;
+        rust: `use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
 #[derive(Eq, PartialEq)]
@@ -1387,8 +1534,8 @@ fn main() {
     print!("Merged List: ");
     print_list(merged_head.as_ref());
 }
-`
-      }
+`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1401,75 +1548,129 @@ fn main() {
 
       about: [
         { tag: "h1", text: "Top K Frequent Elements" },
-        { tag: "p", text: "Given an array, find the k elements that occur most frequently. This problem combines two earlier techniques from this reference directly: a hash map to count each element's frequency in one O(n) pass (exactly like the Hash Maps section's frequency-counting pattern), followed by a size-k min-heap (exactly like Kth Largest Element above, but keyed by FREQUENCY instead of raw value) to extract the top k frequencies in O(n log k)." },
-        { tag: "p", text: "This is a clean demonstration of algorithmic COMPOSITION: rather than being a fundamentally new technique, it's the direct combination of two patterns already covered elsewhere in this reference, applied in sequence — count first, then heap-select. Recognising when a problem decomposes into 'apply technique A, then feed the result into technique B' is itself a core algorithmic skill." },
+        {
+          tag: "p",
+          text: "Given an array, find the k elements that occur most frequently. This problem combines two earlier techniques from this reference directly: a hash map to count each element's frequency in one O(n) pass (exactly like the Hash Maps section's frequency-counting pattern), followed by a size-k min-heap (exactly like Kth Largest Element above, but keyed by FREQUENCY instead of raw value) to extract the top k frequencies in O(n log k).",
+        },
+        {
+          tag: "p",
+          text: "This is a clean demonstration of algorithmic COMPOSITION: rather than being a fundamentally new technique, it's the direct combination of two patterns already covered elsewhere in this reference, applied in sequence — count first, then heap-select. Recognising when a problem decomposes into 'apply technique A, then feed the result into technique B' is itself a core algorithmic skill.",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Finding the most common k items in a dataset — trending topics, most-frequent search queries, most-played songs, word-frequency analysis (top k words in a document)",
-          "Any 'top-k by some derived/computed metric' problem, where the metric itself (here, frequency) must first be computed via a preliminary pass before the heap-selection step can begin",
-          "As a direct illustration of composing the Hash Map frequency-counting pattern with the size-k min-heap pattern — recognising this composition is more valuable long-term than memorising the specific problem",
-          "An alternative O(n) average-case approach exists using Bucket Sort (bucket index = frequency, since frequency is bounded by n) when k is close to n or when the O(n log k) heap approach's log factor genuinely matters at scale"
-        ]},
-        { tag: "note", variant: "tip", text: "If k equals the total number of distinct elements (i.e. you need ALL elements ordered by frequency, not just the top k), a full sort by frequency is simpler and asymptotically no worse — the heap-based size-k approach earns its keep specifically when k is meaningfully smaller than the number of distinct elements." }
+        {
+          tag: "ul",
+          items: [
+            "Finding the most common k items in a dataset — trending topics, most-frequent search queries, most-played songs, word-frequency analysis (top k words in a document)",
+            "Any 'top-k by some derived/computed metric' problem, where the metric itself (here, frequency) must first be computed via a preliminary pass before the heap-selection step can begin",
+            "As a direct illustration of composing the Hash Map frequency-counting pattern with the size-k min-heap pattern — recognising this composition is more valuable long-term than memorising the specific problem",
+            "An alternative O(n) average-case approach exists using Bucket Sort (bucket index = frequency, since frequency is bounded by n) when k is close to n or when the O(n log k) heap approach's log factor genuinely matters at scale",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "If k equals the total number of distinct elements (i.e. you need ALL elements ordered by frequency, not just the top k), a full sort by frequency is simpler and asymptotically no worse — the heap-based size-k approach earns its keep specifically when k is meaningfully smaller than the number of distinct elements.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(n log k)",
         best: [
           { tag: "h2", text: "Best Case — O(n log k)" },
-          { tag: "p", text: "Both phases — frequency counting and heap selection — always process their full input regardless of value distribution: counting always requires one full pass over n elements, and heap selection always requires examining every distinct element found." },
-          { tag: "ul", items: [
-            "Phase 1 (frequency counting): O(n) — one hash map update per element, unconditionally",
-            "Phase 2 (heap selection): O(d log k), where d is the number of distinct elements (d ≤ n) — each distinct element triggers an O(1) comparison and possibly an O(log k) heap operation",
-            "Combined: O(n) + O(d log k) = O(n log k) in the standard classification, since d ≤ n"
-          ]}
+          {
+            tag: "p",
+            text: "Both phases — frequency counting and heap selection — always process their full input regardless of value distribution: counting always requires one full pass over n elements, and heap selection always requires examining every distinct element found.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Phase 1 (frequency counting): O(n) — one hash map update per element, unconditionally",
+              "Phase 2 (heap selection): O(d log k), where d is the number of distinct elements (d ≤ n) — each distinct element triggers an O(1) comparison and possibly an O(log k) heap operation",
+              "Combined: O(n) + O(d log k) = O(n log k) in the standard classification, since d ≤ n",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n log k)" },
-          { tag: "p", text: "Both phases perform the same fixed structural work regardless of how frequencies happen to be distributed across distinct elements — counting cost depends only on total element count, and heap-selection cost depends only on distinct-element count and k." },
-          { tag: "ul", items: [
-            "Phase 1: O(n), always a single full pass",
-            "Phase 2: O(d log k), where most distinct elements require an O(1) comparison and a fraction require the full O(log k) heap insertion-and-eviction",
-            "Total: O(n + d log k), simplified to O(n log k) in the standard worst-case-d classification"
-          ]}
+          {
+            tag: "p",
+            text: "Both phases perform the same fixed structural work regardless of how frequencies happen to be distributed across distinct elements — counting cost depends only on total element count, and heap-selection cost depends only on distinct-element count and k.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Phase 1: O(n), always a single full pass",
+              "Phase 2: O(d log k), where most distinct elements require an O(1) comparison and a fraction require the full O(log k) heap insertion-and-eviction",
+              "Total: O(n + d log k), simplified to O(n log k) in the standard worst-case-d classification",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n log k)" },
-          { tag: "p", text: "If every element in the input is distinct (d = n, the maximum possible number of distinct elements), Phase 2's cost reaches its maximum, dominating the combined bound." },
-          { tag: "ul", items: [
-            "Worst case: d = n distinct elements, each requiring up to O(log k) heap work in Phase 2: O(n log k)",
-            "Combined with Phase 1's O(n): O(n) + O(n log k) = O(n log k)"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "If every element in the input is distinct (d = n, the maximum possible number of distinct elements), Phase 2's cost reaches its maximum, dominating the combined bound.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Worst case: d = n distinct elements, each requiring up to O(log k) heap work in Phase 2: O(n log k)",
+              "Combined with Phase 1's O(n): O(n) + O(n log k) = O(n log k)",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case Space — O(n)" },
-          { tag: "p", text: "The frequency-counting hash map must store an entry for every distinct element encountered, which in the best case (few distinct elements) is much smaller than n, though the heap itself stays bounded at O(k) regardless." },
-          { tag: "ul", items: ["Frequency hash map: O(d), where d ≤ n is the number of distinct elements", "Heap: O(k)"] }
+          {
+            tag: "p",
+            text: "The frequency-counting hash map must store an entry for every distinct element encountered, which in the best case (few distinct elements) is much smaller than n, though the heap itself stays bounded at O(k) regardless.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Frequency hash map: O(d), where d ≤ n is the number of distinct elements",
+              "Heap: O(k)",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(n)" },
-          { tag: "p", text: "The frequency hash map's size scales with the number of distinct elements, which in the average case for typical data is some fraction of n, while the heap remains bounded by k throughout." },
-          { tag: "ul", items: ["Frequency hash map: O(d) ≤ O(n)", "Heap: O(k), where k ≤ d ≤ n always"] }
+          {
+            tag: "p",
+            text: "The frequency hash map's size scales with the number of distinct elements, which in the average case for typical data is some fraction of n, while the heap remains bounded by k throughout.",
+          },
+          {
+            tag: "ul",
+            items: ["Frequency hash map: O(d) ≤ O(n)", "Heap: O(k), where k ≤ d ≤ n always"],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(n)" },
-          { tag: "p", text: "If every element in the input is distinct, the frequency hash map must store n separate entries, reaching its maximum possible size." },
-          { tag: "ul", items: [
-            "Frequency hash map: O(n) when all elements are distinct (d = n)",
-            "Heap: O(k), still bounded separately and much smaller than n in typical use",
-            "Combined: O(n), dominated by the hash map in the worst case"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "If every element in the input is distinct, the frequency hash map must store n separate entries, reaching its maximum possible size.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Frequency hash map: O(n) when all elements are distinct (d = n)",
+              "Heap: O(k), still bounded separately and much smaller than n in typical use",
+              "Combined: O(n), dominated by the hash map in the worst case",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function topKFrequent(nums, k):
+        {
+          tag: "code",
+          language: "text",
+          text: `function topKFrequent(nums, k):
     freqMap ← empty hash map           // value → count
 
     for num in nums:
@@ -1482,16 +1683,23 @@ fn main() {
         if size(queue_minHeap) > k:
             pop(queue_minHeap)                // evict the currently-least-frequent of the top-k candidates
 
-    return [value for (freq, value) in queue_minHeap]` },
+    return [value for (freq, value) in queue_minHeap]`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Phase 1: scan the input array once, building a hash map from each distinct value to its total occurrence count — exactly the standard frequency-counting pattern.",
-          "Phase 2: iterate over the distinct (value, frequency) pairs from the hash map, maintaining a min-heap ordered by frequency, capped at size k — exactly the same size-k-min-heap technique as Kth Largest Element, but the comparison key is now frequency rather than raw value.",
-          "For each (value, frequency) pair, push it onto the heap; if this exceeds size k, pop the entry with the smallest frequency, correctly evicting whichever of the current top-(k+1) candidates is least frequent.",
-          "After processing all distinct elements, the heap contains exactly the k elements with the highest frequencies — extract their values as the final answer."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Phase 1: scan the input array once, building a hash map from each distinct value to its total occurrence count — exactly the standard frequency-counting pattern.",
+            "Phase 2: iterate over the distinct (value, frequency) pairs from the hash map, maintaining a min-heap ordered by frequency, capped at size k — exactly the same size-k-min-heap technique as Kth Largest Element, but the comparison key is now frequency rather than raw value.",
+            "For each (value, frequency) pair, push it onto the heap; if this exceeds size k, pop the entry with the smallest frequency, correctly evicting whichever of the current top-(k+1) candidates is least frequent.",
+            "After processing all distinct elements, the heap contains exactly the k elements with the highest frequencies — extract their values as the final answer.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Phase 1's correctness is immediate: a hash map correctly and exactly counts the occurrences of every distinct value with a single pass. Phase 2's correctness follows from the exact same invariant argument as Kth Largest Element, applied to frequency instead of raw value: after processing any prefix of the distinct (value, frequency) pairs, the heap contains exactly the k highest-frequency elements seen so far, since each new candidate is added and, if it would exceed size k, the lowest-frequency entry among the current top-(k+1) is correctly evicted. By induction, after processing all distinct elements, the heap holds exactly the true k most frequent elements of the original input." }
+        {
+          tag: "p",
+          text: "Phase 1's correctness is immediate: a hash map correctly and exactly counts the occurrences of every distinct value with a single pass. Phase 2's correctness follows from the exact same invariant argument as Kth Largest Element, applied to frequency instead of raw value: after processing any prefix of the distinct (value, frequency) pairs, the heap contains exactly the k highest-frequency elements seen so far, since each new candidate is added and, if it would exceed size k, the lowest-frequency entry among the current top-(k+1) is correctly evicted. By induction, after processing all distinct elements, the heap holds exactly the true k most frequent elements of the original input.",
+        },
       ],
       codes: {
         "c++": `#include <iostream>
@@ -1541,7 +1749,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `import heapq
+        python: `import heapq
 from collections import Counter
 
 def top_k_frequent(nums, k):
@@ -1561,7 +1769,7 @@ if __name__ == "__main__":
     res = top_k_frequent(nums, k)
     print(f"Top {k} frequent elements: {res}")
 `,
-        "java": `import java.util.*;
+        java: `import java.util.*;
 
 public class Main {
     public static List<Integer> topKFrequent(int[] nums, int k) {
@@ -1595,7 +1803,7 @@ public class Main {
     }
 }
 `,
-        "js": `function topKFrequent(nums, k) {
+        js: `function topKFrequent(nums, k) {
     const freqMap = new Map();
     for (const num of nums) {
         freqMap.set(num, (freqMap.get(num) || 0) + 1);
@@ -1659,7 +1867,7 @@ const k = 2;
 const res = topKFrequent(nums, k);
 console.log(\`Top \${k} frequent elements: \${res}\`);
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <stdlib.h>
 
 // Simple linear-scan frequency map (bounded input range) + array min-heap of size k.
@@ -1756,7 +1964,7 @@ class Program {
     }
 }
 `,
-        "swift": `func topKFrequent(_ nums: [Int], _ k: Int) -> [Int] {
+        swift: `func topKFrequent(_ nums: [Int], _ k: Int) -> [Int] {
     var freqMap: [Int: Int] = [:]
     for num in nums {
         freqMap[num, default: 0] += 1
@@ -1806,7 +2014,7 @@ let k = 2
 let res = topKFrequent(nums, k)
 print("Top \\(k) frequent elements: \\(res)")
 `,
-        "kotlin": `import java.util.PriorityQueue
+        kotlin: `import java.util.PriorityQueue
 
 fun topKFrequent(nums: IntArray, k: Int): List<Int> {
     val freqMap = HashMap<Int, Int>()
@@ -1833,7 +2041,7 @@ fun main() {
     println("Top $k frequent elements: $res")
 }
 `,
-        "scala": `import scala.collection.mutable
+        scala: `import scala.collection.mutable
 
 object Main extends App {
     def topKFrequent(nums: Array[Int], k: Int): List[Int] = {
@@ -1861,7 +2069,7 @@ object Main extends App {
     println(s"Top $k frequent elements: $res")
 }
 `,
-        "go": `package main
+        go: `package main
 
 import (
     "container/heap"
@@ -1918,7 +2126,7 @@ func main() {
     fmt.Printf("Top %d frequent elements: %v\\n", k, res)
 }
 `,
-        "rust": `use std::cmp::Ordering;
+        rust: `use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap};
 
 #[derive(Eq, PartialEq)]
@@ -1963,8 +2171,8 @@ fn main() {
     let res = top_k_frequent(&nums, k);
     println!("Top {} frequent elements: {:?}", k, res);
 }
-`
-      }
+`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1977,72 +2185,127 @@ fn main() {
 
       about: [
         { tag: "h1", text: "Find Median from Data Stream" },
-        { tag: "p", text: "Given a continuous stream of numbers arriving one at a time, this problem asks for the ability to report the MEDIAN of all numbers seen so far, at any point, efficiently — without re-sorting the entire dataset on every new arrival. The elegant solution uses TWO heaps simultaneously: a max-heap holding the smaller half of the numbers seen so far, and a min-heap holding the larger half, kept balanced in size at every step." },
-        { tag: "p", text: "The key insight: the max-heap's root is always the largest of the 'lower half', and the min-heap's root is always the smallest of the 'upper half' — so if the two heaps are kept equal in size (or differing by at most one), the median is either the average of both roots (even total count) or simply the root of whichever heap has one extra element (odd total count), both retrievable in O(1)." },
+        {
+          tag: "p",
+          text: "Given a continuous stream of numbers arriving one at a time, this problem asks for the ability to report the MEDIAN of all numbers seen so far, at any point, efficiently — without re-sorting the entire dataset on every new arrival. The elegant solution uses TWO heaps simultaneously: a max-heap holding the smaller half of the numbers seen so far, and a min-heap holding the larger half, kept balanced in size at every step.",
+        },
+        {
+          tag: "p",
+          text: "The key insight: the max-heap's root is always the largest of the 'lower half', and the min-heap's root is always the smallest of the 'upper half' — so if the two heaps are kept equal in size (or differing by at most one), the median is either the average of both roots (even total count) or simply the root of whichever heap has one extra element (odd total count), both retrievable in O(1).",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Any 'maintain a running median (or running percentile) as data continuously arrives' requirement — real-time analytics dashboards, monitoring systems tracking median latency/response time",
-          "Streaming statistics in general: this two-heap balancing technique generalises to tracking other order-statistics of a stream beyond just the median",
-          "As the canonical example of using TWO heaps of opposite type together to implicitly maintain a sorted partition of a dataset, without ever fully sorting it",
-          "Financial/trading systems tracking a running median price or volume across a continuous feed of transactions"
-        ]},
-        { tag: "note", variant: "tip", text: "The size-balancing rule (never let the two heaps differ by more than 1 in size) is what makes O(1) median retrieval possible — without that explicit balancing step on every insertion, the median couldn't be read directly from the two roots alone." }
+        {
+          tag: "ul",
+          items: [
+            "Any 'maintain a running median (or running percentile) as data continuously arrives' requirement — real-time analytics dashboards, monitoring systems tracking median latency/response time",
+            "Streaming statistics in general: this two-heap balancing technique generalises to tracking other order-statistics of a stream beyond just the median",
+            "As the canonical example of using TWO heaps of opposite type together to implicitly maintain a sorted partition of a dataset, without ever fully sorting it",
+            "Financial/trading systems tracking a running median price or volume across a continuous feed of transactions",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "The size-balancing rule (never let the two heaps differ by more than 1 in size) is what makes O(1) median retrieval possible — without that explicit balancing step on every insertion, the median couldn't be read directly from the two roots alone.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(log n) insert / O(1) query",
         best: [
           { tag: "h2", text: "Best Case — O(log n) insert" },
-          { tag: "p", text: "Every insertion requires at least one heap-push operation (into one of the two heaps), and that push always costs O(log n) regardless of the specific value being inserted or the stream's current size — there's no shortcut even for the most favourable value." },
-          { tag: "ul", items: [
-            "Insert: O(log n) for the heap push into whichever heap the new value belongs to, plus possibly a single O(log n) rebalancing move (popping from one heap and pushing to the other) if sizes become unequal",
-            "Query (getMedian): O(1) — simply peek the root(s) of one or both heaps"
-          ]}
+          {
+            tag: "p",
+            text: "Every insertion requires at least one heap-push operation (into one of the two heaps), and that push always costs O(log n) regardless of the specific value being inserted or the stream's current size — there's no shortcut even for the most favourable value.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Insert: O(log n) for the heap push into whichever heap the new value belongs to, plus possibly a single O(log n) rebalancing move (popping from one heap and pushing to the other) if sizes become unequal",
+              "Query (getMedian): O(1) — simply peek the root(s) of one or both heaps",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(log n) insert / O(1) query" },
-          { tag: "p", text: "Every insertion performs the same fixed sequence of heap operations regardless of where in the stream's distribution the new value falls — one push, and at most one rebalancing pop-and-push pair, both O(log n)." },
-          { tag: "ul", items: [
-            "Insert: O(log n), where n is the total count of elements inserted so far (the combined size of both heaps)",
-            "Query: O(1), always — just read the root(s)",
-            "This holds regardless of the actual sequence of values streamed in"
-          ]}
+          {
+            tag: "p",
+            text: "Every insertion performs the same fixed sequence of heap operations regardless of where in the stream's distribution the new value falls — one push, and at most one rebalancing pop-and-push pair, both O(log n).",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Insert: O(log n), where n is the total count of elements inserted so far (the combined size of both heaps)",
+              "Query: O(1), always — just read the root(s)",
+              "This holds regardless of the actual sequence of values streamed in",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(log n) insert / O(1) query" },
-          { tag: "p", text: "No value or insertion order increases the cost beyond the standard heap-push bound — every insertion requires exactly one O(log n) push and at most one additional O(log n) rebalancing step, regardless of stream content." },
-          { tag: "ul", items: [
-            "Worst case matches best/average for both operations: O(log n) insert, O(1) query",
-            "This is the standard, unavoidable trade-off: maintaining the ability to query a running statistic in O(1) requires paying a logarithmic cost on every insertion to keep the underlying structures correctly balanced"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No value or insertion order increases the cost beyond the standard heap-push bound — every insertion requires exactly one O(log n) push and at most one additional O(log n) rebalancing step, regardless of stream content.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Worst case matches best/average for both operations: O(log n) insert, O(1) query",
+              "This is the standard, unavoidable trade-off: maintaining the ability to query a running statistic in O(1) requires paying a logarithmic cost on every insertion to keep the underlying structures correctly balanced",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case Space — O(n)" },
-          { tag: "p", text: "Every single value from the stream must be stored in one of the two heaps to be available for future median queries — there's no way to discard any value, since any of them could still be needed to compute a future median as the stream continues." },
-          { tag: "ul", items: ["Max-heap (lower half) + min-heap (upper half), combined: O(n), where n is the total number of values streamed in so far"] }
+          {
+            tag: "p",
+            text: "Every single value from the stream must be stored in one of the two heaps to be available for future median queries — there's no way to discard any value, since any of them could still be needed to compute a future median as the stream continues.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Max-heap (lower half) + min-heap (upper half), combined: O(n), where n is the total number of values streamed in so far",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(n)" },
-          { tag: "p", text: "Space usage is fixed by the total number of values received so far, split roughly evenly between the two heaps by the balancing invariant, regardless of the specific value distribution." },
-          { tag: "ul", items: ["Combined heap sizes: O(n), split as close to n/2 and n/2 as the balancing rule allows (differing by at most 1)"] }
+          {
+            tag: "p",
+            text: "Space usage is fixed by the total number of values received so far, split roughly evenly between the two heaps by the balancing invariant, regardless of the specific value distribution.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Combined heap sizes: O(n), split as close to n/2 and n/2 as the balancing rule allows (differing by at most 1)",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(n)" },
-          { tag: "p", text: "No value distribution increases space beyond storing every streamed value exactly once across the two heaps — this is an unavoidable cost of the problem itself, not a flaw of this specific algorithm." },
-          { tag: "ul", items: [
-            "O(n) total, identical across all cases — every algorithm solving this problem must retain all n values in some form, since any value could affect a future median calculation"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No value distribution increases space beyond storing every streamed value exactly once across the two heaps — this is an unavoidable cost of the problem itself, not a flaw of this specific algorithm.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(n) total, identical across all cases — every algorithm solving this problem must retain all n values in some form, since any value could affect a future median calculation",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`class MedianFinder:
+        {
+          tag: "code",
+          language: "text",
+          text: `class MedianFinder:
     lowerHalf ← empty max-heap     // holds the smaller half of all values
     upperHalf ← empty min-heap     // holds the larger half of all values
 
@@ -2062,16 +2325,23 @@ fn main() {
         if size(lowerHalf) > size(upperHalf):
             return peek(lowerHalf)
         else:
-            return (peek(lowerHalf) + peek(upperHalf)) / 2` },
+            return (peek(lowerHalf) + peek(upperHalf)) / 2`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Maintain two heaps: a max-heap (lowerHalf) for the smaller half of all values seen, and a min-heap (upperHalf) for the larger half.",
-          "On each new value, decide which half it belongs to by comparing it against the current maximum of lowerHalf (or default to lowerHalf if it's currently empty) — this keeps every value in lowerHalf ≤ every value in upperHalf.",
-          "After insertion, rebalance if needed: if lowerHalf has grown more than one element larger than upperHalf, move its maximum over to upperHalf; if upperHalf has become larger than lowerHalf at all, move its minimum over to lowerHalf. This keeps the two heaps' sizes equal, or lowerHalf exactly one larger.",
-          "To find the median: if lowerHalf has one extra element (odd total count), its maximum (the root) IS the median. If the two heaps are equal in size (even total count), the median is the average of both roots."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Maintain two heaps: a max-heap (lowerHalf) for the smaller half of all values seen, and a min-heap (upperHalf) for the larger half.",
+            "On each new value, decide which half it belongs to by comparing it against the current maximum of lowerHalf (or default to lowerHalf if it's currently empty) — this keeps every value in lowerHalf ≤ every value in upperHalf.",
+            "After insertion, rebalance if needed: if lowerHalf has grown more than one element larger than upperHalf, move its maximum over to upperHalf; if upperHalf has become larger than lowerHalf at all, move its minimum over to lowerHalf. This keeps the two heaps' sizes equal, or lowerHalf exactly one larger.",
+            "To find the median: if lowerHalf has one extra element (odd total count), its maximum (the root) IS the median. If the two heaps are equal in size (even total count), the median is the average of both roots.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "The core invariant — every value in lowerHalf is ≤ every value in upperHalf, and the two heaps' sizes differ by at most 1 — is maintained on every insertion by the explicit rebalancing step, and this invariant is exactly what's needed to guarantee correctness: it means lowerHalf contains precisely the smaller half (or smaller-half-plus-one, if odd) of ALL values seen, and upperHalf contains precisely the larger half. Given this partition, the median is, by definition, either the boundary element (lowerHalf's maximum, when there's an odd total count and lowerHalf holds the extra element) or the average of the two boundary elements (when the count is even and the true median lies between them) — exactly what findMedian computes, using only the O(1)-accessible roots of both heaps." }
+        {
+          tag: "p",
+          text: "The core invariant — every value in lowerHalf is ≤ every value in upperHalf, and the two heaps' sizes differ by at most 1 — is maintained on every insertion by the explicit rebalancing step, and this invariant is exactly what's needed to guarantee correctness: it means lowerHalf contains precisely the smaller half (or smaller-half-plus-one, if odd) of ALL values seen, and upperHalf contains precisely the larger half. Given this partition, the median is, by definition, either the boundary element (lowerHalf's maximum, when there's an odd total count and lowerHalf holds the extra element) or the average of the two boundary elements (when the count is even and the true median lies between them) — exactly what findMedian computes, using only the O(1)-accessible roots of both heaps.",
+        },
       ],
       codes: {
         "c++": `#include <iostream>
@@ -2125,7 +2395,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `import heapq
+        python: `import heapq
 
 class MedianFinder:
     def __init__(self):
@@ -2162,7 +2432,7 @@ if __name__ == "__main__":
     mf.add_num(20)
     print(f"Median after adding 10, 20: {mf.find_median()}")
 `,
-        "java": `import java.util.PriorityQueue;
+        java: `import java.util.PriorityQueue;
 import java.util.Collections;
 
 public class Main {
@@ -2208,7 +2478,7 @@ public class Main {
     }
 }
 `,
-        "js": `class MedianFinder {
+        js: `class MedianFinder {
     constructor() {
         this.lowerHalf = []; // max-heap (store negated values)
         this.upperHalf = []; // min-heap
@@ -2289,7 +2559,7 @@ mf.addNum(10);
 mf.addNum(20);
 console.log(\`Median after adding 10, 20: \${mf.findMedian()}\`);
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 
 // Fixed-capacity array-backed heaps for demonstration purposes.
 #define MAX_N 1000
@@ -2446,7 +2716,7 @@ class Program {
     }
 }
 `,
-        "swift": `final class MedianFinder {
+        swift: `final class MedianFinder {
     private var lowerHalf: [Int] = [] // max-heap (store negated values)
     private var upperHalf: [Int] = [] // min-heap
 
@@ -2525,7 +2795,7 @@ mf.addNum(10)
 mf.addNum(20)
 print("Median after adding 10, 20: \\(mf.findMedian())")
 `,
-        "kotlin": `import java.util.PriorityQueue
+        kotlin: `import java.util.PriorityQueue
 import java.util.Collections
 
 class MedianFinder {
@@ -2570,7 +2840,7 @@ fun main() {
     println("Median after adding 10, 20: \${mf.findMedian()}")
 }
 `,
-        "scala": `import scala.collection.mutable
+        scala: `import scala.collection.mutable
 
 class MedianFinder {
     private val lowerHalf = mutable.PriorityQueue[Int]() // max-heap by default
@@ -2614,7 +2884,7 @@ object Main extends App {
     println(s"Median after adding 10, 20: \${mf.findMedian()}")
 }
 `,
-        "go": `package main
+        go: `package main
 
 import (
     "container/heap"
@@ -2702,7 +2972,7 @@ func main() {
     fmt.Printf("Median after adding 10, 20: %.1f\\n", mf.FindMedian())
 }
 `,
-        "rust": `use std::cmp::Reverse;
+        rust: `use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 
 struct MedianFinder {
@@ -2766,14 +3036,13 @@ fn main() {
     mf.add_num(20);
     println!("Median after adding 10, 20: {}", mf.find_median());
 }
-`
-      }
-    }
-
+`,
+      },
+    },
   ],
   desc: "Min-heap, max-heap, k-way merge, top-k",
   complexity: "O(log n)",
-  featured: true
+  featured: true,
 };
 
 export default HEAP_SECTION;

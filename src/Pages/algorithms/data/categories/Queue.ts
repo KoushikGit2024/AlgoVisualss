@@ -1,109 +1,186 @@
 const QUEUES_SECTION = {
-    name: "Queues",
-    href: "/algorithms/queues",
-    iconId: "Queue",
-    hoverIconId: "Queue",
+  name: "Queues",
+  href: "/algorithms/queues",
+  iconId: "Queue",
+  hoverIconId: "Queue",
 
-    about: [
-        { tag: "h1", text: "Queues" },
-        { tag: "p", text: "A queue is a First-In-First-Out (FIFO) structure: elements are added at the back (enqueue) and removed from the front (dequeue), both ideally O(1). Where a stack models 'handle the most recent thing first', a queue models 'handle things in the order they arrived' — which is exactly why queues are the engine behind BFS traversal, task scheduling, and any system processing requests in arrival order." },
-        { tag: "p", text: "A naive array-based queue (shifting every element left after a dequeue) costs O(n) per dequeue — the entire engineering challenge of queue implementations is avoiding that shift. The two standard solutions are a circular buffer (wrap indices around using modulo arithmetic instead of shifting) or a linked list (drop the front node directly, no shifting needed at all)." },
-        { tag: "h2", text: "Queue variants in this section" },
-        { tag: "table",
-            headers: ["Variant", "Adds Capability", "Typical Use"],
-            rows: [
-                ["Plain Queue", "FIFO enqueue/dequeue", "BFS, task scheduling, producer-consumer buffering"],
-                ["Circular Queue", "Fixed-capacity buffer reusing freed slots via wraparound", "Ring buffers, streaming data, OS-level I/O buffers"],
-                ["Deque (Double-ended Queue)", "O(1) insertion/removal at BOTH ends", "Sliding window problems, undo/redo with both-direction access"],
-                ["Monotonic Deque", "Deque kept in sorted order to track a window's max/min", "Sliding Window Maximum, and the queue-based cousin of the monotonic stack pattern"]
-            ]
-        },
-        { tag: "note", variant: "tip", text: "Whenever a problem mentions 'sliding window' alongside 'maximum' or 'minimum', that combination is the strongest signal in this whole topic area for a monotonic deque — it solves what looks like it needs a heap in O(n) instead of O(n log n)." }
-    ],
+  about: [
+    { tag: "h1", text: "Queues" },
+    {
+      tag: "p",
+      text: "A queue is a First-In-First-Out (FIFO) structure: elements are added at the back (enqueue) and removed from the front (dequeue), both ideally O(1). Where a stack models 'handle the most recent thing first', a queue models 'handle things in the order they arrived' — which is exactly why queues are the engine behind BFS traversal, task scheduling, and any system processing requests in arrival order.",
+    },
+    {
+      tag: "p",
+      text: "A naive array-based queue (shifting every element left after a dequeue) costs O(n) per dequeue — the entire engineering challenge of queue implementations is avoiding that shift. The two standard solutions are a circular buffer (wrap indices around using modulo arithmetic instead of shifting) or a linked list (drop the front node directly, no shifting needed at all).",
+    },
+    { tag: "h2", text: "Queue variants in this section" },
+    {
+      tag: "table",
+      headers: ["Variant", "Adds Capability", "Typical Use"],
+      rows: [
+        [
+          "Plain Queue",
+          "FIFO enqueue/dequeue",
+          "BFS, task scheduling, producer-consumer buffering",
+        ],
+        [
+          "Circular Queue",
+          "Fixed-capacity buffer reusing freed slots via wraparound",
+          "Ring buffers, streaming data, OS-level I/O buffers",
+        ],
+        [
+          "Deque (Double-ended Queue)",
+          "O(1) insertion/removal at BOTH ends",
+          "Sliding window problems, undo/redo with both-direction access",
+        ],
+        [
+          "Monotonic Deque",
+          "Deque kept in sorted order to track a window's max/min",
+          "Sliding Window Maximum, and the queue-based cousin of the monotonic stack pattern",
+        ],
+      ],
+    },
+    {
+      tag: "note",
+      variant: "tip",
+      text: "Whenever a problem mentions 'sliding window' alongside 'maximum' or 'minimum', that combination is the strongest signal in this whole topic area for a monotonic deque — it solves what looks like it needs a heap in O(n) instead of O(n log n).",
+    },
+  ],
 
-    items: [
-
-        /* ════════════════════════════════════════════════════════════════════
+  items: [
+    /* ════════════════════════════════════════════════════════════════════
            1. QUEUE IMPLEMENTATION
         ════════════════════════════════════════════════════════════════════ */
+    {
+      name: "Queue Implementation",
+      href: "/algorithms/queues/implementation",
+      type: "Easy",
+
+      about: [
+        { tag: "h1", text: "Queue Implementation" },
         {
-            name: "Queue Implementation",
-            href: "/algorithms/queues/implementation",
-            type: "Easy",
+          tag: "p",
+          text: "Implementing a queue from scratch requires achieving true O(1) enqueue and dequeue operations. The naive approach—using a standard dynamic array and shifting every remaining element left after popping the front—results in an unacceptable O(n) dequeue cost. To bypass this, engineers rely on two primary structural paradigms: a pointer-based Singly Linked List, or an index-based Circular Buffer.",
+        },
+        {
+          tag: "p",
+          text: "The linked-list approach is structurally robust and conceptually elegant. By maintaining persistent pointers to both the front (head) and the back (tail) of the list, elements can be appended to the tail and severed from the head without ever traversing the intermediate nodes. This guarantees strict O(1) performance and allows the queue to grow infinitely (bounded only by heap memory), at the cost of slight memory fragmentation and pointer overhead.",
+        },
+        { tag: "h2", text: "When to reach for it" },
+        {
+          tag: "ul",
+          items: [
+            "You need to implement the queue ADT from primitives (a common requirement in system-level C/C++ or technical interviews).",
+            "You are building a Breadth-First Search (BFS) algorithm; the queue naturally dictates the level-by-layer exploration order.",
+            "Designing producer-consumer pipelines, message brokers, or asynchronous task schedulers where strict First-In-First-Out (FIFO) fairness is mandatory.",
+            "When maximum throughput is required and you must avoid the periodic O(n) reallocation pauses associated with dynamic arrays.",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "warning",
+          text: "Interview Trap: You will frequently be asked to 'Implement a Queue using Two Stacks'. This requires an 'inbox' stack for pushing and an 'outbox' stack for popping. When the outbox is empty, you flush the inbox into the outbox (which reverses the order into FIFO). While this introduces occasional O(n) flush pauses, the amortized time complexity remains O(1) per operation.",
+        },
+      ],
 
-            about: [
-                { tag: "h1", text: "Queue Implementation" },
-                { tag: "p", text: "Implementing a queue from scratch requires achieving true O(1) enqueue and dequeue operations. The naive approach—using a standard dynamic array and shifting every remaining element left after popping the front—results in an unacceptable O(n) dequeue cost. To bypass this, engineers rely on two primary structural paradigms: a pointer-based Singly Linked List, or an index-based Circular Buffer." },
-                { tag: "p", text: "The linked-list approach is structurally robust and conceptually elegant. By maintaining persistent pointers to both the front (head) and the back (tail) of the list, elements can be appended to the tail and severed from the head without ever traversing the intermediate nodes. This guarantees strict O(1) performance and allows the queue to grow infinitely (bounded only by heap memory), at the cost of slight memory fragmentation and pointer overhead." },
-                { tag: "h2", text: "When to reach for it" },
-                { tag: "ul", items: [
-                    "You need to implement the queue ADT from primitives (a common requirement in system-level C/C++ or technical interviews).",
-                    "You are building a Breadth-First Search (BFS) algorithm; the queue naturally dictates the level-by-layer exploration order.",
-                    "Designing producer-consumer pipelines, message brokers, or asynchronous task schedulers where strict First-In-First-Out (FIFO) fairness is mandatory.",
-                    "When maximum throughput is required and you must avoid the periodic O(n) reallocation pauses associated with dynamic arrays."
-                ]},
-                { tag: "note", variant: "warning", text: "Interview Trap: You will frequently be asked to 'Implement a Queue using Two Stacks'. This requires an 'inbox' stack for pushing and an 'outbox' stack for popping. When the outbox is empty, you flush the inbox into the outbox (which reverses the order into FIFO). While this introduces occasional O(n) flush pauses, the amortized time complexity remains O(1) per operation." }
+      timeComplexityCalculation: {
+        notation: "O(1)",
+        best: [
+          { tag: "h2", text: "Best Case — O(1)" },
+          {
+            tag: "p",
+            text: "A properly implemented linked-list queue executes a strictly constant number of instructions regardless of the dataset size.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Enqueue: Allocate one node, assign the current tail's next pointer, and reassign the tail pointer — O(1)",
+              "Dequeue: Cache the head's value, reassign the head pointer to the next node, and deallocate the old node — O(1)",
             ],
+          },
+        ],
+        average: [
+          { tag: "h2", text: "Average Case — O(1)" },
+          {
+            tag: "p",
+            text: "Performance is deterministic. Neither enqueue nor dequeue relies on value-based branching, traversal, or search operations.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Every insertion and deletion executes in bounded time. There are no edge cases that alter the execution path length.",
+            ],
+          },
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case — O(1)" },
+          {
+            tag: "p",
+            text: "Unlike a dynamic array (std::vector or ArrayList) which occasionally triggers an O(n) reallocation spike when its capacity is exceeded, a linked-list queue allocates nodes dynamically one at a time. It never requires a bulk memory copy.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Both enqueue and dequeue remain strictly O(1).",
+              "Note: A naive array implementation fails this bound drastically, degrading to O(n) for every dequeue.",
+            ],
+          },
+        ],
+      },
 
-            timeComplexityCalculation: {
-                notation: "O(1)",
-                best: [
-                    { tag: "h2", text: "Best Case — O(1)" },
-                    { tag: "p", text: "A properly implemented linked-list queue executes a strictly constant number of instructions regardless of the dataset size." },
-                    { tag: "ul", items: [
-                        "Enqueue: Allocate one node, assign the current tail's next pointer, and reassign the tail pointer — O(1)",
-                        "Dequeue: Cache the head's value, reassign the head pointer to the next node, and deallocate the old node — O(1)"
-                    ]}
-                ],
-                average: [
-                    { tag: "h2", text: "Average Case — O(1)" },
-                    { tag: "p", text: "Performance is deterministic. Neither enqueue nor dequeue relies on value-based branching, traversal, or search operations." },
-                    { tag: "ul", items: [
-                        "Every insertion and deletion executes in bounded time. There are no edge cases that alter the execution path length."
-                    ]}
-                ],
-                worst: [
-                    { tag: "h2", text: "Worst Case — O(1)" },
-                    { tag: "p", text: "Unlike a dynamic array (std::vector or ArrayList) which occasionally triggers an O(n) reallocation spike when its capacity is exceeded, a linked-list queue allocates nodes dynamically one at a time. It never requires a bulk memory copy." },
-                    { tag: "ul", items: [
-                        "Both enqueue and dequeue remain strictly O(1).",
-                        "Note: A naive array implementation fails this bound drastically, degrading to O(n) for every dequeue."
-                    ]}
-                ]
-            },
+      spaceComplexityCalculation: {
+        notation: "O(n)",
+        best: [
+          { tag: "h2", text: "Best Case Space — O(n)" },
+          {
+            tag: "p",
+            text: "The space consumed is directly proportional to the number of elements currently residing in the queue, plus the overhead of the tracking pointers.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "n discrete nodes containing data — O(n)",
+              "Global head and tail pointers — O(1) additional",
+            ],
+          },
+        ],
+        average: [
+          { tag: "h2", text: "Average Case Space — O(n)" },
+          {
+            tag: "p",
+            text: "A linked-list implementation allocates memory exactly as needed. It never 'over-allocates' empty capacity in the way an array-based structure might.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "The memory footprint perfectly tracks the active element count.",
+              "However, each element incurs the hidden O(1) overhead of a 'next' memory pointer, which makes it slightly less memory-dense than an array.",
+            ],
+          },
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case Space — O(n)" },
+          {
+            tag: "p",
+            text: "Memory scales linearly with the number of enqueued elements until the process hits the system's heap limit.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Total space is exactly n nodes. Memory fragmentation may occur over time due to frequent granular allocations and deallocations, but the asymptotic space remains strictly O(n).",
+            ],
+          },
+        ],
+      },
 
-            spaceComplexityCalculation: {
-                notation: "O(n)",
-                best: [
-                    { tag: "h2", text: "Best Case Space — O(n)" },
-                    { tag: "p", text: "The space consumed is directly proportional to the number of elements currently residing in the queue, plus the overhead of the tracking pointers." },
-                    { tag: "ul", items: [
-                        "n discrete nodes containing data — O(n)",
-                        "Global head and tail pointers — O(1) additional"
-                    ]}
-                ],
-                average: [
-                    { tag: "h2", text: "Average Case Space — O(n)" },
-                    { tag: "p", text: "A linked-list implementation allocates memory exactly as needed. It never 'over-allocates' empty capacity in the way an array-based structure might." },
-                    { tag: "ul", items: [
-                        "The memory footprint perfectly tracks the active element count.",
-                        "However, each element incurs the hidden O(1) overhead of a 'next' memory pointer, which makes it slightly less memory-dense than an array."
-                    ]}
-                ],
-                worst: [
-                    { tag: "h2", text: "Worst Case Space — O(n)" },
-                    { tag: "p", text: "Memory scales linearly with the number of enqueued elements until the process hits the system's heap limit." },
-                    { tag: "ul", items: [
-                        "Total space is exactly n nodes. Memory fragmentation may occur over time due to frequent granular allocations and deallocations, but the asymptotic space remains strictly O(n)."
-                    ]}
-                ]
-            },
-
-            pseudoCodeandStepexplanation: [
-                { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-                { tag: "p", text: "A standard pointer-backed Singly Linked List implementation:" },
-                { tag: "code", language: "text", text:
-`class Node:
+      pseudoCodeandStepexplanation: [
+        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+        { tag: "p", text: "A standard pointer-backed Singly Linked List implementation:" },
+        {
+          tag: "code",
+          language: "text",
+          text: `class Node:
     value
     next ← null
 
@@ -139,20 +216,27 @@ class Queue:
     function peek():
         if head is null:
             return ERROR_UNDERFLOW
-        return head.value` },
-                    { tag: "h2", text: "Step-by-step reasoning" },
-                    { tag: "ol", items: [
-                        "State Management: The structure relies on two tracking pointers. 'head' monitors the front of the line (next to be processed), and 'tail' monitors the back of the line (where newcomers attach).",
-                        "Enqueue Logic: A new node is instantiated. If the queue is completely empty (tail is null), both head and tail are pointed at this sole node. Otherwise, the current tail's 'next' pointer is linked to the new node, and the tail pointer is advanced.",
-                        "Dequeue Logic: Extract the value from the 'head' node. Advance the head pointer to the second node in line (head.next), effectively severing the first node.",
-                        "Empty State Recovery: If advancing the head pointer results in a null reference, it means the last element was just removed. You must explicitly set 'tail' to null to ensure the queue resets to a clean empty state.",
-                        "Peek Logic: Simply read and return the value stored at the head pointer without mutating the linked list."
-                    ]},
-                    { tag: "h2", text: "Why it's correct" },
-                    { tag: "p", text: "The First-In-First-Out (FIFO) invariant is guaranteed structurally. Elements are exclusively appended to the tail and exclusively severed from the head. Because the elements are physically chained in arrival order, the oldest element is always situated at the head. Furthermore, by maintaining explicit references to both extremes of the chain, the algorithm surgically avoids traversing the sequence, ensuring strict O(1) time complexity regardless of the queue's length." }
-                ],
-            codes: {
-    "c++": `#include <iostream>
+        return head.value`,
+        },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        {
+          tag: "ol",
+          items: [
+            "State Management: The structure relies on two tracking pointers. 'head' monitors the front of the line (next to be processed), and 'tail' monitors the back of the line (where newcomers attach).",
+            "Enqueue Logic: A new node is instantiated. If the queue is completely empty (tail is null), both head and tail are pointed at this sole node. Otherwise, the current tail's 'next' pointer is linked to the new node, and the tail pointer is advanced.",
+            "Dequeue Logic: Extract the value from the 'head' node. Advance the head pointer to the second node in line (head.next), effectively severing the first node.",
+            "Empty State Recovery: If advancing the head pointer results in a null reference, it means the last element was just removed. You must explicitly set 'tail' to null to ensure the queue resets to a clean empty state.",
+            "Peek Logic: Simply read and return the value stored at the head pointer without mutating the linked list.",
+          ],
+        },
+        { tag: "h2", text: "Why it's correct" },
+        {
+          tag: "p",
+          text: "The First-In-First-Out (FIFO) invariant is guaranteed structurally. Elements are exclusively appended to the tail and exclusively severed from the head. Because the elements are physically chained in arrival order, the oldest element is always situated at the head. Furthermore, by maintaining explicit references to both extremes of the chain, the algorithm surgically avoids traversing the sequence, ensuring strict O(1) time complexity regardless of the queue's length.",
+        },
+      ],
+      codes: {
+        "c++": `#include <iostream>
 
 using namespace std;
 
@@ -236,7 +320,7 @@ int main() {
 
     return 0;
 }`,
-    "python": `class Node:
+        python: `class Node:
     def __init__(self, val):
         self.val = val
         self.next = None
@@ -303,7 +387,7 @@ if __name__ == "__main__":
     dequeue()
     dequeue()
     display()`,
-    "java": `public class Main {
+        java: `public class Main {
     // SHAPE: Contains 'val' and 'next' -> TRIGGERS: <LinkedList /> automatically
     static class Node {
         int val;
@@ -378,7 +462,7 @@ if __name__ == "__main__":
         display();
     }
 }`,
-    "js": `function createNode(val) {
+        js: `function createNode(val) {
     return { val, next: null };
 }
 
@@ -447,84 +531,143 @@ console.log("Front:", peek());
 dequeue();
 dequeue();
 dequeue(); // Empties the queue
-display();`
-            }
-        },
+display();`,
+      },
+    },
 
-        /* ════════════════════════════════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════════
            2. SLIDING WINDOW MAXIMUM
         ════════════════════════════════════════════════════════════════════ */
+    {
+      name: "Sliding Window Maximum",
+      href: "/algorithms/queues/sliding-window-max",
+      type: "Hard",
+
+      about: [
+        { tag: "h1", text: "Sliding Window Maximum" },
         {
-            name: "Sliding Window Maximum",
-            href: "/algorithms/queues/sliding-window-max",
-            type: "Hard",
+          tag: "p",
+          text: "Given an array and a window size k, Sliding Window Maximum asks for the maximum value within every contiguous window of size k as it slides from the start of the array to the end. The brute-force approach recomputes the maximum from scratch for every window position, costing O(nk) — a monotonic deque solves it in O(n) total, regardless of k.",
+        },
+        {
+          tag: "p",
+          text: "The technique maintains a deque of INDICES (not values) kept in strictly decreasing order of their corresponding VALUES from front to back — so the front of the deque always holds the index of the current window's maximum. As the window slides, indices that fall outside the window are removed from the front, and any index whose value is beaten by a new arriving element is removed from the back (since it can never be the maximum again, exactly like the monotonic stack pattern).",
+        },
+        { tag: "h2", text: "When to reach for it" },
+        {
+          tag: "ul",
+          items: [
+            "The literal sliding-window-maximum (or minimum, with the deque direction flipped) problem",
+            "Any 'maximum/minimum over every window of size k' query — this beats a heap-based O(n log k) approach with a true O(n) bound",
+            "Streaming data analysis where a running max/min over the most recent k data points must be maintained efficiently in real time",
+            "As a building block for more complex sliding-window DP optimisations, where a monotonic deque can shave an O(k) or O(log k) factor off an otherwise slower per-window computation",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "The monotonic deque here is the natural 'queue version' of the monotonic stack from the Stacks section — same core idea (pop invalidated elements before pushing), but now elements ALSO need to be removed from the opposite end once they age out of the window.",
+        },
+      ],
 
-            about: [
-                { tag: "h1", text: "Sliding Window Maximum" },
-                { tag: "p", text: "Given an array and a window size k, Sliding Window Maximum asks for the maximum value within every contiguous window of size k as it slides from the start of the array to the end. The brute-force approach recomputes the maximum from scratch for every window position, costing O(nk) — a monotonic deque solves it in O(n) total, regardless of k." },
-                { tag: "p", text: "The technique maintains a deque of INDICES (not values) kept in strictly decreasing order of their corresponding VALUES from front to back — so the front of the deque always holds the index of the current window's maximum. As the window slides, indices that fall outside the window are removed from the front, and any index whose value is beaten by a new arriving element is removed from the back (since it can never be the maximum again, exactly like the monotonic stack pattern)." },
-                { tag: "h2", text: "When to reach for it" },
-                { tag: "ul", items: [
-                    "The literal sliding-window-maximum (or minimum, with the deque direction flipped) problem",
-                    "Any 'maximum/minimum over every window of size k' query — this beats a heap-based O(n log k) approach with a true O(n) bound",
-                    "Streaming data analysis where a running max/min over the most recent k data points must be maintained efficiently in real time",
-                    "As a building block for more complex sliding-window DP optimisations, where a monotonic deque can shave an O(k) or O(log k) factor off an otherwise slower per-window computation"
-                ]},
-                { tag: "note", variant: "tip", text: "The monotonic deque here is the natural 'queue version' of the monotonic stack from the Stacks section — same core idea (pop invalidated elements before pushing), but now elements ALSO need to be removed from the opposite end once they age out of the window." }
+      timeComplexityCalculation: {
+        notation: "O(n)",
+        best: [
+          { tag: "h2", text: "Best Case — O(n)" },
+          {
+            tag: "p",
+            text: "Every element must be pushed onto the deque at least once to be considered as a potential window maximum — there's no shortcut even for the most favourable value arrangement.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "n elements, each pushed exactly once: O(n)",
+              "Best case still requires the full single pass to correctly determine every window's maximum",
             ],
+          },
+        ],
+        average: [
+          { tag: "h2", text: "Average Case — O(n)" },
+          {
+            tag: "p",
+            text: "Identical amortised-analysis argument to the monotonic stack: every element is pushed exactly once and removed (from either the front, due to expiring out of the window, or the back, due to being beaten by a larger value) at most once across the entire algorithm.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Total pushes across the whole run: exactly n",
+              "Total removals (front + back combined) across the whole run: at most n",
+              "Combined: O(n), regardless of how removals are distributed across iterations",
+            ],
+          },
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case — O(n)" },
+          {
+            tag: "p",
+            text: "Even the input arrangement causing the most back-removal in a single iteration (e.g. a strictly increasing run suddenly capped, popping many elements at once) doesn't break the amortised O(n) bound, since the total work is accounted for across the entire run, not per iteration.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Worst case matches best/average exactly: O(n)",
+              "This is a dramatic improvement over the brute-force O(nk) approach and even beats a max-heap-based O(n log k) approach",
+            ],
+          },
+        ],
+      },
 
-            timeComplexityCalculation: {
-                notation: "O(n)",
-                best: [
-                    { tag: "h2", text: "Best Case — O(n)" },
-                    { tag: "p", text: "Every element must be pushed onto the deque at least once to be considered as a potential window maximum — there's no shortcut even for the most favourable value arrangement." },
-                    { tag: "ul", items: ["n elements, each pushed exactly once: O(n)", "Best case still requires the full single pass to correctly determine every window's maximum"] }
-                ],
-                average: [
-                    { tag: "h2", text: "Average Case — O(n)" },
-                    { tag: "p", text: "Identical amortised-analysis argument to the monotonic stack: every element is pushed exactly once and removed (from either the front, due to expiring out of the window, or the back, due to being beaten by a larger value) at most once across the entire algorithm." },
-                    { tag: "ul", items: [
-                        "Total pushes across the whole run: exactly n",
-                        "Total removals (front + back combined) across the whole run: at most n",
-                        "Combined: O(n), regardless of how removals are distributed across iterations"
-                    ]}
-                ],
-                worst: [
-                    { tag: "h2", text: "Worst Case — O(n)" },
-                    { tag: "p", text: "Even the input arrangement causing the most back-removal in a single iteration (e.g. a strictly increasing run suddenly capped, popping many elements at once) doesn't break the amortised O(n) bound, since the total work is accounted for across the entire run, not per iteration." },
-                    { tag: "ul", items: [
-                        "Worst case matches best/average exactly: O(n)",
-                        "This is a dramatic improvement over the brute-force O(nk) approach and even beats a max-heap-based O(n log k) approach"
-                    ]}
-                ]
-            },
+      spaceComplexityCalculation: {
+        notation: "O(k)",
+        best: [
+          { tag: "h2", text: "Best Case Space — O(1)" },
+          {
+            tag: "p",
+            text: "If the array is strictly decreasing, each new element immediately becomes the sole occupant of the deque (since it's smaller than everything already there, it gets appended, but everything BEFORE it that's now within range was already larger and stays — actually for the deque to stay at size 1, values would need to be strictly increasing, immediately invalidating everything before): the deque size is bounded by the window size k in all cases, with O(1) being achievable only in special strictly-favourable sub-cases.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Deque size is always bounded above by k, the window size, regardless of value arrangement — best case can be as small as O(1) for specific patterns",
+            ],
+          },
+        ],
+        average: [
+          { tag: "h2", text: "Average Case Space — O(k)" },
+          {
+            tag: "p",
+            text: "The deque can never hold more than k elements at once, since indices that fall outside the current window are always removed from the front regardless of their value — this caps the deque's size structurally, not just by happenstance.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Deque: bounded by O(k), the window size, regardless of input value distribution",
+              "Output array (one maximum per window): O(n − k + 1) = O(n)",
+            ],
+          },
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case Space — O(k)" },
+          {
+            tag: "p",
+            text: "If the array is strictly decreasing within every window (so nothing ever gets removed from the back, only eventually from the front as the window slides), the deque holds close to its maximum possible size of k throughout.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Deque: up to O(k), the structural maximum imposed by the window-boundary removal rule",
+              "Total space including output: O(n + k) = O(n), since k ≤ n always",
+            ],
+          },
+        ],
+      },
 
-            spaceComplexityCalculation: {
-                notation: "O(k)",
-                best: [
-                    { tag: "h2", text: "Best Case Space — O(1)" },
-                    { tag: "p", text: "If the array is strictly decreasing, each new element immediately becomes the sole occupant of the deque (since it's smaller than everything already there, it gets appended, but everything BEFORE it that's now within range was already larger and stays — actually for the deque to stay at size 1, values would need to be strictly increasing, immediately invalidating everything before): the deque size is bounded by the window size k in all cases, with O(1) being achievable only in special strictly-favourable sub-cases." },
-                    { tag: "ul", items: ["Deque size is always bounded above by k, the window size, regardless of value arrangement — best case can be as small as O(1) for specific patterns"] }
-                ],
-                average: [
-                    { tag: "h2", text: "Average Case Space — O(k)" },
-                    { tag: "p", text: "The deque can never hold more than k elements at once, since indices that fall outside the current window are always removed from the front regardless of their value — this caps the deque's size structurally, not just by happenstance." },
-                    { tag: "ul", items: ["Deque: bounded by O(k), the window size, regardless of input value distribution", "Output array (one maximum per window): O(n − k + 1) = O(n)"] }
-                ],
-                worst: [
-                    { tag: "h2", text: "Worst Case Space — O(k)" },
-                    { tag: "p", text: "If the array is strictly decreasing within every window (so nothing ever gets removed from the back, only eventually from the front as the window slides), the deque holds close to its maximum possible size of k throughout." },
-                    { tag: "ul", items: [
-                        "Deque: up to O(k), the structural maximum imposed by the window-boundary removal rule",
-                        "Total space including output: O(n + k) = O(n), since k ≤ n always"
-                    ]}
-                ]
-            },
-
-            pseudoCodeandStepexplanation: [
-                { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-                { tag: "code", language: "text", text:
-`function maxSlidingWindow(arr, k):
+      pseudoCodeandStepexplanation: [
+        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+        {
+          tag: "code",
+          language: "text",
+          text: `function maxSlidingWindow(arr, k):
     deque ← empty deque             // stores indices, decreasing by value front-to-back
     result ← empty array
 
@@ -542,20 +685,27 @@ display();`
         if i >= k − 1:
             result.append(arr[deque.front()])   // front always holds the current max
 
-    return result` },
-                { tag: "h2", text: "Step-by-step reasoning" },
-                { tag: "ol", items: [
-                    "Maintain a deque of indices kept in strictly decreasing order of their VALUES from front to back — the front always represents the largest value currently within the active window.",
-                    "For each new index i, first remove any index from the FRONT of the deque that has aged out of the current window (its index is too far behind i to still be within the k-wide range).",
-                    "Next, remove any index from the BACK of the deque whose value is smaller than arr[i] — those values can never be the maximum of any future window that also contains i, since arr[i] is both more recent and at least as large.",
-                    "Push the current index i onto the back of the deque.",
-                    "Once the window has reached its full size (i ≥ k − 1), the front of the deque holds the index of the current window's maximum — record its value in the result."
-                ]},
-                { tag: "h2", text: "Why it's correct" },
-                { tag: "p", text: "The deque invariant — strictly decreasing values from front to back, containing only indices within the current window — is maintained by two complementary removal rules: front-removal correctly discards indices that have physically left the window's range, and back-removal correctly discards values that can never again be the maximum, since any future window containing both the discarded index and i would prefer i's value (it's both newer, so it stays in range longer, and at least as large). Because every surviving index in the deque is genuinely both in-range and 'still competitive', and the deque remains sorted in decreasing order, the front element is guaranteed to be the maximum of all currently-valid candidates — which is exactly the maximum of the current window." }
-            ],
-            codes:{
-                "c++": `#include <iostream>
+    return result`,
+        },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        {
+          tag: "ol",
+          items: [
+            "Maintain a deque of indices kept in strictly decreasing order of their VALUES from front to back — the front always represents the largest value currently within the active window.",
+            "For each new index i, first remove any index from the FRONT of the deque that has aged out of the current window (its index is too far behind i to still be within the k-wide range).",
+            "Next, remove any index from the BACK of the deque whose value is smaller than arr[i] — those values can never be the maximum of any future window that also contains i, since arr[i] is both more recent and at least as large.",
+            "Push the current index i onto the back of the deque.",
+            "Once the window has reached its full size (i ≥ k − 1), the front of the deque holds the index of the current window's maximum — record its value in the result.",
+          ],
+        },
+        { tag: "h2", text: "Why it's correct" },
+        {
+          tag: "p",
+          text: "The deque invariant — strictly decreasing values from front to back, containing only indices within the current window — is maintained by two complementary removal rules: front-removal correctly discards indices that have physically left the window's range, and back-removal correctly discards values that can never again be the maximum, since any future window containing both the discarded index and i would prefer i's value (it's both newer, so it stays in range longer, and at least as large). Because every surviving index in the deque is genuinely both in-range and 'still competitive', and the deque remains sorted in decreasing order, the front element is guaranteed to be the maximum of all currently-valid candidates — which is exactly the maximum of the current window.",
+        },
+      ],
+      codes: {
+        "c++": `#include <iostream>
 #include <vector>
 #include <deque>
 
@@ -595,7 +745,7 @@ int main() {
     cout << "\\n";
     return 0;
 }`,
-                "python": `from collections import deque
+        python: `from collections import deque
 
 def max_sliding_window(nums, k):
     dequeue = deque()
@@ -619,7 +769,7 @@ if __name__ == "__main__":
     nums = [1, 3, -1, -3, 5, 3, 6, 7]
     k = 3
     print(max_sliding_window(nums, k))`,
-                "java": `import java.util.ArrayDeque;
+        java: `import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.ArrayList;
 import java.util.List;
@@ -654,7 +804,7 @@ public class Main {
         System.out.println(result);
     }
 }`,
-                "js": `function maxSlidingWindow(nums, k) {
+        js: `function maxSlidingWindow(nums, k) {
     const dequeue = [];
     const ans = [];
     let head = 0; // Simulate O(1) popFront
@@ -679,79 +829,118 @@ public class Main {
 
 const nums = [1, 3, -1, -3, 5, 3, 6, 7];
 const k = 3;
-console.log(maxSlidingWindow(nums, k));`
-            }
-        },
+console.log(maxSlidingWindow(nums, k));`,
+      },
+    },
 
-        /* ════════════════════════════════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════════
            3 CIRCULAR QUEUE (LINKED LIST)
         ════════════════════════════════════════════════════════════════════ */
+    {
+      name: "Circular Queue (Linked List)",
+      href: "/algorithms/queues/circular-linked-list",
+      type: "Medium",
+
+      about: [
+        { tag: "h1", text: "Circular Queue (Linked List)" },
         {
-            name: "Circular Queue (Linked List)",
-            href: "/algorithms/queues/circular-linked-list",
-            type: "Medium",
+          tag: "p",
+          text: "While a standard linked-list queue requires two pointers (head and tail) to achieve O(1) operations, a Circular Linked List reduces this structural overhead to a single pointer. By linking the last node's 'next' reference back to the first node, the structure forms a closed loop.",
+        },
+        {
+          tag: "p",
+          text: "Because of this loop, you only need to track the 'tail' node. The front of the queue (the 'head') is always instantly accessible via `tail.next`. This allows you to enqueue at the back and dequeue from the front seamlessly while maintaining strict O(1) time complexity and infinite dynamic growth (unlike an array-backed circular buffer).",
+        },
+        { tag: "h2", text: "When to reach for it" },
+        {
+          tag: "ul",
+          items: [
+            "When you need an unbounded queue that never triggers array reallocation pauses, but you want to minimize pointer memory overhead.",
+            "Round-robin scheduling algorithms (e.g., CPU time slicing, multiplayer turn management) where you continuously cycle through a list of active tasks/players.",
+            "Multi-process coordination loops where the 'end' of a sequence naturally flows back into the 'beginning' without requiring edge-case logic.",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "SDE Insight: The single-pointer circular linked list is a classic demonstration of memory efficiency. By sacrificing the implicit 'null' termination of a standard list, you gain cyclical iteration and drop the requirement for a separate head pointer.",
+        },
+      ],
 
-            about: [
-                { tag: "h1", text: "Circular Queue (Linked List)" },
-                { tag: "p", text: "While a standard linked-list queue requires two pointers (head and tail) to achieve O(1) operations, a Circular Linked List reduces this structural overhead to a single pointer. By linking the last node's 'next' reference back to the first node, the structure forms a closed loop." },
-                { tag: "p", text: "Because of this loop, you only need to track the 'tail' node. The front of the queue (the 'head') is always instantly accessible via `tail.next`. This allows you to enqueue at the back and dequeue from the front seamlessly while maintaining strict O(1) time complexity and infinite dynamic growth (unlike an array-backed circular buffer)." },
-                { tag: "h2", text: "When to reach for it" },
-                { tag: "ul", items: [
-                    "When you need an unbounded queue that never triggers array reallocation pauses, but you want to minimize pointer memory overhead.",
-                    "Round-robin scheduling algorithms (e.g., CPU time slicing, multiplayer turn management) where you continuously cycle through a list of active tasks/players.",
-                    "Multi-process coordination loops where the 'end' of a sequence naturally flows back into the 'beginning' without requiring edge-case logic."
-                ]},
-                { tag: "note", variant: "tip", text: "SDE Insight: The single-pointer circular linked list is a classic demonstration of memory efficiency. By sacrificing the implicit 'null' termination of a standard list, you gain cyclical iteration and drop the requirement for a separate head pointer." }
+      timeComplexityCalculation: {
+        notation: "O(1)",
+        best: [
+          { tag: "h2", text: "Best Case — O(1)" },
+          {
+            tag: "p",
+            text: "Both enqueue and dequeue perform a strictly bounded sequence of pointer reassignment operations.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Enqueue: Allocate node, point it to tail.next (the head), and reassign tail.next to the new node — O(1)",
+              "Dequeue: Reassign tail.next to bypass the current head, then deallocate the old head — O(1)",
             ],
+          },
+        ],
+        average: [
+          { tag: "h2", text: "Average Case — O(1)" },
+          {
+            tag: "p",
+            text: "There is no searching or shifting required. The runtime remains flawlessly constant.",
+          },
+          { tag: "ul", items: ["Strictly O(1) execution time across all queue sizes and loads."] },
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case — O(1)" },
+          {
+            tag: "p",
+            text: "Like all linked-list paradigms, the structure allocates memory dynamically per element. It avoids the catastrophic O(n) resizing penalties associated with arrays.",
+          },
+          { tag: "ul", items: ["O(1) continuous performance."] },
+        ],
+      },
 
-            timeComplexityCalculation: {
-                notation: "O(1)",
-                best: [
-                    { tag: "h2", text: "Best Case — O(1)" },
-                    { tag: "p", text: "Both enqueue and dequeue perform a strictly bounded sequence of pointer reassignment operations." },
-                    { tag: "ul", items: [
-                        "Enqueue: Allocate node, point it to tail.next (the head), and reassign tail.next to the new node — O(1)",
-                        "Dequeue: Reassign tail.next to bypass the current head, then deallocate the old head — O(1)"
-                    ]}
-                ],
-                average: [
-                    { tag: "h2", text: "Average Case — O(1)" },
-                    { tag: "p", text: "There is no searching or shifting required. The runtime remains flawlessly constant." },
-                    { tag: "ul", items: ["Strictly O(1) execution time across all queue sizes and loads."] }
-                ],
-                worst: [
-                    { tag: "h2", text: "Worst Case — O(1)" },
-                    { tag: "p", text: "Like all linked-list paradigms, the structure allocates memory dynamically per element. It avoids the catastrophic O(n) resizing penalties associated with arrays." },
-                    { tag: "ul", items: ["O(1) continuous performance."] }
-                ]
-            },
+      spaceComplexityCalculation: {
+        notation: "O(n)",
+        best: [
+          { tag: "h2", text: "Best Case Space — O(n)" },
+          {
+            tag: "p",
+            text: "The queue consumes memory proportional to the precise number of elements currently stored.",
+          },
+          {
+            tag: "ul",
+            items: ["n nodes — O(n)", "Exactly ONE tracking pointer (`tail`) — O(1) overhead"],
+          },
+        ],
+        average: [
+          { tag: "h2", text: "Average Case Space — O(n)" },
+          {
+            tag: "p",
+            text: "Memory allocation perfectly mirrors active usage. The structure never allocates phantom space.",
+          },
+          {
+            tag: "ul",
+            items: ["The space is O(n), where `n` is the current number of active elements."],
+          },
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case Space — O(n)" },
+          {
+            tag: "p",
+            text: "Memory overhead grows linearly with insertions until the heap is exhausted.",
+          },
+          { tag: "ul", items: ["Total space is exactly n nodes."] },
+        ],
+      },
 
-            spaceComplexityCalculation: {
-                notation: "O(n)",
-                best: [
-                    { tag: "h2", text: "Best Case Space — O(n)" },
-                    { tag: "p", text: "The queue consumes memory proportional to the precise number of elements currently stored." },
-                    { tag: "ul", items: [
-                        "n nodes — O(n)",
-                        "Exactly ONE tracking pointer (`tail`) — O(1) overhead"
-                    ]}
-                ],
-                average: [
-                    { tag: "h2", text: "Average Case Space — O(n)" },
-                    { tag: "p", text: "Memory allocation perfectly mirrors active usage. The structure never allocates phantom space." },
-                    { tag: "ul", items: ["The space is O(n), where `n` is the current number of active elements."] }
-                ],
-                worst: [
-                    { tag: "h2", text: "Worst Case Space — O(n)" },
-                    { tag: "p", text: "Memory overhead grows linearly with insertions until the heap is exhausted." },
-                    { tag: "ul", items: ["Total space is exactly n nodes."] }
-                ]
-            },
-
-            pseudoCodeandStepexplanation: [
-                { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-                { tag: "code", language: "text", text:
-`class Node:
+      pseudoCodeandStepexplanation: [
+        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+        {
+          tag: "code",
+          language: "text",
+          text: `class Node:
     value
     next ← null
 
@@ -785,19 +974,26 @@ class CircularLinkedListQueue:
             tail.next ← head.next
             
         size ← size − 1
-        return dequeuedValue` },
-                { tag: "h2", text: "Step-by-step reasoning" },
-                { tag: "ol", items: [
-                    "Initialization: Maintain a single `tail` pointer and a `size` counter.",
-                    "Enqueue (Empty): If the queue is empty, assign `tail` to the new node, and crucially, point `tail.next` to itself. This establishes the initial closed loop.",
-                    "Enqueue (Active): The new node needs to become the new tail. It must point to the front of the queue (`tail.next`). Then, the old tail's next pointer is updated to attach the new node. Finally, the `tail` pointer is shifted to the new node.",
-                    "Dequeue: The item to remove is always at `tail.next` (the head). If `tail` and `tail.next` are the same node, removing it leaves the queue empty (`tail = null`). Otherwise, simply bypass the head by linking `tail.next` to `head.next`."
-                ]},
-                { tag: "h2", text: "Why it's correct" },
-                { tag: "p", text: "By maintaining a continuous loop, the list eliminates the physical boundary between the front and back of the queue. The `tail` pointer acts as a rotating anchor on this ring. Because `tail.next` invariably points to the oldest node, and we append strictly behind `tail`, the FIFO (First-In-First-Out) guarantee is flawlessly maintained." }
-            ],
-            codes:{
-                "c++": `#include <iostream>
+        return dequeuedValue`,
+        },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        {
+          tag: "ol",
+          items: [
+            "Initialization: Maintain a single `tail` pointer and a `size` counter.",
+            "Enqueue (Empty): If the queue is empty, assign `tail` to the new node, and crucially, point `tail.next` to itself. This establishes the initial closed loop.",
+            "Enqueue (Active): The new node needs to become the new tail. It must point to the front of the queue (`tail.next`). Then, the old tail's next pointer is updated to attach the new node. Finally, the `tail` pointer is shifted to the new node.",
+            "Dequeue: The item to remove is always at `tail.next` (the head). If `tail` and `tail.next` are the same node, removing it leaves the queue empty (`tail = null`). Otherwise, simply bypass the head by linking `tail.next` to `head.next`.",
+          ],
+        },
+        { tag: "h2", text: "Why it's correct" },
+        {
+          tag: "p",
+          text: "By maintaining a continuous loop, the list eliminates the physical boundary between the front and back of the queue. The `tail` pointer acts as a rotating anchor on this ring. Because `tail.next` invariably points to the oldest node, and we append strictly behind `tail`, the FIFO (First-In-First-Out) guarantee is flawlessly maintained.",
+        },
+      ],
+      codes: {
+        "c++": `#include <iostream>
 
 using namespace std;
 
@@ -891,7 +1087,7 @@ int main() {
     
     return 0;
 }`,
-                "python": `class Node:
+        python: `class Node:
     def __init__(self, val):
         self.val = val
         self.next = None
@@ -973,7 +1169,7 @@ if __name__ == "__main__":
     
     enqueue(50)
     display()`,
-                "java": `public class Main {
+        java: `public class Main {
     // SHAPE: Contains 'val' and 'next' -> TRIGGERS: <LinkedList />
     static class Node {
         int val;
@@ -1058,7 +1254,7 @@ if __name__ == "__main__":
         display();
     }
 }`,
-                "js": `function createNode(val) {
+        js: `function createNode(val) {
     return { val, next: null };
 }
 
@@ -1136,85 +1332,133 @@ dequeue();
 dequeue();
 
 enqueue(50);
-display();`
-            }
-        },
+display();`,
+      },
+    },
 
-        /* ════════════════════════════════════════════════════════════════════
+    /* ════════════════════════════════════════════════════════════════════
            4. DOUBLE-ENDED QUEUE (DEQUE)
         ════════════════════════════════════════════════════════════════════ */
+    {
+      name: "Double-ended Queue (Deque)",
+      href: "/algorithms/queues/deque",
+      type: "Medium",
+
+      about: [
+        { tag: "h1", text: "Double-ended Queue (Deque)" },
         {
-            name: "Double-ended Queue (Deque)",
-            href: "/algorithms/queues/deque",
-            type: "Medium",
+          tag: "p",
+          text: "A deque (pronounced 'deck') is a generalized hybrid data structure that provides strictly bounded O(1) insertions and deletions at BOTH the front and the back. It serves as a strict superset of both Stacks and Queues—if you restrict operations to one end, it behaves as a Stack; if you write to one end and read from the other, it behaves identically to a Queue.",
+        },
+        {
+          tag: "p",
+          text: "At the systems level, Deques are typically implemented in one of two ways: as a Doubly Linked List (where symmetry is achieved via bidirectional pointers), or as a dynamic Ring Buffer (an array-backed circular queue capable of resizing). While dynamic arrays offer superior CPU cache locality, the Doubly Linked List implementation guarantees worst-case O(1) operations without occasional reallocation latency spikes.",
+        },
+        { tag: "h2", text: "When to reach for it" },
+        {
+          tag: "ul",
+          items: [
+            "Sliding Window Extremes: The foundation for the 'Monotonic Deque' pattern used to track rolling maximums or minimums in strict O(n) time.",
+            "Work-Stealing Schedulers: In multithreaded runtimes (like Go or Java's ForkJoinPool), threads push/pop tasks from the back of their own deque, but idle threads 'steal' tasks from the front of other threads' deques to minimize lock contention.",
+            "Undo/Redo Systems & Browser History: Scenarios requiring seamless navigation and truncation from both the oldest and newest boundaries of a dataset.",
+            "Palindrome Checkers: A trivial implementation where you consume characters simultaneously from both the front and back, comparing them inward.",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "SDE Insight: When in doubt during a technical interview, default to a Deque over a primitive Stack or Queue. Standard library implementations (like Python's `collections.deque` or Java's `ArrayDeque`) are heavily optimized and mathematically identical in asymptotic cost, but give you the flexibility to adapt if the problem requirements shift.",
+        },
+      ],
 
-            about: [
-                { tag: "h1", text: "Double-ended Queue (Deque)" },
-                { tag: "p", text: "A deque (pronounced 'deck') is a generalized hybrid data structure that provides strictly bounded O(1) insertions and deletions at BOTH the front and the back. It serves as a strict superset of both Stacks and Queues—if you restrict operations to one end, it behaves as a Stack; if you write to one end and read from the other, it behaves identically to a Queue." },
-                { tag: "p", text: "At the systems level, Deques are typically implemented in one of two ways: as a Doubly Linked List (where symmetry is achieved via bidirectional pointers), or as a dynamic Ring Buffer (an array-backed circular queue capable of resizing). While dynamic arrays offer superior CPU cache locality, the Doubly Linked List implementation guarantees worst-case O(1) operations without occasional reallocation latency spikes." },
-                { tag: "h2", text: "When to reach for it" },
-                { tag: "ul", items: [
-                    "Sliding Window Extremes: The foundation for the 'Monotonic Deque' pattern used to track rolling maximums or minimums in strict O(n) time.",
-                    "Work-Stealing Schedulers: In multithreaded runtimes (like Go or Java's ForkJoinPool), threads push/pop tasks from the back of their own deque, but idle threads 'steal' tasks from the front of other threads' deques to minimize lock contention.",
-                    "Undo/Redo Systems & Browser History: Scenarios requiring seamless navigation and truncation from both the oldest and newest boundaries of a dataset.",
-                    "Palindrome Checkers: A trivial implementation where you consume characters simultaneously from both the front and back, comparing them inward."
-                ]},
-                { tag: "note", variant: "tip", text: "SDE Insight: When in doubt during a technical interview, default to a Deque over a primitive Stack or Queue. Standard library implementations (like Python's `collections.deque` or Java's `ArrayDeque`) are heavily optimized and mathematically identical in asymptotic cost, but give you the flexibility to adapt if the problem requirements shift." }
+      timeComplexityCalculation: {
+        notation: "O(1)",
+        best: [
+          { tag: "h2", text: "Best Case — O(1)" },
+          {
+            tag: "p",
+            text: "A DLL-backed deque executes a fixed sequence of symmetric pointer reassignments regardless of which end is targeted.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "pushFront / pushBack: Allocate one node, rewire two adjacent node pointers, and update the boundary pointer — O(1)",
+              "popFront / popBack: Read the value, advance the boundary pointer inward, nullify the orphaned pointer, and deallocate — O(1)",
             ],
+          },
+        ],
+        average: [
+          { tag: "h2", text: "Average Case — O(1)" },
+          {
+            tag: "p",
+            text: "The architectural symmetry of a Doubly Linked List guarantees that neither boundary operation ever requires traversal into the list's interior.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "All four core operations remain strictly deterministic and evaluate in constant time.",
+            ],
+          },
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case — O(1)" },
+          {
+            tag: "p",
+            text: "Unlike a dynamic-array-backed Deque (which can suffer from amortized O(n) reallocation penalties during capacity expansions), the pointer-based approach avoids bulk memory copies entirely.",
+          },
+          {
+            tag: "ul",
+            items: ["The time bound remains perfectly uniform under all theoretical loads."],
+          },
+        ],
+      },
 
-            timeComplexityCalculation: {
-                notation: "O(1)",
-                best: [
-                    { tag: "h2", text: "Best Case — O(1)" },
-                    { tag: "p", text: "A DLL-backed deque executes a fixed sequence of symmetric pointer reassignments regardless of which end is targeted." },
-                    { tag: "ul", items: [
-                        "pushFront / pushBack: Allocate one node, rewire two adjacent node pointers, and update the boundary pointer — O(1)",
-                        "popFront / popBack: Read the value, advance the boundary pointer inward, nullify the orphaned pointer, and deallocate — O(1)"
-                    ]}
-                ],
-                average: [
-                    { tag: "h2", text: "Average Case — O(1)" },
-                    { tag: "p", text: "The architectural symmetry of a Doubly Linked List guarantees that neither boundary operation ever requires traversal into the list's interior." },
-                    { tag: "ul", items: ["All four core operations remain strictly deterministic and evaluate in constant time."] }
-                ],
-                worst: [
-                    { tag: "h2", text: "Worst Case — O(1)" },
-                    { tag: "p", text: "Unlike a dynamic-array-backed Deque (which can suffer from amortized O(n) reallocation penalties during capacity expansions), the pointer-based approach avoids bulk memory copies entirely." },
-                    { tag: "ul", items: [
-                        "The time bound remains perfectly uniform under all theoretical loads."
-                    ]}
-                ]
-            },
+      spaceComplexityCalculation: {
+        notation: "O(n)",
+        best: [
+          { tag: "h2", text: "Best Case Space — O(n)" },
+          {
+            tag: "p",
+            text: "The structure allocates memory exclusively for active elements, with no over-provisioning.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "n discrete nodes containing data — O(n)",
+              "However, each node carries a heavier O(1) overhead penalty compared to a standard queue, requiring two tracking pointers (`prev` and `next`).",
+            ],
+          },
+        ],
+        average: [
+          { tag: "h2", text: "Average Case Space — O(n)" },
+          {
+            tag: "p",
+            text: "Memory allocation scales exactly linearly. The memory footprint dynamically expands and contracts in lockstep with the payload.",
+          },
+          {
+            tag: "ul",
+            items: ["O(n) space complexity, constrained only by the operating environment's heap."],
+          },
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case Space — O(n)" },
+          { tag: "p", text: "The asymptotic memory overhead never exceeds linear bounds." },
+          {
+            tag: "ul",
+            items: [
+              "Pointer overhead creates a higher constant factor than an array, but it remains fundamentally O(n).",
+            ],
+          },
+        ],
+      },
 
-            spaceComplexityCalculation: {
-                notation: "O(n)",
-                best: [
-                    { tag: "h2", text: "Best Case Space — O(n)" },
-                    { tag: "p", text: "The structure allocates memory exclusively for active elements, with no over-provisioning." },
-                    { tag: "ul", items: [
-                        "n discrete nodes containing data — O(n)",
-                        "However, each node carries a heavier O(1) overhead penalty compared to a standard queue, requiring two tracking pointers (`prev` and `next`)."
-                    ]}
-                ],
-                average: [
-                    { tag: "h2", text: "Average Case Space — O(n)" },
-                    { tag: "p", text: "Memory allocation scales exactly linearly. The memory footprint dynamically expands and contracts in lockstep with the payload." },
-                    { tag: "ul", items: ["O(n) space complexity, constrained only by the operating environment's heap."] }
-                ],
-                worst: [
-                    { tag: "h2", text: "Worst Case Space — O(n)" },
-                    { tag: "p", text: "The asymptotic memory overhead never exceeds linear bounds." },
-                    { tag: "ul", items: [
-                        "Pointer overhead creates a higher constant factor than an array, but it remains fundamentally O(n)."
-                    ]}
-                ]
-            },
-
-            pseudoCodeandStepexplanation: [
-                { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-                { tag: "p", text: "Doubly-linked-list-backed implementation (Sentinel-free):" },
-                { tag: "code", language: "text", text:
-`class Node:
+      pseudoCodeandStepexplanation: [
+        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+        { tag: "p", text: "Doubly-linked-list-backed implementation (Sentinel-free):" },
+        {
+          tag: "code",
+          language: "text",
+          text: `class Node:
     value
     next ← null
     prev ← null
@@ -1270,19 +1514,26 @@ class Deque:
             front ← null      // The Deque is now completely empty
             
         size ← size − 1
-        return dequeuedValue` },
-                { tag: "h2", text: "Step-by-step reasoning" },
-                { tag: "ol", items: [
-                    "Symmetric Boundaries: Establish a `front` pointer and a `back` pointer to anchor the two extremes of the doubly linked chain.",
-                    "Push Operations: Both `pushFront` and `pushBack` are mirror images. You instantiate a new node, point its inward-facing reference (either `next` or `prev`) to the current boundary node, instruct the boundary node to point back, and finally shift the boundary tracking pointer outward to the new node.",
-                    "Pop Operations: `popFront` and `popBack` operate on the exact same mirrored logic. Cache the value of the targeted boundary node, shift the boundary pointer one step inward, and explicitly sever the outgoing pointer of the new boundary node.",
-                    "Crucial Collapse Check: Whenever a pop operation occurs, you must check if the inward shift caused the boundary pointer to become null. If it did, it means the last remaining node was deleted, and you must explicitly nullify the opposite boundary pointer to prevent it from aiming at dead memory."
-                ]},
-                { tag: "h2", text: "Why it's correct" },
-                { tag: "p", text: "The architecture relies entirely on local pointer manipulation. Because every node intimately knows both its predecessor and successor, operations executed at the `front` boundary require absolutely zero knowledge of the state, depth, or location of the `back` boundary (and vice versa). This decoupling guarantees constant-time operations, while the simultaneous nullification checks safely bind the two ends back together when the structure empties." }
-            ],
-            codes:{
-                "c++": `#include <iostream>
+        return dequeuedValue`,
+        },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        {
+          tag: "ol",
+          items: [
+            "Symmetric Boundaries: Establish a `front` pointer and a `back` pointer to anchor the two extremes of the doubly linked chain.",
+            "Push Operations: Both `pushFront` and `pushBack` are mirror images. You instantiate a new node, point its inward-facing reference (either `next` or `prev`) to the current boundary node, instruct the boundary node to point back, and finally shift the boundary tracking pointer outward to the new node.",
+            "Pop Operations: `popFront` and `popBack` operate on the exact same mirrored logic. Cache the value of the targeted boundary node, shift the boundary pointer one step inward, and explicitly sever the outgoing pointer of the new boundary node.",
+            "Crucial Collapse Check: Whenever a pop operation occurs, you must check if the inward shift caused the boundary pointer to become null. If it did, it means the last remaining node was deleted, and you must explicitly nullify the opposite boundary pointer to prevent it from aiming at dead memory.",
+          ],
+        },
+        { tag: "h2", text: "Why it's correct" },
+        {
+          tag: "p",
+          text: "The architecture relies entirely on local pointer manipulation. Because every node intimately knows both its predecessor and successor, operations executed at the `front` boundary require absolutely zero knowledge of the state, depth, or location of the `back` boundary (and vice versa). This decoupling guarantees constant-time operations, while the simultaneous nullification checks safely bind the two ends back together when the structure empties.",
+        },
+      ],
+      codes: {
+        "c++": `#include <iostream>
 
 using namespace std;
 
@@ -1390,7 +1641,7 @@ int main() {
 
     return 0;
 }`,
-                "python": `class Node:
+        python: `class Node:
     def __init__(self, val):
         self.val = val
         self.next = None
@@ -1482,7 +1733,7 @@ if __name__ == "__main__":
     display()
     
     pop_front() # Empties queue`,
-                "java": `public class Main {
+        java: `public class Main {
     static class Node {
         int val;
         Node next, prev;
@@ -1579,7 +1830,7 @@ if __name__ == "__main__":
         display();
     }
 }`,
-                "js": `function createNode(val) {
+        js: `function createNode(val) {
     return { val, next: null, prev: null };
 }
 
@@ -1670,13 +1921,13 @@ popFront();
 display();
 
 popFront(); // Empties
-display();`
-            }
-        }
-    ],
-    desc: "Deque, sliding window max, BFS patterns",
-    complexity: "O(n)",
-    featured: true
+display();`,
+      },
+    },
+  ],
+  desc: "Deque, sliding window max, BFS patterns",
+  complexity: "O(n)",
+  featured: true,
 };
 
 /*

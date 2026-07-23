@@ -36,9 +36,7 @@ import type { Symbol } from "./SymbolTable";
 import type { CppType, CppValue } from "../types";
 import { logStepToConsole } from "../utils/helpers";
 
-
 export class ScopeManager {
-
   /**
    * The scope chain for this frame, ordered outermost-first.
    *   scopes[0] = base / function-level scope (globals + parameters).
@@ -65,14 +63,16 @@ export class ScopeManager {
   private parentScopeManager?: ScopeManager;
   private onStaticAssign?: (name: string, value: CppValue) => void;
 
-  constructor(parentScopeManager?: ScopeManager, onStaticAssign?: (name: string, value: CppValue) => void) {
+  constructor(
+    parentScopeManager?: ScopeManager,
+    onStaticAssign?: (name: string, value: CppValue) => void,
+  ) {
     // Every frame starts with exactly one base scope table.
     this.scopes = [new SymbolTable()];
     this.staticNames = new Set();
     this.parentScopeManager = parentScopeManager;
     this.onStaticAssign = onStaticAssign;
   }
-
 
   // ── Block Scope Lifecycle ─────────────────────────────────────────────────
 
@@ -104,12 +104,11 @@ export class ScopeManager {
     if (this.scopes.length <= 1) {
       throw new Error(
         "Fatal: Cannot exit the root scope of this execution frame. " +
-        "This indicates an unbalanced enterScope/exitScope pair in IRWalker."
+          "This indicates an unbalanced enterScope/exitScope pair in IRWalker.",
       );
     }
     this.scopes.pop();
   }
-
 
   // ── Variable Definition ───────────────────────────────────────────────────
 
@@ -133,10 +132,10 @@ export class ScopeManager {
    *   (redeclaration in the same block — a C++ compile-time error).
    */
   public defineVariable(
-    name:     string,
-    type:     CppType,
-    value:    CppValue,
-    isConst:  boolean = false,
+    name: string,
+    type: CppType,
+    value: CppValue,
+    isConst: boolean = false,
     isStatic: boolean = false,
   ): void {
     const currentScope = this.scopes[this.scopes.length - 1];
@@ -170,10 +169,10 @@ export class ScopeManager {
    * @param isStatic - True when the parameter is static (extremely rare).
    */
   public defineShadowing(
-    name:     string,
-    type:     CppType,
-    value:    CppValue,
-    isConst:  boolean = false,
+    name: string,
+    type: CppType,
+    value: CppValue,
+    isConst: boolean = false,
     isStatic: boolean = false,
   ): void {
     const currentScope = this.scopes[this.scopes.length - 1];
@@ -204,10 +203,10 @@ export class ScopeManager {
    * @param isStatic - Static flag; adds the name to staticNames when true.
    */
   public injectIntoBase(
-    name:     string,
-    type:     CppType,
-    value:    CppValue,
-    isConst:  boolean = false,
+    name: string,
+    type: CppType,
+    value: CppValue,
+    isConst: boolean = false,
     isStatic: boolean = false,
   ): void {
     const baseScope = this.scopes[0];
@@ -221,7 +220,6 @@ export class ScopeManager {
       this.staticNames.add(name);
     }
   }
-
 
   // ── Static Local Variable Support ─────────────────────────────────────────
 
@@ -253,19 +251,20 @@ export class ScopeManager {
    *
    * @returns A `Record<name, CppValue>` for every static variable in this frame.
    */
-  public getStaticSymbols(): Record<string, { type: CppType, value: CppValue }> {
-    const result: Record<string, { type: CppType, value: CppValue }> = {};
+  public getStaticSymbols(): Record<string, { type: CppType; value: CppValue }> {
+    const result: Record<string, { type: CppType; value: CppValue }> = {};
     for (const name of this.staticNames) {
       try {
         const sym = this.getVariable(name);
         result[name] = { type: sym.type as CppType, value: sym.value };
       } catch {
-        logStepToConsole(`[ScopeManager.getStaticSymbols] Static variable '${name}' not found during mirror.`);
+        logStepToConsole(
+          `[ScopeManager.getStaticSymbols] Static variable '${name}' not found during mirror.`,
+        );
       }
     }
     return result;
   }
-
 
   // ── Variable Mutation ─────────────────────────────────────────────────────
 
@@ -297,7 +296,7 @@ export class ScopeManager {
         return;
       }
     }
-    
+
     // Fall back to parent scope (globals)
     if (this.parentScopeManager && this.parentScopeManager.hasVariable(name)) {
       this.parentScopeManager.assignVariable(name, value);
@@ -306,10 +305,9 @@ export class ScopeManager {
 
     throw new Error(
       `Memory Access Violation: Variable '${name}' is not defined in the current scope chain. ` +
-      `Did you forget to declare it, or is it out of scope?`
+        `Did you forget to declare it, or is it out of scope?`,
     );
   }
-
 
   // ── Variable Resolution ───────────────────────────────────────────────────
 
@@ -348,7 +346,7 @@ export class ScopeManager {
 
     throw new Error(
       `Memory Access Violation: Variable '${name}' is not defined. ` +
-      `Check for typos, missing declarations, or use before initialisation.`
+        `Check for typos, missing declarations, or use before initialisation.`,
     );
   }
 
@@ -364,7 +362,6 @@ export class ScopeManager {
     if (this.parentScopeManager && this.parentScopeManager.hasVariable(name)) return true;
     return false;
   }
-
 
   // ── Scope Introspection ───────────────────────────────────────────────────
 
@@ -403,7 +400,6 @@ export class ScopeManager {
     return Array.from(seen);
   }
 
-
   // ── Snapshot Support ──────────────────────────────────────────────────────
 
   /**
@@ -438,8 +434,8 @@ export class ScopeManager {
     // 2. Overlay current scope chain, inner overwriting outer
     for (const scope of this.scopes) {
       for (const [name, symbol] of Object.entries(scope.getAll())) {
-        // Filter out internal engine proxy symbols.
-        if (name.startsWith("__")) continue;
+        // Filter out internal engine proxy symbols and mocked iomanip globals.
+        if (name.startsWith("__") || symbol.type === "__iomanip") continue;
         state[name] = symbol;
       }
     }

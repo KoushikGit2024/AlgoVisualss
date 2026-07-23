@@ -1,29 +1,54 @@
 const STRINGS_SECTION = {
   name: "Strings",
   href: "/algorithms/strings",
-    iconId: "String",
-    hoverIconId: "String",
+  iconId: "String",
+  hoverIconId: "String",
 
   about: [
     { tag: "h1", text: "Strings" },
-    { tag: "p", text: "String algorithms deal with sequences of characters, and the central recurring problem across this entire field is PATTERN MATCHING: given a text of length n and a pattern of length m, find every occurrence of the pattern within the text. The naive approach checks every possible starting position and compares character by character, costing O(nm) in the worst case — every algorithm in this section exists specifically to beat that bound." },
-    { tag: "p", text: "The shared trick behind nearly every advanced string algorithm is the same insight: when a character comparison fails partway through a match attempt, the characters ALREADY MATCHED contain information that can be reused to skip ahead, rather than naively restarting the comparison one position later and re-checking characters that are already known to match. KMP, Z-Algorithm, and Rabin-Karp each exploit this idea in a different way." },
+    {
+      tag: "p",
+      text: "String algorithms deal with sequences of characters, and the central recurring problem across this entire field is PATTERN MATCHING: given a text of length n and a pattern of length m, find every occurrence of the pattern within the text. The naive approach checks every possible starting position and compares character by character, costing O(nm) in the worst case — every algorithm in this section exists specifically to beat that bound.",
+    },
+    {
+      tag: "p",
+      text: "The shared trick behind nearly every advanced string algorithm is the same insight: when a character comparison fails partway through a match attempt, the characters ALREADY MATCHED contain information that can be reused to skip ahead, rather than naively restarting the comparison one position later and re-checking characters that are already known to match. KMP, Z-Algorithm, and Rabin-Karp each exploit this idea in a different way.",
+    },
     { tag: "h2", text: "Three approaches to beating O(nm)" },
-    { tag: "table",
+    {
+      tag: "table",
       headers: ["Algorithm", "Core Idea", "Time"],
       rows: [
-        ["KMP (Knuth-Morris-Pratt)", "Precompute a 'failure function' so a failed match can skip ahead without re-comparing known-matching characters", "O(n + m)"],
-        ["Z-Algorithm", "Precompute, for every position, the length of the longest substring starting there that matches the string's own prefix", "O(n + m)"],
-        ["Rabin-Karp", "Hash the pattern and every text window of the same length; only do a full character comparison when hashes match", "O(n + m) average"]
-      ]
+        [
+          "KMP (Knuth-Morris-Pratt)",
+          "Precompute a 'failure function' so a failed match can skip ahead without re-comparing known-matching characters",
+          "O(n + m)",
+        ],
+        [
+          "Z-Algorithm",
+          "Precompute, for every position, the length of the longest substring starting there that matches the string's own prefix",
+          "O(n + m)",
+        ],
+        [
+          "Rabin-Karp",
+          "Hash the pattern and every text window of the same length; only do a full character comparison when hashes match",
+          "O(n + m) average",
+        ],
+      ],
     },
     { tag: "h2", text: "When string problems don't need these algorithms" },
-    { tag: "p", text: "Not every string problem needs heavyweight pattern-matching machinery. Two Pointers (see the Arrays section) solves palindrome-checking directly. A sliding window with a character-frequency map handles 'longest substring with property X' problems in O(n). Reach for KMP, Z-Algorithm, or Rabin-Karp specifically when the problem is genuinely about finding a fixed PATTERN within a larger TEXT — that's the signal these three algorithms are built for." },
-    { tag: "note", variant: "tip", text: "KMP and Z-Algorithm both achieve the same O(n+m) worst-case guarantee via deterministic preprocessing; Rabin-Karp achieves the same bound only on AVERAGE (its worst case is O(nm) under adversarial hash collisions) but generalises more naturally to searching for MULTIPLE patterns simultaneously." }
+    {
+      tag: "p",
+      text: "Not every string problem needs heavyweight pattern-matching machinery. Two Pointers (see the Arrays section) solves palindrome-checking directly. A sliding window with a character-frequency map handles 'longest substring with property X' problems in O(n). Reach for KMP, Z-Algorithm, or Rabin-Karp specifically when the problem is genuinely about finding a fixed PATTERN within a larger TEXT — that's the signal these three algorithms are built for.",
+    },
+    {
+      tag: "note",
+      variant: "tip",
+      text: "KMP and Z-Algorithm both achieve the same O(n+m) worst-case guarantee via deterministic preprocessing; Rabin-Karp achieves the same bound only on AVERAGE (its worst case is O(nm) under adversarial hash collisions) but generalises more naturally to searching for MULTIPLE patterns simultaneously.",
+    },
   ],
 
   items: [
-
     /* ════════════════════════════════════════════════════════════════════
        1. LONGEST SUBSTRING WITHOUT REPEATING CHARACTERS
     ════════════════════════════════════════════════════════════════════ */
@@ -34,72 +59,127 @@ const STRINGS_SECTION = {
 
       about: [
         { tag: "h1", text: "Longest Substring Without Repeating Characters" },
-        { tag: "p", text: "Given a string, find the length of the longest CONTIGUOUS substring that contains no repeated characters. This is a direct application of the Sliding Window technique (covered in depth in the Arrays section) rather than a dedicated pattern-matching algorithm — it's included here because it's one of the most common string-specific interview questions, and it illustrates the sliding window pattern applied specifically to character-uniqueness tracking." },
-        { tag: "p", text: "The brute-force approach checks every possible substring for uniqueness, costing O(n³) (O(n²) substrings, each taking O(n) to verify) or O(n²) with a smarter uniqueness check. The sliding window approach achieves O(n): expand the window's right boundary one character at a time, and whenever a duplicate is detected, shrink the window's left boundary just enough to eliminate that duplicate, never re-scanning from the start." },
+        {
+          tag: "p",
+          text: "Given a string, find the length of the longest CONTIGUOUS substring that contains no repeated characters. This is a direct application of the Sliding Window technique (covered in depth in the Arrays section) rather than a dedicated pattern-matching algorithm — it's included here because it's one of the most common string-specific interview questions, and it illustrates the sliding window pattern applied specifically to character-uniqueness tracking.",
+        },
+        {
+          tag: "p",
+          text: "The brute-force approach checks every possible substring for uniqueness, costing O(n³) (O(n²) substrings, each taking O(n) to verify) or O(n²) with a smarter uniqueness check. The sliding window approach achieves O(n): expand the window's right boundary one character at a time, and whenever a duplicate is detected, shrink the window's left boundary just enough to eliminate that duplicate, never re-scanning from the start.",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "The literal 'longest substring without repeating characters' problem and its many close variants (longest substring with AT MOST k distinct characters, longest substring with exactly k distinct characters)",
-          "Any 'find the longest/shortest contiguous run satisfying a character-uniqueness or character-frequency property' problem — the sliding-window-plus-hash-set/map combination generalises directly",
-          "As a reminder that not every string problem needs KMP/Z-Algorithm/Rabin-Karp — this one is solved entirely by the general Sliding Window pattern from the Arrays section, applied to characters instead of numbers",
-          "DNA/RNA sequence analysis looking for the longest stretch without a repeated base, a direct bioinformatics application of the identical technique"
-        ]},
-        { tag: "note", variant: "tip", text: "This problem is cross-referenced in the Arrays section's Sliding Window entry — they're the same algorithmic technique, just framed around strings here. Recognising that a 'string problem' is actually a generic array/sequence technique in disguise is itself a useful pattern-recognition skill." }
+        {
+          tag: "ul",
+          items: [
+            "The literal 'longest substring without repeating characters' problem and its many close variants (longest substring with AT MOST k distinct characters, longest substring with exactly k distinct characters)",
+            "Any 'find the longest/shortest contiguous run satisfying a character-uniqueness or character-frequency property' problem — the sliding-window-plus-hash-set/map combination generalises directly",
+            "As a reminder that not every string problem needs KMP/Z-Algorithm/Rabin-Karp — this one is solved entirely by the general Sliding Window pattern from the Arrays section, applied to characters instead of numbers",
+            "DNA/RNA sequence analysis looking for the longest stretch without a repeated base, a direct bioinformatics application of the identical technique",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "This problem is cross-referenced in the Arrays section's Sliding Window entry — they're the same algorithmic technique, just framed around strings here. Recognising that a 'string problem' is actually a generic array/sequence technique in disguise is itself a useful pattern-recognition skill.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case — O(n)" },
-          { tag: "p", text: "The right pointer always sweeps the entire string exactly once — there's no early-exit shortcut, since the longest valid window could potentially end at the very last character." },
-          { tag: "ul", items: [
-            "right traverses all n character positions exactly once: O(n)",
-            "left only ever moves forward, never backward, bounding its total movement across the whole algorithm by n as well"
-          ]}
+          {
+            tag: "p",
+            text: "The right pointer always sweeps the entire string exactly once — there's no early-exit shortcut, since the longest valid window could potentially end at the very last character.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "right traverses all n character positions exactly once: O(n)",
+              "left only ever moves forward, never backward, bounding its total movement across the whole algorithm by n as well",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n)" },
-          { tag: "p", text: "This is the same amortised-analysis argument as the general Sliding Window pattern: although there appear to be two nested-looking pointers, neither ever resets, so their combined total movement across the entire algorithm is bounded by 2n, not n²." },
-          { tag: "ul", items: [
-            "right makes exactly n forward moves total",
-            "left makes at most n forward moves total (bounded by right, since it can never exceed it)",
-            "Combined: O(n)"
-          ]}
+          {
+            tag: "p",
+            text: "This is the same amortised-analysis argument as the general Sliding Window pattern: although there appear to be two nested-looking pointers, neither ever resets, so their combined total movement across the entire algorithm is bounded by 2n, not n².",
+          },
+          {
+            tag: "ul",
+            items: [
+              "right makes exactly n forward moves total",
+              "left makes at most n forward moves total (bounded by right, since it can never exceed it)",
+              "Combined: O(n)",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n)" },
-          { tag: "p", text: "Even a pathological input forcing frequent window-shrinking (e.g. a string of all-identical characters) still keeps total left-pointer movement bounded by n across the whole run, since left can never advance past right." },
-          { tag: "ul", items: [
-            "Worst case matches best/average: O(n)",
-            "This is the same bound established in the Arrays section's Sliding Window entry, applied directly to character data here"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "Even a pathological input forcing frequent window-shrinking (e.g. a string of all-identical characters) still keeps total left-pointer movement bounded by n across the whole run, since left can never advance past right.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Worst case matches best/average: O(n)",
+              "This is the same bound established in the Arrays section's Sliding Window entry, applied directly to character data here",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(min(n,m))",
         best: [
           { tag: "h2", text: "Best Case Space — O(1)" },
-          { tag: "p", text: "For a very short string, or a string drawn from a tiny alphabet, the character-tracking structure (hash set or fixed-size array) holds very few entries at any point." },
-          { tag: "ul", items: ["Character-tracking structure: bounded by the window's current size, which can be as small as O(1) in favourable cases"] }
+          {
+            tag: "p",
+            text: "For a very short string, or a string drawn from a tiny alphabet, the character-tracking structure (hash set or fixed-size array) holds very few entries at any point.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Character-tracking structure: bounded by the window's current size, which can be as small as O(1) in favourable cases",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(min(n, m))" },
-          { tag: "p", text: "The character-tracking structure (hash set, or a fixed-size array if the alphabet is known and bounded, e.g. ASCII or lowercase letters) can hold at most one entry per distinct character within the current window." },
-          { tag: "ul", items: ["Bounded by min(n, m), where n is the string length and m is the alphabet size — for ASCII text, this is effectively O(min(n, 128))"] }
+          {
+            tag: "p",
+            text: "The character-tracking structure (hash set, or a fixed-size array if the alphabet is known and bounded, e.g. ASCII or lowercase letters) can hold at most one entry per distinct character within the current window.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Bounded by min(n, m), where n is the string length and m is the alphabet size — for ASCII text, this is effectively O(min(n, 128))",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(min(n,m))" },
-          { tag: "p", text: "If the entire string consists of distinct characters (the longest possible no-repeat window equals the whole string), the tracking structure grows to hold every distinct character, bounded above by either the string length or the alphabet size, whichever is smaller." },
-          { tag: "ul", items: [
-            "Worst case: O(min(n, m)), e.g. for lowercase English text, this is capped at 26 regardless of how long the string is — a meaningfully tighter bound than plain O(n) when the alphabet is small and fixed"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "If the entire string consists of distinct characters (the longest possible no-repeat window equals the whole string), the tracking structure grows to hold every distinct character, bounded above by either the string length or the alphabet size, whichever is smaller.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Worst case: O(min(n, m)), e.g. for lowercase English text, this is capped at 26 regardless of how long the string is — a meaningfully tighter bound than plain O(n) when the alphabet is small and fixed",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function lengthOfLongestSubstring(strInput):
+        {
+          tag: "code",
+          language: "text",
+          text: `function lengthOfLongestSubstring(strInput):
     seenCharacters ← empty hash set
     j   ← 0
     bestLength  ← 0
@@ -112,17 +192,24 @@ const STRINGS_SECTION = {
         add strInput[i] to seenCharacters
         bestLength ← max(bestLength, i − j + 1)
 
-    return bestLength` },
+    return bestLength`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "i scans the string forward one character at a time, always trying to extend the current window.",
-          "Before admitting strInput[i] into the window, check whether it would create a duplicate within the window's current contents.",
-          "If it would, shrink from the left — removing characters one at a time from the tracking set and advancing j — until the duplicate is eliminated and the window is valid again.",
-          "Once the window is confirmed valid (no duplicates), add strInput[i] and check if the current window length is a new best.",
-          "Repeat until i reaches the end of the string; the recorded bestLength is the answer."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "i scans the string forward one character at a time, always trying to extend the current window.",
+            "Before admitting strInput[i] into the window, check whether it would create a duplicate within the window's current contents.",
+            "If it would, shrink from the left — removing characters one at a time from the tracking set and advancing j — until the duplicate is eliminated and the window is valid again.",
+            "Once the window is confirmed valid (no duplicates), add strInput[i] and check if the current window length is a new best.",
+            "Repeat until i reaches the end of the string; the recorded bestLength is the answer.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Invariant: at the top of every outer-loop iteration, strInput[j..rightIndex−1] contains no duplicate characters. The inner while-loop correctly restores this invariant whenever adding strInput[i] would violate it, by removing characters from the left one at a time until the specific conflicting character is gone — and because j only ever moves forward (never resets), no valid window is ever skipped over or incorrectly re-examined, exactly matching the general Sliding Window correctness argument from the Arrays section." }
+        {
+          tag: "p",
+          text: "Invariant: at the top of every outer-loop iteration, strInput[j..rightIndex−1] contains no duplicate characters. The inner while-loop correctly restores this invariant whenever adding strInput[i] would violate it, by removing characters from the left one at a time until the specific conflicting character is gone — and because j only ever moves forward (never resets), no valid window is ever skipped over or incorrectly re-examined, exactly matching the general Sliding Window correctness argument from the Arrays section.",
+        },
       ],
       codes: {
         "c++": `#include <iostream>
@@ -174,7 +261,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `def length_of_longest_substring(input_string):
+        python: `def length_of_longest_substring(input_string):
     """
     Returns the length of the longest contiguous substring of
     'input_string' that contains no repeated characters, using
@@ -218,7 +305,7 @@ def main():
 if __name__ == "__main__":
     main()
 `,
-        "java": `import java.util.HashSet;
+        java: `import java.util.HashSet;
 import java.util.Set;
 
 public class Main {
@@ -265,7 +352,7 @@ public class Main {
     }
 }
 `,
-        "js": `// Returns the length of the longest contiguous substring of
+        js: `// Returns the length of the longest contiguous substring of
 // 'strInput' that contains no repeated characters, using
 // the sliding window technique.
 function lengthOfLongestSubstring(strInput) {
@@ -308,7 +395,7 @@ function main() {
 
 main();
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <string.h>
 
 // Returns the length of the longest contiguous substring of
@@ -404,7 +491,7 @@ class Program {
     }
 }
 `,
-        "swift": `import Foundation
+        swift: `import Foundation
 
 // Returns the length of the longest contiguous substring of
 // 'strInput' that contains no repeated characters, using
@@ -447,7 +534,7 @@ let result = lengthOfLongestSubstring(sampleText)
 print("Input string: \\(sampleText)")
 print("Longest substring length without repeats: \\(result)")
 `,
-        "kotlin": `// Returns the length of the longest contiguous substring of
+        kotlin: `// Returns the length of the longest contiguous substring of
 // 'strInput' that contains no repeated characters, using
 // the sliding window technique.
 fun lengthOfLongestSubstring(strInput: String): Int {
@@ -488,7 +575,7 @@ fun main() {
     println("Longest substring length without repeats: $result")
 }
 `,
-        "scala": `import scala.collection.mutable
+        scala: `import scala.collection.mutable
 
 object Main extends App {
 
@@ -532,7 +619,7 @@ object Main extends App {
   println(s"Longest substring length without repeats: $result")
 }
 `,
-        "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -579,7 +666,7 @@ func main() {
 	fmt.Println("Longest substring length without repeats:", result)
 }
 `,
-        "rust": `use std::collections::HashSet;
+        rust: `use std::collections::HashSet;
 
 // Returns the length of the longest contiguous substring of
 // 'input_string' that contains no repeated characters, using
@@ -625,8 +712,8 @@ fn main() {
     println!("Input string: {}", sample_text);
     println!("Longest substring length without repeats: {}", result);
 }
-`
-      }
+`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -639,72 +726,127 @@ fn main() {
 
       about: [
         { tag: "h1", text: "Rabin-Karp Algorithm" },
-        { tag: "p", text: "Rabin-Karp, developed by Richard Karp and Michael Rabin in 1987, finds occurrences of a pattern within a text using HASHING rather than direct character comparison: compute a hash of the pattern once, then slide a window of the same length across the text, comparing the WINDOW'S HASH against the pattern's hash — only falling back to an actual character-by-character comparison when the hashes match (a 'candidate match' that needs verification, since different strings can occasionally hash to the same value)." },
-        { tag: "p", text: "Its key efficiency trick is a ROLLING HASH: rather than recomputing each window's hash from scratch (which would cost O(m) per window, giving O(nm) overall — no better than brute force), the hash of the next window is computed in O(1) from the hash of the current window, by removing the contribution of the character leaving the window and adding the contribution of the character entering it." },
+        {
+          tag: "p",
+          text: "Rabin-Karp, developed by Richard Karp and Michael Rabin in 1987, finds occurrences of a pattern within a text using HASHING rather than direct character comparison: compute a hash of the pattern once, then slide a window of the same length across the text, comparing the WINDOW'S HASH against the pattern's hash — only falling back to an actual character-by-character comparison when the hashes match (a 'candidate match' that needs verification, since different strings can occasionally hash to the same value).",
+        },
+        {
+          tag: "p",
+          text: "Its key efficiency trick is a ROLLING HASH: rather than recomputing each window's hash from scratch (which would cost O(m) per window, giving O(nm) overall — no better than brute force), the hash of the next window is computed in O(1) from the hash of the current window, by removing the contribution of the character leaving the window and adding the contribution of the character entering it.",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Plagiarism detection and duplicate-content finding: hashing chunks of text (or document fingerprinting more generally) is exactly the rolling-hash technique applied at scale",
-          "Searching for MULTIPLE patterns simultaneously: Rabin-Karp generalises naturally by computing multiple pattern hashes upfront and checking each text window's hash against all of them, unlike KMP/Z-Algorithm which are more naturally single-pattern algorithms",
-          "Any 'find approximate or exact repeated substrings' problem, since the rolling hash technique extends to detecting repeated/duplicated chunks beyond simple single-pattern search",
-          "Bioinformatics: approximate genome sequence matching often builds on rolling-hash techniques closely related to Rabin-Karp"
-        ]},
-        { tag: "note", variant: "warning", text: "A hash collision (two different strings producing the same hash value) doesn't cause Rabin-Karp to return a WRONG answer, because every hash match is verified with an actual character comparison before being reported — but frequent collisions DO degrade performance, since each false-positive hash match costs an extra O(m) verification that turns out to be wasted." }
+        {
+          tag: "ul",
+          items: [
+            "Plagiarism detection and duplicate-content finding: hashing chunks of text (or document fingerprinting more generally) is exactly the rolling-hash technique applied at scale",
+            "Searching for MULTIPLE patterns simultaneously: Rabin-Karp generalises naturally by computing multiple pattern hashes upfront and checking each text window's hash against all of them, unlike KMP/Z-Algorithm which are more naturally single-pattern algorithms",
+            "Any 'find approximate or exact repeated substrings' problem, since the rolling hash technique extends to detecting repeated/duplicated chunks beyond simple single-pattern search",
+            "Bioinformatics: approximate genome sequence matching often builds on rolling-hash techniques closely related to Rabin-Karp",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "warning",
+          text: "A hash collision (two different strings producing the same hash value) doesn't cause Rabin-Karp to return a WRONG answer, because every hash match is verified with an actual character comparison before being reported — but frequent collisions DO degrade performance, since each false-positive hash match costs an extra O(m) verification that turns out to be wasted.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(n + m)",
         best: [
           { tag: "h2", text: "Best Case — O(n + m)" },
-          { tag: "p", text: "If hash collisions never occur (every hash match is a genuine pattern match, or there are very few false positives), each window comparison costs only O(1) for the hash check, with verification cost only incurred for genuine matches." },
-          { tag: "ul", items: [
-            "Pattern hash computation: O(m)",
-            "Initial window hash computation: O(m)",
-            "n − m + 1 subsequent window hash updates, each O(1) via the rolling hash: O(n)",
-            "Total (assuming minimal false-positive verification): O(n + m)"
-          ]}
+          {
+            tag: "p",
+            text: "If hash collisions never occur (every hash match is a genuine pattern match, or there are very few false positives), each window comparison costs only O(1) for the hash check, with verification cost only incurred for genuine matches.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Pattern hash computation: O(m)",
+              "Initial window hash computation: O(m)",
+              "n − m + 1 subsequent window hash updates, each O(1) via the rolling hash: O(n)",
+              "Total (assuming minimal false-positive verification): O(n + m)",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n + m)" },
-          { tag: "p", text: "With a well-chosen hash function (large prime modulus, good base value), the expected number of false-positive hash collisions across the entire text is small — typically O(1) or O(log n) expected total false positives, each costing O(m) to verify and reject, contributing only a lower-order term to the overall bound." },
-          { tag: "ul", items: [
-            "O(n) for sliding the window with O(1) rolling hash updates per step",
-            "O(m) for the pattern's own hash computation",
-            "Expected total verification cost from false positives: typically negligible with a well-designed hash function, keeping the overall average at O(n + m)"
-          ]}
+          {
+            tag: "p",
+            text: "With a well-chosen hash function (large prime modulus, good base value), the expected number of false-positive hash collisions across the entire text is small — typically O(1) or O(log n) expected total false positives, each costing O(m) to verify and reject, contributing only a lower-order term to the overall bound.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(n) for sliding the window with O(1) rolling hash updates per step",
+              "O(m) for the pattern's own hash computation",
+              "Expected total verification cost from false positives: typically negligible with a well-designed hash function, keeping the overall average at O(n + m)",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(nm)" },
-          { tag: "p", text: "If the hash function is poorly chosen (or adversarially defeated), EVERY window could produce a hash collision with the pattern, forcing a full O(m) character-by-character verification at every one of the O(n) window positions." },
-          { tag: "ul", items: [
-            "Worst case: O(n) window positions × O(m) verification each = O(nm), identical to the naive brute-force bound",
-            "This worst case is specifically a hash-quality issue, not a fundamental limitation of the rolling-hash technique itself — using a sufficiently large prime modulus and randomised base value (to defend against adversarially chosen inputs) makes this worst case extremely unlikely in practice"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "If the hash function is poorly chosen (or adversarially defeated), EVERY window could produce a hash collision with the pattern, forcing a full O(m) character-by-character verification at every one of the O(n) window positions.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Worst case: O(n) window positions × O(m) verification each = O(nm), identical to the naive brute-force bound",
+              "This worst case is specifically a hash-quality issue, not a fundamental limitation of the rolling-hash technique itself — using a sufficiently large prime modulus and randomised base value (to defend against adversarially chosen inputs) makes this worst case extremely unlikely in practice",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(1)",
         best: [
           { tag: "h2", text: "Best Case Space — O(1)" },
-          { tag: "p", text: "Only a handful of scalar variables are needed: the pattern's hash, the current window's rolling hash, and the precomputed value used to remove a character's contribution when the window slides." },
-          { tag: "ul", items: ["patternHash, windowHash, and a small number of helper values: O(1)"] }
+          {
+            tag: "p",
+            text: "Only a handful of scalar variables are needed: the pattern's hash, the current window's rolling hash, and the precomputed value used to remove a character's contribution when the window slides.",
+          },
+          {
+            tag: "ul",
+            items: ["patternHash, windowHash, and a small number of helper values: O(1)"],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(1)" },
-          { tag: "p", text: "Memory usage never depends on text or pattern length for the core algorithm — it's always exactly a fixed handful of hash-tracking variables, regardless of how many candidate matches are found or verified." },
-          { tag: "ul", items: ["No auxiliary array proportional to n or m is needed for the hashing mechanism itself"] }
+          {
+            tag: "p",
+            text: "Memory usage never depends on text or pattern length for the core algorithm — it's always exactly a fixed handful of hash-tracking variables, regardless of how many candidate matches are found or verified.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "No auxiliary array proportional to n or m is needed for the hashing mechanism itself",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(1)" },
-          { tag: "p", text: "Even in the pathological all-collisions worst case (where every window requires full verification), no additional memory beyond the fixed hash-tracking variables is needed — the verification step compares characters directly against the original text and pattern, without needing extra storage." },
-          { tag: "ul", items: ["O(1) auxiliary space, identical across all cases — a key structural advantage over KMP's O(m) failure-function table"] }
-        ]
+          {
+            tag: "p",
+            text: "Even in the pathological all-collisions worst case (where every window requires full verification), no additional memory beyond the fixed hash-tracking variables is needed — the verification step compares characters directly against the original text and pattern, without needing extra storage.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(1) auxiliary space, identical across all cases — a key structural advantage over KMP's O(m) failure-function table",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function rabinKarpSearch(text, pattern):
+        {
+          tag: "code",
+          language: "text",
+          text: `function rabinKarpSearch(text, pattern):
     textLength    ← length(text)
     patternLength ← length(pattern)
     if patternLength > textLength: return []
@@ -726,17 +868,24 @@ fn main() {
             windowHash ← (windowHash − text[i_windowStart] * highOrderTerm) * BASE + text[i_windowStart + patternLength]
             windowHash ← windowHash mod MODULUS
 
-    return matchIndices` },
+    return matchIndices`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Compute the pattern's hash once, and the FIRST text window's hash (covering text[0..patternLength-1]) using the same polynomial hash formula.",
-          "At each window position, compare the window's hash against the pattern's hash. If they DON'T match, the window definitely isn't the pattern — move on immediately with no character comparison needed.",
-          "If the hashes DO match, this is only a CANDIDATE match — verify it with an actual character-by-character comparison, since different strings can occasionally collide to the same hash value.",
-          "To advance to the next window, compute its hash in O(1) using the rolling-hash update: subtract the outgoing character's weighted contribution, then shift and add the incoming character — avoiding recomputing the entire window's hash from scratch.",
-          "Repeat until every possible window position (0 through textLength−patternLength) has been checked."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Compute the pattern's hash once, and the FIRST text window's hash (covering text[0..patternLength-1]) using the same polynomial hash formula.",
+            "At each window position, compare the window's hash against the pattern's hash. If they DON'T match, the window definitely isn't the pattern — move on immediately with no character comparison needed.",
+            "If the hashes DO match, this is only a CANDIDATE match — verify it with an actual character-by-character comparison, since different strings can occasionally collide to the same hash value.",
+            "To advance to the next window, compute its hash in O(1) using the rolling-hash update: subtract the outgoing character's weighted contribution, then shift and add the incoming character — avoiding recomputing the entire window's hash from scratch.",
+            "Repeat until every possible window position (0 through textLength−patternLength) has been checked.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "The algorithm never reports a false match, because every hash match is explicitly verified with a direct character comparison before being added to the results — so correctness (no false positives) is guaranteed regardless of hash quality. The algorithm also never MISSES a true match, because a genuine pattern occurrence always produces an identical hash to the pattern itself (since the hash function is deterministic and computed identically for both), guaranteeing the hash comparison passes and triggers verification at every true match position. The rolling hash update formula is correct because polynomial hashing treats the string as coefficients of a polynomial in BASE — removing the leading term's contribution (subtracting text[i_windowStart] × BASE^(patternLength-1)) and then shifting (multiplying by BASE) and adding the new trailing term (text[i_windowStart+patternLength]) exactly recomputes what the hash of the new window would be if computed from scratch, by the standard algebraic properties of polynomial evaluation." }
+        {
+          tag: "p",
+          text: "The algorithm never reports a false match, because every hash match is explicitly verified with a direct character comparison before being added to the results — so correctness (no false positives) is guaranteed regardless of hash quality. The algorithm also never MISSES a true match, because a genuine pattern occurrence always produces an identical hash to the pattern itself (since the hash function is deterministic and computed identically for both), guaranteeing the hash comparison passes and triggers verification at every true match position. The rolling hash update formula is correct because polynomial hashing treats the string as coefficients of a polynomial in BASE — removing the leading term's contribution (subtracting text[i_windowStart] × BASE^(patternLength-1)) and then shifting (multiplying by BASE) and adding the new trailing term (text[i_windowStart+patternLength]) exactly recomputes what the hash of the new window would be if computed from scratch, by the standard algebraic properties of polynomial evaluation.",
+        },
       ],
       codes: {
         "c++": `#include <iostream>
@@ -814,7 +963,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `def search_rabin_karp(text, pattern):
+        python: `def search_rabin_karp(text, pattern):
     """
     Finds every starting index of 'pattern' inside 'text' using the
     Rabin-Karp rolling-hash algorithm, and returns the list of matches.
@@ -880,7 +1029,7 @@ def main():
 if __name__ == "__main__":
     main()
 `,
-        "java": `public class Main {
+        java: `public class Main {
 
     // Finds every starting index of 'pattern' inside 'text' using the
     // Rabin-Karp rolling-hash algorithm, and prints each match found.
@@ -947,7 +1096,7 @@ if __name__ == "__main__":
     }
 }
 `,
-        "js": `// Finds every starting index of 'pattern' inside 'text' using the
+        js: `// Finds every starting index of 'pattern' inside 'text' using the
 // Rabin-Karp rolling-hash algorithm, and returns the list of matches.
 function searchRabinKarp(text, pattern) {
     const patternLength = pattern.length;
@@ -1017,7 +1166,7 @@ function main() {
 
 main();
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <string.h>
 
 // Finds every starting index of 'pattern' inside 'text' using the
@@ -1158,7 +1307,7 @@ class Program {
     }
 }
 `,
-        "swift": `import Foundation
+        swift: `import Foundation
 
 // Finds every starting index of 'pattern' inside 'text' using the
 // Rabin-Karp rolling-hash algorithm, and returns the list of matches.
@@ -1240,7 +1389,7 @@ for index in matches {
     print("Pattern found at index \\(index)")
 }
 `,
-        "kotlin": `// Finds every starting index of 'pattern' inside 'text' using the
+        kotlin: `// Finds every starting index of 'pattern' inside 'text' using the
 // Rabin-Karp rolling-hash algorithm, and returns the list of matches.
 fun searchRabinKarp(text: String, pattern: String): List<Int> {
     val patternLength = pattern.length
@@ -1308,7 +1457,7 @@ fun main() {
     }
 }
 `,
-        "scala": `object Main extends App {
+        scala: `object Main extends App {
 
   // Finds every starting index of 'pattern' inside 'text' using the
   // Rabin-Karp rolling-hash algorithm, and returns the list of matches.
@@ -1375,7 +1524,7 @@ fun main() {
   matches.foreach(index => println(s"Pattern found at index $index"))
 }
 `,
-        "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -1446,7 +1595,7 @@ func main() {
 	}
 }
 `,
-        "rust": `// Finds every starting index of 'pattern' inside 'text' using the
+        rust: `// Finds every starting index of 'pattern' inside 'text' using the
 // Rabin-Karp rolling-hash algorithm, and returns the list of matches.
 fn search_rabin_karp(text: &str, pattern: &str) -> Vec<usize> {
     let text_bytes = text.as_bytes();
@@ -1520,8 +1669,8 @@ fn main() {
         println!("Pattern found at index {}", index);
     }
 }
-`
-      }
+`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1534,69 +1683,121 @@ fn main() {
 
       about: [
         { tag: "h1", text: "Knuth-Morris-Pratt (KMP) Algorithm" },
-        { tag: "p", text: "KMP, developed by Donald Knuth, James Morris, and Vaughan Pratt (published 1977), finds every occurrence of a pattern within a text in genuinely guaranteed O(n + m) time, with no possibility of the O(nm) worst case that Rabin-Karp can fall into under hash collisions. Its key innovation is the FAILURE FUNCTION (also called the 'partial match table' or 'prefix function'): a precomputed array, built from the pattern alone, that tells the algorithm exactly how far to 'skip ahead' after a mismatch, without ever needing to re-examine text characters that are already known to match." },
-        { tag: "p", text: "The failure function for the pattern, at position i, stores the length of the longest proper prefix of pattern[0..i] that is ALSO a suffix of pattern[0..i]. This single piece of information is exactly what's needed to know: 'given that the text matched the pattern up to this point and then failed, what's the longest prefix of the pattern that could still possibly match, without having to start the entire comparison over from scratch?'" },
+        {
+          tag: "p",
+          text: "KMP, developed by Donald Knuth, James Morris, and Vaughan Pratt (published 1977), finds every occurrence of a pattern within a text in genuinely guaranteed O(n + m) time, with no possibility of the O(nm) worst case that Rabin-Karp can fall into under hash collisions. Its key innovation is the FAILURE FUNCTION (also called the 'partial match table' or 'prefix function'): a precomputed array, built from the pattern alone, that tells the algorithm exactly how far to 'skip ahead' after a mismatch, without ever needing to re-examine text characters that are already known to match.",
+        },
+        {
+          tag: "p",
+          text: "The failure function for the pattern, at position i, stores the length of the longest proper prefix of pattern[0..i] that is ALSO a suffix of pattern[0..i]. This single piece of information is exactly what's needed to know: 'given that the text matched the pattern up to this point and then failed, what's the longest prefix of the pattern that could still possibly match, without having to start the entire comparison over from scratch?'",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Any single-pattern exact string matching problem where a guaranteed (not just average-case) O(n+m) bound is required — text editors' find functionality, DNA sequence exact-match search, network intrusion detection systems scanning for known signature patterns",
-          "Computing the pattern's own internal periodicity/repetition structure (the failure function itself reveals this — useful for problems like 'shortest string whose repetition forms a given string')",
-          "As the conceptual foundation that the Z-Algorithm (below) closely parallels — both achieve the same O(n+m) guarantee via a different but related precomputation strategy",
-          "Streaming text search, where the text arrives incrementally and re-scanning from the start on every mismatch (as brute force would) is infeasible"
-        ]},
-        { tag: "note", variant: "tip", text: "A common implementation trick: concatenate pattern + a separator character not in the alphabet + text (e.g. 'pattern#text'), then compute the failure function over the WHOLE combined string — every position where the failure function value equals the pattern's length indicates a full match, unifying preprocessing and searching into a single pass." }
+        {
+          tag: "ul",
+          items: [
+            "Any single-pattern exact string matching problem where a guaranteed (not just average-case) O(n+m) bound is required — text editors' find functionality, DNA sequence exact-match search, network intrusion detection systems scanning for known signature patterns",
+            "Computing the pattern's own internal periodicity/repetition structure (the failure function itself reveals this — useful for problems like 'shortest string whose repetition forms a given string')",
+            "As the conceptual foundation that the Z-Algorithm (below) closely parallels — both achieve the same O(n+m) guarantee via a different but related precomputation strategy",
+            "Streaming text search, where the text arrives incrementally and re-scanning from the start on every mismatch (as brute force would) is infeasible",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "A common implementation trick: concatenate pattern + a separator character not in the alphabet + text (e.g. 'pattern#text'), then compute the failure function over the WHOLE combined string — every position where the failure function value equals the pattern's length indicates a full match, unifying preprocessing and searching into a single pass.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(n + m)",
         best: [
           { tag: "h2", text: "Best Case — O(n + m)" },
-          { tag: "p", text: "Both phases — failure function construction and the main text scan — always process their full input regardless of how favourably the pattern or text happens to be arranged, since both phases are structured as single guaranteed linear passes." },
-          { tag: "ul", items: [
-            "Failure function construction: O(m), a single pass over the pattern",
-            "Text scanning: O(n), a single pass over the text, with the failure function ensuring no character is ever re-compared after a mismatch in a way that exceeds the total bound",
-            "Total: O(n + m), unconditionally"
-          ]}
+          {
+            tag: "p",
+            text: "Both phases — failure function construction and the main text scan — always process their full input regardless of how favourably the pattern or text happens to be arranged, since both phases are structured as single guaranteed linear passes.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Failure function construction: O(m), a single pass over the pattern",
+              "Text scanning: O(n), a single pass over the text, with the failure function ensuring no character is ever re-compared after a mismatch in a way that exceeds the total bound",
+              "Total: O(n + m), unconditionally",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n + m)" },
-          { tag: "p", text: "This is one of the cleanest examples of an algorithm where best, average, and worst case are ALL identical — the failure-function-driven skip logic guarantees the text pointer NEVER moves backward, and the pattern pointer's total backward movement across the ENTIRE scan is bounded by its total forward movement, regardless of the specific text or pattern content." },
-          { tag: "ul", items: [
-            "The key amortised argument: the pattern-pointer's position can decrease (via failure-function lookups) at most as many times TOTAL as it increased, since it's bounded below by 0 — this caps total work at O(n) for the scan, regardless of how many mismatches occur"
-          ]}
+          {
+            tag: "p",
+            text: "This is one of the cleanest examples of an algorithm where best, average, and worst case are ALL identical — the failure-function-driven skip logic guarantees the text pointer NEVER moves backward, and the pattern pointer's total backward movement across the ENTIRE scan is bounded by its total forward movement, regardless of the specific text or pattern content.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "The key amortised argument: the pattern-pointer's position can decrease (via failure-function lookups) at most as many times TOTAL as it increased, since it's bounded below by 0 — this caps total work at O(n) for the scan, regardless of how many mismatches occur",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n + m)" },
-          { tag: "p", text: "No text or pattern content increases the cost beyond the guaranteed bound — this is KMP's defining advantage over Rabin-Karp: there is NO adversarial input (no pathological hash collisions are even possible, since KMP doesn't use hashing at all) that can degrade it to anything worse than O(n + m)." },
-          { tag: "ul", items: [
-            "Worst case matches best/average exactly: O(n + m)",
-            "This guaranteed bound (not just average-case) is KMP's primary advantage over Rabin-Karp, at the cost of being restricted to single-pattern search and requiring the O(m) failure-function precomputation upfront"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No text or pattern content increases the cost beyond the guaranteed bound — this is KMP's defining advantage over Rabin-Karp: there is NO adversarial input (no pathological hash collisions are even possible, since KMP doesn't use hashing at all) that can degrade it to anything worse than O(n + m).",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Worst case matches best/average exactly: O(n + m)",
+              "This guaranteed bound (not just average-case) is KMP's primary advantage over Rabin-Karp, at the cost of being restricted to single-pattern search and requiring the O(m) failure-function precomputation upfront",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(m)",
         best: [
           { tag: "h2", text: "Best Case Space — O(m)" },
-          { tag: "p", text: "The failure function array always requires exactly one entry per pattern character, regardless of the pattern's specific content." },
-          { tag: "ul", items: ["Failure function array: O(m)"] }
+          {
+            tag: "p",
+            text: "The failure function array always requires exactly one entry per pattern character, regardless of the pattern's specific content.",
+          },
+          { tag: "ul", items: ["Failure function array: O(m)"] },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(m)" },
-          { tag: "p", text: "Space usage is fixed by pattern length alone, since the failure function's size doesn't depend on the text being searched or how many matches are ultimately found." },
-          { tag: "ul", items: ["Same O(m) bound regardless of text length n or the pattern's internal repetition structure"] }
+          {
+            tag: "p",
+            text: "Space usage is fixed by pattern length alone, since the failure function's size doesn't depend on the text being searched or how many matches are ultimately found.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Same O(m) bound regardless of text length n or the pattern's internal repetition structure",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(m)" },
-          { tag: "p", text: "No pattern content increases space beyond the fixed one-entry-per-character failure function — this is both the floor and ceiling for the algorithm's auxiliary memory footprint, notably independent of the (potentially much larger) text length n." },
-          { tag: "ul", items: ["O(m) total, identical across all cases — a meaningful advantage over algorithms requiring O(n) auxiliary space when m ≪ n"] }
-        ]
+          {
+            tag: "p",
+            text: "No pattern content increases space beyond the fixed one-entry-per-character failure function — this is both the floor and ceiling for the algorithm's auxiliary memory footprint, notably independent of the (potentially much larger) text length n.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(m) total, identical across all cases — a meaningful advantage over algorithms requiring O(n) auxiliary space when m ≪ n",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function buildFailureFunction(pattern):
+        {
+          tag: "code",
+          language: "text",
+          text: `function buildFailureFunction(pattern):
     patternLength ← length(pattern)
     failure ← array of size patternLength, all zero
     prefixLength ← 0                    // length of the previous longest prefix-suffix
@@ -1625,17 +1826,24 @@ function kmpSearch(text, pattern):
             matchIndices.append(i − patternLength + 1)   // full match found
             matchedLength ← failure[matchedLength − 1]    // continue searching for overlapping matches
 
-    return matchIndices` },
+    return matchIndices`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Build the failure function once, in O(m): failure[i] stores the length of the longest proper prefix of pattern[0..i] that's also a suffix of it — computed incrementally using ALREADY-COMPUTED failure values for shorter prefixes, exactly like a 1D dynamic program.",
-          "Scan the text once, maintaining matchedLength = the number of pattern characters currently matched in a row.",
-          "On a mismatch (text[i] != pattern[matchedLength]) with matchedLength > 0, don't restart from matchedLength=0 — instead, jump matchedLength back to failure[matchedLength-1], the longest prefix of the pattern that could STILL be a valid partial match given everything matched so far, then retry the comparison.",
-          "On a match, advance matchedLength by one — one more pattern character has been successfully matched in sequence.",
-          "If matchedLength ever reaches patternLength (the full pattern length), a complete match has been found ending at position i — record it, then set matchedLength to failure[matchedLength-1] to continue searching for any further (possibly overlapping) matches without losing the progress already made."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Build the failure function once, in O(m): failure[i] stores the length of the longest proper prefix of pattern[0..i] that's also a suffix of it — computed incrementally using ALREADY-COMPUTED failure values for shorter prefixes, exactly like a 1D dynamic program.",
+            "Scan the text once, maintaining matchedLength = the number of pattern characters currently matched in a row.",
+            "On a mismatch (text[i] != pattern[matchedLength]) with matchedLength > 0, don't restart from matchedLength=0 — instead, jump matchedLength back to failure[matchedLength-1], the longest prefix of the pattern that could STILL be a valid partial match given everything matched so far, then retry the comparison.",
+            "On a match, advance matchedLength by one — one more pattern character has been successfully matched in sequence.",
+            "If matchedLength ever reaches patternLength (the full pattern length), a complete match has been found ending at position i — record it, then set matchedLength to failure[matchedLength-1] to continue searching for any further (possibly overlapping) matches without losing the progress already made.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "The failure function correctly captures 'how much of the pattern is reusable' after a mismatch because of the following invariant: if pattern[0..matchedLength-1] matched text ending just before the mismatch, and failure[matchedLength-1] = k, then pattern[0..k-1] is GUARANTEED to also be a suffix of what was just matched in the text (since it's defined as a suffix of pattern[0..matchedLength-1], which IS what was just matched) — meaning the text already contains a valid match for pattern[0..k-1] ending at the current text position, so resuming comparison from pattern[k] (rather than pattern[0]) is provably safe and loses no possible match. The amortised O(n) bound for the main scan follows because i (the text pointer) only ever increases, while matchedLength only decreases via failure-function lookups — and since matchedLength is always bounded between 0 and its current value, the total decrease across the ENTIRE scan can never exceed the total increase, capping total work at O(n) despite the apparent nested-loop structure." }
+        {
+          tag: "p",
+          text: "The failure function correctly captures 'how much of the pattern is reusable' after a mismatch because of the following invariant: if pattern[0..matchedLength-1] matched text ending just before the mismatch, and failure[matchedLength-1] = k, then pattern[0..k-1] is GUARANTEED to also be a suffix of what was just matched in the text (since it's defined as a suffix of pattern[0..matchedLength-1], which IS what was just matched) — meaning the text already contains a valid match for pattern[0..k-1] ending at the current text position, so resuming comparison from pattern[k] (rather than pattern[0]) is provably safe and loses no possible match. The amortised O(n) bound for the main scan follows because i (the text pointer) only ever increases, while matchedLength only decreases via failure-function lookups — and since matchedLength is always bounded between 0 and its current value, the total decrease across the ENTIRE scan can never exceed the total increase, capping total work at O(n) despite the apparent nested-loop structure.",
+        },
       ],
       codes: {
         "c++": `#include <iostream>
@@ -1716,7 +1924,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `def compute_failure_function(pattern):
+        python: `def compute_failure_function(pattern):
     """
     Builds the KMP "failure function" (also called the prefix function)
     for 'pattern'. failure_function[i] stores the length of the longest
@@ -1793,7 +2001,7 @@ def main():
 if __name__ == "__main__":
     main()
 `,
-        "java": `import java.util.ArrayList;
+        java: `import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
@@ -1877,7 +2085,7 @@ public class Main {
     }
 }
 `,
-        "js": `// Builds the KMP "failure function" (also called the prefix function)
+        js: `// Builds the KMP "failure function" (also called the prefix function)
 // for 'pattern'. failureFunction[i] stores the length of the longest
 // proper prefix of pattern[0..i] that is also a suffix of pattern[0..i].
 function computeFailureFunction(pattern) {
@@ -1957,7 +2165,7 @@ function main() {
 
 main();
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -2117,7 +2325,7 @@ class Program {
     }
 }
 `,
-        "swift": `import Foundation
+        swift: `import Foundation
 
 // Builds the KMP "failure function" (also called the prefix function)
 // for 'pattern'. failureFunction[i] stores the length of the longest
@@ -2202,7 +2410,7 @@ for index in matches {
     print("Pattern found at index \\(index)")
 }
 `,
-        "kotlin": `// Builds the KMP "failure function" (also called the prefix function)
+        kotlin: `// Builds the KMP "failure function" (also called the prefix function)
 // for 'pattern'. failureFunction[i] stores the length of the longest
 // proper prefix of pattern[0..i] that is also a suffix of pattern[0..i].
 fun computeFailureFunction(pattern: String): IntArray {
@@ -2280,7 +2488,7 @@ fun main() {
     }
 }
 `,
-        "scala": `object Main extends App {
+        scala: `object Main extends App {
 
   // Builds the KMP "failure function" (also called the prefix function)
   // for 'pattern'. failureFunction(i) stores the length of the longest
@@ -2357,7 +2565,7 @@ fun main() {
   matches.foreach(index => println(s"Pattern found at index $index"))
 }
 `,
-        "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -2440,7 +2648,7 @@ func main() {
 	}
 }
 `,
-        "rust": `// Builds the KMP "failure function" (also called the prefix function)
+        rust: `// Builds the KMP "failure function" (also called the prefix function)
 // for 'pattern'. failure_function[i] stores the length of the longest
 // proper prefix of pattern[0..i] that is also a suffix of pattern[0..i].
 fn compute_failure_function(pattern: &[u8]) -> Vec<usize> {
@@ -2526,8 +2734,8 @@ fn main() {
         println!("Pattern found at index {}", index);
     }
 }
-`
-      }
+`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -2540,69 +2748,122 @@ fn main() {
 
       about: [
         { tag: "h1", text: "Valid Palindrome" },
-        { tag: "p", text: "A palindrome reads identically forward and backward. Valid Palindrome checks whether a given string is a palindrome, typically after normalising it (ignoring case, and skipping non-alphanumeric characters like spaces and punctuation) — e.g. 'A man, a plan, a canal: Panama' is a valid palindrome once normalised to 'amanaplanacanalpanama'." },
-        { tag: "p", text: "This is a direct, simple application of the Two Pointers technique (covered in depth in the Arrays section): one pointer starts at the beginning, one at the end, and they move toward each other, comparing characters at each step — any mismatch immediately disproves the palindrome property, and the pointers meeting (or crossing) in the middle without any mismatch confirms it." },
+        {
+          tag: "p",
+          text: "A palindrome reads identically forward and backward. Valid Palindrome checks whether a given string is a palindrome, typically after normalising it (ignoring case, and skipping non-alphanumeric characters like spaces and punctuation) — e.g. 'A man, a plan, a canal: Panama' is a valid palindrome once normalised to 'amanaplanacanalpanama'.",
+        },
+        {
+          tag: "p",
+          text: "This is a direct, simple application of the Two Pointers technique (covered in depth in the Arrays section): one pointer starts at the beginning, one at the end, and they move toward each other, comparing characters at each step — any mismatch immediately disproves the palindrome property, and the pointers meeting (or crossing) in the middle without any mismatch confirms it.",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "The literal palindrome-checking problem, with or without normalisation (case-folding, non-alphanumeric filtering) requirements",
-          "As a building block for harder palindrome problems: Longest Palindromic Substring, Palindrome Partitioning, and 'valid palindrome after removing at most one character' all build on this exact same two-pointer comparison core, with additional logic layered on top",
-          "Bioinformatics: checking for palindromic sequences in DNA (which have biological significance for restriction enzyme binding sites) uses the identical two-pointer comparison technique",
-          "A clean illustration that not every string problem is a 'pattern matching' problem — this one is solved entirely by the general Two Pointers technique from the Arrays section, applied to a single string's own symmetry"
-        ]},
-        { tag: "note", variant: "tip", text: "This problem is cross-referenced in the Arrays section's Two Pointers entry — they're the same algorithmic technique, just applied here to a string-symmetry check instead of a sorted-array sum search." }
+        {
+          tag: "ul",
+          items: [
+            "The literal palindrome-checking problem, with or without normalisation (case-folding, non-alphanumeric filtering) requirements",
+            "As a building block for harder palindrome problems: Longest Palindromic Substring, Palindrome Partitioning, and 'valid palindrome after removing at most one character' all build on this exact same two-pointer comparison core, with additional logic layered on top",
+            "Bioinformatics: checking for palindromic sequences in DNA (which have biological significance for restriction enzyme binding sites) uses the identical two-pointer comparison technique",
+            "A clean illustration that not every string problem is a 'pattern matching' problem — this one is solved entirely by the general Two Pointers technique from the Arrays section, applied to a single string's own symmetry",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "This problem is cross-referenced in the Arrays section's Two Pointers entry — they're the same algorithmic technique, just applied here to a string-symmetry check instead of a sorted-array sum search.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case — O(1)" },
-          { tag: "p", text: "If the very first and last characters (after normalisation) already mismatch, the algorithm can reject the string as a non-palindrome after just one comparison." },
-          { tag: "ul", items: ["A mismatch at the very first comparison: O(1)", "This is a favourable-input case for REJECTION, not the general bound for confirming a true palindrome"] }
+          {
+            tag: "p",
+            text: "If the very first and last characters (after normalisation) already mismatch, the algorithm can reject the string as a non-palindrome after just one comparison.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "A mismatch at the very first comparison: O(1)",
+              "This is a favourable-input case for REJECTION, not the general bound for confirming a true palindrome",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n)" },
-          { tag: "p", text: "For a genuine palindrome, both pointers must traverse all the way to the middle of the string, each doing one comparison per step, before concluding the string is valid." },
-          { tag: "ul", items: [
-            "j and i together make a combined total of n character visits as they converge toward the middle: O(n)",
-            "Each step does O(1) work: one comparison (plus, if normalising on the fly, a constant number of character-class checks)"
-          ]}
+          {
+            tag: "p",
+            text: "For a genuine palindrome, both pointers must traverse all the way to the middle of the string, each doing one comparison per step, before concluding the string is valid.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "j and i together make a combined total of n character visits as they converge toward the middle: O(n)",
+              "Each step does O(1) work: one comparison (plus, if normalising on the fly, a constant number of character-class checks)",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n)" },
-          { tag: "p", text: "The worst case is a true palindrome (or a near-palindrome that fails only at the very last comparison near the middle), forcing the pointers to traverse nearly the entire string before reaching a conclusion." },
-          { tag: "ul", items: [
-            "Worst case matches average: O(n), since confirming a true palindrome inherently requires checking every symmetric pair of characters",
-            "This matches the trivial lower bound: verifying full symmetry requires examining every character at least once"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "The worst case is a true palindrome (or a near-palindrome that fails only at the very last comparison near the middle), forcing the pointers to traverse nearly the entire string before reaching a conclusion.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Worst case matches average: O(n), since confirming a true palindrome inherently requires checking every symmetric pair of characters",
+              "This matches the trivial lower bound: verifying full symmetry requires examining every character at least once",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(1)",
         best: [
           { tag: "h2", text: "Best Case Space — O(1)" },
-          { tag: "p", text: "If normalisation is done ON THE FLY during the two-pointer scan (skipping non-alphanumeric characters and case-folding as comparisons happen, rather than building a separate cleaned string upfront), only the two pointer variables are needed." },
-          { tag: "ul", items: ["j, i pointers — O(1)"] }
+          {
+            tag: "p",
+            text: "If normalisation is done ON THE FLY during the two-pointer scan (skipping non-alphanumeric characters and case-folding as comparisons happen, rather than building a separate cleaned string upfront), only the two pointer variables are needed.",
+          },
+          { tag: "ul", items: ["j, i pointers — O(1)"] },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(1)" },
-          { tag: "p", text: "Memory usage never depends on string length when normalisation is performed in-place during comparison, rather than via a separate preprocessing pass that builds a new cleaned string." },
-          { tag: "ul", items: ["No auxiliary array needed if normalisation logic is embedded directly in the comparison loop"] }
+          {
+            tag: "p",
+            text: "Memory usage never depends on string length when normalisation is performed in-place during comparison, rather than via a separate preprocessing pass that builds a new cleaned string.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "No auxiliary array needed if normalisation logic is embedded directly in the comparison loop",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(1)" },
-          { tag: "p", text: "Even the longest possible string requires no more than the fixed two pointer variables, given the on-the-fly normalisation approach." },
-          { tag: "ul", items: [
-            "O(1) for the optimal in-place-normalisation approach",
-            "Note: an implementation that first builds a separate cleaned/normalised string before comparing would use O(n) space instead — a common but avoidable inefficiency"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "Even the longest possible string requires no more than the fixed two pointer variables, given the on-the-fly normalisation approach.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(1) for the optimal in-place-normalisation approach",
+              "Note: an implementation that first builds a separate cleaned/normalised string before comparing would use O(n) space instead — a common but avoidable inefficiency",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function isPalindrome(strInput):
+        {
+          tag: "code",
+          language: "text",
+          text: `function isPalindrome(strInput):
     j  ← 0
     i ← length(strInput) − 1
 
@@ -2618,17 +2879,24 @@ fn main() {
         j  ← j + 1
         i ← i − 1
 
-    return true` },
+    return true`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Initialise j at the start and i at the end of the string.",
-          "Before comparing, skip past any non-alphanumeric characters from BOTH ends — this performs normalisation on the fly without needing to build a separate cleaned string.",
-          "Compare the two characters (case-folded to lowercase) at the current j and i positions. If they differ, the string is definitively not a palindrome — return false immediately.",
-          "If they match, move both pointers inward by one and repeat.",
-          "If the pointers meet or cross (j >= i) without ever finding a mismatch, every symmetric pair of characters matched — the string is a valid palindrome."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Initialise j at the start and i at the end of the string.",
+            "Before comparing, skip past any non-alphanumeric characters from BOTH ends — this performs normalisation on the fly without needing to build a separate cleaned string.",
+            "Compare the two characters (case-folded to lowercase) at the current j and i positions. If they differ, the string is definitively not a palindrome — return false immediately.",
+            "If they match, move both pointers inward by one and repeat.",
+            "If the pointers meet or cross (j >= i) without ever finding a mismatch, every symmetric pair of characters matched — the string is a valid palindrome.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "A string is a palindrome if and only if, for every valid index i, the character at position i equals the character at the mirrored position (length − 1 − i). The two-pointer approach directly checks exactly this condition for every symmetric pair, working from the outside in: j and i always represent a mirrored pair relative to the (normalised) string's center, and since j only increases and i only decreases, every pair is checked exactly once, with no pair skipped or double-checked. Skipping non-alphanumeric characters from both ends before each comparison correctly implements the 'ignore punctuation and spaces' normalisation rule without altering the fundamental mirrored-pair-checking logic." }
+        {
+          tag: "p",
+          text: "A string is a palindrome if and only if, for every valid index i, the character at position i equals the character at the mirrored position (length − 1 − i). The two-pointer approach directly checks exactly this condition for every symmetric pair, working from the outside in: j and i always represent a mirrored pair relative to the (normalised) string's center, and since j only increases and i only decreases, every pair is checked exactly once, with no pair skipped or double-checked. Skipping non-alphanumeric characters from both ends before each comparison correctly implements the 'ignore punctuation and spaces' normalisation rule without altering the fundamental mirrored-pair-checking logic.",
+        },
       ],
       codes: {
         "c++": `#include <iostream>
@@ -2680,7 +2948,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `def is_palindrome(input_string):
+        python: `def is_palindrome(input_string):
     """
     Returns True if 'input_string' is a palindrome once punctuation and
     spacing are ignored and case is folded to lowercase, using the
@@ -2723,7 +2991,7 @@ def main():
 if __name__ == "__main__":
     main()
 `,
-        "java": `public class Main {
+        java: `public class Main {
 
     // Returns true if 'strInput' is a palindrome once punctuation and
     // spacing are ignored and case is folded to lowercase, using the
@@ -2768,7 +3036,7 @@ if __name__ == "__main__":
     }
 }
 `,
-        "js": `// Returns true if 'strInput' is a palindrome once punctuation and
+        js: `// Returns true if 'strInput' is a palindrome once punctuation and
 // spacing are ignored and case is folded to lowercase, using the
 // two-pointer technique to compare mirrored characters from both ends.
 function isPalindrome(strInput) {
@@ -2814,7 +3082,7 @@ function main() {
 
 main();
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -2909,7 +3177,7 @@ class Program {
     }
 }
 `,
-        "swift": `import Foundation
+        swift: `import Foundation
 
 // Returns true if 'strInput' is a palindrome once punctuation and
 // spacing are ignored and case is folded to lowercase, using the
@@ -2953,7 +3221,7 @@ let result = isPalindrome(sampleText)
 print("Input string: \\(sampleText)")
 print("Is valid palindrome? \\(result)")
 `,
-        "kotlin": `// Returns true if 'strInput' is a palindrome once punctuation and
+        kotlin: `// Returns true if 'strInput' is a palindrome once punctuation and
 // spacing are ignored and case is folded to lowercase, using the
 // two-pointer technique to compare mirrored characters from both ends.
 fun isPalindrome(strInput: String): Boolean {
@@ -2995,7 +3263,7 @@ fun main() {
     println("Is valid palindrome? $result")
 }
 `,
-        "scala": `object Main extends App {
+        scala: `object Main extends App {
 
   // Returns true if 'strInput' is a palindrome once punctuation and
   // spacing are ignored and case is folded to lowercase, using the
@@ -3038,7 +3306,7 @@ fun main() {
   println(s"Is valid palindrome? $result")
 }
 `,
-        "go": `package main
+        go: `package main
 
 import (
 	"fmt"
@@ -3090,7 +3358,7 @@ func main() {
 	fmt.Println("Is valid palindrome?", result)
 }
 `,
-        "rust": `// Returns true if 'input_string' is a palindrome once punctuation and
+        rust: `// Returns true if 'input_string' is a palindrome once punctuation and
 // spacing are ignored and case is folded to lowercase, using the
 // two-pointer technique to compare mirrored characters from both ends.
 fn is_palindrome(input_string: &str) -> bool {
@@ -3137,8 +3405,8 @@ fn main() {
     println!("Input string: {}", sample_text);
     println!("Is valid palindrome? {}", result);
 }
-`
-      }
+`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -3151,71 +3419,126 @@ fn main() {
 
       about: [
         { tag: "h1", text: "Z-Algorithm" },
-        { tag: "p", text: "The Z-Algorithm computes, for every position i in a string, the length of the longest substring starting at i that matches a PREFIX of the entire string — this array of values is called the Z-array. Once computed (in O(n) for a string of length n), it can be used directly for pattern matching by concatenating pattern + separator + text and checking which positions in the Z-array equal the pattern's length, exactly indicating a full match." },
-        { tag: "p", text: "Like KMP, its efficiency comes from REUSING previously computed information rather than restarting comparisons from scratch — but where KMP's failure function looks at prefix-suffix relationships WITHIN the pattern alone, the Z-array directly compares every position against the string's OWN PREFIX, maintaining a 'Z-box' (the rightmost window known to match the prefix) to avoid redundant character comparisons whenever a new position falls within an already-explored Z-box." },
+        {
+          tag: "p",
+          text: "The Z-Algorithm computes, for every position i in a string, the length of the longest substring starting at i that matches a PREFIX of the entire string — this array of values is called the Z-array. Once computed (in O(n) for a string of length n), it can be used directly for pattern matching by concatenating pattern + separator + text and checking which positions in the Z-array equal the pattern's length, exactly indicating a full match.",
+        },
+        {
+          tag: "p",
+          text: "Like KMP, its efficiency comes from REUSING previously computed information rather than restarting comparisons from scratch — but where KMP's failure function looks at prefix-suffix relationships WITHIN the pattern alone, the Z-array directly compares every position against the string's OWN PREFIX, maintaining a 'Z-box' (the rightmost window known to match the prefix) to avoid redundant character comparisons whenever a new position falls within an already-explored Z-box.",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Single-pattern exact string matching, as a direct alternative to KMP, achieving the identical O(n+m) guaranteed bound via a different (some find more intuitive) precomputation strategy",
-          "Finding all positions where a string repeats itself, or computing the string's periodicity structure — the Z-array directly exposes this information at every position",
-          "Counting distinct substrings, or solving certain string-compression-related problems, where the Z-array's prefix-matching information is directly useful beyond simple pattern search",
-          "As an alternative worth knowing alongside KMP specifically because some learners and some specific follow-up problems find the Z-array's direct 'prefix-matching length at every position' framing more natural to reason about than KMP's prefix-suffix failure function"
-        ]},
-        { tag: "note", variant: "tip", text: "The Z-array's very first entry, Z[0], is conventionally left undefined or set to 0 (or sometimes n) by definition, since 'comparing the string's prefix against itself starting at position 0' is a degenerate/trivial case usually excluded from the algorithm's core logic." }
+        {
+          tag: "ul",
+          items: [
+            "Single-pattern exact string matching, as a direct alternative to KMP, achieving the identical O(n+m) guaranteed bound via a different (some find more intuitive) precomputation strategy",
+            "Finding all positions where a string repeats itself, or computing the string's periodicity structure — the Z-array directly exposes this information at every position",
+            "Counting distinct substrings, or solving certain string-compression-related problems, where the Z-array's prefix-matching information is directly useful beyond simple pattern search",
+            "As an alternative worth knowing alongside KMP specifically because some learners and some specific follow-up problems find the Z-array's direct 'prefix-matching length at every position' framing more natural to reason about than KMP's prefix-suffix failure function",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "The Z-array's very first entry, Z[0], is conventionally left undefined or set to 0 (or sometimes n) by definition, since 'comparing the string's prefix against itself starting at position 0' is a degenerate/trivial case usually excluded from the algorithm's core logic.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case — O(n)" },
-          { tag: "p", text: "Computing the full Z-array always requires determining a value for every position in the string — there's no early-exit shortcut, since every position's Z-value potentially contributes to the final pattern-matching result." },
-          { tag: "ul", items: [
-            "n positions, each assigned a Z-value: O(n) positions visited",
-            "The Z-box optimisation ensures that even in the best case, no character comparison is wasted — every comparison either extends the current match or is skipped using already-known information"
-          ]}
+          {
+            tag: "p",
+            text: "Computing the full Z-array always requires determining a value for every position in the string — there's no early-exit shortcut, since every position's Z-value potentially contributes to the final pattern-matching result.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "n positions, each assigned a Z-value: O(n) positions visited",
+              "The Z-box optimisation ensures that even in the best case, no character comparison is wasted — every comparison either extends the current match or is skipped using already-known information",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n)" },
-          { tag: "p", text: "This is the same amortised-analysis style argument as KMP: the Z-box's right boundary only ever moves forward (never backward) across the ENTIRE algorithm's execution, which caps the total number of character comparisons performed by direct matching at O(n), regardless of how many times the Z-box itself is updated or reused." },
-          { tag: "ul", items: [
-            "Total forward movement of the Z-box's right boundary across the whole algorithm: bounded by n",
-            "Each position's Z-value computation does O(1) amortised work: either directly reusing a previously computed value (when fully inside an existing Z-box) or extending the Z-box with new character comparisons (whose total cost across the whole algorithm is bounded by the box's total forward movement)"
-          ]}
+          {
+            tag: "p",
+            text: "This is the same amortised-analysis style argument as KMP: the Z-box's right boundary only ever moves forward (never backward) across the ENTIRE algorithm's execution, which caps the total number of character comparisons performed by direct matching at O(n), regardless of how many times the Z-box itself is updated or reused.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Total forward movement of the Z-box's right boundary across the whole algorithm: bounded by n",
+              "Each position's Z-value computation does O(1) amortised work: either directly reusing a previously computed value (when fully inside an existing Z-box) or extending the Z-box with new character comparisons (whose total cost across the whole algorithm is bounded by the box's total forward movement)",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n)" },
-          { tag: "p", text: "No string content increases the cost beyond the amortised linear bound — this is KMP's same guarantee, achieved via a different (Z-box-based, rather than failure-function-based) bookkeeping mechanism." },
-          { tag: "ul", items: [
-            "Worst case matches best/average exactly: O(n), or O(n + m) when used for pattern matching via the pattern+separator+text concatenation trick",
-            "Like KMP, this is a GUARANTEED bound, with no adversarial input capable of degrading it, unlike Rabin-Karp's hash-collision-dependent worst case"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No string content increases the cost beyond the amortised linear bound — this is KMP's same guarantee, achieved via a different (Z-box-based, rather than failure-function-based) bookkeeping mechanism.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Worst case matches best/average exactly: O(n), or O(n + m) when used for pattern matching via the pattern+separator+text concatenation trick",
+              "Like KMP, this is a GUARANTEED bound, with no adversarial input capable of degrading it, unlike Rabin-Karp's hash-collision-dependent worst case",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(n)",
         best: [
           { tag: "h2", text: "Best Case Space — O(n)" },
-          { tag: "p", text: "The Z-array itself always requires exactly one entry per character of the (possibly concatenated, for pattern matching) string, regardless of the string's specific content." },
-          { tag: "ul", items: ["Z-array: O(n), where n is the length of the string being processed (or pattern + separator + text combined, for pattern-matching use)"] }
+          {
+            tag: "p",
+            text: "The Z-array itself always requires exactly one entry per character of the (possibly concatenated, for pattern matching) string, regardless of the string's specific content.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Z-array: O(n), where n is the length of the string being processed (or pattern + separator + text combined, for pattern-matching use)",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(n)" },
-          { tag: "p", text: "Space usage is fixed by the input length alone, since the Z-array's size doesn't depend on the string's internal repetition structure or content." },
-          { tag: "ul", items: ["Same O(n) bound regardless of how many positions have a nonzero (matching) Z-value"] }
+          {
+            tag: "p",
+            text: "Space usage is fixed by the input length alone, since the Z-array's size doesn't depend on the string's internal repetition structure or content.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Same O(n) bound regardless of how many positions have a nonzero (matching) Z-value",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(n)" },
-          { tag: "p", text: "No string content increases space beyond the fixed one-entry-per-position Z-array — this is both the floor and ceiling for the algorithm's memory footprint." },
-          { tag: "ul", items: [
-            "O(n) total, identical across all cases — note this is larger than KMP's O(m) when used purely for pattern matching, since the Z-array (in the standard concatenation-based usage) spans the COMBINED pattern+separator+text length, not just the pattern alone"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No string content increases space beyond the fixed one-entry-per-position Z-array — this is both the floor and ceiling for the algorithm's memory footprint.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(n) total, identical across all cases — note this is larger than KMP's O(m) when used purely for pattern matching, since the Z-array (in the standard concatenation-based usage) spans the COMBINED pattern+separator+text length, not just the pattern alone",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function computeZArray(strInput):
+        {
+          tag: "code",
+          language: "text",
+          text: `function computeZArray(strInput):
     stringLength ← length(strInput)
     zValues ← array of size stringLength, all zero
     j_BoxLeft ← 0; i_BoxRight ← 0          // current Z-box boundaries [j_BoxLeft, i_BoxRight)
@@ -3245,17 +3568,24 @@ function zSearch(text, pattern):
         if zValues[i] == length(pattern):
             matchIndices.append(i − length(pattern) − 1)    // convert to a position in 'text'
 
-    return matchIndices` },
+    return matchIndices`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Maintain a 'Z-box': the range [j_BoxLeft, i_BoxRight) representing the rightmost-extending substring discovered so far that matches the string's own prefix.",
-          "For each position i, if it falls WITHIN the current Z-box, its Z-value can be partially inferred from the already-computed Z-value at the MIRRORED position (i − j_BoxLeft) within the prefix — bounded by how much of the box remains (i_BoxRight − i), since the match can't be guaranteed to extend beyond the box's known boundary without further checking.",
-          "After this initial inference (or starting from 0 if outside any Z-box), try to EXTEND the match further by directly comparing characters beyond what's currently known/guaranteed.",
-          "If this extension pushes the match further right than the current Z-box's boundary, update the Z-box to reflect this new, further-reaching match.",
-          "For pattern matching specifically: concatenate pattern + a separator character (guaranteed not to appear in either string) + text, compute the Z-array of this combined string, and any position (within the text portion) where the Z-value equals the pattern's length indicates exactly where a full pattern match occurs."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Maintain a 'Z-box': the range [j_BoxLeft, i_BoxRight) representing the rightmost-extending substring discovered so far that matches the string's own prefix.",
+            "For each position i, if it falls WITHIN the current Z-box, its Z-value can be partially inferred from the already-computed Z-value at the MIRRORED position (i − j_BoxLeft) within the prefix — bounded by how much of the box remains (i_BoxRight − i), since the match can't be guaranteed to extend beyond the box's known boundary without further checking.",
+            "After this initial inference (or starting from 0 if outside any Z-box), try to EXTEND the match further by directly comparing characters beyond what's currently known/guaranteed.",
+            "If this extension pushes the match further right than the current Z-box's boundary, update the Z-box to reflect this new, further-reaching match.",
+            "For pattern matching specifically: concatenate pattern + a separator character (guaranteed not to appear in either string) + text, compute the Z-array of this combined string, and any position (within the text portion) where the Z-value equals the pattern's length indicates exactly where a full pattern match occurs.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "The Z-box-based shortcut is correct because of a key property of prefix-matching: if position i falls within an existing Z-box [j_BoxLeft, i_BoxRight) known to match the prefix, then the substring starting at i is GUARANTEED to match the prefix for AT LEAST min(i_BoxRight − i, zValues[i − j_BoxLeft]) characters — this follows because the substring at i, by virtue of being inside the Z-box, is itself a copy of the corresponding substring starting at (i − j_BoxLeft) in the prefix, so whatever the prefix matches starting at (i − j_BoxLeft) is mirrored exactly at i, UP TO the point where the Z-box's own boundary might cut off that guarantee. The subsequent direct-comparison extension step correctly verifies and extends beyond this guaranteed minimum where possible. The amortised O(n) bound follows because the Z-box's right boundary, i_BoxRight, only ever moves forward across the algorithm's entire execution — every direct character comparison performed during the extension step either successfully extends i_BoxRight further (contributing to its bounded total forward movement) or fails immediately (costing only O(1) and ending that position's extension attempt), so total comparison work across the whole algorithm is provably bounded by O(n)." }
+        {
+          tag: "p",
+          text: "The Z-box-based shortcut is correct because of a key property of prefix-matching: if position i falls within an existing Z-box [j_BoxLeft, i_BoxRight) known to match the prefix, then the substring starting at i is GUARANTEED to match the prefix for AT LEAST min(i_BoxRight − i, zValues[i − j_BoxLeft]) characters — this follows because the substring at i, by virtue of being inside the Z-box, is itself a copy of the corresponding substring starting at (i − j_BoxLeft) in the prefix, so whatever the prefix matches starting at (i − j_BoxLeft) is mirrored exactly at i, UP TO the point where the Z-box's own boundary might cut off that guarantee. The subsequent direct-comparison extension step correctly verifies and extends beyond this guaranteed minimum where possible. The amortised O(n) bound follows because the Z-box's right boundary, i_BoxRight, only ever moves forward across the algorithm's entire execution — every direct character comparison performed during the extension step either successfully extends i_BoxRight further (contributing to its bounded total forward movement) or fails immediately (costing only O(1) and ending that position's extension attempt), so total comparison work across the whole algorithm is provably bounded by O(n).",
+        },
       ],
       codes: {
         "c++": `#include <iostream>
@@ -3327,7 +3657,7 @@ int main() {
     return 0;
 }
 `,
-        "python": `def compute_z_array(input_string):
+        python: `def compute_z_array(input_string):
     """
     Computes the Z-array of 'input_string'. z_values[i] is the length of
     the longest substring starting at index i that matches a prefix of
@@ -3396,7 +3726,7 @@ def main():
 if __name__ == "__main__":
     main()
 `,
-        "java": `import java.util.ArrayList;
+        java: `import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
@@ -3471,7 +3801,7 @@ public class Main {
     }
 }
 `,
-        "js": `// Computes the Z-array of 'strInput'. zValues[i] is the length of the
+        js: `// Computes the Z-array of 'strInput'. zValues[i] is the length of the
 // longest substring starting at index i that matches a prefix of the
 // entire string. zValues[0] is left as 0 by convention.
 function computeZArray(strInput) {
@@ -3542,7 +3872,7 @@ function main() {
 
 main();
 `,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -3693,7 +4023,7 @@ class Program {
     }
 }
 `,
-        "swift": `import Foundation
+        swift: `import Foundation
 
 // Computes the Z-array of 'strInput'. zValues[i] is the length of the
 // longest substring starting at index i that matches a prefix of the
@@ -3767,7 +4097,7 @@ for index in matches {
     print("Pattern found at index \\(index)")
 }
 `,
-        "kotlin": `// Computes the Z-array of 'strInput'. zValues[i] is the length of the
+        kotlin: `// Computes the Z-array of 'strInput'. zValues[i] is the length of the
 // longest substring starting at index i that matches a prefix of the
 // entire string. zValues[0] is left as 0 by convention.
 fun computeZArray(strInput: String): IntArray {
@@ -3836,7 +4166,7 @@ fun main() {
     }
 }
 `,
-        "scala": `object Main extends App {
+        scala: `object Main extends App {
 
   // Computes the Z-array of 'strInput'. zValues(i) is the length of the
   // longest substring starting at index i that matches a prefix of the
@@ -3904,7 +4234,7 @@ fun main() {
   matches.foreach(index => println(s"Pattern found at index $index"))
 }
 `,
-        "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -3982,7 +4312,7 @@ func main() {
 	}
 }
 `,
-        "rust": `// Computes the Z-array of 'input_string'. z_values[i] is the length of
+        rust: `// Computes the Z-array of 'input_string'. z_values[i] is the length of
 // the longest substring starting at index i that matches a prefix of
 // the entire string. z_values[0] is left as 0 by convention.
 fn compute_z_array(input_string: &[u8]) -> Vec<usize> {
@@ -4057,14 +4387,13 @@ fn main() {
         println!("Pattern found at index {}", index);
     }
 }
-`
-      }
-    }
-
+`,
+      },
+    },
   ],
   desc: "KMP, Rabin-Karp, Z-algorithm, trie patterns",
   complexity: "O(n + m)",
-  featured: true
+  featured: true,
 };
 
 export default STRINGS_SECTION;

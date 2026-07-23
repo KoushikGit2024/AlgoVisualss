@@ -23,10 +23,16 @@
 //
 // ============================================================================
 
-import type { RuntimeSnapshot, ExecutionEvent, CppType, CppValue, SnapshotVariable, ThrowPayload } from "../types";
+import type {
+  RuntimeSnapshot,
+  ExecutionEvent,
+  CppType,
+  CppValue,
+  SnapshotVariable,
+  ThrowPayload,
+} from "../types";
 import { CallStack } from "../runtime/CallStack";
 import { ScopeManager } from "../runtime/ScopeManager";
-
 
 // ============================================================================
 // SECTION 1 — DEEP CLONE UTILITY  (for UI snapshots only — always deep-copies)
@@ -47,13 +53,18 @@ function getObjectId(obj: any): string {
 }
 
 export function deepCloneCppValue(rootValue: any): any {
-  const isPrimitive = (val: any) => val === null || val === undefined || typeof val === "number" || typeof val === "boolean" || typeof val === "string";
+  const isPrimitive = (val: any) =>
+    val === null ||
+    val === undefined ||
+    typeof val === "number" ||
+    typeof val === "boolean" ||
+    typeof val === "string";
   if (isPrimitive(rootValue)) return rootValue;
   if (rootValue.kind === "LambdaExpression") return "[Lambda]";
   if (typeof rootValue === "function") return "[Function]";
 
   const resultContainer: { val: any } = { val: undefined };
-  
+
   type Task = {
     source: any;
     target: any;
@@ -61,7 +72,9 @@ export function deepCloneCppValue(rootValue: any): any {
     state: "enter" | "exit";
   };
 
-  const stack: Task[] = [{ source: rootValue, target: resultContainer, key: "val", state: "enter" }];
+  const stack: Task[] = [
+    { source: rootValue, target: resultContainer, key: "val", state: "enter" },
+  ];
   const seen = new Set<any>();
 
   while (stack.length > 0) {
@@ -159,12 +172,12 @@ export function deepCloneCppValue(rootValue: any): any {
 
     // Plain object
     const clone: Record<string, any> = {};
-    Object.defineProperty(clone, '__original_ref_id', {
+    Object.defineProperty(clone, "__original_ref_id", {
       value: getObjectId(val),
-      enumerable: true
+      enumerable: true,
     });
     task.target[task.key] = clone;
-    
+
     const keys = Object.keys(val);
     for (let i = keys.length - 1; i >= 0; i--) {
       const k = keys[i];
@@ -176,7 +189,6 @@ export function deepCloneCppValue(rootValue: any): any {
 
   return resultContainer.val;
 }
-
 
 // ============================================================================
 // SECTION 2 — RUNTIME CLONE UTILITY
@@ -206,7 +218,7 @@ export function deepCloneCppValue(rootValue: any): any {
  */
 export function cloneRuntimeValue(val: any): any {
   if (val === null || val === undefined) return val;
-  if (typeof val !== "object") return val;   // primitives copy by value automatically
+  if (typeof val !== "object") return val; // primitives copy by value automatically
 
   // Do not clone pass-by-reference proxies.
   if ("__ref" in val) return val;
@@ -220,9 +232,9 @@ export function cloneRuntimeValue(val: any): any {
       if (key === "data") {
         clone.data = val.data.map((item: any) => cloneRuntimeValue(item));
       } else if (typeof val[key] === "function") {
-        clone[key] = val[key];           // Preserve method references.
+        clone[key] = val[key]; // Preserve method references.
       } else {
-        clone[key] = val[key];           // Primitives (__isHeap, __cmp, etc.).
+        clone[key] = val[key]; // Primitives (__isHeap, __cmp, etc.).
       }
     }
     return clone;
@@ -270,18 +282,16 @@ export function cloneRuntimeValue(val: any): any {
   return val;
 }
 
-
 // ============================================================================
 // SECTION 3 — SNAPSHOT FACTORY
 // ============================================================================
 
 export function createSnapshot(
-  event:              ExecutionEvent,
-  callStack:          CallStack,
+  event: ExecutionEvent,
+  callStack: CallStack,
   activeScopeManager: ScopeManager,
   accumulatedOutput?: string,
 ): RuntimeSnapshot {
-
   const variables: Record<string, SnapshotVariable> = {};
   const perFrameVariables: Record<string, SnapshotVariable>[] = [];
 
@@ -302,8 +312,8 @@ export function createSnapshot(
         }
 
         const snapVar = {
-          name:  symbol.name,
-          type:  symbol.type as CppType,
+          name: symbol.name,
+          type: symbol.type as CppType,
           value: deepCloneCppValue(val) as CppValue,
         };
         variables[key] = snapVar;
@@ -312,7 +322,9 @@ export function createSnapshot(
       perFrameVariables.push(frameVars);
     }
   } else {
-    logStepToConsole("[createSnapshot] CallStack.getAllFrames() unavailable — falling back to active scope only.");
+    logStepToConsole(
+      "[createSnapshot] CallStack.getAllFrames() unavailable — falling back to active scope only.",
+    );
     const rawVariables = activeScopeManager.captureState();
     for (const [key, symbol] of Object.entries(rawVariables)) {
       if (key.startsWith("__")) continue;
@@ -327,8 +339,8 @@ export function createSnapshot(
       }
 
       variables[key] = {
-        name:  symbol.name,
-        type:  symbol.type as CppType,
+        name: symbol.name,
+        type: symbol.type as CppType,
         value: deepCloneCppValue(val) as CppValue,
       };
     }
@@ -338,13 +350,13 @@ export function createSnapshot(
     step: event.step,
     line: event.line,
     event: {
-      type:    event.type,
+      type: event.type,
       payload: deepCloneCppValue(event.payload) as Record<string, unknown>,
     },
     state: {
       variables,
       perFrameVariables,
-      callStack:  callStack.getTrace(),
+      callStack: callStack.getTrace(),
       scopeDepth: activeScopeManager.getDepth(),
       ...(accumulatedOutput !== undefined && accumulatedOutput !== ""
         ? { output: accumulatedOutput }
@@ -352,7 +364,6 @@ export function createSnapshot(
     },
   };
 }
-
 
 // ============================================================================
 // SECTION 4 — CONTROL-FLOW JUMP SIGNALS
@@ -410,17 +421,40 @@ export class BreakpointSignal extends Error {
 export function makeMockContainer(initialData: any[]): Record<string, any> {
   return {
     data: [...initialData],
-    size() { return this.data.length; },
-    empty() { return this.data.length === 0; },
-    push_back(val: any) { this.data.push(val); return val; },
-    pop_back() { return this.data.pop(); },
-    clear() { this.data = []; },
-    insert(pos: number, val: any) { this.data.splice(pos, 0, val); },
-    erase(pos: number) { this.data.splice(pos, 1); },
-    begin() { return 0; },
-    end() { return this.data.length; },
-    front() { return this.data[0]; },
-    back() { return this.data[this.data.length - 1]; },
+    size() {
+      return this.data.length;
+    },
+    empty() {
+      return this.data.length === 0;
+    },
+    push_back(val: any) {
+      this.data.push(val);
+      return val;
+    },
+    pop_back() {
+      return this.data.pop();
+    },
+    clear() {
+      this.data = [];
+    },
+    insert(pos: number, val: any) {
+      this.data.splice(pos, 0, val);
+    },
+    erase(pos: number) {
+      this.data.splice(pos, 1);
+    },
+    begin() {
+      return 0;
+    },
+    end() {
+      return this.data.length;
+    },
+    front() {
+      return this.data[0];
+    },
+    back() {
+      return this.data[this.data.length - 1];
+    },
   };
 }
 
@@ -433,20 +467,20 @@ export function unwrapObject(obj: any): any {
   if (typeof obj !== "object") return obj;
 
   if (Array.isArray(obj)) {
-    return obj.map(item => unwrapObject(item));
+    return obj.map((item) => unwrapObject(item));
   }
 
   if ("__circular_ref" in obj) return `[Circular *${obj.__circular_ref}]`;
-  
+
   if (obj instanceof Map) {
     const mapObj = new Map();
     obj.forEach((v, k) => mapObj.set(unwrapObject(k), unwrapObject(v)));
     return mapObj;
   }
-  
+
   if (obj instanceof Set) {
     const setObj = new Set();
-    obj.forEach(v => setObj.add(unwrapObject(v)));
+    obj.forEach((v) => setObj.add(unwrapObject(v)));
     return setObj;
   }
 
@@ -462,7 +496,7 @@ export function logStepToConsole(stepObj: any, stepNumber?: number): void {
     if (stepNumber !== undefined) {
       console.log(`--- Step ${stepNumber} ---`);
     }
-    
+
     if (typeof stepObj === "string") {
       console.log(stepObj);
     } else {

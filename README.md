@@ -178,52 +178,49 @@ AlgoVisuals/
 
 ## 🎨 Visualizer Auto-Detection (Heuristics)
 
-The visualizer (`VisualGround`) intelligently decides what to draw by inspecting your variable names (Prefix matching) and their runtime values (Shape validation). 
+The visualizer (`VisualGround`) intelligently decides what to draw by inspecting your variable's runtime shape in memory (Structural Duck-Typing) and occasionally their names. 
 
-You MUST adhere to these naming conventions in your C++ code.
+Some specialized data structures (like Graphs and Trees) still require naming conventions, while generic ones (Arrays, Maps, Strings) are entirely automatic!
 
 ### 1. Graphs (`<Graph />`)
 - **Prefixes:** `adj_`, `graph_`, `network_`
 - **Shape:** Must be a 2D Array or adjacency list.
 - **Example:** `vector<vector<int>> adj_list;`
-- **Auxiliary Pointers:** Variables containing `edge`, `visit` (colors node green), or specific node trackers like `node`, `u`, `v`.
+- **Auxiliary Pointers:** Automatically tracked by the engine (e.g. variables containing `edge`, `visit`, or any node pointer).
 
 ### 2. Trees & BSTs (`<Tree />`)
 - **Prefixes:** `tree_`, `bst_`, `root_`, `trie_`, `heap_`, `forest_`
 - **Shape:** Array of node objects (must have `id` and `value`).
-- **Auxiliary Pointers:** `root`, `curr`, `parent`, `left`, `right`.
+- **Auxiliary Pointers:** Automatically tracked by the engine.
 
 ### 3. 2D Matrices (`<D2Array />`)
-- **Prefixes:** `mat`, `grid`, `board`, `dp`, `table`, `matrix`
+- **Prefixes:** *None required (Automatically detected)*
 - **Shape:** 2D array (Array of arrays).
-- **Auxiliary Pointers:** `r`, `row`, `c`, `col`.
+- **Auxiliary Pointers:** Automatically tracked by the engine during 2D indexing.
 
 ### 4. 1D Arrays (`<D1Array />`)
-- **Prefixes:** `arr`, `vec`, `nums`, `seq`, `list`, `buffer`, `cache`, `res`
+- **Prefixes:** *None required (Automatically detected)*
 - **Shape:** Flat array of primitives.
-- **Auxiliary Pointers:** `i`, `j`, `k`, `left`, `right`, `mid`, `curr`, `ptr`. (These render as floating badges pointing at the array index).
+- **Auxiliary Pointers:** Automatically tracked by the engine during indexing (renders as floating badges).
 
 ### 5. Linked Lists (`<LinkedList />`)
-- **Prefixes:** `ll_`, `head`, `list_node`, `linked_list`
-- **Shape:** Array of node objects.
-- **Auxiliary Pointers:** `head`, `tail`, `slow`, `fast`, `prev`, `next`.
+- **Prefixes:** *None required (Automatically detected based on `val`/`next` properties)*
+- **Shape:** Array of node objects or pointer-based structure.
+- **Auxiliary Pointers:** Automatically tracked by the engine.
 
 ### 6. Stacks & Queues
 - **Stack Prefixes:** `st_`, `stack`, `stk` (Renders a vertical LIFO bucket).
 - **Queue Prefixes:** `q_`, `queue`, `deque` (Renders a horizontal FIFO tube).
 
 ### 7. Maps & Sets
-- **Prefixes:** `map`, `dict`, `freq`, `count`, `seen`, `visited`, `memo`
+- **Prefixes:** *None required (Automatically detected)*
 
 ### 8. Strings (`<StringVisualizer />`)
-- **Prefixes:** `str`, `text`, `word`, `msg`, `string`, `s`, `t`, `pattern`, `sub`
-- **Auxiliary Pointers:** `i`, `j`, `k`, `left`, `right`, `mid`, `curr`, `ptr`.
+- **Prefixes:** *None required (Automatically detected)*
+- **Auxiliary Pointers:** Automatically tracked by the engine during indexing.
 
 ### 9. Bitsets (`<BitsetVisualizer />`)
-- **Prefixes:** `mask`, `bits`, `flags`, `bitset`, `state_mask`, `b`
-
-### 10. Scalars (`<ScalarVisualizer />`)
-- **Prefixes:** `ans`, `sum`, `count`, `total`, `result`, `max_val`, `min_val`, `diff`
+- **Prefixes:** *None required (Automatically detected)*
 
 *Note: Variables named `n`, `m`, `x`, `y`, `z`, `idx`, `index`, `len`, `size`, `tmp`, `_`, and `val` are strictly **Free Variables**. They will be displayed in the Variables panel but will never trigger complex visual components or pointers.*
 

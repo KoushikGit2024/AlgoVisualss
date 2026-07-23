@@ -50,7 +50,6 @@ codeVisualizer/
     ├── Map.tsx                    // Key-Value Dictionary renderer
     ├── String.tsx                 // String renderer with text styling
     ├── Bitset.tsx                 // Bitmask and flags renderer
-    ├── Scalar.tsx                 // Standalone value dashboard
     └── VisualizerNamingConventions.tsx // Help modal
 ```
 

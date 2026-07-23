@@ -1,46 +1,105 @@
 const DYNAMIC_PROGRAMMING_SECTION = {
   name: "Dynamic Programming",
   href: "/algorithms/dynamic_programming",
-    iconId: "DynamicPrograming",
-    hoverIconId: "DynamicPrograming",
+  iconId: "DynamicPrograming",
+  hoverIconId: "DynamicPrograming",
 
   about: [
     { tag: "h1", text: "Dynamic Programming" },
-    { tag: "p", text: "Dynamic Programming (DP) solves complex problems by breaking them into overlapping subproblems, solving each subproblem exactly once, and reusing those results instead of recomputing them. It applies whenever a problem exhibits two properties: optimal substructure (an optimal solution can be built from optimal solutions to its subproblems) and overlapping subproblems (a naive recursive solution would solve the same subproblem many times)." },
-    { tag: "p", text: "Without overlapping subproblems, plain recursion (divide and conquer, like Merge Sort) is already efficient — DP's entire value proposition is eliminating redundant recomputation. The classic illustration is naive recursive Fibonacci: fib(5) calls fib(4) and fib(3), but fib(4) ALSO calls fib(3) — that single redundant call, multiplied across every level of recursion, is what turns an O(n) problem into an O(2ⁿ) nightmare without memoization." },
+    {
+      tag: "p",
+      text: "Dynamic Programming (DP) solves complex problems by breaking them into overlapping subproblems, solving each subproblem exactly once, and reusing those results instead of recomputing them. It applies whenever a problem exhibits two properties: optimal substructure (an optimal solution can be built from optimal solutions to its subproblems) and overlapping subproblems (a naive recursive solution would solve the same subproblem many times).",
+    },
+    {
+      tag: "p",
+      text: "Without overlapping subproblems, plain recursion (divide and conquer, like Merge Sort) is already efficient — DP's entire value proposition is eliminating redundant recomputation. The classic illustration is naive recursive Fibonacci: fib(5) calls fib(4) and fib(3), but fib(4) ALSO calls fib(3) — that single redundant call, multiplied across every level of recursion, is what turns an O(n) problem into an O(2ⁿ) nightmare without memoization.",
+    },
     { tag: "h2", text: "Problems covered in this section" },
-    { tag: "table",
+    {
+      tag: "table",
       headers: ["Problem", "Core Idea", "Typical Time", "Typical Space"],
       rows: [
-        ["0/1 Knapsack", "Two-dimensional state: items considered × remaining capacity", "O(nW)", "O(nW) — reducible to O(W)"],
-        ["Matrix Chain Multiplication", "Interval DP: try every split point of a contiguous chain [i, j]", "O(n³)", "O(n²)"],
-        ["Longest Common Subsequence", "Two-pointer 2D state walking both sequences in lockstep", "O(mn)", "O(mn) — reducible to O(min(m, n))"],
-        ["Longest Increasing Subsequence", "Track the smallest possible 'tail' for every subsequence length seen so far", "O(n log n)", "O(n)"],
-        ["Coin Change", "1D state over the target amount, trying every denomination at each amount", "O(n · amount)", "O(amount)"],
-        ["Travelling Salesperson (Held-Karp)", "Bitmask state: which cities are visited + current city", "O(2ⁿ · n²)", "O(2ⁿ · n)"],
-        ["Fibonacci Sequence", "The canonical 1D recurrence — introduces memoization vs. tabulation", "O(n)", "O(1) with rolling variables"]
-      ]
+        [
+          "0/1 Knapsack",
+          "Two-dimensional state: items considered × remaining capacity",
+          "O(nW)",
+          "O(nW) — reducible to O(W)",
+        ],
+        [
+          "Matrix Chain Multiplication",
+          "Interval DP: try every split point of a contiguous chain [i, j]",
+          "O(n³)",
+          "O(n²)",
+        ],
+        [
+          "Longest Common Subsequence",
+          "Two-pointer 2D state walking both sequences in lockstep",
+          "O(mn)",
+          "O(mn) — reducible to O(min(m, n))",
+        ],
+        [
+          "Longest Increasing Subsequence",
+          "Track the smallest possible 'tail' for every subsequence length seen so far",
+          "O(n log n)",
+          "O(n)",
+        ],
+        [
+          "Coin Change",
+          "1D state over the target amount, trying every denomination at each amount",
+          "O(n · amount)",
+          "O(amount)",
+        ],
+        [
+          "Travelling Salesperson (Held-Karp)",
+          "Bitmask state: which cities are visited + current city",
+          "O(2ⁿ · n²)",
+          "O(2ⁿ · n)",
+        ],
+        [
+          "Fibonacci Sequence",
+          "The canonical 1D recurrence — introduces memoization vs. tabulation",
+          "O(n)",
+          "O(1) with rolling variables",
+        ],
+      ],
     },
     { tag: "h2", text: "Two implementation styles" },
-    { tag: "table",
+    {
+      tag: "table",
       headers: ["Style", "Direction", "How it works", "Trade-off"],
       rows: [
-        ["Memoization (top-down)", "Recursive, same as naive solution", "Cache each subproblem's result the first time it's computed; return the cached value on repeat calls", "Easier to write from a recursive definition; pays recursion call-stack overhead"],
-        ["Tabulation (bottom-up)", "Iterative, smallest subproblems first", "Fill a table in dependency order so every subproblem's prerequisites are already solved when needed", "Usually faster in practice (no call-stack overhead); requires figuring out the correct fill order upfront"]
-      ]
+        [
+          "Memoization (top-down)",
+          "Recursive, same as naive solution",
+          "Cache each subproblem's result the first time it's computed; return the cached value on repeat calls",
+          "Easier to write from a recursive definition; pays recursion call-stack overhead",
+        ],
+        [
+          "Tabulation (bottom-up)",
+          "Iterative, smallest subproblems first",
+          "Fill a table in dependency order so every subproblem's prerequisites are already solved when needed",
+          "Usually faster in practice (no call-stack overhead); requires figuring out the correct fill order upfront",
+        ],
+      ],
     },
     { tag: "h2", text: "Recognising a DP problem" },
-    { tag: "ul", items: [
-      "The problem asks for an optimum (minimum/maximum) or a count, and naturally decomposes into smaller versions of itself",
-      "A greedy (locally-optimal) choice provably does NOT always lead to a globally optimal answer — if it did, a simpler greedy algorithm would suffice instead",
-      "A brute-force recursive solution would revisit the same (state, parameters) combination multiple times along different recursive paths",
-      "The problem can be expressed as filling in a 1D or 2D table where each cell depends only on previously-computed cells"
-    ]},
-    { tag: "note", variant: "tip", text: "Every DP solution starts the same way: define the state (what does dp[i] or dp[i][j] represent?), find the recurrence (how does it relate to smaller states?), and identify the base case. Getting the state definition right is almost always the hardest part — the rest follows mechanically." }
+    {
+      tag: "ul",
+      items: [
+        "The problem asks for an optimum (minimum/maximum) or a count, and naturally decomposes into smaller versions of itself",
+        "A greedy (locally-optimal) choice provably does NOT always lead to a globally optimal answer — if it did, a simpler greedy algorithm would suffice instead",
+        "A brute-force recursive solution would revisit the same (state, parameters) combination multiple times along different recursive paths",
+        "The problem can be expressed as filling in a 1D or 2D table where each cell depends only on previously-computed cells",
+      ],
+    },
+    {
+      tag: "note",
+      variant: "tip",
+      text: "Every DP solution starts the same way: define the state (what does dp[i] or dp[i][j] represent?), find the recurrence (how does it relate to smaller states?), and identify the base case. Getting the state definition right is almost always the hardest part — the rest follows mechanically.",
+    },
   ],
 
   items: [
-
     /* ════════════════════════════════════════════════════════════════════
        1. 0/1 KNAPSACK
     ════════════════════════════════════════════════════════════════════ */
@@ -51,72 +110,129 @@ const DYNAMIC_PROGRAMMING_SECTION = {
 
       about: [
         { tag: "h1", text: "0/1 Knapsack" },
-        { tag: "p", text: "Given n items, each with a weight and a value, and a knapsack with maximum weight capacity W, the 0/1 Knapsack problem asks for the maximum total value achievable without exceeding the capacity — where each item can either be taken whole or left behind entirely ('0/1', as opposed to the Fractional Knapsack variant, which allows taking partial items and is solvable greedily instead)." },
-        { tag: "p", text: "It's the canonical example of DP with two-dimensional state: the decision for each item depends not just on which items came before, but on how much capacity remains — so the state must capture both 'which items have been considered' and 'how much weight budget is left'." },
+        {
+          tag: "p",
+          text: "Given n items, each with a weight and a value, and a knapsack with maximum weight capacity W, the 0/1 Knapsack problem asks for the maximum total value achievable without exceeding the capacity — where each item can either be taken whole or left behind entirely ('0/1', as opposed to the Fractional Knapsack variant, which allows taking partial items and is solvable greedily instead).",
+        },
+        {
+          tag: "p",
+          text: "It's the canonical example of DP with two-dimensional state: the decision for each item depends not just on which items came before, but on how much capacity remains — so the state must capture both 'which items have been considered' and 'how much weight budget is left'.",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Resource allocation under a hard capacity constraint where items are indivisible (can't take 60% of a physical item)",
-          "Budget allocation: maximise value/return subject to a fixed total spending limit, with discrete (not fractional) investment options",
-          "Subset-sum problems are a special case (value = weight for every item, asking whether some subset sums exactly to a target)",
-          "Note: if items CAN be split fractionally, a much simpler O(n log n) greedy algorithm (Fractional Knapsack) solves it instead — always check divisibility before reaching for the DP solution"
-        ]},
-        { tag: "note", variant: "warning", text: "0/1 Knapsack's O(nW) complexity is pseudo-polynomial — it depends on the numeric VALUE of W, not just the count of items. If W is exponentially large relative to n (e.g. W = 2^64), this DP approach becomes impractical despite the polynomial-looking formula." }
+        {
+          tag: "ul",
+          items: [
+            "Resource allocation under a hard capacity constraint where items are indivisible (can't take 60% of a physical item)",
+            "Budget allocation: maximise value/return subject to a fixed total spending limit, with discrete (not fractional) investment options",
+            "Subset-sum problems are a special case (value = weight for every item, asking whether some subset sums exactly to a target)",
+            "Note: if items CAN be split fractionally, a much simpler O(n log n) greedy algorithm (Fractional Knapsack) solves it instead — always check divisibility before reaching for the DP solution",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "warning",
+          text: "0/1 Knapsack's O(nW) complexity is pseudo-polynomial — it depends on the numeric VALUE of W, not just the count of items. If W is exponentially large relative to n (e.g. W = 2^64), this DP approach becomes impractical despite the polynomial-looking formula.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(nW)",
         best: [
           { tag: "h2", text: "Best Case — O(nW)" },
-          { tag: "p", text: "The standard tabulation approach always fills the entire n × W table regardless of the specific weights and values involved — there's no early-exit shortcut, since every cell potentially contributes to the final answer." },
-          { tag: "ul", items: [
-            "Table has (n + 1) rows × (W + 1) columns",
-            "Each cell requires O(1) work: one comparison between 'exclude this item' and 'include this item'",
-            "Total: O(nW), unconditionally, even for the most favourable item set"
-          ]}
+          {
+            tag: "p",
+            text: "The standard tabulation approach always fills the entire n × W table regardless of the specific weights and values involved — there's no early-exit shortcut, since every cell potentially contributes to the final answer.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Table has (n + 1) rows × (W + 1) columns",
+              "Each cell requires O(1) work: one comparison between 'exclude this item' and 'include this item'",
+              "Total: O(nW), unconditionally, even for the most favourable item set",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(nW)" },
-          { tag: "p", text: "Every cell of the DP table is computed exactly once with constant work, regardless of the specific weight/value distribution of the items — the algorithm's structure doesn't branch based on input values." },
-          { tag: "ul", items: [
-            "(n+1) × (W+1) cells, O(1) work per cell = O(nW)",
-            "No input distribution changes this fixed iteration structure"
-          ]}
+          {
+            tag: "p",
+            text: "Every cell of the DP table is computed exactly once with constant work, regardless of the specific weight/value distribution of the items — the algorithm's structure doesn't branch based on input values.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "(n+1) × (W+1) cells, O(1) work per cell = O(nW)",
+              "No input distribution changes this fixed iteration structure",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(nW)" },
-          { tag: "p", text: "No item configuration increases the cost beyond filling the full table — this is simultaneously the best, average, and worst case, since the DP table size is fixed entirely by n and W." },
-          { tag: "ul", items: [
-            "O(nW) holds unconditionally",
-            "This is pseudo-polynomial: if W is given in binary with b bits, W = 2^b, so the 'polynomial-looking' O(nW) is actually O(n · 2^b) — exponential in the INPUT SIZE of W, which is why huge capacity values make this approach impractical"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No item configuration increases the cost beyond filling the full table — this is simultaneously the best, average, and worst case, since the DP table size is fixed entirely by n and W.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(nW) holds unconditionally",
+              "This is pseudo-polynomial: if W is given in binary with b bits, W = 2^b, so the 'polynomial-looking' O(nW) is actually O(n · 2^b) — exponential in the INPUT SIZE of W, which is why huge capacity values make this approach impractical",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(nW)",
         best: [
           { tag: "h2", text: "Best Case Space — O(W)" },
-          { tag: "p", text: "Since each row of the DP table only depends on the immediately preceding row, the table can be compressed to a single 1D array of size W+1, processed carefully right-to-left to avoid overwriting values still needed." },
-          { tag: "ul", items: ["1D rolling array: O(W)", "This space optimisation works for any input, not just favourable ones"] }
+          {
+            tag: "p",
+            text: "Since each row of the DP table only depends on the immediately preceding row, the table can be compressed to a single 1D array of size W+1, processed carefully right-to-left to avoid overwriting values still needed.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "1D rolling array: O(W)",
+              "This space optimisation works for any input, not just favourable ones",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(nW)" },
-          { tag: "p", text: "The naive (unoptimised) 2D table implementation always allocates the full n × W grid, regardless of item values, since the recurrence is defined cell-by-cell over both dimensions." },
-          { tag: "ul", items: ["Full 2D table: (n+1) × (W+1) = O(nW)", "Needed if you must reconstruct WHICH items were chosen, not just the optimal value"] }
+          {
+            tag: "p",
+            text: "The naive (unoptimised) 2D table implementation always allocates the full n × W grid, regardless of item values, since the recurrence is defined cell-by-cell over both dimensions.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Full 2D table: (n+1) × (W+1) = O(nW)",
+              "Needed if you must reconstruct WHICH items were chosen, not just the optimal value",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(nW)" },
-          { tag: "p", text: "No item configuration changes the table size — it's fixed entirely by the problem parameters n and W, identical across all cases for the standard 2D implementation." },
-          { tag: "ul", items: [
-            "O(nW) for the full table, or O(W) with the 1D rolling-array optimisation (at the cost of losing the ability to trace back which items were selected without extra bookkeeping)"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No item configuration changes the table size — it's fixed entirely by the problem parameters n and W, identical across all cases for the standard 2D implementation.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(nW) for the full table, or O(W) with the 1D rolling-array optimisation (at the cost of losing the ability to trace back which items were selected without extra bookkeeping)",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "code", language: "text", text:
-`function knapsack(weights, values, n, W):
+        {
+          tag: "code",
+          language: "text",
+          text: `function knapsack(weights, values, n, W):
     dp ← 2D array of size (n+1) x (W+1), all zero
 
     for i from 1 to n:
@@ -128,17 +244,24 @@ const DYNAMIC_PROGRAMMING_SECTION = {
             if weights[i-1] <= w:
                 dp[i][w] ← max(dp[i][w], dp[i-1][w - weights[i-1]] + values[i-1])
 
-    return dp[n][W]` },
+    return dp[n][W]`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Define dp[i][w] as 'the maximum value achievable using only the first i items, with total weight at most w'.",
-          "Base case: dp[0][w] = 0 for all w — with zero items available, no value can be achieved regardless of capacity.",
-          "For each item i and each possible capacity w, two options exist: exclude item i (carry forward dp[i-1][w] unchanged), or include item i if it fits (add its value to the best solution using one less item and w minus item i's weight).",
-          "Take the better of these two options as dp[i][w].",
-          "After filling the entire table, dp[n][W] holds the answer: the maximum value achievable using any subset of all n items within the full capacity W."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Define dp[i][w] as 'the maximum value achievable using only the first i items, with total weight at most w'.",
+            "Base case: dp[0][w] = 0 for all w — with zero items available, no value can be achieved regardless of capacity.",
+            "For each item i and each possible capacity w, two options exist: exclude item i (carry forward dp[i-1][w] unchanged), or include item i if it fits (add its value to the best solution using one less item and w minus item i's weight).",
+            "Take the better of these two options as dp[i][w].",
+            "After filling the entire table, dp[n][W] holds the answer: the maximum value achievable using any subset of all n items within the full capacity W.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Optimal substructure: the optimal solution using the first i items and capacity w must either include item i or not. If it doesn't include item i, the optimal solution is exactly the optimal solution using the first i-1 items and the same capacity w — by definition. If it does include item i, the remaining budget w − weights[i-1] must be allocated optimally among the first i-1 items, which is exactly dp[i-1][w − weights[i-1]] by the same inductive definition. Since these are the only two possibilities and both are correctly computed by the recurrence (by strong induction on i), taking their maximum correctly computes dp[i][w] for every cell, and the final answer dp[n][W] is therefore provably optimal." }
+        {
+          tag: "p",
+          text: "Optimal substructure: the optimal solution using the first i items and capacity w must either include item i or not. If it doesn't include item i, the optimal solution is exactly the optimal solution using the first i-1 items and the same capacity w — by definition. If it does include item i, the remaining budget w − weights[i-1] must be allocated optimally among the first i-1 items, which is exactly dp[i-1][w − weights[i-1]] by the same inductive definition. Since these are the only two possibilities and both are correctly computed by the recurrence (by strong induction on i), taking their maximum correctly computes dp[i][w] for every cell, and the final answer dp[n][W] is therefore provably optimal.",
+        },
       ],
 
       codes: {
@@ -175,7 +298,7 @@ int main() {
     cout << "Maximum value in Knapsack = " << knapsack(capacity, arr_weights, arr_values, n) << endl;
     return 0;
 }`,
-        "python": `def knapsack(capacity, weights, values, n):
+        python: `def knapsack(capacity, weights, values, n):
     # dp[i][j] stores the max value for the first i items with weight limit j
     dp = [[0] * (capacity + 1) for _ in range(n + 1)]
 
@@ -198,7 +321,7 @@ if __name__ == "__main__":
     n = len(values)
 
     print(f"Maximum value in Knapsack = {knapsack(capacity, weights, values, n)}")`,
-        "java": `import java.util.Arrays;
+        java: `import java.util.Arrays;
 
 public class Main {
     public static int knapsack(int capacity, int[] weights, int[] values, int n) {
@@ -225,7 +348,7 @@ public class Main {
         System.out.println("Maximum value in Knapsack = " + knapsack(capacity, weights, values, n));
     }
 }`,
-        "js": `function knapsack(capacity, weights, values, n) {
+        js: `function knapsack(capacity, weights, values, n) {
     const dp = Array.from({ length: n + 1 }, () => new Array(capacity + 1).fill(0));
 
     for (let i = 1; i <= n; i++) {
@@ -246,7 +369,7 @@ const capacity = 50;
 const n = values.length;
 
 console.log("Maximum value in Knapsack =", knapsack(capacity, weights, values, n));`,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <stdlib.h>
 
 int max(int a, int b) {
@@ -311,7 +434,7 @@ class Program {
         Console.WriteLine($"Maximum value in Knapsack = {Knapsack(capacity, weights, values, n)}");
     }
 }`,
-        "swift": `func knapsack(_ capacity: Int, _ weights: [Int], _ values: [Int], _ n: Int) -> Int {
+        swift: `func knapsack(_ capacity: Int, _ weights: [Int], _ values: [Int], _ n: Int) -> Int {
     var dp = Array(repeating: Array(repeating: 0, count: capacity + 1), count: n + 1)
 
     for i in 1...n {
@@ -332,7 +455,7 @@ let capacity = 50
 let n = values.count
 
 print("Maximum value in Knapsack = \\(knapsack(capacity, weights, values, n))")`,
-        "kotlin": `fun knapsack(capacity: Int, weights: IntArray, values: IntArray, n: Int): Int {
+        kotlin: `fun knapsack(capacity: Int, weights: IntArray, values: IntArray, n: Int): Int {
     val dp = Array(n + 1) { IntArray(capacity + 1) }
 
     for (i in 1..n) {
@@ -355,7 +478,7 @@ fun main() {
 
     println("Maximum value in Knapsack = \${knapsack(capacity, weights, values, n)}")
 }`,
-        "scala": `object Main extends App {
+        scala: `object Main extends App {
     def knapsack(capacity: Int, weights: Array[Int], values: Array[Int], n: Int): Int = {
         val dp = Array.ofDim[Int](n + 1, capacity + 1)
 
@@ -378,7 +501,7 @@ fun main() {
 
     println(s"Maximum value in Knapsack = \${knapsack(capacity, weights, values, n)}")
 }`,
-        "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -415,7 +538,7 @@ func main() {
 
     fmt.Println("Maximum value in Knapsack =", knapsack(capacity, weights, values, n))
 }`,
-        "rust": `fn knapsack(capacity: usize, weights: &[usize], values: &[i32], n: usize) -> i32 {
+        rust: `fn knapsack(capacity: usize, weights: &[usize], values: &[i32], n: usize) -> i32 {
     let mut dp = vec![vec![0i32; capacity + 1]; n + 1];
 
     for i in 1..=n {
@@ -440,8 +563,8 @@ fn main() {
     let n = values.len();
 
     println!("Maximum value in Knapsack = {}", knapsack(capacity, &weights, &values, n));
-}`
-      }
+}`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -454,71 +577,122 @@ fn main() {
 
       about: [
         { tag: "h1", text: "Matrix Chain Multiplication" },
-        { tag: "p", text: "Given a sequence of matrices to multiply together, Matrix Chain Multiplication finds the optimal way to parenthesise the multiplications to minimise the total number of scalar multiplications performed — matrix multiplication is associative, so (AB)C and A(BC) produce the same result matrix, but can require drastically different amounts of computation depending on the matrices' dimensions." },
-        { tag: "p", text: "It's the classic example of interval DP: the state is defined over a CONTIGUOUS RANGE [i, j] of the chain rather than a prefix, and the recurrence works by trying every possible 'split point' k within the range where the final multiplication could occur, recursively combining the optimal cost of the left part [i,k] and right part [k+1,j]." },
+        {
+          tag: "p",
+          text: "Given a sequence of matrices to multiply together, Matrix Chain Multiplication finds the optimal way to parenthesise the multiplications to minimise the total number of scalar multiplications performed — matrix multiplication is associative, so (AB)C and A(BC) produce the same result matrix, but can require drastically different amounts of computation depending on the matrices' dimensions.",
+        },
+        {
+          tag: "p",
+          text: "It's the classic example of interval DP: the state is defined over a CONTIGUOUS RANGE [i, j] of the chain rather than a prefix, and the recurrence works by trying every possible 'split point' k within the range where the final multiplication could occur, recursively combining the optimal cost of the left part [i,k] and right part [k+1,j].",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Optimising the order of operations for a chain of matrix multiplications in numerical computing libraries",
-          "Any problem requiring optimal parenthesisation/bracketing of a sequence of associative operations with position-dependent cost",
-          "The general template for 'interval DP' problems — many other problems (optimal BST construction, palindrome partitioning cost) follow the exact same [i,j]-with-split-point pattern",
-          "Compiler optimisation: choosing the optimal order to evaluate a chain of associative operations to minimise computation cost"
-        ]},
-        { tag: "note", variant: "tip", text: "This algorithm finds the optimal PARENTHESISATION (the order of operations), not the matrix product itself — the actual multiplication still has to be performed afterward according to the discovered optimal order." }
+        {
+          tag: "ul",
+          items: [
+            "Optimising the order of operations for a chain of matrix multiplications in numerical computing libraries",
+            "Any problem requiring optimal parenthesisation/bracketing of a sequence of associative operations with position-dependent cost",
+            "The general template for 'interval DP' problems — many other problems (optimal BST construction, palindrome partitioning cost) follow the exact same [i,j]-with-split-point pattern",
+            "Compiler optimisation: choosing the optimal order to evaluate a chain of associative operations to minimise computation cost",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "This algorithm finds the optimal PARENTHESISATION (the order of operations), not the matrix product itself — the actual multiplication still has to be performed afterward according to the discovered optimal order.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(n³)",
         best: [
           { tag: "h2", text: "Best Case — O(n³)" },
-          { tag: "p", text: "The algorithm always evaluates every possible split point for every possible sub-chain length and starting position — there's no early-exit shortcut even for the most favourable matrix dimensions." },
-          { tag: "ul", items: [
-            "O(n²) distinct sub-chains [i, j] to compute",
-            "Each sub-chain's optimal cost requires trying up to O(n) possible split points k",
-            "Total: O(n²) sub-chains × O(n) split points each = O(n³)"
-          ]}
+          {
+            tag: "p",
+            text: "The algorithm always evaluates every possible split point for every possible sub-chain length and starting position — there's no early-exit shortcut even for the most favourable matrix dimensions.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(n²) distinct sub-chains [i, j] to compute",
+              "Each sub-chain's optimal cost requires trying up to O(n) possible split points k",
+              "Total: O(n²) sub-chains × O(n) split points each = O(n³)",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n³)" },
-          { tag: "p", text: "Every (i, j, k) combination is evaluated exactly once with O(1) work per combination, regardless of the actual matrix dimension values — the algorithm's iteration structure is fixed by n alone." },
-          { tag: "ul", items: [
-            "Three nested considerations: chain length (O(n)), starting index i (O(n)), and split point k (O(n)) combine to O(n³) total operations",
-            "Each operation is O(1): one multiplication for the cost calculation, one comparison against the running minimum"
-          ]}
+          {
+            tag: "p",
+            text: "Every (i, j, k) combination is evaluated exactly once with O(1) work per combination, regardless of the actual matrix dimension values — the algorithm's iteration structure is fixed by n alone.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Three nested considerations: chain length (O(n)), starting index i (O(n)), and split point k (O(n)) combine to O(n³) total operations",
+              "Each operation is O(1): one multiplication for the cost calculation, one comparison against the running minimum",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n³)" },
-          { tag: "p", text: "No matrix dimension configuration increases the cost beyond the fixed triple-nested iteration over chain length, start position, and split point." },
-          { tag: "ul", items: [
-            "Worst case identical to best/average: O(n³)",
-            "This is one of the standard examples of interval DP's characteristic O(n³) bound, arising from O(n²) states each requiring an O(n) decision"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No matrix dimension configuration increases the cost beyond the fixed triple-nested iteration over chain length, start position, and split point.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Worst case identical to best/average: O(n³)",
+              "This is one of the standard examples of interval DP's characteristic O(n³) bound, arising from O(n²) states each requiring an O(n) decision",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(n²)",
         best: [
           { tag: "h2", text: "Best Case Space — O(n²)" },
-          { tag: "p", text: "The DP table stores the optimal cost for every possible sub-chain [i, j], requiring a 2D table of size n × n regardless of the matrix dimensions involved." },
-          { tag: "ul", items: ["Cost table: n × n entries — O(n²)", "Optional split-point table (for reconstructing the actual parenthesisation): another O(n²)"] }
+          {
+            tag: "p",
+            text: "The DP table stores the optimal cost for every possible sub-chain [i, j], requiring a 2D table of size n × n regardless of the matrix dimensions involved.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Cost table: n × n entries — O(n²)",
+              "Optional split-point table (for reconstructing the actual parenthesisation): another O(n²)",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(n²)" },
-          { tag: "p", text: "Table size is fixed by the number of matrices n alone — it doesn't depend on the specific dimension values of the matrices being multiplied." },
-          { tag: "ul", items: ["Same O(n²) bound regardless of matrix dimension distribution"] }
+          {
+            tag: "p",
+            text: "Table size is fixed by the number of matrices n alone — it doesn't depend on the specific dimension values of the matrices being multiplied.",
+          },
+          { tag: "ul", items: ["Same O(n²) bound regardless of matrix dimension distribution"] },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(n²)" },
-          { tag: "p", text: "No matrix configuration increases space beyond the fixed n × n cost table — this is both the floor and ceiling for the algorithm's memory footprint." },
-          { tag: "ul", items: ["Cost table + split table: O(n²) total, identical across all cases"] }
-        ]
+          {
+            tag: "p",
+            text: "No matrix configuration increases space beyond the fixed n × n cost table — this is both the floor and ceiling for the algorithm's memory footprint.",
+          },
+          {
+            tag: "ul",
+            items: ["Cost table + split table: O(n²) total, identical across all cases"],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
         { tag: "p", text: "Given dimensions array p where matrix i has dimensions p[i-1] × p[i]:" },
-        { tag: "code", language: "text", text:
-`function matrixChainOrder(p):                 // p has length n+1 for n matrices
+        {
+          tag: "code",
+          language: "text",
+          text: `function matrixChainOrder(p):                 // p has length n+1 for n matrices
     n ← length(p) − 1
     dp ← 2D array of size (n+1) x (n+1), all zero
 
@@ -533,18 +707,25 @@ fn main() {
                     dp[i][j] ← cost
                     split[i][j] ← k             // remember where to split, for reconstruction
 
-    return dp[1][n]` },
+    return dp[1][n]`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Define dp[i][j] as 'the minimum number of scalar multiplications needed to compute the product of matrices i through j'.",
-          "Base case (implicit): dp[i][i] = 0 — a single matrix needs no multiplication.",
-          "Process sub-chains in order of increasing length, since computing dp[i][j] requires dp[i][k] and dp[k+1][j] for sub-chains shorter than [i,j].",
-          "For each sub-chain [i, j], try every possible split point k — the position of the LAST multiplication performed when computing this sub-chain's product.",
-          "The cost of splitting at k is: the cost to compute the left part (dp[i][k]), plus the cost to compute the right part (dp[k+1][j]), plus the cost of the final multiplication joining them (p[i-1] × p[k] × p[j], based on the resulting matrix dimensions).",
-          "Take the minimum cost over all possible split points as dp[i][j], and remember which k achieved it for later reconstruction of the actual parenthesisation."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Define dp[i][j] as 'the minimum number of scalar multiplications needed to compute the product of matrices i through j'.",
+            "Base case (implicit): dp[i][i] = 0 — a single matrix needs no multiplication.",
+            "Process sub-chains in order of increasing length, since computing dp[i][j] requires dp[i][k] and dp[k+1][j] for sub-chains shorter than [i,j].",
+            "For each sub-chain [i, j], try every possible split point k — the position of the LAST multiplication performed when computing this sub-chain's product.",
+            "The cost of splitting at k is: the cost to compute the left part (dp[i][k]), plus the cost to compute the right part (dp[k+1][j]), plus the cost of the final multiplication joining them (p[i-1] × p[k] × p[j], based on the resulting matrix dimensions).",
+            "Take the minimum cost over all possible split points as dp[i][j], and remember which k achieved it for later reconstruction of the actual parenthesisation.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Optimal substructure: in any valid parenthesisation of matrices i through j, there must be SOME position k where the final (outermost) multiplication occurs, splitting the chain into a left part [i,k] and right part [k+1,j]. Whatever k is chosen, the optimal way to compute each of those two parts independently must itself be optimal — if a cheaper way to compute [i,k] existed, substituting it would only decrease the total cost, contradicting optimality. By trying every possible k and taking the minimum, the algorithm is guaranteed to consider the true optimal split point among all candidates, and by strong induction on chain length, every dp[i][k] and dp[k+1][j] used in that calculation is already correctly computed (since they represent strictly shorter sub-chains processed earlier)." }
+        {
+          tag: "p",
+          text: "Optimal substructure: in any valid parenthesisation of matrices i through j, there must be SOME position k where the final (outermost) multiplication occurs, splitting the chain into a left part [i,k] and right part [k+1,j]. Whatever k is chosen, the optimal way to compute each of those two parts independently must itself be optimal — if a cheaper way to compute [i,k] existed, substituting it would only decrease the total cost, contradicting optimality. By trying every possible k and taking the minimum, the algorithm is guaranteed to consider the true optimal split point among all candidates, and by strong induction on chain length, every dp[i][k] and dp[k+1][j] used in that calculation is already correctly computed (since they represent strictly shorter sub-chains processed earlier).",
+        },
       ],
 
       codes: {
@@ -584,7 +765,7 @@ int main() {
     cout << "Minimum number of multiplications is = " << matrixChainOrder(arr) << endl;
     return 0;
 }`,
-        "python": `import sys
+        python: `import sys
 
 
 def matrix_chain_order(p):
@@ -611,7 +792,7 @@ if __name__ == "__main__":
     arr = [1, 2, 3, 4]
 
     print(f"Minimum number of multiplications is = {matrix_chain_order(arr)}")`,
-        "java": `public class Main {
+        java: `public class Main {
     public static int matrixChainOrder(int[] p) {
         int n = p.length;
         int[][] dp = new int[n][n];
@@ -638,7 +819,7 @@ if __name__ == "__main__":
         System.out.println("Minimum number of multiplications is = " + matrixChainOrder(arr));
     }
 }`,
-        "js": `function matrixChainOrder(p) {
+        js: `function matrixChainOrder(p) {
     const n = p.length;
     const dp = Array.from({ length: n }, () => new Array(n).fill(0));
 
@@ -661,7 +842,7 @@ if __name__ == "__main__":
 const arr = [1, 2, 3, 4];
 
 console.log("Minimum number of multiplications is =", matrixChainOrder(arr));`,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <limits.h>
 
 int matrixChainOrder(int* p, int n) {
@@ -719,7 +900,7 @@ class Program {
         Console.WriteLine($"Minimum number of multiplications is = {MatrixChainOrder(arr)}");
     }
 }`,
-        "swift": `func matrixChainOrder(_ p: [Int]) -> Int {
+        swift: `func matrixChainOrder(_ p: [Int]) -> Int {
     let n = p.count
     var dp = Array(repeating: Array(repeating: 0, count: n), count: n)
 
@@ -742,7 +923,7 @@ class Program {
 let arr = [1, 2, 3, 4]
 
 print("Minimum number of multiplications is = \\(matrixChainOrder(arr))")`,
-        "kotlin": `fun matrixChainOrder(p: IntArray): Int {
+        kotlin: `fun matrixChainOrder(p: IntArray): Int {
     val n = p.size
     val dp = Array(n) { IntArray(n) }
 
@@ -767,7 +948,7 @@ fun main() {
 
     println("Minimum number of multiplications is = \${matrixChainOrder(arr)}")
 }`,
-        "scala": `object Main extends App {
+        scala: `object Main extends App {
     def matrixChainOrder(p: Array[Int]): Int = {
         val n = p.length
         val dp = Array.ofDim[Int](n, n)
@@ -792,7 +973,7 @@ fun main() {
 
     println(s"Minimum number of multiplications is = \${matrixChainOrder(arr)}")
 }`,
-        "go": `package main
+        go: `package main
 
 import (
     "fmt"
@@ -827,7 +1008,7 @@ func main() {
 
     fmt.Println("Minimum number of multiplications is =", matrixChainOrder(arr))
 }`,
-        "rust": `fn matrix_chain_order(p: &[i64]) -> i64 {
+        rust: `fn matrix_chain_order(p: &[i64]) -> i64 {
     let n = p.len();
     let mut dp = vec![vec![0i64; n]; n];
 
@@ -851,79 +1032,118 @@ fn main() {
     let arr = vec![1i64, 2, 3, 4];
 
     println!("Minimum number of multiplications is = {}", matrix_chain_order(&arr));
-}`
-      }
+}`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
        3. LONGEST COMMON SUBSEQUENCE (LCS)
     ════════════════════════════════════════════════════════════════════ */
     {
-        name: "Longest Common Subsequence",
-        href: "/algorithms/dynamic_programming/lcs",
-        type: "Medium",
+      name: "Longest Common Subsequence",
+      href: "/algorithms/dynamic_programming/lcs",
+      type: "Medium",
 
-        about: [
-            { tag: "h1", text: "Longest Common Subsequence" },
-            { tag: "p", text: "The Longest Common Subsequence (LCS) problem finds the longest subsequence present in two given sequences. A subsequence is a sequence that appears in the same relative order, but not necessarily contiguously (e.g., 'abc' is a subsequence of 'aXbYc')." },
-            { tag: "p", text: "It forms the core of diff tools (like `git diff`), file comparison utilities, and bioinformatics algorithms for DNA sequence alignment. By modeling a 2D state that tracks the indices of both sequences in lockstep, the algorithm evaluates whether to include matching characters or optimally skip non-matching ones." },
-            { tag: "h2", text: "When to reach for it" },
-            { tag: "ul", items: [
-                "Comparing two strings or arrays to find out how 'similar' they are structurally",
-                "Calculating the minimum number of insertions and deletions to transform string A into string B (Edit Distance variant)",
-                "Finding the Longest Palindromic Subsequence (by running LCS on the string and its exact reverse)"
-            ]},
-            { tag: "note", variant: "tip", text: "Do not confuse this with Longest Common Substring. Subsequences can skip characters; substrings must be strictly contiguous." }
+      about: [
+        { tag: "h1", text: "Longest Common Subsequence" },
+        {
+          tag: "p",
+          text: "The Longest Common Subsequence (LCS) problem finds the longest subsequence present in two given sequences. A subsequence is a sequence that appears in the same relative order, but not necessarily contiguously (e.g., 'abc' is a subsequence of 'aXbYc').",
+        },
+        {
+          tag: "p",
+          text: "It forms the core of diff tools (like `git diff`), file comparison utilities, and bioinformatics algorithms for DNA sequence alignment. By modeling a 2D state that tracks the indices of both sequences in lockstep, the algorithm evaluates whether to include matching characters or optimally skip non-matching ones.",
+        },
+        { tag: "h2", text: "When to reach for it" },
+        {
+          tag: "ul",
+          items: [
+            "Comparing two strings or arrays to find out how 'similar' they are structurally",
+            "Calculating the minimum number of insertions and deletions to transform string A into string B (Edit Distance variant)",
+            "Finding the Longest Palindromic Subsequence (by running LCS on the string and its exact reverse)",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "tip",
+          text: "Do not confuse this with Longest Common Substring. Subsequences can skip characters; substrings must be strictly contiguous.",
+        },
+      ],
+
+      timeComplexityCalculation: {
+        notation: "O(mn)",
+        best: [
+          { tag: "h2", text: "Best Case — O(mn)" },
+          {
+            tag: "p",
+            text: "The tabulation approach visits every cell in an m × n grid once, unconditionally.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Table dimensions are exactly (m + 1) × (n + 1)",
+              "No early termination is possible because the longest subsequence could span all the way to the final characters",
+            ],
+          },
         ],
+        average: [
+          { tag: "h2", text: "Average Case — O(mn)" },
+          {
+            tag: "p",
+            text: "Regardless of string similarity, every possible suffix combination is tested exactly once.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Work per cell is O(1) (a character comparison and a max function)",
+              "m × n iterations of O(1) work = O(mn) total time",
+            ],
+          },
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case — O(mn)" },
+          {
+            tag: "p",
+            text: "Identical to best and average cases. There are no pathologically slow inputs.",
+          },
+        ],
+      },
 
-        timeComplexityCalculation: {
-            notation: "O(mn)",
-            best: [
-                { tag: "h2", text: "Best Case — O(mn)" },
-                { tag: "p", text: "The tabulation approach visits every cell in an m × n grid once, unconditionally." },
-                { tag: "ul", items: [
-                    "Table dimensions are exactly (m + 1) × (n + 1)",
-                    "No early termination is possible because the longest subsequence could span all the way to the final characters"
-                ]}
+      spaceComplexityCalculation: {
+        notation: "O(mn)",
+        best: [
+          { tag: "h2", text: "Best Case Space — O(min(m, n))" },
+          {
+            tag: "p",
+            text: "If we only need the length of the LCS (not the actual string), space can be heavily optimized.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "The recurrence `dp[i][j]` only relies on the current row `i` and the previous row `i-1`",
+              "We can store just two 1D arrays of size min(m, n) instead of the full 2D matrix",
             ],
-            average: [
-                { tag: "h2", text: "Average Case — O(mn)" },
-                { tag: "p", text: "Regardless of string similarity, every possible suffix combination is tested exactly once." },
-                { tag: "ul", items: [
-                    "Work per cell is O(1) (a character comparison and a max function)",
-                    "m × n iterations of O(1) work = O(mn) total time"
-                ]}
-            ],
-            worst: [
-                { tag: "h2", text: "Worst Case — O(mn)" },
-                { tag: "p", text: "Identical to best and average cases. There are no pathologically slow inputs." }
-            ]
-        },
+          },
+        ],
+        average: [
+          { tag: "h2", text: "Average Case Space — O(mn)" },
+          { tag: "p", text: "The classic full-table implementation creates an m × n matrix." },
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case Space — O(mn)" },
+          {
+            tag: "p",
+            text: "Reconstructing the actual matched characters requires backtracking through the entire matrix, making the full O(mn) allocation mandatory.",
+          },
+        ],
+      },
 
-        spaceComplexityCalculation: {
-            notation: "O(mn)",
-            best: [
-                { tag: "h2", text: "Best Case Space — O(min(m, n))" },
-                { tag: "p", text: "If we only need the length of the LCS (not the actual string), space can be heavily optimized." },
-                { tag: "ul", items: [
-                    "The recurrence `dp[i][j]` only relies on the current row `i` and the previous row `i-1`",
-                    "We can store just two 1D arrays of size min(m, n) instead of the full 2D matrix"
-                ]}
-            ],
-            average: [
-                { tag: "h2", text: "Average Case Space — O(mn)" },
-                { tag: "p", text: "The classic full-table implementation creates an m × n matrix." }
-            ],
-            worst: [
-                { tag: "h2", text: "Worst Case Space — O(mn)" },
-                { tag: "p", text: "Reconstructing the actual matched characters requires backtracking through the entire matrix, making the full O(mn) allocation mandatory." }
-            ]
-        },
-
-        pseudoCodeandStepexplanation: [
-            { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-            { tag: "code", language: "text", text:
-`function longestCommonSubsequence(text1, text2):
+      pseudoCodeandStepexplanation: [
+        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+        {
+          tag: "code",
+          language: "text",
+          text: `function longestCommonSubsequence(text1, text2):
     m ← length(text1)
     n ← length(text2)
     dp ← 2D array of size (m+1) x (n+1), all zero
@@ -935,22 +1155,29 @@ fn main() {
             else:
                 dp[i][j] ← max(dp[i-1][j], dp[i][j-1])
 
-    return dp[m][n]` },
-            { tag: "h2", text: "Step-by-step reasoning" },
-            { tag: "ol", items: [
-                "Define `dp[i][j]` as the length of the LCS for the prefix `text1[0..i-1]` and `text2[0..j-1]`.",
-                "Initialize a matrix padded with a 0-row and 0-column to elegantly handle out-of-bounds base cases (comparing an empty string yields length 0).",
-                "For each character pair, evaluate: do they match?",
-                "If yes (`text1[i-1] == text2[j-1]`), they unconditionally extend the optimal subsequence found up to their previous indices (`dp[i-1][j-1]`). Add 1.",
-                "If no, the optimal subsequence up to this point must bypass either the current character of text1 OR text2. Take the max of excluding one or the other (`dp[i-1][j]` or `dp[i][j-1]`).",
-                "Return the bottom-right cell `dp[m][n]`."
-            ]},
-            { tag: "h2", text: "Why it's correct" },
-            { tag: "p", text: "The state encompasses all possible combinations of string prefixes. Because matching characters strictly extend the subproblem lacking both current characters (`i-1`, `j-1`), and non-matching characters strictly carry forward the best historical result, it is impossible for the optimal configuration to 'escape' evaluation." }
-        ],
+    return dp[m][n]`,
+        },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        {
+          tag: "ol",
+          items: [
+            "Define `dp[i][j]` as the length of the LCS for the prefix `text1[0..i-1]` and `text2[0..j-1]`.",
+            "Initialize a matrix padded with a 0-row and 0-column to elegantly handle out-of-bounds base cases (comparing an empty string yields length 0).",
+            "For each character pair, evaluate: do they match?",
+            "If yes (`text1[i-1] == text2[j-1]`), they unconditionally extend the optimal subsequence found up to their previous indices (`dp[i-1][j-1]`). Add 1.",
+            "If no, the optimal subsequence up to this point must bypass either the current character of text1 OR text2. Take the max of excluding one or the other (`dp[i-1][j]` or `dp[i][j-1]`).",
+            "Return the bottom-right cell `dp[m][n]`.",
+          ],
+        },
+        { tag: "h2", text: "Why it's correct" },
+        {
+          tag: "p",
+          text: "The state encompasses all possible combinations of string prefixes. Because matching characters strictly extend the subproblem lacking both current characters (`i-1`, `j-1`), and non-matching characters strictly carry forward the best historical result, it is impossible for the optimal configuration to 'escape' evaluation.",
+        },
+      ],
 
-        codes: {
-            "c++": `#include <iostream>
+      codes: {
+        "c++": `#include <iostream>
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -979,7 +1206,7 @@ int main() {
     cout << "Length of LCS: " << longestCommonSubsequence(text1, text2) << endl;
     return 0;
 }`,
-            "python": `def longest_common_subsequence(text1: str, text2: str) -> int:
+        python: `def longest_common_subsequence(text1: str, text2: str) -> int:
     m, n = len(text1), len(text2)
     dp = [[0] * (n + 1) for _ in range(m + 1)]
 
@@ -995,7 +1222,7 @@ int main() {
 if __name__ == "__main__":
     text1, text2 = "abcde", "ace"
     print(f"Length of LCS: {longest_common_subsequence(text1, text2)}")`,
-            "java": `public class Main {
+        java: `public class Main {
     public static int longestCommonSubsequence(String text1, String text2) {
         int m = text1.length();
         int n = text2.length();
@@ -1018,7 +1245,7 @@ if __name__ == "__main__":
         System.out.println("Length of LCS: " + longestCommonSubsequence(text1, text2));
     }
 }`,
-            "js": `function longestCommonSubsequence(text1, text2) {
+        js: `function longestCommonSubsequence(text1, text2) {
     const m = text1.length;
     const n = text2.length;
     const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
@@ -1037,7 +1264,7 @@ if __name__ == "__main__":
 
 const text1 = "abcde", text2 = "ace";
 console.log("Length of LCS:", longestCommonSubsequence(text1, text2));`,
-            "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <string.h>
 
 int max(int a, int b) {
@@ -1067,7 +1294,7 @@ int main() {
     printf("Length of LCS: %d\\n", longestCommonSubsequence(text1, text2));
     return 0;
 }`,
-            "c#": `using System;
+        "c#": `using System;
 
 class Program {
     static int LongestCommonSubsequence(string text1, string text2) {
@@ -1092,7 +1319,7 @@ class Program {
         Console.WriteLine($"Length of LCS: {LongestCommonSubsequence(text1, text2)}");
     }
 }`,
-            "swift": `func longestCommonSubsequence(_ text1: String, _ text2: String) -> Int {
+        swift: `func longestCommonSubsequence(_ text1: String, _ text2: String) -> Int {
     let t1 = Array(text1)
     let t2 = Array(text2)
     let m = t1.count
@@ -1112,7 +1339,7 @@ class Program {
 }
 
 print("Length of LCS: \\(longestCommonSubsequence("abcde", "ace"))")`,
-            "kotlin": `import kotlin.math.max
+        kotlin: `import kotlin.math.max
 
 fun longestCommonSubsequence(text1: String, text2: String): Int {
     val m = text1.length
@@ -1136,7 +1363,7 @@ fun main() {
     val text2 = "ace"
     println("Length of LCS: \${longestCommonSubsequence(text1, text2)}")
 }`,
-            "scala": `object Main extends App {
+        scala: `object Main extends App {
     def longestCommonSubsequence(text1: String, text2: String): Int = {
         val m = text1.length
         val n = text2.length
@@ -1158,7 +1385,7 @@ fun main() {
     val text2 = "ace"
     println(s"Length of LCS: \${longestCommonSubsequence(text1, text2)}")
 }`,
-            "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -1192,7 +1419,7 @@ func main() {
     text1, text2 := "abcde", "ace"
     fmt.Printf("Length of LCS: %d\\n", longestCommonSubsequence(text1, text2))
 }`,
-            "rust": `use std::cmp;
+        rust: `use std::cmp;
 
 fn longest_common_subsequence(text1: String, text2: String) -> i32 {
     let t1 = text1.as_bytes();
@@ -1217,66 +1444,91 @@ fn main() {
     let text1 = String::from("abcde");
     let text2 = String::from("ace");
     println!("Length of LCS: {}", longest_common_subsequence(text1, text2));
-}`
-        }
+}`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
        4. LONGEST INCREASING SUBSEQUENCE (LIS)
    ════════════════════════════════════════════════════════════════════ */
     {
-        name: "Longest Increasing Subsequence",
-        href: "/algorithms/dynamic_programming/lis",
-        type: "Medium",
+      name: "Longest Increasing Subsequence",
+      href: "/algorithms/dynamic_programming/lis",
+      type: "Medium",
 
-        about: [
-            { tag: "h1", text: "Longest Increasing Subsequence (Linear Patience Sorting)" },
-            { tag: "p", text: "Given an integer array, find the length of the longest strictly increasing subsequence. This specific implementation utilizes an unoptimized Patience Sorting approach. By maintaining a list of 'tails' (the smallest possible ending element for a valid increasing subsequence of length L), it updates the optimal bounds." },
-            { tag: "p", text: "Instead of binary searching the insertion position (which yields an O(n log n) solution), this version performs a linear scan across the actively constructed `tails` array for each element. This degrades the time complexity to O(n²) in the worst case but provides a simpler, loop-based implementation to understand the core logic of the tails array." },
-            { tag: "h2", text: "When to reach for it" },
-            { tag: "ul", items: [
-                "When you need to understand the structural logic of Patience Sorting before optimizing it.",
-                "Small constraints where an O(n²) solution is perfectly acceptable without the overhead of binary search logic.",
-                "Any problem explicitly requesting the Longest Increasing/Decreasing Subsequence."
-            ]},
-            { tag: "note", variant: "warning", text: "The `tails` array does NOT store the actual sequence itself! It stores the optimal active bounds. Also note this linear-scan version is strictly less efficient than the binary search equivalent." }
+      about: [
+        { tag: "h1", text: "Longest Increasing Subsequence (Linear Patience Sorting)" },
+        {
+          tag: "p",
+          text: "Given an integer array, find the length of the longest strictly increasing subsequence. This specific implementation utilizes an unoptimized Patience Sorting approach. By maintaining a list of 'tails' (the smallest possible ending element for a valid increasing subsequence of length L), it updates the optimal bounds.",
+        },
+        {
+          tag: "p",
+          text: "Instead of binary searching the insertion position (which yields an O(n log n) solution), this version performs a linear scan across the actively constructed `tails` array for each element. This degrades the time complexity to O(n²) in the worst case but provides a simpler, loop-based implementation to understand the core logic of the tails array.",
+        },
+        { tag: "h2", text: "When to reach for it" },
+        {
+          tag: "ul",
+          items: [
+            "When you need to understand the structural logic of Patience Sorting before optimizing it.",
+            "Small constraints where an O(n²) solution is perfectly acceptable without the overhead of binary search logic.",
+            "Any problem explicitly requesting the Longest Increasing/Decreasing Subsequence.",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "warning",
+          text: "The `tails` array does NOT store the actual sequence itself! It stores the optimal active bounds. Also note this linear-scan version is strictly less efficient than the binary search equivalent.",
+        },
+      ],
+
+      timeComplexityCalculation: {
+        notation: "O(n²)",
+        best: [
+          { tag: "h2", text: "Best Case — O(n)" },
+          {
+            tag: "p",
+            text: "If the input array is strictly decreasing, the `tails` array never grows beyond size 1. The inner loop executes exactly once per element, resulting in linear time.",
+          },
         ],
+        average: [
+          { tag: "h2", text: "Average Case — O(n²)" },
+          {
+            tag: "p",
+            text: "Each element triggers a linear scan over the actively constructed `tails` array, which scales linearly relative to the sequence length, summing to a quadratic bound.",
+          },
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case — O(n²)" },
+          {
+            tag: "p",
+            text: "If the input array is strictly increasing, the `tails` array grows to size n. The inner loop scans 1, then 2, then 3... up to n times, giving a total of n(n+1)/2 operations.",
+          },
+        ],
+      },
 
-        timeComplexityCalculation: {
-            notation: "O(n²)",
-            best: [
-                { tag: "h2", text: "Best Case — O(n)" },
-                { tag: "p", text: "If the input array is strictly decreasing, the `tails` array never grows beyond size 1. The inner loop executes exactly once per element, resulting in linear time." }
-            ],
-            average: [
-                { tag: "h2", text: "Average Case — O(n²)" },
-                { tag: "p", text: "Each element triggers a linear scan over the actively constructed `tails` array, which scales linearly relative to the sequence length, summing to a quadratic bound." }
-            ],
-            worst: [
-                { tag: "h2", text: "Worst Case — O(n²)" },
-                { tag: "p", text: "If the input array is strictly increasing, the `tails` array grows to size n. The inner loop scans 1, then 2, then 3... up to n times, giving a total of n(n+1)/2 operations." }
-            ]
-        },
+      spaceComplexityCalculation: {
+        notation: "O(n)",
+        best: [
+          { tag: "h2", text: "Best Case Space — O(n)" },
+          { tag: "p", text: "The `tails` auxiliary array strictly requires allocation." },
+        ],
+        average: [{ tag: "h2", text: "Average Case Space — O(n)" }],
+        worst: [
+          { tag: "h2", text: "Worst Case Space — O(n)" },
+          {
+            tag: "p",
+            text: "If the input array is strictly increasing, the `tails` array will grow exactly to size n.",
+          },
+        ],
+      },
 
-        spaceComplexityCalculation: {
-            notation: "O(n)",
-            best: [
-                { tag: "h2", text: "Best Case Space — O(n)" },
-                { tag: "p", text: "The `tails` auxiliary array strictly requires allocation." }
-            ],
-            average: [
-                { tag: "h2", text: "Average Case Space — O(n)" }
-            ],
-            worst: [
-                { tag: "h2", text: "Worst Case Space — O(n)" },
-                { tag: "p", text: "If the input array is strictly increasing, the `tails` array will grow exactly to size n." }
-            ]
-        },
-
-        pseudoCodeandStepexplanation: [
-            { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-            { tag: "code", language: "text", text:
-`function lengthOfLIS(nums):
+      pseudoCodeandStepexplanation: [
+        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+        {
+          tag: "code",
+          language: "text",
+          text: `function lengthOfLIS(nums):
     tails ← empty array
     
     for i from 0 to length(nums) - 1:
@@ -1293,22 +1545,29 @@ fn main() {
         else:
             tails[pos] ← nums[i]
 
-    return length(tails)` },
-            { tag: "h2", text: "Step-by-step reasoning" },
-            { tag: "ol", items: [
-                "Maintain a `tails` array where `tails[j]` stores the smallest tail of all increasing subsequences of length `j+1`.",
-                "Iterate through each element `nums[i]` in the input array.",
-                "Perform a linear scan over the current `tails` array to find the first element that is >= `nums[i]`.",
-                "If `nums[i]` is larger than all elements currently in `tails` (the loop finishes without breaking), extend the longest subsequence by appending `nums[i]` to `tails`.",
-                "If `nums[i]` is smaller or equal to an element in `tails`, replace that first found element (`tails[pos]`). This keeps the threshold for extending that specific length sequence as low (optimal) as possible.",
-                "The length of the `tails` array represents the length of the Longest Increasing Subsequence."
-            ]},
-            { tag: "h2", text: "Why it's correct" },
-            { tag: "p", text: "Even with a linear search, the underlying principle holds true: aggressively tracking the minimal possible tail at each length boundary maximizes the probability that future elements can extend the sequence. Overwriting a value in `tails` just resets the condition for evaluating future values against that specific length milestone." }
-        ],
+    return length(tails)`,
+        },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        {
+          tag: "ol",
+          items: [
+            "Maintain a `tails` array where `tails[j]` stores the smallest tail of all increasing subsequences of length `j+1`.",
+            "Iterate through each element `nums[i]` in the input array.",
+            "Perform a linear scan over the current `tails` array to find the first element that is >= `nums[i]`.",
+            "If `nums[i]` is larger than all elements currently in `tails` (the loop finishes without breaking), extend the longest subsequence by appending `nums[i]` to `tails`.",
+            "If `nums[i]` is smaller or equal to an element in `tails`, replace that first found element (`tails[pos]`). This keeps the threshold for extending that specific length sequence as low (optimal) as possible.",
+            "The length of the `tails` array represents the length of the Longest Increasing Subsequence.",
+          ],
+        },
+        { tag: "h2", text: "Why it's correct" },
+        {
+          tag: "p",
+          text: "Even with a linear search, the underlying principle holds true: aggressively tracking the minimal possible tail at each length boundary maximizes the probability that future elements can extend the sequence. Overwriting a value in `tails` just resets the condition for evaluating future values against that specific length milestone.",
+        },
+      ],
 
-        codes: {
-            "c++": `#include <iostream>
+      codes: {
+        "c++": `#include <iostream>
 #include <vector>
 
 using namespace std;
@@ -1342,7 +1601,7 @@ int main() {
     cout << "Length of LIS: " << lengthOfLIS(nums) << endl;
     return 0;
 }`,
-            "python": `def length_of_lis(nums) -> int:
+        python: `def length_of_lis(nums) -> int:
     tails = []
     
     for i in range(len(nums)):
@@ -1363,7 +1622,7 @@ int main() {
 if __name__ == "__main__":
     nums = [10, 9, 2, 5, 3, 7, 101, 18]
     print(f"Length of LIS: {length_of_lis(nums)}")`,
-            "java": `public class Main {
+        java: `public class Main {
     public static int lengthOfLIS(int[] nums) {
         int[] tails = new int[nums.length];
         int size = 0;
@@ -1391,7 +1650,7 @@ if __name__ == "__main__":
         System.out.println("Length of LIS: " + lengthOfLIS(nums));
     }
 }`,
-            "js": `function lengthOfLIS(nums) {
+        js: `function lengthOfLIS(nums) {
     const tails = [];
     
     for (let i = 0; i < nums.length; i++) {
@@ -1416,7 +1675,7 @@ if __name__ == "__main__":
 
 const nums = [10, 9, 2, 5, 3, 7, 101, 18];
 console.log("Length of LIS:", lengthOfLIS(nums));`,
-            "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 
 int lengthOfLIS(int* nums, int numsSize) {
     int tails[2500]; // Assume max constraint size
@@ -1446,7 +1705,7 @@ int main() {
     printf("Length of LIS: %d\\n", lengthOfLIS(nums, 8));
     return 0;
 }`,
-            "c#": `using System;
+        "c#": `using System;
 using System.Collections.Generic;
 
 class Program {
@@ -1477,7 +1736,7 @@ class Program {
         Console.WriteLine($"Length of LIS: {LengthOfLIS(nums)}");
     }
 }`,
-            "swift": `func lengthOfLIS(_ nums: [Int]) -> Int {
+        swift: `func lengthOfLIS(_ nums: [Int]) -> Int {
     var tails = [Int]()
     
     for i in 0..<nums.count {
@@ -1501,7 +1760,7 @@ class Program {
 }
 
 print("Length of LIS: \\(lengthOfLIS([10, 9, 2, 5, 3, 7, 101, 18]))")`,
-            "kotlin": `fun lengthOfLIS(nums: IntArray): Int {
+        kotlin: `fun lengthOfLIS(nums: IntArray): Int {
     val tails = mutableListOf<Int>()
     
     for (i in nums.indices) {
@@ -1528,7 +1787,7 @@ fun main() {
     val nums = intArrayOf(10, 9, 2, 5, 3, 7, 101, 18)
     println("Length of LIS: \${lengthOfLIS(nums)}")
 }`,
-            "scala": `object Main extends App {
+        scala: `object Main extends App {
     def lengthOfLIS(nums: Array[Int]): Int = {
         val tails = new scala.collection.mutable.ArrayBuffer[Int]()
         
@@ -1556,7 +1815,7 @@ fun main() {
     val nums = Array(10, 9, 2, 5, 3, 7, 101, 18)
     println(s"Length of LIS: \${lengthOfLIS(nums)}")
 }`,
-            "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -1587,7 +1846,7 @@ func main() {
     nums := []int{10, 9, 2, 5, 3, 7, 101, 18}
     fmt.Println("Length of LIS:", lengthOfLIS(nums))
 }`,
-            "rust": `fn length_of_lis(nums: Vec<i32>) -> i32 {
+        rust: `fn length_of_lis(nums: Vec<i32>) -> i32 {
     let mut tails: Vec<i32> = Vec::new();
     
     for i in 0..nums.len() {
@@ -1613,8 +1872,8 @@ func main() {
 fn main() {
     let nums = vec![10, 9, 2, 5, 3, 7, 101, 18];
     println!("Length of LIS: {}", length_of_lis(nums));
-}`
-        }
+}`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1627,71 +1886,116 @@ fn main() {
 
       about: [
         { tag: "h1", text: "Coin Change" },
-        { tag: "p", text: "Given a set of coin denominations and a target amount, the Coin Change problem asks for the minimum number of coins needed to make exactly that amount (assuming unlimited supply of each denomination), or reports that it's impossible. A related variant counts the total NUMBER of distinct ways to make the amount, rather than the minimum coin count." },
-        { tag: "p", text: "It's a deceptively simple-looking problem that's actually a trap for greedy algorithms: greedily always picking the largest coin that fits works for 'canonical' coin systems like US currency (1, 5, 10, 25), but fails for arbitrary denominations — e.g. with coins [1, 3, 4], greedily making 6 picks [4, 1, 1] (3 coins) when [3, 3] (2 coins) is actually optimal. This is exactly why DP, not greedy, is the generally correct approach." },
+        {
+          tag: "p",
+          text: "Given a set of coin denominations and a target amount, the Coin Change problem asks for the minimum number of coins needed to make exactly that amount (assuming unlimited supply of each denomination), or reports that it's impossible. A related variant counts the total NUMBER of distinct ways to make the amount, rather than the minimum coin count.",
+        },
+        {
+          tag: "p",
+          text: "It's a deceptively simple-looking problem that's actually a trap for greedy algorithms: greedily always picking the largest coin that fits works for 'canonical' coin systems like US currency (1, 5, 10, 25), but fails for arbitrary denominations — e.g. with coins [1, 3, 4], greedily making 6 picks [4, 1, 1] (3 coins) when [3, 3] (2 coins) is actually optimal. This is exactly why DP, not greedy, is the generally correct approach.",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Making change with an arbitrary (non-canonical) set of denominations where greedy isn't guaranteed correct",
-          "Any 'minimum number of items from an unlimited supply to reach an exact target sum' problem — this template generalises far beyond literal currency",
-          "The counting variant ('how many ways can you make this amount') is a classic unbounded knapsack-style problem, useful for combinatorics and probability calculations",
-          "Verifying whether a greedy currency system is safe to use (if DP and greedy always agree across all reachable amounts, the greedy approach is provably correct for that specific coin set)"
-        ]},
-        { tag: "note", variant: "warning", text: "Never assume greedy works for coin change unless you've proven the specific coin set is 'canonical' — silently wrong greedy answers are a classic source of subtle bugs in real payment/change-making systems." }
+        {
+          tag: "ul",
+          items: [
+            "Making change with an arbitrary (non-canonical) set of denominations where greedy isn't guaranteed correct",
+            "Any 'minimum number of items from an unlimited supply to reach an exact target sum' problem — this template generalises far beyond literal currency",
+            "The counting variant ('how many ways can you make this amount') is a classic unbounded knapsack-style problem, useful for combinatorics and probability calculations",
+            "Verifying whether a greedy currency system is safe to use (if DP and greedy always agree across all reachable amounts, the greedy approach is provably correct for that specific coin set)",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "warning",
+          text: "Never assume greedy works for coin change unless you've proven the specific coin set is 'canonical' — silently wrong greedy answers are a classic source of subtle bugs in real payment/change-making systems.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(n·amount)",
         best: [
           { tag: "h2", text: "Best Case — O(n·amount)" },
-          { tag: "p", text: "The standard tabulation approach always fills the entire dp array of size amount+1, trying every coin denomination at every amount — there's no early-exit shortcut even if the optimal solution uses very few coins." },
-          { tag: "ul", items: [
-            "dp array has amount+1 entries",
-            "Each entry requires checking all n coin denominations: O(n) per entry",
-            "Total: O(n · amount), even for the most favourable coin set"
-          ]}
+          {
+            tag: "p",
+            text: "The standard tabulation approach always fills the entire dp array of size amount+1, trying every coin denomination at every amount — there's no early-exit shortcut even if the optimal solution uses very few coins.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "dp array has amount+1 entries",
+              "Each entry requires checking all n coin denominations: O(n) per entry",
+              "Total: O(n · amount), even for the most favourable coin set",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(n·amount)" },
-          { tag: "p", text: "Every (amount, coin) combination is checked exactly once with O(1) work, regardless of which coins actually contribute to the optimal solution." },
-          { tag: "ul", items: [
-            "(amount+1) sub-amounts × n coins each = O(n · amount) total operations",
-            "Each operation is O(1): one addition, one comparison against the running minimum"
-          ]}
+          {
+            tag: "p",
+            text: "Every (amount, coin) combination is checked exactly once with O(1) work, regardless of which coins actually contribute to the optimal solution.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "(amount+1) sub-amounts × n coins each = O(n · amount) total operations",
+              "Each operation is O(1): one addition, one comparison against the running minimum",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(n·amount)" },
-          { tag: "p", text: "No coin denomination configuration increases the cost beyond the fixed nested iteration over amounts and coins." },
-          { tag: "ul", items: [
-            "Worst case identical to best/average: O(n · amount)",
-            "Like Knapsack, this is pseudo-polynomial — it depends on the numeric VALUE of 'amount', not just the count of coin denominations, so very large target amounts make this approach impractical despite the polynomial-looking formula"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No coin denomination configuration increases the cost beyond the fixed nested iteration over amounts and coins.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "Worst case identical to best/average: O(n · amount)",
+              "Like Knapsack, this is pseudo-polynomial — it depends on the numeric VALUE of 'amount', not just the count of coin denominations, so very large target amounts make this approach impractical despite the polynomial-looking formula",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(amount)",
         best: [
           { tag: "h2", text: "Best Case Space — O(amount)" },
-          { tag: "p", text: "A single 1D array of size amount+1 is sufficient, since each entry dp[a] only depends on smaller-amount entries dp[a - coin], all of which are already computed when processed in increasing order of amount." },
-          { tag: "ul", items: ["dp array: O(amount), regardless of how many coin denominations exist"] }
+          {
+            tag: "p",
+            text: "A single 1D array of size amount+1 is sufficient, since each entry dp[a] only depends on smaller-amount entries dp[a - coin], all of which are already computed when processed in increasing order of amount.",
+          },
+          {
+            tag: "ul",
+            items: ["dp array: O(amount), regardless of how many coin denominations exist"],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(amount)" },
-          { tag: "p", text: "Space usage is fixed by the target amount alone, since the 1D dp array's size doesn't depend on the number or values of the coin denominations." },
-          { tag: "ul", items: ["Same O(amount) bound regardless of coin set composition"] }
+          {
+            tag: "p",
+            text: "Space usage is fixed by the target amount alone, since the 1D dp array's size doesn't depend on the number or values of the coin denominations.",
+          },
+          { tag: "ul", items: ["Same O(amount) bound regardless of coin set composition"] },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(amount)" },
-          { tag: "p", text: "No coin configuration increases space beyond the fixed-size 1D array — this is both the floor and ceiling for the algorithm's memory footprint." },
-          { tag: "ul", items: ["dp array: O(amount), identical across all cases"] }
-        ]
+          {
+            tag: "p",
+            text: "No coin configuration increases space beyond the fixed-size 1D array — this is both the floor and ceiling for the algorithm's memory footprint.",
+          },
+          { tag: "ul", items: ["dp array: O(amount), identical across all cases"] },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
         { tag: "p", text: "Minimum-number-of-coins variant:" },
-        { tag: "code", language: "text", text:
-`function coinChange(coins, amount):
+        {
+          tag: "code",
+          language: "text",
+          text: `function coinChange(coins, amount):
     dp ← array of size amount + 1, all set to infinity
     dp[0] ← 0                          // base case: 0 coins needed to make amount 0
 
@@ -1700,17 +2004,24 @@ fn main() {
             if coin <= a:
                 dp[a] ← min(dp[a], dp[a - coin] + 1)
 
-    return dp[amount] if dp[amount] != infinity else IMPOSSIBLE` },
+    return dp[amount] if dp[amount] != infinity else IMPOSSIBLE`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Define dp[a] as 'the minimum number of coins needed to make exactly amount a', with dp[0] = 0 as the base case.",
-          "Process amounts in increasing order from 1 up to the target, since dp[a] depends on dp[a - coin] for various coins, all of which are smaller amounts already computed.",
-          "For each amount a, try every available coin denomination: if the coin's value is ≤ a, check whether using that coin (and then optimally making the remaining a − coin) beats the current best known way to make a.",
-          "Take the minimum over all coin choices as dp[a].",
-          "After filling the entire array, dp[amount] holds the answer — or remains infinity if no combination of coins can make that exact amount."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Define dp[a] as 'the minimum number of coins needed to make exactly amount a', with dp[0] = 0 as the base case.",
+            "Process amounts in increasing order from 1 up to the target, since dp[a] depends on dp[a - coin] for various coins, all of which are smaller amounts already computed.",
+            "For each amount a, try every available coin denomination: if the coin's value is ≤ a, check whether using that coin (and then optimally making the remaining a − coin) beats the current best known way to make a.",
+            "Take the minimum over all coin choices as dp[a].",
+            "After filling the entire array, dp[amount] holds the answer — or remains infinity if no combination of coins can make that exact amount.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "Optimal substructure: any optimal solution for amount a must use SOME coin as its 'last' coin — call it coin c. Removing that one coin leaves an optimal solution for amount a − c (if it weren't optimal, a cheaper solution for a − c plus that same coin c would produce a cheaper solution for a, contradicting a's optimality). By trying every possible coin c as the 'last coin' and taking the minimum over dp[a − c] + 1, the algorithm is guaranteed to consider the true optimal choice among all coins, and by induction on a (processing amounts in increasing order), every dp[a − c] referenced is already correctly computed before it's needed." }
+        {
+          tag: "p",
+          text: "Optimal substructure: any optimal solution for amount a must use SOME coin as its 'last' coin — call it coin c. Removing that one coin leaves an optimal solution for amount a − c (if it weren't optimal, a cheaper solution for a − c plus that same coin c would produce a cheaper solution for a, contradicting a's optimality). By trying every possible coin c as the 'last coin' and taking the minimum over dp[a − c] + 1, the algorithm is guaranteed to consider the true optimal choice among all coins, and by induction on a (processing amounts in increasing order), every dp[a − c] referenced is already correctly computed before it's needed.",
+        },
       ],
 
       codes: {
@@ -1742,7 +2053,7 @@ int main() {
     cout << "Minimum coins required = " << coinChange(coins, amount) << endl;
     return 0;
 }`,
-        "python": `def coin_change(coins, amount):
+        python: `def coin_change(coins, amount):
     # Initialize DP array with a value strictly greater than the maximum possible coins
     dp = [amount + 1] * (amount + 1)
     dp[0] = 0
@@ -1760,7 +2071,7 @@ if __name__ == "__main__":
     amount = 11
 
     print(f"Minimum coins required = {coin_change(coins, amount)}")`,
-        "java": `public class Main {
+        java: `public class Main {
     public static int coinChange(int[] coins, int amount) {
         int[] dp = new int[amount + 1];
         java.util.Arrays.fill(dp, amount + 1);
@@ -1783,7 +2094,7 @@ if __name__ == "__main__":
         System.out.println("Minimum coins required = " + coinChange(coins, amount));
     }
 }`,
-        "js": `function coinChange(coins, amount) {
+        js: `function coinChange(coins, amount) {
     const dp = new Array(amount + 1).fill(amount + 1);
     dp[0] = 0;
 
@@ -1801,7 +2112,7 @@ const coins = [1, 2, 5];
 const amount = 11;
 
 console.log("Minimum coins required =", coinChange(coins, amount));`,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 
 int min(int a, int b) {
     return (a < b) ? a : b;
@@ -1854,7 +2165,7 @@ class Program {
         Console.WriteLine($"Minimum coins required = {CoinChange(coins, amount)}");
     }
 }`,
-        "swift": `func coinChange(_ coins: [Int], _ amount: Int) -> Int {
+        swift: `func coinChange(_ coins: [Int], _ amount: Int) -> Int {
     var dp = Array(repeating: amount + 1, count: amount + 1)
     dp[0] = 0
 
@@ -1872,7 +2183,7 @@ let coins = [1, 2, 5]
 let amount = 11
 
 print("Minimum coins required = \\(coinChange(coins, amount))")`,
-        "kotlin": `fun coinChange(coins: IntArray, amount: Int): Int {
+        kotlin: `fun coinChange(coins: IntArray, amount: Int): Int {
     val dp = IntArray(amount + 1) { amount + 1 }
     dp[0] = 0
 
@@ -1892,7 +2203,7 @@ fun main() {
 
     println("Minimum coins required = \${coinChange(coins, amount)}")
 }`,
-        "scala": `object Main extends App {
+        scala: `object Main extends App {
     def coinChange(coins: Array[Int], amount: Int): Int = {
         val dp = Array.fill(amount + 1)(amount + 1)
         dp(0) = 0
@@ -1912,7 +2223,7 @@ fun main() {
 
     println(s"Minimum coins required = \${coinChange(coins, amount)}")
 }`,
-        "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -1950,7 +2261,7 @@ func main() {
 
     fmt.Println("Minimum coins required =", coinChange(coins, amount))
 }`,
-        "rust": `fn coin_change(coins: &[i32], amount: usize) -> i32 {
+        rust: `fn coin_change(coins: &[i32], amount: usize) -> i32 {
     let sentinel = (amount + 1) as i32;
     let mut dp = vec![sentinel; amount + 1];
     dp[0] = 0;
@@ -1976,8 +2287,8 @@ fn main() {
     let amount = 11;
 
     println!("Minimum coins required = {}", coin_change(&coins, amount));
-}`
-      }
+}`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1990,76 +2301,130 @@ fn main() {
 
       about: [
         { tag: "h1", text: "Travelling Salesperson Problem (Held-Karp DP)" },
-        { tag: "p", text: "The Travelling Salesperson Problem (TSP) asks for the shortest possible route that visits every city in a given set exactly once and returns to the starting city. It is NP-hard — no known algorithm solves it in polynomial time, and it's widely believed none exists. The naive brute-force approach checks all (n-1)! possible permutations of cities, but the Held-Karp dynamic programming algorithm (1962) improves this dramatically to O(2ⁿ · n²) by exploiting overlapping subproblems in the permutation structure." },
-        { tag: "p", text: "The key insight is the state: instead of tracking which SPECIFIC sequence of cities has been visited (which would require remembering full permutations), Held-Karp tracks only the SET of visited cities (as a bitmask) and the current city — since the optimal cost to finish the tour only depends on those two facts, not on the exact order the visited cities were reached in." },
-        { tag: "p", text: "The implementation below uses top-down memoization (a recursive function with a cache) rather than bottom-up tabulation — both express exactly the same recurrence and share the identical O(2ⁿ · n²) time bound, since memoization is simply tabulation computed lazily, on demand, via the call stack instead of via explicit nested loops in a fixed fill order." },
+        {
+          tag: "p",
+          text: "The Travelling Salesperson Problem (TSP) asks for the shortest possible route that visits every city in a given set exactly once and returns to the starting city. It is NP-hard — no known algorithm solves it in polynomial time, and it's widely believed none exists. The naive brute-force approach checks all (n-1)! possible permutations of cities, but the Held-Karp dynamic programming algorithm (1962) improves this dramatically to O(2ⁿ · n²) by exploiting overlapping subproblems in the permutation structure.",
+        },
+        {
+          tag: "p",
+          text: "The key insight is the state: instead of tracking which SPECIFIC sequence of cities has been visited (which would require remembering full permutations), Held-Karp tracks only the SET of visited cities (as a bitmask) and the current city — since the optimal cost to finish the tour only depends on those two facts, not on the exact order the visited cities were reached in.",
+        },
+        {
+          tag: "p",
+          text: "The implementation below uses top-down memoization (a recursive function with a cache) rather than bottom-up tabulation — both express exactly the same recurrence and share the identical O(2ⁿ · n²) time bound, since memoization is simply tabulation computed lazily, on demand, via the call stack instead of via explicit nested loops in a fixed fill order.",
+        },
         { tag: "h2", text: "When to reach for it" },
-        { tag: "ul", items: [
-          "Exact TSP solutions for small instances (Held-Karp is practical up to roughly n ≈ 20, after which the exponential 2ⁿ term becomes prohibitive even with the DP speedup)",
-          "Vehicle routing, circuit board drilling path optimisation, and other genuine 'visit every point once, minimise total travel' problems at small scale",
-          "Understanding bitmask DP — the state-as-bitmask technique used here generalises to many other 'subset of items processed so far' problems",
-          "For larger n, this exact approach is impractical — approximation algorithms (nearest neighbor, Christofides) or metaheuristics (genetic algorithms, simulated annealing) are used instead"
-        ]},
-        { tag: "note", variant: "warning", text: "O(2ⁿ · n²) is still exponential — Held-Karp is a major improvement over brute force's O(n!), but it does NOT make TSP tractable for large n. At n=25, 2²⁵ ≈ 33 million states already strains practical memory and time limits." }
+        {
+          tag: "ul",
+          items: [
+            "Exact TSP solutions for small instances (Held-Karp is practical up to roughly n ≈ 20, after which the exponential 2ⁿ term becomes prohibitive even with the DP speedup)",
+            "Vehicle routing, circuit board drilling path optimisation, and other genuine 'visit every point once, minimise total travel' problems at small scale",
+            "Understanding bitmask DP — the state-as-bitmask technique used here generalises to many other 'subset of items processed so far' problems",
+            "For larger n, this exact approach is impractical — approximation algorithms (nearest neighbor, Christofides) or metaheuristics (genetic algorithms, simulated annealing) are used instead",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "warning",
+          text: "O(2ⁿ · n²) is still exponential — Held-Karp is a major improvement over brute force's O(n!), but it does NOT make TSP tractable for large n. At n=25, 2²⁵ ≈ 33 million states already strains practical memory and time limits.",
+        },
       ],
 
       timeComplexityCalculation: {
         notation: "O(2ⁿ · n²)",
         best: [
           { tag: "h2", text: "Best Case — O(2ⁿ · n²)" },
-          { tag: "p", text: "The algorithm always computes every (visited-set, current-city) state regardless of the specific distances between cities — there's no early-exit shortcut even for the most geometrically favourable city arrangement." },
-          { tag: "ul", items: [
-            "2ⁿ possible subsets of visited cities × n possible 'current city' values = O(2ⁿ · n) distinct states",
-            "Each state's computation tries up to n possible 'next city' transitions: O(n) per state",
-            "Total: O(2ⁿ · n) states × O(n) work each = O(2ⁿ · n²)"
-          ]}
+          {
+            tag: "p",
+            text: "The algorithm always computes every (visited-set, current-city) state regardless of the specific distances between cities — there's no early-exit shortcut even for the most geometrically favourable city arrangement.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "2ⁿ possible subsets of visited cities × n possible 'current city' values = O(2ⁿ · n) distinct states",
+              "Each state's computation tries up to n possible 'next city' transitions: O(n) per state",
+              "Total: O(2ⁿ · n) states × O(n) work each = O(2ⁿ · n²)",
+            ],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case — O(2ⁿ · n²)" },
-          { tag: "p", text: "Every reachable (subset, city) state is computed exactly once with the same fixed amount of work, regardless of the specific distance values between cities — only the FINAL chosen route changes with different distances, not the number of states examined." },
-          { tag: "ul", items: [
-            "O(2ⁿ · n) states, each requiring O(n) work to consider all possible transitions: O(2ⁿ · n²) total",
-            "No input distribution changes this fixed state-space structure"
-          ]}
+          {
+            tag: "p",
+            text: "Every reachable (subset, city) state is computed exactly once with the same fixed amount of work, regardless of the specific distance values between cities — only the FINAL chosen route changes with different distances, not the number of states examined.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(2ⁿ · n) states, each requiring O(n) work to consider all possible transitions: O(2ⁿ · n²) total",
+              "No input distribution changes this fixed state-space structure",
+            ],
+          },
         ],
         worst: [
           { tag: "h2", text: "Worst Case — O(2ⁿ · n²)" },
-          { tag: "p", text: "No city configuration increases the cost beyond the fixed bitmask-state-space exploration — this is simultaneously the best, average, and worst case, since every possible subset must be considered to guarantee the global optimum." },
-          { tag: "ul", items: [
-            "O(2ⁿ · n²) holds unconditionally",
-            "This is a dramatic improvement over brute force's O(n!) (for n=20: 2²⁰·400 ≈ 4×10⁸ vs. 20! ≈ 2.4×10¹⁸), but remains exponential and therefore intractable for large n"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No city configuration increases the cost beyond the fixed bitmask-state-space exploration — this is simultaneously the best, average, and worst case, since every possible subset must be considered to guarantee the global optimum.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(2ⁿ · n²) holds unconditionally",
+              "This is a dramatic improvement over brute force's O(n!) (for n=20: 2²⁰·400 ≈ 4×10⁸ vs. 20! ≈ 2.4×10¹⁸), but remains exponential and therefore intractable for large n",
+            ],
+          },
+        ],
       },
 
       spaceComplexityCalculation: {
         notation: "O(2ⁿ · n)",
         best: [
           { tag: "h2", text: "Best Case Space — O(2ⁿ · n)" },
-          { tag: "p", text: "The memoization table must store the optimal cost for every (visited-subset, current-city) combination, requiring space proportional to the full state space regardless of input." },
-          { tag: "ul", items: ["Memo table: 2ⁿ subsets × n possible current cities = O(2ⁿ · n) entries"] }
+          {
+            tag: "p",
+            text: "The memoization table must store the optimal cost for every (visited-subset, current-city) combination, requiring space proportional to the full state space regardless of input.",
+          },
+          {
+            tag: "ul",
+            items: ["Memo table: 2ⁿ subsets × n possible current cities = O(2ⁿ · n) entries"],
+          },
         ],
         average: [
           { tag: "h2", text: "Average Case Space — O(2ⁿ · n)" },
-          { tag: "p", text: "Table size is fixed by the number of cities n alone, since every possible subset must have storage allocated regardless of the actual distances between cities." },
-          { tag: "ul", items: ["Same O(2ⁿ · n) bound regardless of distance value distribution"] }
+          {
+            tag: "p",
+            text: "Table size is fixed by the number of cities n alone, since every possible subset must have storage allocated regardless of the actual distances between cities.",
+          },
+          { tag: "ul", items: ["Same O(2ⁿ · n) bound regardless of distance value distribution"] },
         ],
         worst: [
           { tag: "h2", text: "Worst Case Space — O(2ⁿ · n)" },
-          { tag: "p", text: "No city configuration changes the table size — it's fixed entirely by n, identical across all cases." },
-          { tag: "ul", items: [
-            "O(2ⁿ · n) for the full state table",
-            "This exponential space requirement is the practical memory bottleneck that limits Held-Karp to roughly n ≤ 20 on typical hardware, even before considering the exponential time cost",
-            "The recursive memoized version shown in code additionally uses O(n) call-stack depth, a lower-order term that doesn't change the overall O(2ⁿ · n) classification"
-          ]}
-        ]
+          {
+            tag: "p",
+            text: "No city configuration changes the table size — it's fixed entirely by n, identical across all cases.",
+          },
+          {
+            tag: "ul",
+            items: [
+              "O(2ⁿ · n) for the full state table",
+              "This exponential space requirement is the practical memory bottleneck that limits Held-Karp to roughly n ≤ 20 on typical hardware, even before considering the exponential time cost",
+              "The recursive memoized version shown in code additionally uses O(n) call-stack depth, a lower-order term that doesn't change the overall O(2ⁿ · n) classification",
+            ],
+          },
+        ],
       },
 
       pseudoCodeandStepexplanation: [
         { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-        { tag: "p", text: "Held-Karp bitmask DP, expressed as top-down memoization starting from city 0. tsp(mask, pos) returns the minimum cost to complete a tour, having already visited exactly the cities in 'mask' and currently standing at city 'pos':" },
-        { tag: "code", language: "text", text:
-`function tsp(mask, pos, n, dist, memo):
+        {
+          tag: "p",
+          text: "Held-Karp bitmask DP, expressed as top-down memoization starting from city 0. tsp(mask, pos) returns the minimum cost to complete a tour, having already visited exactly the cities in 'mask' and currently standing at city 'pos':",
+        },
+        {
+          tag: "code",
+          language: "text",
+          text: `function tsp(mask, pos, n, dist, memo):
     if mask == (1 << n) − 1:
         return dist[pos][0]              // all cities visited — return home to city 0
 
@@ -2075,18 +2440,25 @@ fn main() {
     memo[mask][pos] ← best
     return best
 
-// Initial call: tsp(1, 0, n, dist, memo)   — mask=1 means only city 0 is visited` },
+// Initial call: tsp(1, 0, n, dist, memo)   — mask=1 means only city 0 is visited`,
+        },
         { tag: "h2", text: "Step-by-step reasoning" },
-        { tag: "ol", items: [
-          "Define tsp(mask, pos) as 'the minimum cost to visit every remaining unvisited city exactly once and return to city 0, given that the cities in mask have already been visited and the tour is currently at city pos'.",
-          "Base case: once every bit in mask is set (mask equals (1 << n) − 1, meaning all n cities have been visited), the only remaining step is the direct return trip from pos back to the start, city 0.",
-          "Before doing any work, check the memo table — if this exact (mask, pos) state has already been solved, return the cached answer immediately rather than recomputing it.",
-          "Otherwise, try visiting every currently-unvisited city next: for each candidate city, compute the cost of travelling there plus the optimal cost of completing the tour from that new state (recursively).",
-          "Take the minimum over all these candidate next-city choices, cache it in the memo table for this (mask, pos) state, and return it.",
-          "The overall answer is the initial call tsp(1, 0, ...), starting with only city 0 marked visited (mask = 1, since bit 0 is set) and the tour currently positioned at city 0."
-        ]},
+        {
+          tag: "ol",
+          items: [
+            "Define tsp(mask, pos) as 'the minimum cost to visit every remaining unvisited city exactly once and return to city 0, given that the cities in mask have already been visited and the tour is currently at city pos'.",
+            "Base case: once every bit in mask is set (mask equals (1 << n) − 1, meaning all n cities have been visited), the only remaining step is the direct return trip from pos back to the start, city 0.",
+            "Before doing any work, check the memo table — if this exact (mask, pos) state has already been solved, return the cached answer immediately rather than recomputing it.",
+            "Otherwise, try visiting every currently-unvisited city next: for each candidate city, compute the cost of travelling there plus the optimal cost of completing the tour from that new state (recursively).",
+            "Take the minimum over all these candidate next-city choices, cache it in the memo table for this (mask, pos) state, and return it.",
+            "The overall answer is the initial call tsp(1, 0, ...), starting with only city 0 marked visited (mask = 1, since bit 0 is set) and the tour currently positioned at city 0.",
+          ],
+        },
         { tag: "h2", text: "Why it's correct" },
-        { tag: "p", text: "The crucial insight enabling this DP is that the future of the tour (which unvisited cities remain to be visited, and how to visit them optimally) depends ONLY on the current city and the SET of cities already visited — not on the specific order in which they were visited. This means many different permutations that happen to visit the same set of cities and end at the same city are correctly collapsed into a single state, which is exactly what eliminates the (n-1)! redundancy of brute force. By induction on the number of unset bits in mask (equivalently, the number of cities remaining to be visited), tsp(mask, pos) is correctly computed as the minimum over all valid ways to complete the tour from that exact state, since every recursive call it makes operates on a state with strictly more visited cities (a strictly 'smaller' remaining problem), guaranteeing the recursion terminates and that every subproblem it depends on is itself already correctly solved by the same inductive argument. The memo table guarantees each of the O(2ⁿ · n) distinct states is solved exactly once, regardless of how many different paths in the recursion tree would otherwise reach it." }
+        {
+          tag: "p",
+          text: "The crucial insight enabling this DP is that the future of the tour (which unvisited cities remain to be visited, and how to visit them optimally) depends ONLY on the current city and the SET of cities already visited — not on the specific order in which they were visited. This means many different permutations that happen to visit the same set of cities and end at the same city are correctly collapsed into a single state, which is exactly what eliminates the (n-1)! redundancy of brute force. By induction on the number of unset bits in mask (equivalently, the number of cities remaining to be visited), tsp(mask, pos) is correctly computed as the minimum over all valid ways to complete the tour from that exact state, since every recursive call it makes operates on a state with strictly more visited cities (a strictly 'smaller' remaining problem), guaranteeing the recursion terminates and that every subproblem it depends on is itself already correctly solved by the same inductive argument. The memo table guarantees each of the O(2ⁿ · n) distinct states is solved exactly once, regardless of how many different paths in the recursion tree would otherwise reach it.",
+        },
       ],
 
       codes: {
@@ -2138,7 +2510,7 @@ int main() {
     cout << "Minimum cost of Travelling Salesperson = " << tsp(1, 0, n, dist, dp) << endl;
     return 0;
 }`,
-        "python": `def tsp(mask, pos, n, dist, memo):
+        python: `def tsp(mask, pos, n, dist, memo):
     # If all cities have been visited, return cost to go back to the starting city (0)
     if mask == (1 << n) - 1:
         return dist[pos][0]
@@ -2171,7 +2543,7 @@ if __name__ == "__main__":
 
     # Start at city 0, mask is 1 (city 0 visited)
     print(f"Minimum cost of Travelling Salesperson = {tsp(1, 0, n, dist, memo)}")`,
-        "java": `public class Main {
+        java: `public class Main {
     static final int INF = Integer.MAX_VALUE / 2;
 
     static int tsp(int mask, int pos, int n, int[][] dist, int[][] dp) {
@@ -2208,7 +2580,7 @@ if __name__ == "__main__":
         System.out.println("Minimum cost of Travelling Salesperson = " + tsp(1, 0, n, dist, dp));
     }
 }`,
-        "js": `function tsp(mask, pos, n, dist, memo) {
+        js: `function tsp(mask, pos, n, dist, memo) {
     if (mask === (1 << n) - 1) {
         return dist[pos][0];
     }
@@ -2240,7 +2612,7 @@ const dist = [
 const memo = Array.from({ length: 1 << n }, () => new Array(n).fill(-1));
 
 console.log("Minimum cost of Travelling Salesperson =", tsp(1, 0, n, dist, memo));`,
-        "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 #include <limits.h>
 
 #define N 4
@@ -2328,7 +2700,7 @@ class Program {
         Console.WriteLine($"Minimum cost of Travelling Salesperson = {Tsp(1, 0, n, dist, dp)}");
     }
 }`,
-        "swift": `let n = 4
+        swift: `let n = 4
 let dist = [
     [0, 10, 15, 20],
     [10, 0, 35, 25],
@@ -2359,7 +2731,7 @@ func tsp(_ mask: Int, _ pos: Int) -> Int {
 }
 
 print("Minimum cost of Travelling Salesperson = \\(tsp(1, 0))")`,
-        "kotlin": `val n = 4
+        kotlin: `val n = 4
 val dist = arrayOf(
     intArrayOf(0, 10, 15, 20),
     intArrayOf(10, 0, 35, 25),
@@ -2392,7 +2764,7 @@ fun tsp(mask: Int, pos: Int): Int {
 fun main() {
     println("Minimum cost of Travelling Salesperson = \${tsp(1, 0)}")
 }`,
-        "scala": `object Main extends App {
+        scala: `object Main extends App {
     val n = 4
     val dist = Array(
         Array(0, 10, 15, 20),
@@ -2425,7 +2797,7 @@ fun main() {
 
     println(s"Minimum cost of Travelling Salesperson = \${tsp(1, 0)}")
 }`,
-        "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -2477,7 +2849,7 @@ func main() {
 
     fmt.Println("Minimum cost of Travelling Salesperson =", tsp(1, 0))
 }`,
-        "rust": `use std::collections::HashMap;
+        rust: `use std::collections::HashMap;
 
 fn tsp(mask: u32, pos: usize, n: usize, dist: &Vec<Vec<i32>>, memo: &mut HashMap<(u32, usize), i32>) -> i32 {
     if mask == (1 << n) - 1 {
@@ -2512,8 +2884,8 @@ fn main() {
     let mut memo: HashMap<(u32, usize), i32> = HashMap::new();
 
     println!("Minimum cost of Travelling Salesperson = {}", tsp(1, 0, n, &dist, &mut memo));
-}`
-      }
+}`,
+      },
     },
 
     /* ════════════════════════════════════════════════════════════════════
@@ -2521,58 +2893,83 @@ fn main() {
     ════════════════════════════════════════════════════════════════════ */
 
     {
-        name: "Fibonacci Sequence",
-        href: "/algorithms/dynamic_programming/fibonacci",
-        type: "Easy",
+      name: "Fibonacci Sequence",
+      href: "/algorithms/dynamic_programming/fibonacci",
+      type: "Easy",
 
-        about: [
-            { tag: "h1", text: "Fibonacci Sequence (Array Tabulation)" },
-            { tag: "p", text: "The Fibonacci Sequence is the 'Hello World' of Dynamic Programming. The value at step `n` is strictly the sum of the two preceding steps. While a naive recursive implementation branches wildly (creating an O(2ⁿ) time complexity nightmare by recalculating the same subproblems), DP collapses this into linear time by storing previously computed values." },
-            { tag: "p", text: "This specific implementation utilizes Tabulation (a bottom-up approach) by maintaining a full state array `dp`. We iteratively build the solution from base cases `dp[0]` and `dp[1]` all the way up to `dp[n]`. While this takes O(n) space, it provides a foundational understanding of how state history is tracked in 1D Dynamic Programming." },
-            { tag: "h2", text: "When to reach for it" },
-            { tag: "ul", items: [
-                "Staircase problem (how many ways to climb a staircase taking 1 or 2 steps).",
-                "When you need to retain the entire historical sequence of calculations for future queries (e.g., answering multiple queries for different `n` without recalculating).",
-                "Tiling problems (how many ways to tile a 2 × n board with 2 × 1 dominoes)."
-            ]},
-            { tag: "note", variant: "warning", text: "Because `f(n)` strictly depends ONLY on `f(n-1)` and `f(n-2)`, maintaining the entire array is technically wasteful if you only need the final answer. It can be optimized to O(1) space using two rolling variables." }
+      about: [
+        { tag: "h1", text: "Fibonacci Sequence (Array Tabulation)" },
+        {
+          tag: "p",
+          text: "The Fibonacci Sequence is the 'Hello World' of Dynamic Programming. The value at step `n` is strictly the sum of the two preceding steps. While a naive recursive implementation branches wildly (creating an O(2ⁿ) time complexity nightmare by recalculating the same subproblems), DP collapses this into linear time by storing previously computed values.",
+        },
+        {
+          tag: "p",
+          text: "This specific implementation utilizes Tabulation (a bottom-up approach) by maintaining a full state array `dp`. We iteratively build the solution from base cases `dp[0]` and `dp[1]` all the way up to `dp[n]`. While this takes O(n) space, it provides a foundational understanding of how state history is tracked in 1D Dynamic Programming.",
+        },
+        { tag: "h2", text: "When to reach for it" },
+        {
+          tag: "ul",
+          items: [
+            "Staircase problem (how many ways to climb a staircase taking 1 or 2 steps).",
+            "When you need to retain the entire historical sequence of calculations for future queries (e.g., answering multiple queries for different `n` without recalculating).",
+            "Tiling problems (how many ways to tile a 2 × n board with 2 × 1 dominoes).",
+          ],
+        },
+        {
+          tag: "note",
+          variant: "warning",
+          text: "Because `f(n)` strictly depends ONLY on `f(n-1)` and `f(n-2)`, maintaining the entire array is technically wasteful if you only need the final answer. It can be optimized to O(1) space using two rolling variables.",
+        },
+      ],
+
+      timeComplexityCalculation: {
+        notation: "O(n)",
+        best: [
+          { tag: "h2", text: "Best Case — O(n)" },
+          { tag: "p", text: "To compute the n-th item, n iterations are strictly required." },
         ],
+        average: [
+          { tag: "h2", text: "Average Case — O(n)" },
+          {
+            tag: "p",
+            text: "The iterative bottom-up loop evaluates strictly in linear time unconditionally.",
+          },
+        ],
+        worst: [
+          { tag: "h2", text: "Worst Case — O(n)" },
+          {
+            tag: "p",
+            text: "The constant loop bound means performance is securely capped at O(n).",
+          },
+        ],
+      },
 
-        timeComplexityCalculation: {
-            notation: "O(n)",
-            best: [
-                { tag: "h2", text: "Best Case — O(n)" },
-                { tag: "p", text: "To compute the n-th item, n iterations are strictly required." }
-            ],
-            average: [
-                { tag: "h2", text: "Average Case — O(n)" },
-                { tag: "p", text: "The iterative bottom-up loop evaluates strictly in linear time unconditionally." }
-            ],
-            worst: [
-                { tag: "h2", text: "Worst Case — O(n)" },
-                { tag: "p", text: "The constant loop bound means performance is securely capped at O(n)." }
-            ]
-        },
+      spaceComplexityCalculation: {
+        notation: "O(n)",
+        best: [
+          { tag: "h2", text: "Best Case Space — O(n)" },
+          {
+            tag: "p",
+            text: "An array of size `n + 1` is strictly allocated to hold the DP table.",
+          },
+        ],
+        average: [{ tag: "h2", text: "Average Case Space — O(n)" }],
+        worst: [
+          { tag: "h2", text: "Worst Case Space — O(n)" },
+          {
+            tag: "p",
+            text: "Memory allocation scales linearly with `n`. A 1,000,000th Fibonacci element would require an array of 1,000,001 integer slots.",
+          },
+        ],
+      },
 
-        spaceComplexityCalculation: {
-            notation: "O(n)",
-            best: [
-                { tag: "h2", text: "Best Case Space — O(n)" },
-                { tag: "p", text: "An array of size `n + 1` is strictly allocated to hold the DP table." }
-            ],
-            average: [
-                { tag: "h2", text: "Average Case Space — O(n)" }
-            ],
-            worst: [
-                { tag: "h2", text: "Worst Case Space — O(n)" },
-                { tag: "p", text: "Memory allocation scales linearly with `n`. A 1,000,000th Fibonacci element would require an array of 1,000,001 integer slots." }
-            ]
-        },
-
-        pseudoCodeandStepexplanation: [
-            { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
-            { tag: "code", language: "text", text:
-`function fibonacci(n):
+      pseudoCodeandStepexplanation: [
+        { tag: "h1", text: "Pseudocode & Step-by-Step Explanation" },
+        {
+          tag: "code",
+          language: "text",
+          text: `function fibonacci(n):
     if n == 0: return 0
     
     dp ← empty array of size (n + 1)
@@ -2583,20 +2980,24 @@ fn main() {
     for i from 2 to n:
         dp[i] ← dp[i - 1] + dp[i - 2]
         
-    return dp[n]` },
-            { tag: "h2", text: "Step-by-step reasoning" },
-            { tag: "ol", items: [
-                "Immediately handle the base case where `n = 0` to prevent out-of-bounds array initialization.",
-                "Allocate an array `dp` of size `n + 1`. This allows the index `i` to correspond directly to the `i`-th Fibonacci number.",
-                "Seed the DP table with the known base cases: `dp[0] = 0` and `dp[1] = 1`.",
-                "Iterate from `2` up to `n`.",
-                "At each step `i`, calculate the current value by summing the two immediate predecessors: `dp[i - 1]` and `dp[i - 2]`.",
-                "Return the last element in the array `dp[n]`, which holds the fully constructed target value."
-            ]}
-        ],
+    return dp[n]`,
+        },
+        { tag: "h2", text: "Step-by-step reasoning" },
+        {
+          tag: "ol",
+          items: [
+            "Immediately handle the base case where `n = 0` to prevent out-of-bounds array initialization.",
+            "Allocate an array `dp` of size `n + 1`. This allows the index `i` to correspond directly to the `i`-th Fibonacci number.",
+            "Seed the DP table with the known base cases: `dp[0] = 0` and `dp[1] = 1`.",
+            "Iterate from `2` up to `n`.",
+            "At each step `i`, calculate the current value by summing the two immediate predecessors: `dp[i - 1]` and `dp[i - 2]`.",
+            "Return the last element in the array `dp[n]`, which holds the fully constructed target value.",
+          ],
+        },
+      ],
 
-        codes: {
-            "c++": `#include <iostream>
+      codes: {
+        "c++": `#include <iostream>
 #include <vector>
 
 using namespace std;
@@ -2621,7 +3022,7 @@ int main() {
     cout << "Fibonacci of " << n << " is: " << fibonacci(n) << endl;
     return 0;
 }`,
-            "python": `def fibonacci(n: int) -> int:
+        python: `def fibonacci(n: int) -> int:
     if n == 0:
         return 0
         
@@ -2637,7 +3038,7 @@ int main() {
 if __name__ == "__main__":
     n = 10
     print(f"Fibonacci of {n} is: {fibonacci(n)}")`,
-            "java": `public class Main {
+        java: `public class Main {
     public static int fibonacci(int n) {
         if (n == 0) return 0;
         
@@ -2657,7 +3058,7 @@ if __name__ == "__main__":
         System.out.println("Fibonacci of " + n + " is: " + fibonacci(n));
     }
 }`,
-            "js": `function fibonacci(n) {
+        js: `function fibonacci(n) {
     if (n === 0) return 0;
     
     const dp = new Array(n + 1);
@@ -2673,7 +3074,7 @@ if __name__ == "__main__":
 
 const n = 10;
 console.log("Fibonacci of", n, "is:", fibonacci(n));`,
-            "c": `#include <stdio.h>
+        c: `#include <stdio.h>
 
 int fibonacci(int n) {
     if (n == 0) return 0;
@@ -2694,7 +3095,7 @@ int main() {
     printf("Fibonacci of %d is: %d\\n", n, fibonacci(n));
     return 0;
 }`,
-            "c#": `using System;
+        "c#": `using System;
 
 class Program {
     static int Fibonacci(int n) {
@@ -2716,7 +3117,7 @@ class Program {
         Console.WriteLine($"Fibonacci of {n} is: {Fibonacci(n)}");
     }
 }`,
-            "swift": `func fibonacci(_ n: Int) -> Int {
+        swift: `func fibonacci(_ n: Int) -> Int {
     if n == 0 { return 0 }
     
     var dp = Array(repeating: 0, count: n + 1)
@@ -2732,7 +3133,7 @@ class Program {
 
 let n = 10
 print("Fibonacci of \\(n) is: \\(fibonacci(n))")`,
-            "kotlin": `fun fibonacci(n: Int): Int {
+        kotlin: `fun fibonacci(n: Int): Int {
     if (n == 0) return 0
     
     val dp = IntArray(n + 1)
@@ -2750,7 +3151,7 @@ fun main() {
     val n = 10
     println("Fibonacci of $n is: \${fibonacci(n)}")
 }`,
-            "scala": `object Main extends App {
+        scala: `object Main extends App {
     def fibonacci(n: Int): Int = {
         if (n == 0) return 0
         
@@ -2768,7 +3169,7 @@ fun main() {
     val n = 10
     println(s"Fibonacci of $n is: \${fibonacci(n)}")
 }`,
-            "go": `package main
+        go: `package main
 
 import "fmt"
 
@@ -2792,7 +3193,7 @@ func main() {
     n := 10
     fmt.Printf("Fibonacci of %d is: %d\\n", n, fibonacci(n))
 }`,
-            "rust": `fn fibonacci(n: usize) -> u32 {
+        rust: `fn fibonacci(n: usize) -> u32 {
     if n == 0 {
         return 0;
     }
@@ -2811,13 +3212,13 @@ func main() {
 fn main() {
     let n = 10;
     println!("Fibonacci of {} is: {}", n, fibonacci(n));
-}`
-        }
-    }
-    ],
-    desc: "Memoization, tabulation, state transitions, and 1D/2D DP problems",
-    complexity: "O(n) - O(2ⁿ)",
-    featured: true,
+}`,
+      },
+    },
+  ],
+  desc: "Memoization, tabulation, state transitions, and 1D/2D DP problems",
+  complexity: "O(n) - O(2ⁿ)",
+  featured: true,
 };
 
 export default DYNAMIC_PROGRAMMING_SECTION;
@@ -3147,8 +3548,8 @@ export default DYNAMIC_PROGRAMMING_SECTION;
 // int main() {
 //     // Array representing dimensions of matrices
 //     // A is 1x2, B is 2x3, C is 3x4
-//     vector<int> arr = {1, 2, 3, 4}; 
-    
+//     vector<int> arr = {1, 2, 3, 4};
+
 //     cout << "Minimum number of multiplications is = " << matrixChainOrder(arr) << endl;
 //     return 0;
 // }
@@ -3280,7 +3681,7 @@ export default DYNAMIC_PROGRAMMING_SECTION;
 // int main() {
 //     string s1 = "abcde";
 //     string s2 = "ace";
-    
+
 //     cout << "Length of LCS = " << longestCommonSubsequence(s1, s2) << endl;
 //     return 0;
 // }
@@ -3403,7 +3804,7 @@ export default DYNAMIC_PROGRAMMING_SECTION;
 
 // int longestIncreasingSubsequence(const vector<int>& nums) {
 //     if (nums.empty()) return 0;
-    
+
 //     int n = nums.size();
 //     vector<int> dp(n, 1);
 //     int maxLength = 1;
@@ -3548,7 +3949,7 @@ export default DYNAMIC_PROGRAMMING_SECTION;
 // int main() {
 //     vector<int> coins = {1, 2, 5};
 //     int amount = 11;
-    
+
 //     cout << "Minimum coins required = " << coinChange(coins, amount) << endl;
 //     return 0;
 // }
@@ -3685,7 +4086,7 @@ export default DYNAMIC_PROGRAMMING_SECTION;
 //     if (mask == (1 << n) - 1) {
 //         return dist[pos][0];
 //     }
-    
+
 //     if (dp[mask][pos] != -1) {
 //         return dp[mask][pos];
 //     }
@@ -3710,7 +4111,7 @@ export default DYNAMIC_PROGRAMMING_SECTION;
 //         {15, 35, 0, 30},
 //         {20, 25, 30, 0}
 //     };
-    
+
 //     // dp array initialized to -1
 //     // Size is 2^n for rows (bitmask) and n for columns
 //     vector<vector<int>> dp(1 << n, vector<int>(n, -1));
@@ -6663,4 +7064,3 @@ export default DYNAMIC_PROGRAMMING_SECTION;
 // };
 
 // ─────────────────────────────────────────────────────────────────────────── ^
-

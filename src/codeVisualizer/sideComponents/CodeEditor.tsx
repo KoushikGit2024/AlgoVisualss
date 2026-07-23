@@ -14,7 +14,7 @@ const CodeEditor = ({
   code: string;
   lang: string;
   highlightLine?: number;
-  setCode: React.Dispatch<React.SetStateAction<string>>;
+  setCode: (value: string) => void;
 }) => {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const decorationIdsRef = useRef<string[]>([]);
@@ -46,11 +46,11 @@ const CodeEditor = ({
 
   const applyDynamicTheme = (monaco: any) => {
     if (!monaco) return;
-    
+
     const root = document.documentElement;
     const style = getComputedStyle(root);
     const isDark = root.getAttribute("data-theme")?.includes("dark");
-    
+
     const normalizeColor = (color: string) => {
       // Monaco's internal token parser crashes on 3-digit hex colors (like #fff).
       // We must expand them to 6-digit (#ffffff).
@@ -61,11 +61,21 @@ const CodeEditor = ({
     };
 
     // Fallback colors just in case styles haven't loaded
-    const bg = normalizeColor(style.getPropertyValue("--surface").trim() || (isDark ? "#13101F" : "#FFFFFF"));
-    const text = normalizeColor(style.getPropertyValue("--text").trim() || (isDark ? "#EDE9FF" : "#1A1523"));
-    const muted = normalizeColor(style.getPropertyValue("--muted").trim() || (isDark ? "#8878B0" : "#6B6787"));
-    const accent = normalizeColor(style.getPropertyValue("--accent").trim() || (isDark ? "#818CF8" : "#6366F1"));
-    const surface2 = normalizeColor(style.getPropertyValue("--surface-2").trim() || (isDark ? "#1A1630" : "#F0EFFE"));
+    const bg = normalizeColor(
+      style.getPropertyValue("--surface").trim() || (isDark ? "#13101F" : "#FFFFFF"),
+    );
+    const text = normalizeColor(
+      style.getPropertyValue("--text").trim() || (isDark ? "#EDE9FF" : "#1A1523"),
+    );
+    const muted = normalizeColor(
+      style.getPropertyValue("--muted").trim() || (isDark ? "#8878B0" : "#6B6787"),
+    );
+    const accent = normalizeColor(
+      style.getPropertyValue("--accent").trim() || (isDark ? "#818CF8" : "#6366F1"),
+    );
+    const surface2 = normalizeColor(
+      style.getPropertyValue("--surface-2").trim() || (isDark ? "#1A1630" : "#F0EFFE"),
+    );
 
     monaco.editor.defineTheme("dynamic-theme", {
       base: isDark ? "vs-dark" : "vs",
@@ -97,31 +107,25 @@ const CodeEditor = ({
     if (!editorRef.current) return;
 
     if (!line || line <= 0) {
-      decorationIdsRef.current = editorRef.current.deltaDecorations(
-        decorationIdsRef.current,
-        []
-      );
+      decorationIdsRef.current = editorRef.current.deltaDecorations(decorationIdsRef.current, []);
       return;
     }
 
-    decorationIdsRef.current = editorRef.current.deltaDecorations(
-      decorationIdsRef.current,
-      [
-        {
-          range: {
-            startLineNumber: line,
-            startColumn: 1,
-            endLineNumber: line,
-            endColumn: 1,
-          },
-          options: {
-            isWholeLine: true,
-            className: "active-line-highlight",
-            linesDecorationsClassName: "active-line-gutter",
-          },
+    decorationIdsRef.current = editorRef.current.deltaDecorations(decorationIdsRef.current, [
+      {
+        range: {
+          startLineNumber: line,
+          startColumn: 1,
+          endLineNumber: line,
+          endColumn: 1,
         },
-      ]
-    );
+        options: {
+          isWholeLine: true,
+          className: "active-line-highlight",
+          linesDecorationsClassName: "active-line-gutter",
+        },
+      },
+    ]);
 
     editorRef.current.revealLineInCenterIfOutsideViewport(line);
   };
@@ -187,7 +191,7 @@ const CodeEditor = ({
           smoothScrolling: true,
           scrollBeyondLastLine: false,
           padding: { top: 16, bottom: 76 },
-          
+
           automaticLayout: true,
 
           scrollbar: {

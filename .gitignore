@@ -36,3 +36,8 @@ test.cpp
 test.exe
 tempObjFile.js
 issues.txt
+.agents
+
+# Prettier
+.prettierrc
+.prettierignore
