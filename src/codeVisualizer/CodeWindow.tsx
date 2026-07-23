@@ -1,11 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import CodeEditor from "./sideComponents/CodeEditor";
+import { useSnippets } from "./hooks/useSnippets";
+import { NavigationBlocker } from "../components/NavigationBlocker";
 import VisualGround from "./sideComponents/VisualGround";
-import { Info, X, ChevronLeft, ChevronRight, Code, MonitorPlay } from "lucide-react";
-import VisualizerNamingConventions from "./dataStructures/VisualizerNamingConventions";
+import { Info, X, ChevronLeft, ChevronRight, Code, MonitorPlay, Save, FilePlus, RotateCcw, Edit2, ChevronDown, Check, Trash2 } from "lucide-react";
+import VisualizerNamingConventions from "./namingConventions/VisualizerNamingConventions";
 // import { ALGODATA } from '../Pages/algorithms/data/categories/AlgoData';
 import { cn } from "../lib/utils";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -20,7 +22,6 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
         : Object.keys(codeObject)[0];
 
   const [lang, setLang] = useState<string>(initialLang);
-  const [code, setCode] = useState<string>(codeObject[initialLang] || "");
   const [highlightLine, setHighlightLine] = useState<number>(1);
 
   // Sync language selection to URL
@@ -35,6 +36,45 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
       );
     }
   }, [lang, searchParams, setSearchParams]);
+
+  const {
+    isEditor,
+    isAlgorithms,
+    snippets,
+    activeSnippetId,
+    activeCode,
+    hasUnsavedChanges,
+    updateCode,
+    saveSnippet,
+    createSnippet,
+    deleteSnippet,
+    switchSnippet,
+    renameSnippet,
+    restoreOriginalAlgoCode
+  } = useSnippets(codeObject[initialLang] || "");
+
+  const [editingTitleId, setEditingTitleId] = useState<string | null>(null);
+  const [editingTitleValue, setEditingTitleValue] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+
+  const handleTitleSubmit = (id: string) => {
+    if (editingTitleValue.trim()) {
+      renameSnippet(id, editingTitleValue);
+    }
+    setEditingTitleId(null);
+  };
 
   const [splitOffset, setSplitOffset] = useState<number>(35);
   const [ghostOffset, setGhostOffset] = useState<number | null>(null);
@@ -59,8 +99,9 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Initialize highlight indices
-    setCode(codeObject[lang] as string);
+    // Only reset code if we switch language, not on every re-render
+    // But since useSnippets handles local state, we can just call updateCode 
+    // if we wanted to sync it back. For now, we only support C++ multi-files properly.
   }, [lang, codeObject]);
 
   useEffect(() => {
@@ -69,7 +110,7 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
       const rect = containerRef.current.getBoundingClientRect();
       const isDesktop = window.innerWidth >= 1024;
 
-      let newPercentage = 50;
+      let newPercentage;
       if (isDesktop) {
         newPercentage = ((e.clientX - rect.left) / rect.width) * 100;
       } else {
@@ -106,16 +147,11 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
 
   const langArray: string[] = Object.keys(codeObject);
 
-  const location = useLocation();
-
-  useEffect(() => {
-    if (!location.pathname.startsWith("/editor")) return;
-    localStorage.setItem("editor-code", code);
-  }, [code]);
-
   return (
-    <div
-      ref={containerRef}
+    <>
+      <NavigationBlocker when={isEditor && hasUnsavedChanges} onConfirm={() => {}} />
+      <div
+        ref={containerRef}
       className="relative flex flex-col lg:flex-row items-stretch w-full h-full p-1 bg-bg text-text overflow-hidden min-h-0"
     >
       {/* Small Screen Warning Banner */}
@@ -215,10 +251,146 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
                 <ChevronLeft size={14} />
               </button>
             </div>
+            
+            {/* Action Buttons for Snippets and Algos */}
+            <div className="flex items-center gap-2">
+              {isEditor && (
+                <>
+                  <button
+                    onClick={() => saveSnippet()}
+                    disabled={!hasUnsavedChanges}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full transition-colors",
+                      hasUnsavedChanges 
+                        ? "bg-accent/10 text-accent hover:bg-accent/20 cursor-pointer" 
+                        : "text-muted bg-surface cursor-not-allowed opacity-50"
+                    )}
+                    title="Save Snippet"
+                  >
+                    <Save size={14} />
+                    <span>Save</span>
+                  </button>
+                </>
+              )}
+              {isAlgorithms && hasUnsavedChanges && (
+                <button
+                  onClick={restoreOriginalAlgoCode}
+                  className="flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 transition-colors cursor-pointer"
+                  title="Restore Original Source Code"
+                >
+                  <RotateCcw size={14} />
+                  <span>Restore Original</span>
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="flex-1 relative bg-surface styled-scrollbar overflow-hidden min-h-0">
-            <CodeEditor code={code} lang={lang} highlightLine={highlightLine} setCode={setCode} />
+          {/* Snippet Dropdown (Editor Only) */}
+          {isEditor && lang === "c++" && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-2 border-b border-border/50 shrink-0">
+              <div className="relative" ref={dropdownRef}>
+                {editingTitleId === activeSnippetId ? (
+                  <input
+                    type="text"
+                    autoFocus
+                    value={editingTitleValue}
+                    onChange={(e) => setEditingTitleValue(e.target.value)}
+                    onBlur={() => handleTitleSubmit(activeSnippetId!)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleTitleSubmit(activeSnippetId!);
+                      if (e.key === 'Escape') setEditingTitleId(null);
+                    }}
+                    className="bg-surface text-text text-sm rounded-md border border-accent px-3 py-1.5 outline-none w-48 font-medium shadow-sm"
+                  />
+                ) : (
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center justify-between w-48 bg-surface hover:bg-surface-2 text-text text-sm rounded-md border border-border px-3 py-1.5 transition-colors focus:outline-none focus:border-accent shadow-sm"
+                  >
+                    <span className="truncate font-medium">
+                      {snippets.find((s) => s.id === activeSnippetId)?.title || "Select Snippet"}
+                      {hasUnsavedChanges && <span className="text-accent ml-1">*</span>}
+                    </span>
+                    <ChevronDown size={14} className={cn("text-muted transition-transform duration-200", isDropdownOpen && "rotate-180")} />
+                  </button>
+                )}
+
+                {/* Dropdown Menu */}
+                {isDropdownOpen && !editingTitleId && (
+                  <div className="absolute top-full left-0 mt-1 w-48 bg-surface border border-border rounded-md shadow-xl z-50 py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                    {snippets.map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => {
+                          switchSnippet(s.id);
+                          setIsDropdownOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-surface-2 text-text transition-colors flex items-center justify-between group"
+                      >
+                        <span className="truncate pr-2">
+                          {s.title}
+                          {activeSnippetId === s.id && hasUnsavedChanges && <span className="text-accent ml-1">*</span>}
+                        </span>
+                        {activeSnippetId === s.id && (
+                          <Check size={14} className="text-accent shrink-0" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex items-center gap-1.5 ml-3 pl-3 border-l border-border/50">
+                <button
+                  onClick={createSnippet}
+                  className="flex items-center gap-1.5 px-2 py-1.5 hover:bg-surface-3 rounded-md text-muted hover:text-text transition-colors text-xs font-medium"
+                  title="New Snippet"
+                >
+                  <FilePlus size={14} />
+                  <span className="hidden sm:inline">New</span>
+                </button>
+
+                {editingTitleId !== activeSnippetId && (
+                  <button
+                    onClick={() => {
+                      const snippet = snippets.find(s => s.id === activeSnippetId);
+                      if (snippet) {
+                        setEditingTitleId(snippet.id);
+                        setEditingTitleValue(snippet.title);
+                        setIsDropdownOpen(false);
+                      }
+                    }}
+                    className="p-1.5 hover:bg-surface-3 rounded-md text-muted hover:text-text transition-colors"
+                    title="Rename Snippet"
+                  >
+                    <Edit2 size={14} />
+                  </button>
+                )}
+
+                {snippets.length > 1 && (
+                  <button
+                    onClick={() => {
+                      deleteSnippet(activeSnippetId!);
+                      setIsDropdownOpen(false);
+                    }}
+                    className="p-1.5 hover:bg-red-500/10 hover:text-red-500 rounded-md text-muted transition-colors"
+                    title="Delete Current Snippet"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="flex-1 w-full relative min-h-0 min-w-0">
+            <CodeEditor 
+              code={activeCode} 
+              lang={lang} 
+              highlightLine={highlightLine} 
+              setCode={updateCode} 
+            />
           </div>
         </div>
       )}
@@ -308,7 +480,7 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
           </div>
 
           <div className="flex-1 relative bg-surface overflow-hidden flex flex-col min-h-0 min-w-0 p-1">
-            <VisualGround code={code} lang={lang} setHighlightLine={setHighlightLine} />
+            <VisualGround code={activeCode} lang={lang} setHighlightLine={setHighlightLine} />
           </div>
         </div>
       )}
@@ -358,6 +530,7 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
         />
       )}
     </div>
+    </>
   );
 };
 

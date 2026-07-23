@@ -20,6 +20,10 @@ import {
 import { handleMathFunction } from "./stdlib/MathFunctions";
 import { handleStringMethod } from "./stdlib/StringMethods";
 import { handleSetMethod, handleMapMethod, handleArrayMethod } from "./stdlib/ContainerMethods";
+import { handleStdChar } from "./stdlib/StdChar";
+import { handleStdStringFuncs } from "./stdlib/StdStringFuncs";
+import { handleStdMathExtra } from "./stdlib/StdMathExtra";
+import { handleStdIo } from "./stdlib/StdIo";
 import type { EngineContext } from "./EngineContext";
 import type { NativeFunctionHandler } from "./NativeFunctionHandler";
 
@@ -62,6 +66,31 @@ export class FunctionInvoker {
       return this.nativeHandler.nativeSwap(callNode, currentEvaluator);
     }
 
+    if (fn === "__init_field") {
+      try {
+        const fieldName = currentEvaluator.evaluate(callNode.arguments[0]) as string;
+        const thisObj = !this.ctx.callStack.isEmpty() ? this.ctx.callStack.peek().scopeManager.getVariable("this")?.value : null;
+        if (thisObj && typeof thisObj === "object") {
+          const baseName = fieldName.split("<")[0].trim();
+          if (this.ctx.classBlueprints.has(baseName)) {
+            const blueprint = this.ctx.classBlueprints.get(baseName)!;
+            if (blueprint.constructors && blueprint.constructors.length > 0) {
+              const ctorArgs = callNode.arguments.slice(1);
+              const evaluatedArgs = ctorArgs.map((arg: any) => currentEvaluator.evaluate(arg));
+              const ctor = blueprint.constructors.find((c: any) => c.parameters.length === evaluatedArgs.length) || blueprint.constructors[0];
+              this.invokeStructMethod(thisObj, baseName, ctor, evaluatedArgs);
+            }
+          } else {
+            const fieldVal = callNode.arguments.length > 1 ? currentEvaluator.evaluate(callNode.arguments[1]) : 0;
+            (thisObj as any)[fieldName] = fieldVal;
+          }
+        }
+      } catch (e) {
+        // ignore init errors
+      }
+      return undefined;
+    }
+
     if (fn === "__delete") {
       return undefined;
     }
@@ -84,6 +113,26 @@ export class FunctionInvoker {
       }
     } catch {}
 
+    if (fn.includes("::")) {
+      const parts = fn.split("::");
+      if (parts.length === 2 && this.ctx.classBlueprints.has(parts[0])) {
+        const className = parts[0];
+        const methodName = parts[1];
+        const blueprint = this.ctx.classBlueprints.get(className)!;
+        const method = blueprint.methods?.find((m: any) => m.name === methodName);
+        
+        if (method) {
+          try {
+            const thisObj = !this.ctx.callStack.isEmpty() ? this.ctx.callStack.peek().scopeManager.getVariable("this")?.value : null;
+            if (thisObj && typeof thisObj === "object") {
+              const evaluatedArgs = callNode.arguments.map((arg: any) => currentEvaluator.evaluate(arg));
+              return this.invokeStructMethod(thisObj, className, method, evaluatedArgs);
+            }
+          } catch {}
+        }
+      }
+    }
+
     if (localFuncRef || this.ctx.functions.has(fn)) {
       const args = callNode.arguments.map((arg: any) => currentEvaluator.evaluate(arg));
       if (localFuncRef) {
@@ -96,18 +145,12 @@ export class FunctionInvoker {
       return this.invokeFunction(fn, args, callNode.arguments, currentEvaluator);
     }
 
-    if (fn === "string" || fn === "std::string") {
-      const args = callNode.arguments.map((arg: any) => currentEvaluator.evaluate(arg));
-      if (args.length === 2 && typeof args[0] === "number") {
-        const fillChar =
-          typeof args[1] === "string" ? args[1] : String.fromCharCode(args[1] as number);
-        return fillChar.repeat(args[0]);
-      } else if (args.length === 1) {
-        return String(args[0] ?? "");
-      } else if (args.length === 0) {
-        return "";
-      }
+    if (fn === "setw" || fn === "setprecision") {
+      return "";
     }
+
+    const stdStringRes = handleStdStringFuncs(fn, callNode, currentEvaluator);
+    if (stdStringRes !== undefined) return stdStringRes;
 
     if (
       fn.startsWith("vector") ||
@@ -169,34 +212,8 @@ export class FunctionInvoker {
     const mathRes = handleMathFunction(fn, evaluatedArgs as number[], callNode.line, this.ctx);
     if (mathRes !== undefined) return mathRes;
 
-    if (fn === "__gcd" || fn === "gcd") {
-      let a = Math.abs(currentEvaluator.evaluate(callNode.arguments[0]) as number);
-      let b = Math.abs(currentEvaluator.evaluate(callNode.arguments[1]) as number);
-      while (b) {
-        [a, b] = [b, a % b];
-      }
-      return a;
-    }
-    if (fn === "lcm") {
-      let a = Math.abs(currentEvaluator.evaluate(callNode.arguments[0]) as number);
-      let b = Math.abs(currentEvaluator.evaluate(callNode.arguments[1]) as number);
-      if (a === 0 || b === 0) return 0;
-      let pa = a,
-        pb = b;
-      while (pb) {
-        [pa, pb] = [pb, pa % pb];
-      }
-      return (a / pa) * b;
-    }
-
-    if (fn.startsWith("greater"))
-      return ((a: number, b: number) => (a > b ? -1 : a < b ? 1 : 0)) as unknown as CppValue;
-    if (fn.startsWith("less_equal"))
-      return ((a: number, b: number) => (a <= b ? -1 : 1)) as unknown as CppValue;
-    if (fn.startsWith("greater_equal"))
-      return ((a: number, b: number) => (a >= b ? -1 : 1)) as unknown as CppValue;
-    if (fn.startsWith("less"))
-      return ((a: number, b: number) => (a < b ? -1 : a > b ? 1 : 0)) as unknown as CppValue;
+    const mathExtraRes = handleStdMathExtra(fn, callNode, currentEvaluator);
+    if (mathExtraRes !== undefined) return mathExtraRes;
 
     if (fn === "make_pair" || fn === "pair") {
       const a0 = currentEvaluator.evaluate(callNode.arguments[0]);
@@ -208,43 +225,11 @@ export class FunctionInvoker {
       return callNode.arguments.map((a: any) => currentEvaluator.evaluate(a));
     }
 
-    if (fn === "to_string") return String(currentEvaluator.evaluate(callNode.arguments[0]) ?? "");
-    if (fn === "stoi" || fn === "stol" || fn === "stoll")
-      return parseInt(String(currentEvaluator.evaluate(callNode.arguments[0])), 10);
-    if (fn === "stod" || fn === "stof" || fn === "stold")
-      return parseFloat(String(currentEvaluator.evaluate(callNode.arguments[0])));
-    if (fn === "atoi")
-      return parseInt(String(currentEvaluator.evaluate(callNode.arguments[0])), 10);
-    if (fn === "atof") return parseFloat(String(currentEvaluator.evaluate(callNode.arguments[0])));
+    const stdCharRes = handleStdChar(fn, callNode, currentEvaluator);
+    if (stdCharRes !== undefined) return stdCharRes;
 
-    const charFns: Record<string, (ch: string) => CppValue> = {
-      toupper: (ch) => ch.toUpperCase().charCodeAt(0),
-      tolower: (ch) => ch.toLowerCase().charCodeAt(0),
-      isdigit: (ch) => (/\d/.test(ch) ? 1 : 0),
-      isalpha: (ch) => (/[a-zA-Z]/.test(ch) ? 1 : 0),
-      isalnum: (ch) => (/[a-zA-Z0-9]/.test(ch) ? 1 : 0),
-      islower: (ch) => (/[a-z]/.test(ch) ? 1 : 0),
-      isupper: (ch) => (/[A-Z]/.test(ch) ? 1 : 0),
-      isspace: (ch) => (/\s/.test(ch) ? 1 : 0),
-      ispunct: (ch) => (/[^\w\s]/.test(ch) ? 1 : 0),
-      isprint: (ch) => (ch.charCodeAt(0) >= 32 && ch.charCodeAt(0) < 127 ? 1 : 0),
-    };
-    if (Object.prototype.hasOwnProperty.call(charFns, fn)) {
-      const c = currentEvaluator.evaluate(callNode.arguments[0]);
-      const ch = typeof c === "string" ? c : String.fromCharCode(c as number);
-      return charFns[fn](ch);
-    }
-
-    if (fn === "printf" || fn === "fprintf") {
-      const rawArgs = callNode.arguments.map((a: any) => currentEvaluator.evaluate(a));
-      const fmtStr = String(rawArgs[0] ?? "");
-      let argIdx = 1;
-      const formatted = fmtStr.replace(/%[-+0 #]*\d*(?:\.\d+)?[diouxXeEfgGscpn%lh]/g, (match) =>
-        match === "%%" ? "%" : String(rawArgs[argIdx++] ?? ""),
-      );
-      this.ctx.eventEmitter.emit(callNode.line, EventType.WRITE, { output: formatted });
-      return 0;
-    }
+    const stdIoRes = handleStdIo(fn, callNode, currentEvaluator, this.ctx);
+    if (stdIoRes !== undefined) return stdIoRes;
 
     if (fn === "assert") {
       const v = currentEvaluator.evaluate(callNode.arguments[0]);
@@ -460,6 +445,51 @@ export class FunctionInvoker {
       }
     }
 
+    const nameParts = name.split("::");
+    const isClassMethod = nameParts.length === 2;
+    const className = isClassMethod ? nameParts[0] : null;
+    if (className) {
+      const blueprint = this.ctx.classBlueprints.get(className);
+      if (blueprint && blueprint.fields) {
+        const staticScope = {
+          getVariable: (varName: string) => {
+            const globalKey = `${className}::${varName}`;
+            try {
+              const sym = this.ctx.globalScopeManager!.getVariable(globalKey);
+              return { name: varName, type: sym.type, value: sym.value };
+            } catch {
+              throw new Error(`Static member ${varName} not found in ${className}`);
+            }
+          },
+          assignVariable: (varName: string, value: any) => {
+            const globalKey = `${className}::${varName}`;
+            try {
+              this.ctx.globalScopeManager!.assignVariable(globalKey, value);
+            } catch {
+              throw new Error(`Static member ${varName} not found in ${className}`);
+            }
+          }
+        } as any;
+        for (const field of blueprint.fields) {
+          const globalKey = `${className}::${field.name}`;
+          let exists = false;
+          try {
+            this.ctx.globalScopeManager!.getVariable(globalKey);
+            exists = true;
+          } catch {}
+
+          if (exists) {
+            try {
+              frame.scopeManager.defineVariable(field.name, "auto", {
+                __ref: field.name,
+                __callerScope: staticScope,
+              });
+            } catch {}
+          }
+        }
+      }
+    }
+
     func.parameters.forEach((param: any, index: number) => {
       let paramType = param.type as CppType;
       if (paramType.includes("[]") || paramType.includes("*")) paramType = "array" as any;
@@ -624,22 +654,60 @@ export class FunctionInvoker {
     const structScope = {
       getVariable: (name: string) => {
         if (name in instance) return { name, type: "auto", value: instance[name] };
+        const globalKey = `${typeName}::${name}`;
+        try {
+          const sym = this.ctx.globalScopeManager!.getVariable(globalKey);
+          return { name, type: sym.type, value: sym.value };
+        } catch {}
         throw new Error(`Member ${name} not found in ${typeName}`);
       },
       assignVariable: (name: string, value: any) => {
-        if (name in instance) instance[name] = value;
-        else throw new Error(`Member ${name} not found in ${typeName}`);
+        if (name in instance) {
+          instance[name] = value;
+          return;
+        }
+        const globalKey = `${typeName}::${name}`;
+        try {
+          this.ctx.globalScopeManager!.assignVariable(globalKey, value);
+          return;
+        } catch {}
+        throw new Error(`Member ${name} not found in ${typeName}`);
       },
     } as any;
 
     const paramNames = new Set(methodDecl.parameters.map((p: any) => p.name));
+    const blueprint = this.ctx.classBlueprints.get(typeName);
+
+    if (blueprint && blueprint.fields) {
+      for (const field of blueprint.fields) {
+        if (!paramNames.has(field.name)) {
+          const globalKey = `${typeName}::${field.name}`;
+          let isStatic = false;
+          try {
+            this.ctx.globalScopeManager!.getVariable(globalKey);
+            isStatic = true;
+          } catch {}
+
+          if (isStatic) {
+            try {
+              frame.scopeManager.defineVariable(field.name, "auto", {
+                __ref: field.name,
+                __callerScope: structScope,
+              });
+            } catch {}
+          }
+        }
+      }
+    }
 
     for (const key of Object.keys(instance)) {
       if (key !== "__type" && !paramNames.has(key)) {
-        frame.scopeManager.defineVariable(key, "auto", {
-          __ref: key,
-          __callerScope: structScope,
-        });
+        try {
+          frame.scopeManager.defineVariable(key, "auto", {
+            __ref: key,
+            __callerScope: structScope,
+          });
+        } catch {}
       }
     }
 
@@ -708,9 +776,10 @@ export class FunctionInvoker {
           const size = evaluatedArgs[0] as number;
           return typeof size === "number" ? new Array(size).fill(0) : [];
         }
-        if (this.ctx.classBlueprints.has(newExpr.typeName)) {
+        const baseTypeName = newExpr.typeName.split("<")[0].trim();
+        if (this.ctx.classBlueprints.has(baseTypeName)) {
           return this.instantiateStructAndExecuteConstructor(
-            newExpr.typeName,
+            baseTypeName,
             newExpr.arguments,
             evaluator,
           );

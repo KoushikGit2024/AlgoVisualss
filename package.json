@@ -24,7 +24,7 @@
     "react-router-dom": "^7.16.0",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.0",
-    "web-tree-sitter": "^0.26.9"
+    "web-tree-sitter": "^0.26.11"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -434,8 +434,8 @@ export class ScopeManager {
     // 2. Overlay current scope chain, inner overwriting outer
     for (const scope of this.scopes) {
       for (const [name, symbol] of Object.entries(scope.getAll())) {
-        // Filter out internal engine proxy symbols.
-        if (name.startsWith("__")) continue;
+        // Filter out internal engine proxy symbols and mocked iomanip globals.
+        if (name.startsWith("__") || symbol.type === "__iomanip") continue;
         state[name] = symbol;
       }
     }

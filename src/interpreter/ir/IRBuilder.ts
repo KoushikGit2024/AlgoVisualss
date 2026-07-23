@@ -44,9 +44,16 @@ export class IRBuilder {
     const aliases: IRTypeAlias[] = [];
     const globals: IRVariableDeclaration[] = [];
 
-    for (const child of rootNode.namedChildren) {
+    const processNode = (child: SyntaxNode) => {
       try {
         switch (child.type) {
+          case "template_declaration":
+            for (const c of child.namedChildren) {
+              if (c.type !== "template_parameter_list") {
+                processNode(c);
+              }
+            }
+            break;
           case "function_definition":
             functions.push(this.buildFunctionDeclaration(child));
             break;
@@ -85,9 +92,13 @@ export class IRBuilder {
         }
       } catch (e) {
         logStepToConsole(
-          `[IRBuilder.build] Skipping top-level node '${child.type}' at line ${child.startPosition.row + 1} due to parse error: ${(e as Error).message}`,
+          `[IRBuilder.build] Skipping node '${child.type}' at line ${child.startPosition.row + 1} due to parse error: ${(e as Error).message}`,
         );
       }
+    };
+
+    for (const child of rootNode.namedChildren) {
+      processNode(child);
     }
 
     return { kind: "Program", line: 1, functions, structs, enums, aliases, globals };

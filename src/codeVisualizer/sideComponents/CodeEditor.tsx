@@ -14,7 +14,7 @@ const CodeEditor = ({
   code: string;
   lang: string;
   highlightLine?: number;
-  setCode: React.Dispatch<React.SetStateAction<string>>;
+  setCode: (value: string) => void;
 }) => {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const decorationIdsRef = useRef<string[]>([]);

@@ -152,6 +152,32 @@ export function buildStructDeclaration(node: SyntaxNode, builder: IRBuilder): IR
   const nameNode = node.namedChildren.find((c: any) => c.type === "type_identifier");
   const name = nameNode?.text ?? "anonymous_struct";
   const bodyNode = node.namedChildren.find((c: any) => c.type === "field_declaration_list");
+  
+  const baseClasses: string[] = [];
+  const baseClassClause = node.namedChildren.find((c: any) => c.type === "base_class_clause");
+  if (baseClassClause) {
+    const findBaseClasses = (n: any) => {
+      if (n.type === "type_identifier" || n.type === "template_type" || n.type === "identifier") {
+        const name = n.text.split("<")[0].trim();
+        if (name) baseClasses.push(name);
+      } else if (n.type === "base_class") {
+        for (const child of n.namedChildren) {
+          if (child.type === "type_identifier" || child.type === "template_type" || child.type === "identifier") {
+            const name = child.text.split("<")[0].trim();
+            if (name) baseClasses.push(name);
+          }
+        }
+      } else {
+        for (const child of n.namedChildren) {
+          findBaseClasses(child);
+        }
+      }
+    };
+    for (const child of baseClassClause.namedChildren) {
+      findBaseClasses(child);
+    }
+  }
+
   const fields: IRStructDeclaration["fields"] = [];
   const constructors: IRFunctionDeclaration[] = [];
   const methods: IRFunctionDeclaration[] = [];
@@ -173,25 +199,30 @@ export function buildStructDeclaration(node: SyntaxNode, builder: IRBuilder): IR
           continue;
         }
       }
-      if (field.type !== "field_declaration") continue;
+      if (field.type !== "field_declaration" && field.type !== "declaration") continue;
       let type = field.child(0)?.text ?? "unknown";
       let decl = field.namedChildren.find((c: any) =>
         [
           "field_identifier",
+          "identifier",
           "array_declarator",
           "pointer_declarator",
           "reference_declarator",
+          "init_declarator",
         ].includes(c.type),
       );
       let fieldName = "unknown";
       if (decl) {
         let currDecl = decl;
-        while (currDecl.type === "pointer_declarator" || currDecl.type === "reference_declarator") {
+        if (currDecl.type === "init_declarator") {
+           currDecl = currDecl.child(0) as SyntaxNode;
+        }
+        while (currDecl && (currDecl.type === "pointer_declarator" || currDecl.type === "reference_declarator")) {
           if (currDecl.type === "pointer_declarator") type += "*";
           if (currDecl.type === "reference_declarator") type += "&";
           currDecl = currDecl.child(1) as SyntaxNode;
         }
-        if (currDecl.type === "array_declarator") {
+        if (currDecl && currDecl.type === "array_declarator") {
           type += "[]";
           currDecl = currDecl.child(0) as SyntaxNode;
         }
@@ -218,6 +249,7 @@ export function buildStructDeclaration(node: SyntaxNode, builder: IRBuilder): IR
     fields,
     constructors,
     methods,
+    baseClasses,
   };
 }
 

@@ -65,9 +65,9 @@ export class ControlFlowExecutor {
             variable: `this->${fieldName}`,
             value: (thisObj as any)[fieldName],
           });
+          return;
         }
       }
-      return;
     }
 
     this.evaluator.evaluate(stmt.expression);

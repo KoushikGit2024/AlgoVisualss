@@ -35,6 +35,49 @@ export class ProgramLoader {
       this.classBlueprints.set(struct.name, struct);
     }
 
+    const flattenStruct = (structName: string, visited: Set<string> = new Set()) => {
+      if (visited.has(structName)) return;
+      visited.add(structName);
+      const struct = this.classBlueprints.get(structName);
+      if (!struct) return;
+      
+      if (struct.baseClasses) {
+        for (const baseName of struct.baseClasses) {
+          flattenStruct(baseName, visited);
+          const baseStruct = this.classBlueprints.get(baseName);
+          if (baseStruct) {
+            const existingFields = new Set(struct.fields.map((f: any) => f.name));
+            for (const bf of baseStruct.fields) {
+              if (!existingFields.has(bf.name)) {
+                struct.fields.push(bf);
+              }
+            }
+            const existingMethods = new Set(struct.methods?.map((m: any) => m.name) ?? []);
+            if (baseStruct.methods) {
+              if (!struct.methods) struct.methods = [];
+              for (const bm of baseStruct.methods) {
+                if (!existingMethods.has(bm.name)) {
+                  struct.methods.push(bm);
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+
+    for (const structName of this.classBlueprints.keys()) {
+      flattenStruct(structName);
+    }
+
+    for (const struct of this.classBlueprints.values()) {
+      if (struct.methods) {
+        for (const method of struct.methods) {
+          this.functions.set(`${struct.name}::${method.name}`, method);
+        }
+      }
+    }
+
     this.enumBlueprints.clear();
     this.resolvedEnumValues.clear();
 

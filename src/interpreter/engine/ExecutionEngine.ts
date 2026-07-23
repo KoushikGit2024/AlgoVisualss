@@ -293,6 +293,9 @@ export class ExecutionEngine {
     }
 
     const globalFrame = this.callStack.push("__global_init__");
+    globalFrame.scopeManager.defineVariable("fixed", "__iomanip", "");
+    globalFrame.scopeManager.defineVariable("left", "__iomanip", "");
+    globalFrame.scopeManager.defineVariable("right", "__iomanip", "");
     const globalEval = new ExpressionEvaluator(globalFrame.scopeManager, this.eventEmitter);
     this.invoker.attachEvaluationInterceptor(globalEval);
     globalEval.setInputProvider(() => this.config.provideInput());

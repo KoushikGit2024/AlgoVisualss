@@ -175,10 +175,13 @@ export class DeclarationExecutor {
           value = new Map(elements);
         } else if (typeLower.includes("pair")) {
           value = [arg0, arg1 !== undefined ? arg1 : 0];
-        } else if (this.classBlueprints?.has(resolvedType)) {
-          value = this.instantiateStruct(resolvedType, node.constructorArgs);
         } else {
-          value = arg0;
+          const baseTypeResolved = resolvedType.split("<")[0].trim();
+          if (this.classBlueprints?.has(baseTypeResolved)) {
+            value = this.instantiateStruct(baseTypeResolved, node.constructorArgs);
+          } else {
+            value = arg0;
+          }
         }
       } catch (e) {
         logStepToConsole(

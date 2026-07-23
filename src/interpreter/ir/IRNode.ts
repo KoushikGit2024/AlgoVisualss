@@ -213,6 +213,7 @@ export interface IRStructDeclaration extends IRBaseNode {
   }[];
   constructors?: IRFunctionDeclaration[]; // v2: explicitly defined constructors
   methods?: IRFunctionDeclaration[]; // v2: struct member functions
+  baseClasses?: string[]; // v2: inherited base classes
 }
 
 /**
