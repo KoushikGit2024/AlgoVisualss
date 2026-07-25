@@ -58,27 +58,43 @@ export class StatementExecutor {
     );
   }
 
+  private withErrorContext<T>(node: { line: number }, fn: () => T): T {
+    try {
+      return fn();
+    } catch (e: any) {
+      if (
+        e instanceof Error &&
+        e.name !== "ThrowSignal" &&
+        e.name !== "BreakpointSignal" &&
+        !e.message.match(/^Line \d+:/)
+      ) {
+        e.message = `Line ${node.line}: ${e.message}`;
+      }
+      throw e;
+    }
+  }
+
   public executeVariableDeclaration(node: IRVariableDeclaration): void {
-    this.declarationExecutor.executeVariableDeclaration(node);
+    this.withErrorContext(node, () => this.declarationExecutor.executeVariableDeclaration(node));
   }
 
   public executeAssignment(stmt: IRAssignment): void {
-    this.assignmentExecutor.executeAssignment(stmt);
+    this.withErrorContext(stmt, () => this.assignmentExecutor.executeAssignment(stmt));
   }
 
   public executeExpressionStatement(stmt: IRExpressionStatement): void {
-    this.controlFlowExecutor.executeExpressionStatement(stmt);
+    this.withErrorContext(stmt, () => this.controlFlowExecutor.executeExpressionStatement(stmt));
   }
 
   public executeCout(stmt: IRCoutStatement): void {
-    this.ioExecutor.executeCout(stmt);
+    this.withErrorContext(stmt, () => this.ioExecutor.executeCout(stmt));
   }
 
   public executeReturn(stmt: IRReturnStatement): never {
-    this.controlFlowExecutor.executeReturn(stmt);
+    return this.withErrorContext(stmt, () => this.controlFlowExecutor.executeReturn(stmt));
   }
 
   public executeThrow(stmt: IRThrowStatement): never {
-    this.controlFlowExecutor.executeThrow(stmt);
+    return this.withErrorContext(stmt, () => this.controlFlowExecutor.executeThrow(stmt));
   }
 }

@@ -212,10 +212,7 @@ export default function Navbar() {
 
       <AnimatePresence>
         {isSearchOpen && (
-          <SearchPalette
-            isOpen={isSearchOpen}
-            onClose={() => setIsSearchOpen(false)}
-          />
+          <SearchPalette isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
         )}
       </AnimatePresence>
     </>

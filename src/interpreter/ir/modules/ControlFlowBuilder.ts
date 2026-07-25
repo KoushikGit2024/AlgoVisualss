@@ -151,7 +151,9 @@ export function buildForRangeStatement(node: SyntaxNode, builder: IRBuilder): IR
     node.namedChildren[node.namedChildren.length - 1];
   let collectionNode = (node as any).childForFieldName?.("right") as SyntaxNode | undefined;
   if (!collectionNode) {
-    const bodyIndex = node.namedChildren.findIndex((c: any) => (c as any).id === (bodyNode as any)?.id);
+    const bodyIndex = node.namedChildren.findIndex(
+      (c: any) => (c as any).id === (bodyNode as any)?.id,
+    );
     collectionNode = node.namedChildren[bodyIndex - 1];
   }
   if (!bodyNode || !collectionNode)

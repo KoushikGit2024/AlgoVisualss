@@ -22,13 +22,7 @@ const VisualGround = ({
   lang: string;
   setHighlightLine: React.Dispatch<React.SetStateAction<number>>;
 }) => {
-  const {
-    snapshots,
-    isCompiling,
-    error,
-    handleSimulate,
-    handleResetError,
-  } = useEngineWorker({
+  const { snapshots, isCompiling, error, handleSimulate, handleResetError } = useEngineWorker({
     code,
     lang,
     onSimulationStart: () => {
@@ -36,14 +30,7 @@ const VisualGround = ({
     },
   });
 
-  const {
-    currentStep,
-    setCurrentStep,
-    isPlaying,
-    setIsPlaying,
-    speed,
-    setSpeed,
-  } = usePlayback({
+  const { currentStep, setCurrentStep, isPlaying, setIsPlaying, speed, setSpeed } = usePlayback({
     snapshotsLength: snapshots.length,
     code,
   });
@@ -51,7 +38,8 @@ const VisualGround = ({
   // UI state
   const [hSplit, setHSplit] = useState<number>(65);
   const [vSplit, setVSplit] = useState<number>(30);
-  const [draggingDiv, setDraggingDiv] = useState<"v" | "h" | null>(null);
+  const [cSplit, setCSplit] = useState<number>(65);
+  const [draggingDiv, setDraggingDiv] = useState<"v" | "h" | "c" | null>(null);
 
   const [isCallStackCollapsed, setIsCallStackCollapsed] = useState(false);
   const [isVariablesCollapsed, setIsVariablesCollapsed] = useState(false);
@@ -69,6 +57,7 @@ const VisualGround = ({
 
   const mainContainerRef = useRef<HTMLDivElement>(null!);
   const rightPanelRef = useRef<HTMLDivElement>(null!);
+  const varsConsoleRef = useRef<HTMLDivElement>(null!);
   const outputRef = useRef<HTMLDivElement>(null!);
   const layoutAreaRef = useRef<HTMLDivElement>(null!);
 
@@ -114,30 +103,76 @@ const VisualGround = ({
     const groups: Record<string, CanvasState[]> = {};
     canvasStates.forEach((state) => {
       if (state.type === "none") return;
-      if (!groups[state.type]) groups[state.type] = [];
-      groups[state.type].push(state);
+
+      const dotIndex = state.id.indexOf(".");
+      let groupKey: string = state.type;
+
+      if (dotIndex > 0) {
+        // Group by the struct/class instance name
+        groupKey = `struct:${state.id.substring(0, dotIndex)}`;
+      }
+
+      if (!groups[groupKey]) groups[groupKey] = [];
+      groups[groupKey].push(state);
     });
     return groups;
   }, [canvasStates]);
 
   // Window layout
-  const { windowStates, updateWindow, bringToFront, resetWindowStates, activeWindowId } = useWindowLayout(groupedStates);
+  const { windowStates, updateWindow, bringToFront, resetWindowStates, activeWindowId } =
+    useWindowLayout(groupedStates);
 
   // Drag resizing
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!draggingDiv) return;
+      const isDesktop = window.innerWidth >= 768;
+      const minMargin = isDesktop ? 20 : 10;
+      const maxMargin = isDesktop ? 80 : 90;
+      const collapseMin = isDesktop ? 10 : 5;
+      const collapseMax = isDesktop ? 90 : 95;
+
       if (draggingDiv === "h" && mainContainerRef.current) {
         const rect = mainContainerRef.current.getBoundingClientRect();
-        const isDesktop = window.innerWidth >= 768;
         const raw = isDesktop
           ? ((e.clientX - rect.left) / rect.width) * 100
           : ((e.clientY - rect.top) / rect.height) * 100;
-        setHSplit(Math.max(25, Math.min(raw, 75)));
+
+        if (raw > collapseMax) {
+          setIsCallStackCollapsed(true);
+          setIsVariablesCollapsed(true);
+          setIsConsoleCollapsed(true);
+          setDraggingDiv(null);
+        } else {
+          setHSplit(Math.max(minMargin, Math.min(raw, maxMargin)));
+        }
       } else if (draggingDiv === "v" && rightPanelRef.current) {
         const rect = rightPanelRef.current.getBoundingClientRect();
         const raw = ((e.clientY - rect.top) / rect.height) * 100;
-        setVSplit(Math.max(15, Math.min(raw, 85)));
+        
+        if (raw < collapseMin) {
+          setIsCallStackCollapsed(true);
+          setDraggingDiv(null);
+        } else if (raw > collapseMax) {
+          setIsVariablesCollapsed(true);
+          setIsConsoleCollapsed(true);
+          setDraggingDiv(null);
+        } else {
+          setVSplit(Math.max(minMargin, Math.min(raw, maxMargin)));
+        }
+      } else if (draggingDiv === "c" && varsConsoleRef.current) {
+        const rect = varsConsoleRef.current.getBoundingClientRect();
+        const raw = ((e.clientY - rect.top) / rect.height) * 100;
+        
+        if (raw < collapseMin) {
+          setIsVariablesCollapsed(true);
+          setDraggingDiv(null);
+        } else if (raw > collapseMax) {
+          setIsConsoleCollapsed(true);
+          setDraggingDiv(null);
+        } else {
+          setCSplit(Math.max(minMargin, Math.min(raw, maxMargin)));
+        }
       }
     };
     const handleMouseUp = () => setDraggingDiv(null);
@@ -285,16 +320,16 @@ const VisualGround = ({
         {!isRightPanelCollapsed && (
           <div
             onMouseDown={() => setDraggingDiv("h")}
-            className="flex items-center justify-center w-1 cursor-col-resize z-10 shrink-0 hover:bg-surface-2 transition-colors"
+            className="flex items-center justify-center p-px md:p-0 md:w-1 shrink-0 cursor-row-resize md:cursor-col-resize hover:bg-surface-2 transition-colors z-10"
           >
-            <div className="w-px h-12 rounded-full bg-border" />
+            <div className="w-12 h-1 md:w-px md:h-12 rounded-full bg-border" />
           </div>
         )}
 
         {/* RIGHT PANE: Inspectors */}
         {isRightPanelCollapsed ? (
           <div
-            className="flex flex-col items-center justify-start p-1 bg-surface-2 border-l border-border shrink-0 cursor-pointer hover:bg-surface-3 transition-colors z-10"
+            className="flex flex-row md:flex-col items-center justify-center py-2 md:py-1 px-4 md:px-1 bg-surface-2 border-t md:border-t-0 md:border-l border-border shrink-0 cursor-pointer hover:bg-surface-3 transition-colors z-10"
             onClick={() => {
               setIsCallStackCollapsed(false);
               setIsVariablesCollapsed(false);
@@ -302,9 +337,12 @@ const VisualGround = ({
             }}
             title="Expand Inspectors"
           >
-            <PanelRightOpen size={14} className="text-muted mb-4" />
+            <PanelRightOpen size={14} className="text-muted mr-3 md:mr-0 md:mb-4 shrink-0" />
+            <span className="text-[calc(9rem/16)] font-semibold text-muted uppercase tracking-widest md:hidden">
+              Inspectors
+            </span>
             <span
-              className="text-[calc(9rem/16)] font-semibold text-muted uppercase tracking-widest"
+              className="hidden md:block text-[calc(9rem/16)] font-semibold text-muted uppercase tracking-widest"
               style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
             >
               Inspectors
@@ -324,8 +362,10 @@ const VisualGround = ({
             expandedVars={expandedVars}
             toggleVarExpand={toggleVarExpand}
             vSplit={vSplit}
+            cSplit={cSplit}
             setDraggingDiv={setDraggingDiv}
             rightPanelRef={rightPanelRef}
+            varsConsoleRef={varsConsoleRef}
             outputRef={outputRef}
             hSplit={hSplit}
           />

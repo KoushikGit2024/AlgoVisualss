@@ -62,6 +62,13 @@ export class DeclarationExecutor {
     if (node.initializer) {
       try {
         value = this.evaluator.evaluate(node.initializer);
+        if (Array.isArray(value)) {
+          if (typeLower.includes("unordered_set") || typeLower.includes("set")) {
+            value = new Set(value);
+          } else if (typeLower.includes("unordered_map") || typeLower.includes("map")) {
+            value = new Map(value as any);
+          }
+        }
       } catch (e) {
         logStepToConsole(
           `[StatementExecutor] Failed to evaluate initializer for '${node.name}': ` +

@@ -8,8 +8,8 @@ import { HelmetProvider } from "react-helmet-async";
 const router = createBrowserRouter([
   {
     path: "*",
-    element: <App />
-  }
+    element: <App />,
+  },
 ]);
 
 createRoot(document.getElementById("root")!).render(

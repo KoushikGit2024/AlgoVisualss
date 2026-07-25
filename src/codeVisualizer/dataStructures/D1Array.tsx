@@ -98,7 +98,7 @@ const D1Array = ({
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="flex items-start gap-1.5 relative w-full"
+        className="flex items-start justify-center gap-1.5 relative min-w-full w-max"
       >
         <AnimatePresence mode="popLayout">
           {/* CRITICAL: Mapping over safeValue, never value */}

@@ -112,9 +112,7 @@ const VisualizerNamingConventions = () => {
                         >
                           {p.prefix}
                         </span>
-                        <code className="text-muted/70 font-mono hidden sm:block">
-                          {p.example}
-                        </code>
+                        <code className="text-muted/70 font-mono hidden sm:block">{p.example}</code>
                       </div>
                     ))}
                   </div>
@@ -133,9 +131,7 @@ const VisualizerNamingConventions = () => {
                             <span className="font-semibold text-text/90">{aux.role}:</span>
                             <span className="font-mono text-accent/80">{aux.trigger}</span>
                           </div>
-                          <p className="text-muted pl-2 border-l-2 border-border/50">
-                            {aux.notes}
-                          </p>
+                          <p className="text-muted pl-2 border-l-2 border-border/50">{aux.notes}</p>
                         </div>
                       ))}
                     </div>

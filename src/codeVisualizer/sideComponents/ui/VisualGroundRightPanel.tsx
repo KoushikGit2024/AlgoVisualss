@@ -15,8 +15,10 @@ interface VisualGroundRightPanelProps {
   expandedVars: Set<string>;
   toggleVarExpand: (id: string) => void;
   vSplit: number;
-  setDraggingDiv: React.Dispatch<React.SetStateAction<"v" | "h" | null>>;
+  cSplit: number;
+  setDraggingDiv: React.Dispatch<React.SetStateAction<"v" | "h" | "c" | null>>;
   rightPanelRef: React.RefObject<HTMLDivElement>;
+  varsConsoleRef: React.RefObject<HTMLDivElement>;
   outputRef: React.RefObject<HTMLDivElement>;
   hSplit: number;
 }
@@ -34,8 +36,10 @@ export function VisualGroundRightPanel({
   expandedVars,
   toggleVarExpand,
   vSplit,
+  cSplit,
   setDraggingDiv,
   rightPanelRef,
+  varsConsoleRef,
   outputRef,
   hSplit,
 }: VisualGroundRightPanelProps) {
@@ -61,8 +65,8 @@ export function VisualGroundRightPanel({
           onClick={() => setIsCallStackCollapsed(!isCallStackCollapsed)}
         >
           <h4 className="text-[calc(9rem/16)] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
-            {isCallStackCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />}{" "}
-            Call Stack
+            {isCallStackCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />} Call
+            Stack
           </h4>
         </div>
         {!isCallStackCollapsed && (
@@ -107,17 +111,25 @@ export function VisualGroundRightPanel({
 
       {/* Variables + Console */}
       <div
+        ref={varsConsoleRef}
         style={
-          isVariablesCollapsed
+          isVariablesCollapsed && isConsoleCollapsed
             ? { flex: "0 0 auto" }
             : { flex: isCallStackCollapsed ? "1 1 0%" : `${100 - vSplit} 1 0%` }
         }
         className={cn(
-          `w-full flex flex-col gap-1 overflow-hidden ${isVariablesCollapsed ? "min-h-0" : "min-h-[120px]"}`,
+          `w-full flex flex-col overflow-hidden ${(isVariablesCollapsed && isConsoleCollapsed) ? "min-h-0" : "min-h-[120px]"}`,
         )}
       >
         {/* Variables */}
-        <div className="flex-1 flex flex-col min-h-0 rounded-sm border border-border bg-bg/90 overflow-hidden">
+        <div
+          style={
+            isVariablesCollapsed
+              ? { flex: "0 0 auto" }
+              : { flex: isConsoleCollapsed ? "1 1 0%" : `${cSplit} 1 0%` }
+          }
+          className="flex flex-col min-h-0 rounded-sm border border-border bg-bg/90 overflow-hidden"
+        >
           <div
             className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0 flex items-center justify-between cursor-pointer hover:bg-surface-3"
             onClick={() => setIsVariablesCollapsed(!isVariablesCollapsed)}
@@ -131,9 +143,7 @@ export function VisualGroundRightPanel({
             <div className="flex-1 overflow-y-auto styled-scrollbar p-1">
               <div className="flex flex-col gap-px">
                 {overviewVars.length === 0 && (
-                  <span className="text-[calc(9rem/16)] text-muted font-mono p-1">
-                    No locals.
-                  </span>
+                  <span className="text-[calc(9rem/16)] text-muted font-mono p-1">No locals.</span>
                 )}
                 {overviewVars.map((v) => {
                   const isExp = expandedVars.has(v.id);
@@ -202,10 +212,25 @@ export function VisualGroundRightPanel({
           )}
         </div>
 
+        {/* V-Divider for Console */}
+        {!isVariablesCollapsed && !isConsoleCollapsed && (
+          <div
+            onMouseDown={() => setDraggingDiv("c")}
+            className="flex items-center justify-center h-1 cursor-row-resize z-10 shrink-0 hover:bg-surface-2 transition-colors my-[2px]"
+          >
+            <div className="h-px w-12 rounded-full bg-border" />
+          </div>
+        )}
+
         {/* Console Output */}
         <div
+          style={
+            isConsoleCollapsed
+              ? { flex: "0 0 auto" }
+              : { flex: isVariablesCollapsed ? "1 1 0%" : `${100 - cSplit} 1 0%` }
+          }
           className={cn(
-            `shrink-0 flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden ${isConsoleCollapsed ? "min-h-0 h-auto" : "h-28"}`,
+            `flex flex-col min-h-0 rounded-sm border border-border bg-bg/90 overflow-hidden`,
           )}
         >
           <div
@@ -224,9 +249,7 @@ export function VisualGroundRightPanel({
               ref={outputRef}
               className="flex-1 overflow-y-auto styled-scrollbar p-2 font-mono text-[calc(10rem/16)] text-text whitespace-pre-wrap"
             >
-              {consoleOutput || (
-                <span className="text-muted opacity-50 italic">No output...</span>
-              )}
+              {consoleOutput || <span className="text-muted opacity-50 italic">No output...</span>}
             </div>
           )}
         </div>

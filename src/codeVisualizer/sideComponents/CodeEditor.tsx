@@ -191,9 +191,11 @@ const CodeEditor = ({
           smoothScrolling: true,
           scrollBeyondLastLine: false,
           padding: { top: 16, bottom: 76 },
-
           automaticLayout: true,
-
+          overviewRulerLanes: 0,
+          hideCursorInOverviewRuler: true,
+          overviewRulerBorder: false,
+          wordWrap: "on",
           scrollbar: {
             verticalScrollbarSize: 8,
             horizontalScrollbarSize: 8,

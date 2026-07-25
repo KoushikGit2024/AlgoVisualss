@@ -95,9 +95,7 @@ export function VisualGroundToolbar({
             onClick={() => setIsPlaying(!isPlaying)}
             className={cn(
               `p-1.5 rounded-sm text-white transition-all shadow-md disabled:opacity-50 ${
-                isPlaying
-                  ? "bg-orange-500 hover:bg-orange-600"
-                  : "bg-success hover:bg-emerald-500"
+                isPlaying ? "bg-orange-500 hover:bg-orange-600" : "bg-success hover:bg-emerald-500"
               }`,
             )}
           >

@@ -122,15 +122,15 @@ const D2Array = ({
   }
 
   return (
-    <div className="w-full flex flex-col items-start overflow-auto styled-scrollbar pb-6 pt-2 px-2">
+    <div className="w-full overflow-auto styled-scrollbar pb-6 pt-2 px-2">
       <motion.div
         variants={gridVariants}
         initial="hidden"
         animate="show"
-        className="flex flex-col gap-1.5 relative w-full min-w-max"
+        className="flex flex-col items-start gap-1.5 relative w-max mx-auto"
       >
         {/* Column Indices */}
-        <div className="flex items-center gap-1.5 mb-0.5 w-full">
+        <div className="flex items-center gap-1.5 mb-0.5">
           <div className="w-6 h-6 shrink-0" />
           {Array.from({ length: numCols }).map((_, c) => (
             <div key={`col-idx-${c}`} className="w-12 flex justify-center shrink-0">
@@ -148,7 +148,7 @@ const D2Array = ({
                 key={`row-${r}`}
                 variants={rowVariants}
                 layout
-                className="flex items-center gap-1.5 w-full"
+                className="flex items-center gap-1.5"
               >
                 {/* Row Index */}
                 <div className="w-6 flex justify-end pr-2 shrink-0">

@@ -4,9 +4,19 @@ import { Check, Monitor, Moon, Sun } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 // ─── Theme Toggle Icon ────────────────────────────────────────────────────────
-export function ThemeIcon({ theme, size = 16 }: { theme: "light" | "dark" | "system", size?: number }) {
+export function ThemeIcon({
+  theme,
+  size = 16,
+}: {
+  theme: "light" | "dark" | "system";
+  size?: number;
+}) {
   if (theme === "system") return <Monitor size={size} strokeWidth={2} />;
-  return theme === "light" ? <Sun size={size} strokeWidth={2} /> : <Moon size={size} strokeWidth={2} />;
+  return theme === "light" ? (
+    <Sun size={size} strokeWidth={2} />
+  ) : (
+    <Moon size={size} strokeWidth={2} />
+  );
 }
 
 interface NavbarThemeDropdownProps {
@@ -60,7 +70,7 @@ export function NavbarThemeDropdown({
                     "flex items-center justify-between w-full px-3 py-2 text-[13px] font-medium rounded-[8px] transition-all duration-200",
                     theme === t
                       ? "bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] text-(--accent)"
-                      : "text-(--muted) hover:bg-(--surface-2) hover:text-(--muted)"
+                      : "text-(--muted) hover:bg-(--surface-2) hover:text-(--muted)",
                   )}
                 >
                   <div className="flex items-center gap-2.5">

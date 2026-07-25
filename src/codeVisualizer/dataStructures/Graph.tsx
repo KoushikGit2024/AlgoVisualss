@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { cn } from "../../lib/utils";
 
+import { DynamicPrimitive } from "./DynamicPrimitive";
+
 export interface GraphNode {
   id: string;
-  label?: string | number;
+  label?: any;
   x: number;
   y: number;
 }
@@ -60,12 +62,25 @@ function runForceLayout(
     };
   });
 
+  const getRadius = (n: GraphNode) => {
+    if (typeof n.label === "object") {
+      // Estimate size based on object depth/keys roughly. 
+      // 150 gives plenty of room for nested structs like Location->Address.
+      return 150; 
+    }
+    return NODE_R;
+  };
+  let maxRadius = NODE_R;
+  nodes.forEach((n) => {
+    maxRadius = Math.max(maxRadius, getRadius(n));
+  });
+
   const area = width * height;
   // Enforce a minimum equilibrium distance (k) so edges always have breathing room
-  const k = Math.max(Math.sqrt(area / Math.max(nodes.length, 1)) * 0.8, NODE_R * 5.5);
+  const k = Math.max(Math.sqrt(area / Math.max(nodes.length, 1)) * 0.8, maxRadius * 5.5);
   let temperature = width / 8;
   const iterations = 180;
-  const PADDING = NODE_R + 12;
+  const PADDING = maxRadius + 12;
 
   for (let iter = 0; iter < iterations; iter++) {
     const disp: Record<string, Vec> = {};
@@ -80,10 +95,14 @@ function runForceLayout(
         let dist = Math.sqrt(dx * dx + dy * dy);
         if (dist === 0) dist = 0.01;
 
+        const radiusU = getRadius(nodes[i]);
+        const radiusV = getRadius(nodes[j]);
+        const combinedR = radiusU + radiusV;
+
         let force = (k * k) / dist;
         // Strong collision penalty if nodes get too close to guarantee they never cover each other
-        if (dist < NODE_R * 4) {
-          force += (NODE_R * 4 - dist) * 100;
+        if (dist < combinedR * 2) {
+          force += (combinedR * 2 - dist) * 100;
         }
 
         const dispX = (dx / dist) * force;
@@ -182,9 +201,26 @@ const Graph = ({
       setPositions({});
       return;
     }
-    const result = runForceLayout(nodes, edges, size.w, size.h);
+    
+    let hasObj = false;
+    nodes.forEach((n) => {
+      if (typeof n.label === "object") hasObj = true;
+    });
+
+    // If nodes are huge objects, force a larger virtual area so they don't get clamped
+    const vWidth = Math.max(size.w, hasObj ? nodes.length * 280 : size.w);
+    const vHeight = Math.max(size.h, hasObj ? nodes.length * 200 : size.h);
+
+    const result = runForceLayout(nodes, edges, vWidth, vHeight);
     setPositions(result);
   }, [nodeKey, edgeKey, size.w, size.h]);
+
+  let hasObj = false;
+  nodes.forEach((n) => {
+    if (typeof n.label === "object") hasObj = true;
+  });
+  const vWidth = Math.max(size.w, hasObj ? nodes.length * 280 : size.w);
+  const vHeight = Math.max(size.h, hasObj ? nodes.length * 200 : size.h);
 
   const defs = (
     <defs>
@@ -219,6 +255,7 @@ const Graph = ({
     <div
       ref={containerRef}
       className="relative w-full h-full min-w-[320px] min-h-[300px] rounded-2xl overflow-hidden"
+      style={{ width: vWidth, height: vHeight, minWidth: vWidth, minHeight: vHeight }}
     >
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">{defs}</svg>
 
@@ -259,7 +296,8 @@ const Graph = ({
               const dx = tgt.x - src.x;
               const dy = tgt.y - src.y;
               const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-              const GAP = NODE_R + 6.5;
+              const isObjTgt = typeof nodes.find((n) => n.id === edge.target)?.label === "object";
+              const GAP = (isObjTgt ? 80 : NODE_R) + 6.5;
 
               const x1 = src.x + (dx / dist) * GAP;
               const y1 = src.y + (dy / dist) * GAP;
@@ -416,8 +454,11 @@ const Graph = ({
                   animate={{ scale, zIndex: zIdx }}
                   transition={{ type: "spring", stiffness: 340, damping: 22 }}
                   className={cn(
-                    "w-11 h-11 flex items-center justify-center font-mono text-[calc(13rem/16)] font-semibold tracking-wide",
-                    "rounded-full border-[1.5px] shrink-0 transition-colors duration-200 cursor-default",
+                    "flex items-center justify-center font-mono text-[calc(13rem/16)] font-semibold tracking-wide",
+                    "border-[1.5px] shrink-0 transition-colors duration-200 cursor-default",
+                    typeof node.label === "object"
+                      ? "p-2 min-w-[60px] rounded-xl text-left"
+                      : "w-11 h-11 rounded-full",
                     bgCls,
                     borderCls,
                     textCls,
@@ -425,15 +466,20 @@ const Graph = ({
                   )}
                 >
                   <AnimatePresence mode="wait">
-                    <motion.span
-                      key={`val-${node.label ?? node.id}`}
+                    <motion.div
+                      key={`val-${node.id}`}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
+                      className="w-max max-w-[350px]"
                     >
-                      {node.label ?? node.id}
-                    </motion.span>
+                      {typeof node.label === "object" ? (
+                        <DynamicPrimitive value={node.label} />
+                      ) : (
+                        node.label ?? node.id
+                      )}
+                    </motion.div>
                   </AnimatePresence>
                 </motion.div>
 
