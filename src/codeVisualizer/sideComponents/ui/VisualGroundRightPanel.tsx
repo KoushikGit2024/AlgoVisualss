@@ -118,7 +118,7 @@ export function VisualGroundRightPanel({
             : { flex: isCallStackCollapsed ? "1 1 0%" : `${100 - vSplit} 1 0%` }
         }
         className={cn(
-          `w-full flex flex-col overflow-hidden ${(isVariablesCollapsed && isConsoleCollapsed) ? "min-h-0" : "min-h-[120px]"}`,
+          `w-full flex flex-col overflow-hidden ${isVariablesCollapsed && isConsoleCollapsed ? "min-h-0" : "min-h-[120px]"}`,
         )}
       >
         {/* Variables */}

@@ -130,7 +130,9 @@ export function DraggableWindow({
       transition={{ type: "spring", bounce: 0.05, duration: 0.3 }}
       className={cn(
         `absolute flex flex-col bg-bg/95 border border-border rounded-md shadow-xl overflow-hidden ${
-          windowState.isMaximized ? "inset-0" : "min-w-[60px] max-w-[calc(100%-32px)] max-h-[calc(100%-32px)]"
+          windowState.isMaximized
+            ? "inset-0"
+            : "min-w-[60px] max-w-[calc(100%-32px)] max-h-[calc(100%-32px)]"
         }`,
       )}
       style={{

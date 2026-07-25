@@ -99,7 +99,7 @@ export const DynamicPrimitive: React.FC<DynamicPrimitiveProps> = ({ value, depth
     } else if (value.__type === "container" && Array.isArray(value.data)) {
       return <DynamicPrimitive value={value.data} depth={depth} />;
     }
-    
+
     // Generic Object
     const entries = Object.entries(value).filter(([k]) => !k.startsWith("__"));
     if (entries.length === 0) return <span className="text-muted font-mono">{"{}"}</span>;
@@ -107,11 +107,16 @@ export const DynamicPrimitive: React.FC<DynamicPrimitiveProps> = ({ value, depth
     return (
       <div className="flex flex-col items-center justify-center gap-1 border border-border/50 bg-bg/50 rounded-sm p-1.5 min-w-[60px] w-full">
         {entries.map(([k, v], i) => (
-          <div key={i} className="flex flex-row items-stretch justify-center gap-2 text-[calc(11rem/16)] w-full">
+          <div
+            key={i}
+            className="flex flex-row items-stretch justify-center gap-2 text-[calc(11rem/16)] w-full"
+          >
             <div className="bg-surface px-1.5 py-0.5 border border-border/50 rounded-sm font-mono font-bold text-accent-2 flex items-center justify-center shrink-0">
               <DynamicPrimitive value={k} depth={depth + 1} />
             </div>
-            <span className="text-muted opacity-60 flex items-center justify-center shrink-0">→</span>
+            <span className="text-muted opacity-60 flex items-center justify-center shrink-0">
+              →
+            </span>
             <div className="bg-surface px-1.5 py-0.5 border border-border/50 rounded-sm font-mono flex-1 flex items-center justify-center overflow-hidden">
               <DynamicPrimitive value={v} depth={depth + 1} />
             </div>

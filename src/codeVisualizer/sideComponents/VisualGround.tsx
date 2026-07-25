@@ -149,7 +149,7 @@ const VisualGround = ({
       } else if (draggingDiv === "v" && rightPanelRef.current) {
         const rect = rightPanelRef.current.getBoundingClientRect();
         const raw = ((e.clientY - rect.top) / rect.height) * 100;
-        
+
         if (raw < collapseMin) {
           setIsCallStackCollapsed(true);
           setDraggingDiv(null);
@@ -163,7 +163,7 @@ const VisualGround = ({
       } else if (draggingDiv === "c" && varsConsoleRef.current) {
         const rect = varsConsoleRef.current.getBoundingClientRect();
         const raw = ((e.clientY - rect.top) / rect.height) * 100;
-        
+
         if (raw < collapseMin) {
           setIsVariablesCollapsed(true);
           setDraggingDiv(null);

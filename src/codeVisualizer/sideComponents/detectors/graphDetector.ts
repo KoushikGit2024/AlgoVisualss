@@ -71,10 +71,18 @@ export function tryDetectAdjacencyGraph(
     neighbors.forEach((nbr: any) => {
       let j: number;
       let w: any = undefined;
-      
+
       if (typeof nbr === "object" && nbr !== null) {
         // Try to find the destination node ID in the struct
-        j = nbr.to ?? nbr.dest ?? nbr.destination ?? nbr.target ?? nbr.node ?? nbr.vertex ?? nbr.v ?? -1;
+        j =
+          nbr.to ??
+          nbr.dest ??
+          nbr.destination ??
+          nbr.target ??
+          nbr.node ??
+          nbr.vertex ??
+          nbr.v ??
+          -1;
         // Try to find weight
         w = nbr.weight ?? nbr.cost ?? nbr.distance ?? nbr.w;
       } else {

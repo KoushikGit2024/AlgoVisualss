@@ -56,14 +56,21 @@ export function detectVisualizer(
     detectLinearStructures(passKeys, passVars, consumedKeys, pointerContext, visualizers);
 
     // ── 4, 8-13. Matrices, Arrays, Strings, Bitsets, Fallbacks ─────
-    detectArraysAndMaps(passKeys, passVars, currentEvent, consumedKeys, pointerContext, visualizers);
+    detectArraysAndMaps(
+      passKeys,
+      passVars,
+      currentEvent,
+      consumedKeys,
+      pointerContext,
+      visualizers,
+    );
   };
 
   // Run first pass on top-level variables
   runPass(keys, vars);
 
   // ── 14. Second Pass for Class/Struct Fields ─────────────────────────────
-  // If a top-level object wasn't consumed (like an LRUCache instance), 
+  // If a top-level object wasn't consumed (like an LRUCache instance),
   // extract its fields as virtual variables and run the detectors again.
   const secondPassVars: VarMap = { ...vars };
   const secondPassKeys: string[] = [];
@@ -71,16 +78,22 @@ export function detectVisualizer(
   for (const name of keys) {
     if (consumedKeys.has(name)) continue;
     const val = deepUnwrap(vars[name]?.value);
-    
-    if (val && typeof val === "object" && !Array.isArray(val) && val.__type !== "map" && val.__type !== "set") {
+
+    if (
+      val &&
+      typeof val === "object" &&
+      !Array.isArray(val) &&
+      val.__type !== "map" &&
+      val.__type !== "set"
+    ) {
       // It's a plain struct/class. Extract its properties.
       for (const [key, propValue] of Object.entries(val)) {
         if (key.startsWith("__")) continue; // ignore internal properties
         const virtualName = `${name}.${key}`;
         secondPassVars[virtualName] = {
-           type: typeof propValue === "object" ? "object" : typeof propValue,
-           value: propValue,
-           name: virtualName,
+          type: typeof propValue === "object" ? "object" : typeof propValue,
+          value: propValue,
+          name: virtualName,
         } as any;
         secondPassKeys.push(virtualName);
       }

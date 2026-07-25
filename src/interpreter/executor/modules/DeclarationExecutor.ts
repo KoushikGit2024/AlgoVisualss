@@ -296,6 +296,11 @@ export class DeclarationExecutor {
       typeLower === "std::wstring"
     )
       return "";
+    if (typeLower.includes("bitset")) {
+      const match = typeLower.match(/<(\d+)>/);
+      const size = match ? parseInt(match[1]) : 0;
+      return { __type: "bitset", data: "0".repeat(size) };
+    }
     if (typeLower.includes("bool")) return false;
     if (
       typeLower.includes("int") ||

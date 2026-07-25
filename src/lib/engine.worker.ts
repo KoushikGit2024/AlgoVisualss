@@ -45,11 +45,11 @@ self.onmessage = async (e) => {
       if (errNode) {
         if (errNode.isMissing) {
           throw new Error(
-            `Line ${errNode.startPosition.row + 1}: Syntax Error: Missing '${errNode.type}'`
+            `Line ${errNode.startPosition.row + 1}: Syntax Error: Missing '${errNode.type}'`,
           );
         } else {
           throw new Error(
-            `Line ${errNode.startPosition.row + 1}: Syntax Error near '${errNode.text}'`
+            `Line ${errNode.startPosition.row + 1}: Syntax Error near '${errNode.text}'`,
           );
         }
       }

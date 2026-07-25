@@ -24,6 +24,7 @@ import { handleStdChar } from "./stdlib/StdChar";
 import { handleStdStringFuncs } from "./stdlib/StdStringFuncs";
 import { handleStdMathExtra } from "./stdlib/StdMathExtra";
 import { handleStdIo } from "./stdlib/StdIo";
+import { handleBitsetMethod } from "./stdlib/BitsetMethods";
 import type { EngineContext } from "./EngineContext";
 import type { NativeFunctionHandler } from "./NativeFunctionHandler";
 
@@ -307,10 +308,16 @@ export class FunctionInvoker {
     const isSet = objInstance instanceof Set;
     const isMap = objInstance instanceof Map;
     const isString = typeof objInstance === "string";
+    const isBitset =
+      typeof objInstance === "object" &&
+      objInstance !== null &&
+      "__type" in objInstance &&
+      (objInstance as any).__type === "bitset";
     const isMock =
       !isSet &&
       !isMap &&
       !isString &&
+      !isBitset &&
       typeof objInstance === "object" &&
       "data" in (objInstance as any) &&
       Array.isArray((objInstance as any).data);
@@ -333,7 +340,7 @@ export class FunctionInvoker {
     ) {
       const elementType = (objInstance as any).__elementType;
       const blueprintKey = Array.from(this.ctx.classBlueprints.keys()).find(
-          k => k.toLowerCase() === elementType
+        (k) => k.toLowerCase() === elementType,
       );
       if (blueprintKey) {
         args[0] = this.convertInitListToStruct(blueprintKey, args[0]);
@@ -346,6 +353,10 @@ export class FunctionInvoker {
       result = r;
     } else if (isMap) {
       const { handled: h, result: r } = handleMapMethod(method, args, objInstance as Map<any, any>);
+      handled = h;
+      result = r;
+    } else if (isBitset) {
+      const { handled: h, result: r } = handleBitsetMethod(method, args, objInstance as any);
       handled = h;
       result = r;
     } else if (isString) {
@@ -618,9 +629,14 @@ export class FunctionInvoker {
     )
       return [];
     if (t === "string" || t === "std::string" || t === "wstring") return "";
+    if (t.includes("bitset")) {
+      const match = t.match(/<(\d+)>/);
+      const size = match ? parseInt(match[1]) : 0;
+      return { __type: "bitset", data: "0".repeat(size) };
+    }
     if (t.includes("bool")) return false;
     if (t.includes("*") || t.includes("nullptr")) return null;
-    
+
     const baseType = type.split("<")[0].trim();
     if (this.ctx.classBlueprints.has(baseType) && !type.includes("*") && callerEvaluator) {
       return this.instantiateStructAndExecuteConstructor(baseType, [], callerEvaluator);
@@ -659,10 +675,7 @@ export class FunctionInvoker {
     return instance;
   }
 
-  public convertInitListToStruct(
-    typeName: string,
-    elements: any[],
-  ): Record<string, any> {
+  public convertInitListToStruct(typeName: string, elements: any[]): Record<string, any> {
     const blueprint = this.ctx.classBlueprints.get(typeName);
     if (!blueprint) return elements;
 
@@ -670,7 +683,7 @@ export class FunctionInvoker {
 
     for (const field of blueprint.fields) {
       if (field.defaultValue) {
-        // Can't easily evaluate default value without evaluator context, but typically 
+        // Can't easily evaluate default value without evaluator context, but typically
         // initializer lists provide the values or primitive zeros suffice as fallbacks.
         const t = field.type.toLowerCase();
         if (t === "string" || t === "std::string") instance[field.name] = "";

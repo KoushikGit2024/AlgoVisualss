@@ -84,7 +84,12 @@ export class ExpressionEvaluator {
           );
       }
     } catch (e: any) {
-      if (e instanceof Error && e.name !== "ThrowSignal" && e.name !== "BreakpointSignal" && !e.message.match(/^Line \d+:/)) {
+      if (
+        e instanceof Error &&
+        e.name !== "ThrowSignal" &&
+        e.name !== "BreakpointSignal" &&
+        !e.message.match(/^Line \d+:/)
+      ) {
         e.message = `Line ${expr.line}: ${e.message}`;
       }
       throw e;

@@ -64,9 +64,9 @@ function runForceLayout(
 
   const getRadius = (n: GraphNode) => {
     if (typeof n.label === "object") {
-      // Estimate size based on object depth/keys roughly. 
+      // Estimate size based on object depth/keys roughly.
       // 150 gives plenty of room for nested structs like Location->Address.
-      return 150; 
+      return 150;
     }
     return NODE_R;
   };
@@ -201,7 +201,7 @@ const Graph = ({
       setPositions({});
       return;
     }
-    
+
     let hasObj = false;
     nodes.forEach((n) => {
       if (typeof n.label === "object") hasObj = true;
@@ -477,7 +477,7 @@ const Graph = ({
                       {typeof node.label === "object" ? (
                         <DynamicPrimitive value={node.label} />
                       ) : (
-                        node.label ?? node.id
+                        (node.label ?? node.id)
                       )}
                     </motion.div>
                   </AnimatePresence>

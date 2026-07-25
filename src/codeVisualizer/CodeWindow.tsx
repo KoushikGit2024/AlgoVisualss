@@ -285,8 +285,6 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
               </div>
             </div>
 
-
-
             <div className="flex-1 w-full relative min-h-0 min-w-0">
               <CodeEditor
                 code={activeCode}
@@ -329,7 +327,8 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
                         className="flex items-center justify-between w-40 bg-surface hover:bg-surface-3 text-text text-sm rounded-md border border-border px-3 py-1 transition-colors focus:outline-none shadow-sm"
                       >
                         <span className="truncate font-medium">
-                          {snippets.find((s) => s.id === activeSnippetId)?.title || "Select Snippet"}
+                          {snippets.find((s) => s.id === activeSnippetId)?.title ||
+                            "Select Snippet"}
                           {hasUnsavedChanges && <span className="text-accent ml-1">*</span>}
                         </span>
                         <ChevronDown

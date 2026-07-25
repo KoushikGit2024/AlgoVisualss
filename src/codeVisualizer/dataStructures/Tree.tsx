@@ -180,8 +180,11 @@ const Tree = ({
     );
   }
 
-  const isComplexTree = useMemo(() => nodes.some(n => typeof n.value === "object" && n.value !== null), [nodes]);
-  const canvasScale = isComplexTree ? 3.5 : (isLarge ? 1.5 : 1);
+  const isComplexTree = useMemo(
+    () => nodes.some((n) => typeof n.value === "object" && n.value !== null),
+    [nodes],
+  );
+  const canvasScale = isComplexTree ? 3.5 : isLarge ? 1.5 : 1;
 
   return (
     <div
@@ -203,8 +206,8 @@ const Tree = ({
         dragElastic={isLarge || isComplexTree ? 0.15 : 0}
         dragMomentum={false}
         whileTap={{ cursor: "grabbing" }}
-        style={{ 
-          cursor: (isLarge || isComplexTree) ? "grab" : "default",
+        style={{
+          cursor: isLarge || isComplexTree ? "grab" : "default",
           width: `${100 * canvasScale}%`,
           height: `${100 * canvasScale}%`,
           left: `-${50 * (canvasScale - 1)}%`,
@@ -357,8 +360,8 @@ const Tree = ({
                   ? "min-w-[2.5rem] min-h-[2.5rem] text-[calc(11rem/16)]"
                   : "min-w-[3rem] min-h-[3rem] text-[calc(13rem/16)]";
 
-              const shapeClass = isComplex 
-                ? "w-auto h-auto rounded-xl px-2 py-2" 
+              const shapeClass = isComplex
+                ? "w-auto h-auto rounded-xl px-2 py-2"
                 : `${nodeSize} rounded-full`;
 
               return (

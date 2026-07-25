@@ -29,9 +29,12 @@ export function useSnippets(initialCode: string) {
           const parsed: CodeSnippet[] = JSON.parse(stored);
           if (parsed.length > 0) {
             setSnippets(parsed);
-            
+
             // Auto-select the most recently visited snippet
-            const sorted = [...parsed].sort((a, b) => (b.lastVisited || b.lastModified || 0) - (a.lastVisited || a.lastModified || 0));
+            const sorted = [...parsed].sort(
+              (a, b) =>
+                (b.lastVisited || b.lastModified || 0) - (a.lastVisited || a.lastModified || 0),
+            );
             setActiveSnippetId(sorted[0].id);
             setActiveCode(sorted[0].code);
             return;
@@ -162,14 +165,17 @@ export function useSnippets(initialCode: string) {
       setSnippets((prev) => {
         const updated = prev.filter((s) => s.id !== id);
         localStorage.setItem("editor-snippets", JSON.stringify(updated));
-        
+
         if (activeSnippetId === id) {
-          const sorted = [...updated].sort((a, b) => (b.lastVisited || b.lastModified || 0) - (a.lastVisited || a.lastModified || 0));
+          const sorted = [...updated].sort(
+            (a, b) =>
+              (b.lastVisited || b.lastModified || 0) - (a.lastVisited || a.lastModified || 0),
+          );
           setActiveSnippetId(sorted[0].id);
           setActiveCode(sorted[0].code);
           setHasUnsavedChanges(false);
         }
-        
+
         return updated;
       });
     },
@@ -189,9 +195,9 @@ export function useSnippets(initialCode: string) {
         setActiveSnippetId(target.id);
         setActiveCode(target.code);
         setHasUnsavedChanges(false);
-        
+
         setSnippets((prev) => {
-          const updated = prev.map((s) => s.id === id ? { ...s, lastVisited: Date.now() } : s);
+          const updated = prev.map((s) => (s.id === id ? { ...s, lastVisited: Date.now() } : s));
           localStorage.setItem("editor-snippets", JSON.stringify(updated));
           return updated;
         });
@@ -212,7 +218,7 @@ export function useSnippets(initialCode: string) {
 
   // Sort snippets by last visited (descending) before returning
   const sortedSnippets = [...snippets].sort(
-    (a, b) => (b.lastVisited || b.lastModified || 0) - (a.lastVisited || a.lastModified || 0)
+    (a, b) => (b.lastVisited || b.lastModified || 0) - (a.lastVisited || a.lastModified || 0),
   );
 
   return {
