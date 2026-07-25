@@ -68,7 +68,24 @@ export class CoreEvaluator {
       }
       this.eventEmitter.emit(expr.line, EventType.READ, { variable: expr.name, value: val });
       return val;
-    } catch {
+    } catch (originalError) {
+      try {
+        const thisSym = this.scopeManager.getVariable("this");
+        if (
+          thisSym &&
+          thisSym.value &&
+          typeof thisSym.value === "object" &&
+          expr.name in thisSym.value
+        ) {
+          const val = (thisSym.value as any)[expr.name];
+          this.eventEmitter.emit(expr.line, EventType.READ, {
+            variable: `this->${expr.name}`,
+            value: val,
+          });
+          return val;
+        }
+      } catch {}
+
       const constVal = this.resolveGlobalConstant(expr.name);
       if (constVal !== undefined) return constVal;
       throw new Error(`Memory Access Violation: Variable '${expr.name}' is not defined.`);
@@ -110,15 +127,39 @@ export class CoreEvaluator {
 
     if (expr.target.kind === "Identifier") {
       identifierName = (expr.target as IRIdentifier).name;
-      let symbol = this.scopeManager.getVariable(identifierName);
-      const seen = new Set<any>();
-      while (symbol.value && typeof symbol.value === "object" && "__ref" in (symbol.value as any)) {
-        if (seen.has(symbol.value)) break;
-        seen.add(symbol.value);
-        const refName = (symbol.value as any).__ref as string;
-        identifierName = refName;
-        targetScopeManager = (symbol.value as any).__callerScope;
-        symbol = targetScopeManager.getVariable(identifierName);
+      try {
+        let symbol = this.scopeManager.getVariable(identifierName);
+        const seen = new Set<any>();
+        while (
+          symbol.value &&
+          typeof symbol.value === "object" &&
+          "__ref" in (symbol.value as any)
+        ) {
+          if (seen.has(symbol.value)) break;
+          seen.add(symbol.value);
+          const refName = (symbol.value as any).__ref as string;
+          identifierName = refName;
+          targetScopeManager = (symbol.value as any).__callerScope;
+          symbol = targetScopeManager.getVariable(identifierName);
+        }
+      } catch (originalError) {
+        try {
+          const thisSym = this.scopeManager.getVariable("this");
+          if (
+            thisSym &&
+            thisSym.value &&
+            typeof thisSym.value === "object" &&
+            identifierName in thisSym.value
+          ) {
+            targetObj = thisSym.value;
+            index = identifierName;
+            identifierName = null;
+          } else {
+            throw originalError;
+          }
+        } catch {
+          throw originalError;
+        }
       }
     } else if (expr.target.kind === "SubscriptExpression") {
       const subNode = expr.target as IRSubscriptExpression;

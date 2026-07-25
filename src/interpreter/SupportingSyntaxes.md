@@ -10,7 +10,7 @@ These nodes define the boundaries of code blocks and state management limits.
 | `translation_unit` | Absolute root node of the file | (The entire file) | ✅ |
 | `compound_statement` | Block of code | `{ ... }` | ✅ |
 | `expression_statement` | Code evaluating an expression | `x = 5;` | ✅ |
-| `declaration_statement` | Variable declarations | `int x = 5;` | ✅ |
+| `declaration_statement` | Variable declarations | `int x = 5, y = 10;` | ✅ (Added multi-declaration) |
 | `empty_statement` | A standalone semicolon | `;` | ✅ |
 
 ## 2. Variables, Complex Declarations & Types

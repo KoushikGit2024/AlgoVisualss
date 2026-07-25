@@ -122,11 +122,11 @@ export function detectLinearStructures(
 
   // ── 6. STACK ────────────────────────────────────────────────────────────
   keys
-    .filter((k) => matchesPrefix(k, STACK_PREFIXES))
+    .filter((k) => matchesPrefix(k, STACK_PREFIXES) || vars[k]?.value?.__type === "stack")
     .forEach((stackKey) => {
       if (consumedKeys.has(stackKey)) return;
       const stackVal = deepUnwrap(vars[stackKey]?.value);
-      if (!isFlatArray(stackVal)) return;
+      if (!Array.isArray(stackVal)) return;
 
       const { pointers, usedKeys: ptrKeys } = collectIndexPointers(
         keys,
@@ -147,11 +147,16 @@ export function detectLinearStructures(
 
   // ── 7. QUEUE ────────────────────────────────────────────────────────────
   keys
-    .filter((k) => matchesPrefix(k, QUEUE_PREFIXES))
+    .filter(
+      (k) =>
+        matchesPrefix(k, QUEUE_PREFIXES) ||
+        vars[k]?.value?.__type === "queue" ||
+        vars[k]?.value?.__type === "deque",
+    )
     .forEach((queueKey) => {
       if (consumedKeys.has(queueKey)) return;
       const queueVal = deepUnwrap(vars[queueKey]?.value);
-      if (!isFlatArray(queueVal)) return;
+      if (!Array.isArray(queueVal)) return;
 
       const { pointers, usedKeys: ptrKeys } = collectIndexPointers(
         keys,

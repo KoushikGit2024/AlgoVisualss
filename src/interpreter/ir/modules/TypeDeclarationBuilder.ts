@@ -205,7 +205,7 @@ export function buildStructDeclaration(node: SyntaxNode, builder: IRBuilder): IR
       }
       if (field.type !== "field_declaration" && field.type !== "declaration") continue;
       let type = field.child(0)?.text ?? "unknown";
-      let decl = field.namedChildren.find((c: any) =>
+      let decls = field.namedChildren.filter((c: any) =>
         [
           "field_identifier",
           "identifier",
@@ -215,37 +215,56 @@ export function buildStructDeclaration(node: SyntaxNode, builder: IRBuilder): IR
           "init_declarator",
         ].includes(c.type),
       );
-      let fieldName = "unknown";
-      if (decl) {
+
+      for (const decl of decls) {
+        let fieldType = type;
+        let fieldName = "unknown";
         let currDecl = decl;
+        let defaultValue: IRExpression | undefined;
+
         if (currDecl.type === "init_declarator") {
+          const eqIndex = currDecl.children.findIndex((c: any) => c.text === "=");
+          if (eqIndex !== -1 && eqIndex + 1 < currDecl.childCount) {
+            const defaultNode = currDecl.child(eqIndex + 1);
+            if (defaultNode?.isNamed) {
+              try {
+                defaultValue = builder.buildExpression(defaultNode);
+              } catch {}
+            }
+          }
           currDecl = currDecl.child(0) as SyntaxNode;
         }
+
         while (
           currDecl &&
           (currDecl.type === "pointer_declarator" || currDecl.type === "reference_declarator")
         ) {
-          if (currDecl.type === "pointer_declarator") type += "*";
-          if (currDecl.type === "reference_declarator") type += "&";
+          if (currDecl.type === "pointer_declarator") fieldType += "*";
+          if (currDecl.type === "reference_declarator") fieldType += "&";
           currDecl = currDecl.child(1) as SyntaxNode;
         }
         if (currDecl && currDecl.type === "array_declarator") {
-          type += "[]";
+          fieldType += "[]";
           currDecl = currDecl.child(0) as SyntaxNode;
         }
         fieldName = currDecl?.text ?? "unknown";
-      }
-      let defaultValue: IRExpression | undefined;
-      const eqIndex = field.children.findIndex((c: any) => c.text === "=");
-      if (eqIndex !== -1 && eqIndex + 1 < field.childCount) {
-        const defaultNode = field.child(eqIndex + 1);
-        if (defaultNode?.isNamed) {
-          try {
-            defaultValue = builder.buildExpression(defaultNode);
-          } catch {}
+
+        // Fallback for tree-sitter field_declaration flat layout
+        if (!defaultValue) {
+          const eqIndex = field.children.findIndex((c: any) => c.text === "=");
+          if (eqIndex !== -1 && eqIndex + 1 < field.childCount) {
+            const defaultNode = field.child(eqIndex + 1);
+            if (defaultNode?.isNamed) {
+              try {
+                defaultValue = builder.buildExpression(defaultNode);
+              } catch {}
+            }
+          }
         }
+
+        if (fieldName !== "unknown")
+          fields.push({ name: fieldName, type: fieldType, defaultValue });
       }
-      if (fieldName !== "unknown") fields.push({ name: fieldName, type, defaultValue });
     }
   }
 

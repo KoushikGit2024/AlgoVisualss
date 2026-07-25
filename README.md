@@ -2,7 +2,7 @@
 
 > A dark-native algorithm visualization platform built for competitive programmers who think in C++.
 
-![Algo Visuals Banner](https://via.placeholder.com/1200x400/0d1117/ffffff?text=Algo+Visuals)
+![Algo Visuals Banner](/public/icon.svg)
 
 Algo Visuals is an interactive platform that executes and visualizes C++ algorithms directly in the browser. Unlike traditional visualizers that require special API calls to animate state or rely on backend servers to run code, **Algo Visuals runs your raw C++ code natively in the browser** using a custom-built Intermediate Representation (IR) Execution Engine. It automatically intercepts data structures, memory changes, and STL functions to generate step-by-step visual animation frames.
 
@@ -89,89 +89,25 @@ The application follows a strictly modular architecture, separating the C++ runt
 ```text
 AlgoVisuals/
 ├── docs/                   # Detailed documentation and architectural explanations
-├── public/                 # Static assets
-│   └── wasm/               # Pre-compiled web-tree-sitter and C++ grammar wasm files
+├── public/                 # Static assets and WASM files
 ├── src/
-│   ├── App.tsx             # Root React component and Theme Provider configuration
-│   ├── main.tsx            # Vite Entry point
-│   ├── index.css           # Tailwind base, typography, and custom theme tokens
-│   │
-│   ├── lib/                # Web Workers and System Utilities
-│   │   ├── engine.worker.ts# Web worker for offloading heavy IR execution from main thread
-│   │   ├── treeSitter.ts   # Tree-Sitter WASM initialization and parser cache
-│   │   └── utils.js        # Generic helper functions
-│   │
-│   ├── Pages/              # Route-level components and Page Layouts
-│   │   ├── algorithms/     # Main Hub for exploring algorithms (Docs + Code)
-│   │   │   ├── Algorithms.tsx       # Dual-pane view controller routing between Docs vs Visualizer
-│   │   │   ├── AlgoDirector.tsx     # Handles route mapping and topic navigation sidebar
-│   │   │   └── data/                # Hardcoded logic, categories, and preloaded MDX content
-│   │   │
-│   │   ├── components/     # Global, reusable UI building blocks
-│   ├── Pages/              # UI components, layout, and page routing
-│   │   ├── algorithms/     # Algorithm reference index and MDX documentation logic
-│   │   ├── components/     # Shared layout pieces (Navbar, Sidebar, ErrorBoundary, Logo)
-│   │   ├── editor/         # Dedicated standalone Code Editor views
-│   │   ├── visualizer/     # Platform integration views for execution
-│   │   ├── error.tsx       # Global runtime error boundary page
-│   │   ├── Home.tsx        # Landing page layout and heroic entry
-│   │   └── not-found.tsx   # Custom 404 page for missing routes
-│   │
+│   ├── components/         # Global UI blocks (Navbar, Sidebar, Icons)
+│   ├── Pages/              # Route-level components
+│   │   ├── algorithms/     # MDX documentation and algorithm categories
+│   │   ├── visualizer/     # The Leetcode/Codeforces workspace views
+│   │   └── Home.tsx        # Landing page layout
 │   ├── codeVisualizer/     # The UI Rendering layer for the runtime state
-│   │   ├── CodeWindow.tsx           # Split-pane manager containing the Editor and Visualizer
-│   │   ├── dataStructures/          # The SVG/DOM Visual primitive components
-│   │   │   ├── Graph.tsx            # Force-directed network graphs
-│   │   │   ├── Tree.tsx             # Hierarchical AST / BST trees
-│   │   │   ├── TrieTree.tsx         # Specialized prefix-tree renderer
-│   │   │   ├── D1Array.tsx          # 1D arrays, vectors, and sequences
-│   │   │   ├── D2Array.tsx          # 2D Matrices and DP grid tables
-│   │   │   ├── LinkedList.tsx       # Connected node sequences
-│   │   │   ├── Queue.tsx            # Sliding FIFO horizontal tubes
-│   │   │   ├── Stack.tsx            # Dropping LIFO vertical buckets
-│   │   │   ├── Map.tsx              # Key-value dictionary stores
-│   │   │   ├── Set.tsx              # Unique element collections
-│   │   │   ├── String.tsx           # String renderer with text styling
-│   │   │   ├── Bitset.tsx           # Bitmask and flags renderer
-│   │   │   ├── Scalar.tsx           # Standalone value dashboard
-│   │   │   ├── SortBars.tsx         # Classic vertical sorting bar chart
-│   │   │   └── VisualizerNamingConventions.tsx # Informational Modal
-│   │   │
-│   │   └── sideComponents/          # Panels, controls, and sub-components
-│   │       ├── CodeEditor.tsx       # Monaco Editor wrapper configuring C++ language features
-│   │       ├── VisualGround.tsx     # The primary Visualizer Canvas and Snapshot Player controls
-│   │       ├── detectVisualizer.ts  # The Heuristic Engine (Prefix + Shape regex matching)
-│   │       ├── DraggableWindow.tsx  # OS-style floating window manager
-│   │       ├── languages/           # Language mapping utilities (C++, Python, etc.)
-│   │       └── parsers/
-│   │           └── DocParser.tsx    # Custom MDX markdown renderer for integrated tutorials
-│   │
-│   └── interpreter/        # The Core C++ Runtime Engine (Custom AST/IR Interpreter)
-│       ├── engine/
-│       │   └── ExecutionEngine.ts   # Master orchestrator. Polyfills C++ STL (math, algo, vectors)
-│       ├── evaluator/
-│       │   └── ExpressionEvaluator.ts # Recursively computes math, conditionals, and object literals
-│       ├── executor/
-│       │   └── StatementExecutor.ts   # Handles imperative control flow (loops, if-statements, assigns)
-│       ├── events/
-│       │   └── EventEmitter.ts      # Pub/Sub architecture for capturing execution state milestones
-│       ├── ir/
-│       │   ├── IRBuilder.ts         # Transpiles concrete Tree-Sitter CST into the custom IR
-│       │   └── IRNode.ts            # TypeScript interfaces for all Intermediate Representation nodes
-│       ├── runtime/
-│       │   ├── CallStack.ts         # Manages LIFO execution frames and stack traces
-│       │   ├── ScopeManager.ts      # Handles lexical environments, variable shadowing, and references
-│       │   └── SymbolTable.ts       # Stores deterministic variable types and current memory values
-│       ├── utils/
-│       │   └── helpers.ts           # Utilities for memory snapshots and ReturnSignals
-│       ├── walker/
-│       │   └── IRWalker.ts          # Walks and dispatches the IR tree nodes recursively
-│       └── types.ts                 # Core runtime typings (RuntimeSnapshot, CppType, EventType)
+│   │   ├── dataStructures/ # The visual primitives (Graph, Tree, Queue, Array)
+│   │   └── sideComponents/ # The player controls and heuristic auto-detectors
+│   ├── interpreter/        # The Core C++ Runtime Engine
+│   │   ├── engine/         # ExecutionEngine, ProgramLoader, and STL Polyfills
+│   │   ├── ir/             # Transpiles Tree-Sitter CST into Intermediate Representation
+│   │   └── runtime/        # CallStack, ScopeManager, and Memory Allocation
+│   └── lib/                # Web Workers and System Utilities
 ├── index.html              # Vite HTML application entry point
 ├── package.json            # Node.js dependencies, metadata, and build scripts
 ├── vite.config.ts          # Vite bundler configuration
-├── tsconfig.json           # TypeScript compiler configuration (along with app/node versions)
-├── eslint.config.js        # ESLint flat config for code quality and linting rules
-└── FEATURES.md             # High-level feature specification document
+└── eslint.config.js        # ESLint flat config for code quality
 ```
 
 ---

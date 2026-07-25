@@ -162,7 +162,7 @@ export function deepCloneCppValue(rootValue: any): any {
 
     if ("data" in val && Array.isArray(val.data)) {
       const arr: any[] = new Array(val.data.length);
-      const containerObj = { __type: "container", data: arr };
+      const containerObj = { __type: val.__type || "container", data: arr };
       task.target[task.key] = containerObj;
       for (let i = val.data.length - 1; i >= 0; i--) {
         stack.push({ source: val.data[i], target: arr, key: i, state: "enter" });

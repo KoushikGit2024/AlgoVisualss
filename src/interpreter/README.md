@@ -29,16 +29,20 @@ The interpreter processes user code through a strict 4-stage pipeline:
 ```text
 interpreter/
 ├── engine/
-│   └── ExecutionEngine.ts    // Master orchestrator, STL polyfills, global memory
+│   ├── ExecutionEngine.ts    // Master orchestrator, entry point
+│   └── modules/              // Engine facets (FunctionInvoker, ProgramLoader, stdlib polyfills)
 ├── evaluator/
-│   └── ExpressionEvaluator.ts// Computes math, conditionals, object instantiations
+│   ├── ExpressionEvaluator.ts// Computes math, conditionals, object instantiations
+│   └── modules/              // Operator-specific evaluators (Binary, Unary, Core)
 ├── executor/
-│   └── StatementExecutor.ts  // Handles imperative control flow (loops, if, assign)
+│   ├── StatementExecutor.ts  // Handles imperative control flow
+│   └── modules/              // Specific executors (Assignment, ControlFlow, Declaration)
 ├── events/
 │   └── EventEmitter.ts       // Pub/sub event hooks for snapshot capturing
 ├── ir/
 │   ├── IRBuilder.ts          // Transpiles Tree-Sitter CST into IR
-│   └── IRNode.ts             // Typings for Intermediate Representation nodes
+│   ├── IRNode.ts             // Typings for Intermediate Representation nodes
+│   └── modules/              // Statement, Expression, Declaration builder delegates
 ├── runtime/
 │   ├── CallStack.ts          // Manages LIFO execution frames
 │   ├── ScopeManager.ts       // Handles lexical environments and variable shadowing
@@ -46,8 +50,9 @@ interpreter/
 ├── utils/
 │   └── helpers.ts            // Snapshot cloning logic and ReturnSignals
 ├── walker/
-│   └── IRWalker.ts           # Walks the IR tree nodes recursively
-└── types.ts                  # Core runtime typings (RuntimeSnapshot, CppType)
+│   ├── IRWalker.ts           // Walks the IR tree nodes recursively
+│   └── modules/              // Branch, Exception, Loop walkers
+└── types.ts                  // Core runtime typings (RuntimeSnapshot, CppType)
 ```
 
 ---

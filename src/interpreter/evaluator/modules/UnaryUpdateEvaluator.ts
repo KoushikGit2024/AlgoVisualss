@@ -54,19 +54,44 @@ export class UnaryUpdateEvaluator {
 
     if (node.argument.kind === "Identifier") {
       identifierName = (node.argument as any).name;
-      let symbol = this.scopeManager.getVariable(identifierName!);
+      try {
+        let symbol = this.scopeManager.getVariable(identifierName!);
 
-      const seen = new Set<any>();
-      while (symbol.value && typeof symbol.value === "object" && "__ref" in (symbol.value as any)) {
-        if (seen.has(symbol.value)) break;
-        seen.add(symbol.value);
-        const refName = (symbol.value as any).__ref as string;
-        identifierName = refName;
-        targetScopeManager = (symbol.value as any).__callerScope;
-        symbol = targetScopeManager.getVariable(identifierName);
+        const seen = new Set<any>();
+        while (
+          symbol.value &&
+          typeof symbol.value === "object" &&
+          "__ref" in (symbol.value as any)
+        ) {
+          if (seen.has(symbol.value)) break;
+          seen.add(symbol.value);
+          const refName = (symbol.value as any).__ref as string;
+          identifierName = refName;
+          targetScopeManager = (symbol.value as any).__callerScope;
+          symbol = targetScopeManager.getVariable(identifierName!);
+        }
+
+        currentValue = parseNumber(symbol.value);
+      } catch (originalError) {
+        try {
+          const thisSym = this.scopeManager.getVariable("this");
+          if (
+            thisSym &&
+            thisSym.value &&
+            typeof thisSym.value === "object" &&
+            identifierName! in thisSym.value
+          ) {
+            targetObject = thisSym.value;
+            targetKey = identifierName;
+            identifierName = null;
+            currentValue = parseNumber(targetObject[targetKey as string]);
+          } else {
+            throw originalError;
+          }
+        } catch {
+          throw originalError;
+        }
       }
-
-      currentValue = parseNumber(symbol.value);
     } else if (node.argument.kind === "SubscriptExpression") {
       targetObject = this.evaluator.evaluate((node.argument as any).object);
       targetKey = this.evaluator.evaluate((node.argument as any).index) as string | number;
@@ -81,7 +106,7 @@ export class UnaryUpdateEvaluator {
       if (targetObject instanceof Map) rawVal = targetObject.get(targetKey);
       else if (Array.isArray(targetObject)) rawVal = targetObject[targetKey as number];
       else if (Array.isArray(targetObject?.data)) rawVal = targetObject.data[targetKey as number];
-      else rawVal = targetObject[targetKey];
+      else rawVal = targetObject[targetKey as string | number];
 
       currentValue = parseNumber(rawVal);
     } else if (node.argument.kind === "MemberExpression") {

@@ -2374,4 +2374,12 @@ For absolute transparency, here is a list of features the interpreter **will ign
 ---
 
 *End of FEATURES.md — Language Specification & Internal Mechanics*
-*Generated from source: `ExecutionEngine.ts`, `ExpressionEvaluator.ts`, `StatementExecutor.ts`, `IRBuilder.ts`, `IRNode.ts`, `IRWalker.ts`, `ScopeManager.ts`, `SymbolTable.ts`, `CallStack.ts`, `EventEmitter.ts`, `helpers.ts`, `types.ts`*
+*Generated from source:*
+- *`engine/`: `ExecutionEngine.ts` & `modules/` (ProgramLoader, FunctionInvoker, NativeFunctionHandler)*
+- *`engine/modules/stdlib/`: C++ STL Polyfills (`MathFunctions`, `ContainerMethods`, etc.)*
+- *`ir/`: `IRBuilder.ts`, `IRNode.ts` & `modules/` (TypeDeclarationBuilder, StatementBuilder)*
+- *`walker/`: `IRWalker.ts` & `modules/` (BranchWalker, LoopWalker)*
+- *`executor/`: `StatementExecutor.ts` & `modules/` (AssignmentExecutor, DeclarationExecutor)*
+- *`evaluator/`: `ExpressionEvaluator.ts` & `modules/` (BinaryEvaluator, UnaryUpdateEvaluator)*
+- *`runtime/`: `ScopeManager.ts`, `SymbolTable.ts`, `CallStack.ts`*
+- *`events/`: `EventEmitter.ts`*

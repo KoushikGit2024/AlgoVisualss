@@ -96,7 +96,7 @@ A prefix match is not enough. The engine deep-unwraps the JavaScript value and v
 - If `tree_nodes` is detected, it must be an array of objects containing `{id, value, left, right}`. (We also auto-normalize positional tuples like `[id, val, left, right]` into objects).
 
 ### Pointer Collection
-The detector also scans for auxiliary variables like `i`, `j`, `curr`, `left`, `right`. If it finds them, and their values correspond to an index or node ID in a detected structure, it bundles them into the `pointers` array. The data structure component will then render these as floating badges pointing at the correct nodes.
+Pointer tracking is explicitly driven by the engine's `pointerContext` emitted inside each `RuntimeSnapshot`. Rather than purely guessing by value, the backend `IRWalker` tracks array indexing expressions (e.g., `arr[i]`) and injects `{ "i": ["arr"] }` into the snapshot context. The `detectVisualizer.ts` cross-references these context bindings to assign floating pointer badges with 100% accuracy, falling back to name/value heuristic matching only when strictly necessary.
 
 ---
 

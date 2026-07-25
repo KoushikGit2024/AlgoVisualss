@@ -106,6 +106,28 @@ export class FunctionInvoker {
     try {
       if (!this.ctx.callStack.isEmpty()) {
         const activeScope = this.ctx.callStack.peek().scopeManager;
+
+        try {
+          const thisObj = activeScope.getVariable("this")?.value;
+          if (thisObj && typeof thisObj === "object" && (thisObj as any).__type) {
+            const blueprint = this.ctx.classBlueprints.get((thisObj as any).__type);
+            if (blueprint && blueprint.methods) {
+              const method = blueprint.methods.find((m: any) => m.name === fn);
+              if (method) {
+                const evaluatedArgs = callNode.arguments.map((arg: any) =>
+                  currentEvaluator.evaluate(arg),
+                );
+                return this.invokeStructMethod(
+                  thisObj as any,
+                  (thisObj as any).__type,
+                  method,
+                  evaluatedArgs,
+                );
+              }
+            }
+          }
+        } catch {}
+
         const candidate = activeScope.getVariable(fn)?.value;
         if (
           typeof candidate === "function" ||
@@ -626,8 +648,9 @@ export class FunctionInvoker {
       t.includes("priority_queue") ||
       t.includes("array") ||
       t.includes("[]")
-    )
-      return [];
+    ) {
+      return { ...makeMockContainer([]), __type: t.split("<")[0].trim() };
+    }
     if (t === "string" || t === "std::string" || t === "wstring") return "";
     if (t.includes("bitset")) {
       const match = t.match(/<(\d+)>/);
