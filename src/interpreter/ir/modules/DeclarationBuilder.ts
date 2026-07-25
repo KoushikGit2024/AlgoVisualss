@@ -1,7 +1,4 @@
-import type {
-  IRVariableDeclaration,
-  IRExpression,
-} from "../../ir/IRNode";
+import type { IRVariableDeclaration, IRExpression } from "../../ir/IRNode";
 import type { SyntaxNode, IRBuilder } from "../IRBuilder";
 import {
   buildFunctionDeclaration,

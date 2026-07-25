@@ -57,7 +57,7 @@ export default function Sidebar() {
     normalizedTopic,
     normalizedPlatform,
     algoTopic ?? undefined,
-    platform ?? undefined
+    platform ?? undefined,
   );
 
   // Auto-collapse sidebar when opening CodeWindow (Algorithms route)

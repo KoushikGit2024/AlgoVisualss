@@ -130,7 +130,9 @@ export function DraggableWindow({
       transition={{ type: "spring", bounce: 0.05, duration: 0.3 }}
       className={cn(
         `absolute flex flex-col bg-bg/95 border border-border rounded-md shadow-xl overflow-hidden ${
-          windowState.isMaximized ? "inset-0" : "min-w-[60px]"
+          windowState.isMaximized
+            ? "inset-0"
+            : "min-w-[60px] max-w-[calc(100%-32px)] max-h-[calc(100%-32px)]"
         }`,
       )}
       style={{
@@ -196,7 +198,7 @@ export function DraggableWindow({
         {/* m-auto centers when content fits; collapses to 0 when content overflows,
             left-aligning it so the left edge is never clipped */}
 
-        <div className="m-auto">{children}</div>
+        <div className="m-auto min-w-full min-h-full flex flex-col">{children}</div>
       </div>
     </motion.div>
   );

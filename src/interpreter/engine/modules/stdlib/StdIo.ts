@@ -8,7 +8,7 @@ export function handleStdIo(
   fn: string,
   callNode: IRFunctionCall,
   currentEvaluator: ExpressionEvaluator,
-  ctx: EngineContext
+  ctx: EngineContext,
 ): CppValue | undefined {
   if (fn === "printf" || fn === "fprintf") {
     const rawArgs = callNode.arguments.map((a: any) => currentEvaluator.evaluate(a));

@@ -49,27 +49,34 @@ export function VisualizerWindows({
         const defaultX = (idx % 4) * 40 + 20;
         const defaultY = (idx % 4) * 40 + 20;
 
+        const isStruct = type.startsWith("struct:");
+        const windowTitle = isStruct ? type.replace("struct:", "") : `${type}s`;
+
         return (
           <DraggableWindow
             key={type}
             id={type}
-            title={`${type}s`}
+            title={windowTitle}
             defaultPosition={{ x: defaultX, y: defaultY }}
             windowState={ws}
             updateWindow={(partial) => updateWindow(type, partial)}
             bringToFront={() => bringToFront(type)}
             parentRef={layoutAreaRef}
           >
-            <div className={cn("flex flex-wrap gap-4 items-center justify-center p-2 min-w-[40px] min-h-[150px]")}>
+            <div
+              className={cn(
+                "flex flex-wrap gap-4 items-stretch justify-center p-2 min-w-[40px] min-h-[150px] flex-1 w-full h-full",
+              )}
+            >
               {states.map((state) => (
                 <div
                   key={state.id}
-                  className="flex flex-col items-center gap-1 border border-border/50 bg-bg p-2 rounded"
+                  className="flex flex-col items-center gap-1 border border-border/50 bg-bg p-2 rounded flex-1 min-w-[350px] max-w-full overflow-hidden"
                 >
-                  <span className="text-[calc(10rem/16)] font-mono font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">
-                    {state.id}
+                  <span className="text-[calc(10rem/16)] font-mono font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0 max-w-full truncate">
+                    {isStruct ? state.id.substring(state.id.indexOf(".") + 1) : state.id}
                   </span>
-                  <div className="flex-1 flex items-center justify-center">
+                  <div className="flex-1 w-full h-full flex items-center justify-center relative min-w-0 overflow-hidden">
                     {state.type === "graph" && <Graph {...(state.props as any)} />}
                     {state.type === "matrix" && <D2Array {...(state.props as any)} />}
                     {state.type === "array" && <D1Array {...(state.props as any)} />}

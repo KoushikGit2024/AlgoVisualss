@@ -1,13 +1,7 @@
 import { useBlocker } from "react-router-dom";
 import { useEffect } from "react";
 
-export function NavigationBlocker({ 
-  when, 
-  onConfirm 
-}: { 
-  when: boolean;
-  onConfirm: () => void;
-}) {
+export function NavigationBlocker({ when, onConfirm }: { when: boolean; onConfirm: () => void }) {
   const blocker = useBlocker(when);
 
   useEffect(() => {
@@ -17,7 +11,7 @@ export function NavigationBlocker({
         e.returnValue = "";
       }
     };
-    
+
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [when]);
@@ -29,7 +23,8 @@ export function NavigationBlocker({
           <div className="p-6">
             <h3 className="text-lg font-semibold text-text mb-2">Unsaved Changes</h3>
             <p className="text-muted text-sm mb-6">
-              You have unsaved changes in your code. Are you sure you want to leave this page? Your unsaved work will be lost.
+              You have unsaved changes in your code. Are you sure you want to leave this page? Your
+              unsaved work will be lost.
             </p>
             <div className="flex items-center justify-end gap-3">
               <button

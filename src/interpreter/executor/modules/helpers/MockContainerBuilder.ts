@@ -1,7 +1,10 @@
 // import type { CppValue } from "../../../../types";
 import { cloneRuntimeValue, makeMockContainer } from "../../../utils/helpers";
 
-export function createMockContainer(initialData: any[], typeLower: string = ""): Record<string, any> {
+export function createMockContainer(
+  initialData: any[],
+  typeLower: string = "",
+): Record<string, any> {
   const isPriorityQueue = typeLower.includes("priority_queue");
   const isQueue = typeLower === "queue" || (typeLower.includes("queue") && !isPriorityQueue);
 
@@ -121,6 +124,8 @@ export function createMockContainer(initialData: any[], typeLower: string = ""):
     __isHeap: false,
     __isQueue: false,
     __cmp: null as ((a: any, b: any) => number) | null,
+    __type: typeLower,
+    __elementType: typeLower.match(/<(.*)>/)?.[1] || null,
 
     __siftUp(i: number) {
       const cmp = this.__cmp ?? ((a: any, b: any) => b - a);

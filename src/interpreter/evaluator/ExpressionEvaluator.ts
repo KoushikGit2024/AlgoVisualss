@@ -38,49 +38,61 @@ export class ExpressionEvaluator {
   }
 
   public evaluate(expr: IRExpression): CppValue {
-    switch (expr.kind) {
-      case "Literal":
-        return (expr as any).value;
-      case "Identifier":
-        return this.core.evaluateIdentifier(expr as IRIdentifier);
-      case "SizeofExpression":
-        return this.core.evaluateSizeof(expr as IRSizeofExpression);
-      case "CommaExpression":
-        return this.core.evaluateComma(expr as IRCommaExpression);
-      case "UnaryExpression":
-        return this.unaryUpdate.evaluateUnary(expr as IRUnaryExpression);
-      case "BinaryExpression":
-        return this.binary.evaluateBinary(expr as IRBinaryExpression);
-      case "UpdateExpression":
-        return this.unaryUpdate.evaluateUpdate(expr as IRUpdateExpression);
-      case "Assignment":
-        return this.core.evaluateAssignment(expr as IRAssignment);
-      case "SubscriptExpression":
-        return this.core.evaluateSubscript(expr as IRSubscriptExpression);
-      case "MemberExpression":
-        return this.core.evaluateMember(expr as any);
-      case "TernaryExpression":
-        return this.core.evaluateTernary(expr as IRTernaryExpression);
-      case "InitializerList":
-        return this.core.evaluateInitList(expr as IRInitializerList);
-      case "LambdaExpression":
-        return expr as unknown as CppValue;
-      case "FunctionCall":
-        throw new Error(
-          "Execution Context Violation: FunctionCall nodes must be intercepted " +
-            "by ExecutionEngine.attachEvaluationInterceptor() before reaching " +
-            "ExpressionEvaluator.evaluate(). This is a bug in the interceptor setup.",
-        );
-      case "MethodCall":
-        throw new Error(
-          "Execution Context Violation: MethodCall nodes must be intercepted " +
-            "by ExecutionEngine.attachEvaluationInterceptor().",
-        );
-      default:
-        throw new Error(
-          `Line ${expr.line}: Unsupported expression kind '${(expr as any).kind}'. ` +
-            `This node type is not supported in this environment.`,
-        );
+    try {
+      switch (expr.kind) {
+        case "Literal":
+          return (expr as any).value;
+        case "Identifier":
+          return this.core.evaluateIdentifier(expr as IRIdentifier);
+        case "SizeofExpression":
+          return this.core.evaluateSizeof(expr as IRSizeofExpression);
+        case "CommaExpression":
+          return this.core.evaluateComma(expr as IRCommaExpression);
+        case "UnaryExpression":
+          return this.unaryUpdate.evaluateUnary(expr as IRUnaryExpression);
+        case "BinaryExpression":
+          return this.binary.evaluateBinary(expr as IRBinaryExpression);
+        case "UpdateExpression":
+          return this.unaryUpdate.evaluateUpdate(expr as IRUpdateExpression);
+        case "Assignment":
+          return this.core.evaluateAssignment(expr as IRAssignment);
+        case "SubscriptExpression":
+          return this.core.evaluateSubscript(expr as IRSubscriptExpression);
+        case "MemberExpression":
+          return this.core.evaluateMember(expr as any);
+        case "TernaryExpression":
+          return this.core.evaluateTernary(expr as IRTernaryExpression);
+        case "InitializerList":
+          return this.core.evaluateInitList(expr as IRInitializerList);
+        case "LambdaExpression":
+          return expr as unknown as CppValue;
+        case "FunctionCall":
+          throw new Error(
+            "Execution Context Violation: FunctionCall nodes must be intercepted " +
+              "by ExecutionEngine.attachEvaluationInterceptor() before reaching " +
+              "ExpressionEvaluator.evaluate(). This is a bug in the interceptor setup.",
+          );
+        case "MethodCall":
+          throw new Error(
+            "Execution Context Violation: MethodCall nodes must be intercepted " +
+              "by ExecutionEngine.attachEvaluationInterceptor().",
+          );
+        default:
+          throw new Error(
+            `Unsupported expression kind '${(expr as any).kind}'. ` +
+              `This node type is not supported in this environment.`,
+          );
+      }
+    } catch (e: any) {
+      if (
+        e instanceof Error &&
+        e.name !== "ThrowSignal" &&
+        e.name !== "BreakpointSignal" &&
+        !e.message.match(/^Line \d+:/)
+      ) {
+        e.message = `Line ${expr.line}: ${e.message}`;
+      }
+      throw e;
     }
   }
 }

@@ -1,6 +1,7 @@
 import { useMemo, useRef } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { cn } from "../../lib/utils";
+import { DynamicPrimitive } from "./DynamicPrimitive";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -179,6 +180,12 @@ const Tree = ({
     );
   }
 
+  const isComplexTree = useMemo(
+    () => nodes.some((n) => typeof n.value === "object" && n.value !== null),
+    [nodes],
+  );
+  const canvasScale = isComplexTree ? 3.5 : isLarge ? 1.5 : 1;
+
   return (
     <div
       ref={containerRef}
@@ -193,13 +200,19 @@ const Tree = ({
       )}
 
       <motion.div
-        className="absolute inset-0 w-full h-full"
+        className="absolute"
         drag
         dragConstraints={containerRef}
-        dragElastic={isLarge ? 0.15 : 0}
+        dragElastic={isLarge || isComplexTree ? 0.15 : 0}
         dragMomentum={false}
         whileTap={{ cursor: "grabbing" }}
-        style={{ cursor: isLarge ? "grab" : "default" }}
+        style={{
+          cursor: isLarge || isComplexTree ? "grab" : "default",
+          width: `${100 * canvasScale}%`,
+          height: `${100 * canvasScale}%`,
+          left: `-${50 * (canvasScale - 1)}%`,
+          top: `-${50 * (canvasScale - 1)}%`,
+        }}
       >
         {/* SVG Edge Layer */}
         <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none z-0">
@@ -339,13 +352,17 @@ const Tree = ({
               }
 
               const pos = getPos(node.id);
-              const dispVal =
-                typeof node.value === "object" ? JSON.stringify(node.value) : String(node.value);
+              const isComplex = typeof node.value === "object" && node.value !== null;
+              const dispVal = isComplex ? JSON.stringify(node.value) : String(node.value);
               const cellPtrs = pointers.filter((p) => p.nodeId === node.id);
               const nodeSize =
                 treeKind === "segment"
-                  ? "w-10 h-10 text-[calc(11rem/16)]"
-                  : "w-12 h-12 text-[calc(13rem/16)]";
+                  ? "min-w-[2.5rem] min-h-[2.5rem] text-[calc(11rem/16)]"
+                  : "min-w-[3rem] min-h-[3rem] text-[calc(13rem/16)]";
+
+              const shapeClass = isComplex
+                ? "w-auto h-auto rounded-xl px-2 py-2"
+                : `${nodeSize} rounded-full`;
 
               return (
                 <motion.div
@@ -372,9 +389,9 @@ const Tree = ({
                     animate={{ scale, zIndex: zIdx }}
                     transition={{ type: "spring", stiffness: 400, damping: 25 }}
                     className={cn(`
-                      ${nodeSize}
+                      ${shapeClass}
                       flex items-center justify-center font-mono font-bold
-                      rounded-full border-[1.5px] transition-colors duration-200
+                      border-[1.5px] transition-colors duration-200
                       backdrop-blur-sm shrink-0
                       ${bg} ${border} ${text} ${shadow}
                     `)}
@@ -387,7 +404,7 @@ const Tree = ({
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.08 }}
                       >
-                        {dispVal}
+                        {isComplex ? <DynamicPrimitive value={node.value} /> : dispVal}
                       </motion.span>
                     </AnimatePresence>
                   </motion.div>

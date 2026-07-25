@@ -24,6 +24,7 @@ import { handleStdChar } from "./stdlib/StdChar";
 import { handleStdStringFuncs } from "./stdlib/StdStringFuncs";
 import { handleStdMathExtra } from "./stdlib/StdMathExtra";
 import { handleStdIo } from "./stdlib/StdIo";
+import { handleBitsetMethod } from "./stdlib/BitsetMethods";
 import type { EngineContext } from "./EngineContext";
 import type { NativeFunctionHandler } from "./NativeFunctionHandler";
 
@@ -69,7 +70,9 @@ export class FunctionInvoker {
     if (fn === "__init_field") {
       try {
         const fieldName = currentEvaluator.evaluate(callNode.arguments[0]) as string;
-        const thisObj = !this.ctx.callStack.isEmpty() ? this.ctx.callStack.peek().scopeManager.getVariable("this")?.value : null;
+        const thisObj = !this.ctx.callStack.isEmpty()
+          ? this.ctx.callStack.peek().scopeManager.getVariable("this")?.value
+          : null;
         if (thisObj && typeof thisObj === "object") {
           const baseName = fieldName.split("<")[0].trim();
           if (this.ctx.classBlueprints.has(baseName)) {
@@ -77,11 +80,15 @@ export class FunctionInvoker {
             if (blueprint.constructors && blueprint.constructors.length > 0) {
               const ctorArgs = callNode.arguments.slice(1);
               const evaluatedArgs = ctorArgs.map((arg: any) => currentEvaluator.evaluate(arg));
-              const ctor = blueprint.constructors.find((c: any) => c.parameters.length === evaluatedArgs.length) || blueprint.constructors[0];
+              const ctor =
+                blueprint.constructors.find(
+                  (c: any) => c.parameters.length === evaluatedArgs.length,
+                ) || blueprint.constructors[0];
               this.invokeStructMethod(thisObj, baseName, ctor, evaluatedArgs);
             }
           } else {
-            const fieldVal = callNode.arguments.length > 1 ? currentEvaluator.evaluate(callNode.arguments[1]) : 0;
+            const fieldVal =
+              callNode.arguments.length > 1 ? currentEvaluator.evaluate(callNode.arguments[1]) : 0;
             (thisObj as any)[fieldName] = fieldVal;
           }
         }
@@ -120,12 +127,16 @@ export class FunctionInvoker {
         const methodName = parts[1];
         const blueprint = this.ctx.classBlueprints.get(className)!;
         const method = blueprint.methods?.find((m: any) => m.name === methodName);
-        
+
         if (method) {
           try {
-            const thisObj = !this.ctx.callStack.isEmpty() ? this.ctx.callStack.peek().scopeManager.getVariable("this")?.value : null;
+            const thisObj = !this.ctx.callStack.isEmpty()
+              ? this.ctx.callStack.peek().scopeManager.getVariable("this")?.value
+              : null;
             if (thisObj && typeof thisObj === "object") {
-              const evaluatedArgs = callNode.arguments.map((arg: any) => currentEvaluator.evaluate(arg));
+              const evaluatedArgs = callNode.arguments.map((arg: any) =>
+                currentEvaluator.evaluate(arg),
+              );
               return this.invokeStructMethod(thisObj, className, method, evaluatedArgs);
             }
           } catch {}
@@ -297,10 +308,16 @@ export class FunctionInvoker {
     const isSet = objInstance instanceof Set;
     const isMap = objInstance instanceof Map;
     const isString = typeof objInstance === "string";
+    const isBitset =
+      typeof objInstance === "object" &&
+      objInstance !== null &&
+      "__type" in objInstance &&
+      (objInstance as any).__type === "bitset";
     const isMock =
       !isSet &&
       !isMap &&
       !isString &&
+      !isBitset &&
       typeof objInstance === "object" &&
       "data" in (objInstance as any) &&
       Array.isArray((objInstance as any).data);
@@ -314,6 +331,22 @@ export class FunctionInvoker {
     let result: any = undefined;
     let handled = false;
 
+    if (
+      (method === "push_back" || method === "push" || method === "insert") &&
+      args.length > 0 &&
+      Array.isArray(args[0]) &&
+      objInstance &&
+      (objInstance as any).__elementType
+    ) {
+      const elementType = (objInstance as any).__elementType;
+      const blueprintKey = Array.from(this.ctx.classBlueprints.keys()).find(
+        (k) => k.toLowerCase() === elementType,
+      );
+      if (blueprintKey) {
+        args[0] = this.convertInitListToStruct(blueprintKey, args[0]);
+      }
+    }
+
     if (isSet) {
       const { handled: h, result: r } = handleSetMethod(method, args, objInstance as Set<any>);
       handled = h;
@@ -322,8 +355,16 @@ export class FunctionInvoker {
       const { handled: h, result: r } = handleMapMethod(method, args, objInstance as Map<any, any>);
       handled = h;
       result = r;
+    } else if (isBitset) {
+      const { handled: h, result: r } = handleBitsetMethod(method, args, objInstance as any);
+      handled = h;
+      result = r;
     } else if (isString) {
-      const { handled: h, result: r, newStr } = handleStringMethod(method, args, objInstance as string, this.ctx);
+      const {
+        handled: h,
+        result: r,
+        newStr,
+      } = handleStringMethod(method, args, objInstance as string, this.ctx);
       handled = h;
       result = r;
       if (newStr !== undefined) {
@@ -366,7 +407,13 @@ export class FunctionInvoker {
     }
 
     if (!handled && targetArr !== null) {
-      const { handled: h, result: r } = handleArrayMethod(method, args, targetArr, objInstance, isArr);
+      const { handled: h, result: r } = handleArrayMethod(
+        method,
+        args,
+        targetArr,
+        objInstance,
+        isArr,
+      );
       handled = h;
       result = r;
     }
@@ -468,7 +515,7 @@ export class FunctionInvoker {
             } catch {
               throw new Error(`Static member ${varName} not found in ${className}`);
             }
-          }
+          },
         } as any;
         for (const field of blueprint.fields) {
           const globalKey = `${className}::${field.name}`;
@@ -566,7 +613,7 @@ export class FunctionInvoker {
     return returnValue;
   }
 
-  public defaultForFieldType(type: string): CppValue {
+  public defaultForFieldType(type: string, callerEvaluator?: ExpressionEvaluator): CppValue {
     const t = type.toLowerCase();
     if (t.includes("unordered_map") || t.includes("map")) return new Map();
     if (t.includes("unordered_set") || t.includes("set")) return new Set();
@@ -582,8 +629,19 @@ export class FunctionInvoker {
     )
       return [];
     if (t === "string" || t === "std::string" || t === "wstring") return "";
+    if (t.includes("bitset")) {
+      const match = t.match(/<(\d+)>/);
+      const size = match ? parseInt(match[1]) : 0;
+      return { __type: "bitset", data: "0".repeat(size) };
+    }
     if (t.includes("bool")) return false;
     if (t.includes("*") || t.includes("nullptr")) return null;
+
+    const baseType = type.split("<")[0].trim();
+    if (this.ctx.classBlueprints.has(baseType) && !type.includes("*") && callerEvaluator) {
+      return this.instantiateStructAndExecuteConstructor(baseType, [], callerEvaluator);
+    }
+
     return 0;
   }
 
@@ -598,7 +656,7 @@ export class FunctionInvoker {
     for (const field of blueprint.fields) {
       instance[field.name] = field.defaultValue
         ? callerEvaluator.evaluate(field.defaultValue)
-        : this.defaultForFieldType(field.type);
+        : this.defaultForFieldType(field.type, callerEvaluator);
     }
 
     const evaluatedArgs = args.map((arg) => callerEvaluator.evaluate(arg));
@@ -613,6 +671,39 @@ export class FunctionInvoker {
         if (i < blueprint.fields.length) instance[blueprint.fields[i].name] = v;
       });
     }
+
+    return instance;
+  }
+
+  public convertInitListToStruct(typeName: string, elements: any[]): Record<string, any> {
+    const blueprint = this.ctx.classBlueprints.get(typeName);
+    if (!blueprint) return elements;
+
+    const instance: Record<string, any> = { __type: typeName };
+
+    for (const field of blueprint.fields) {
+      if (field.defaultValue) {
+        // Can't easily evaluate default value without evaluator context, but typically
+        // initializer lists provide the values or primitive zeros suffice as fallbacks.
+        const t = field.type.toLowerCase();
+        if (t === "string" || t === "std::string") instance[field.name] = "";
+        else if (t.includes("bool")) instance[field.name] = false;
+        else instance[field.name] = 0;
+      } else {
+        instance[field.name] = this.defaultForFieldType(field.type);
+      }
+    }
+
+    elements.forEach((v, i) => {
+      if (i < blueprint.fields.length) {
+        const fieldType = blueprint.fields[i].type;
+        if (Array.isArray(v) && this.ctx.classBlueprints.has(fieldType)) {
+          instance[blueprint.fields[i].name] = this.convertInitListToStruct(fieldType, v);
+        } else {
+          instance[blueprint.fields[i].name] = cloneRuntimeValue(v);
+        }
+      }
+    });
 
     return instance;
   }

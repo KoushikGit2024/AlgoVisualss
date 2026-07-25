@@ -62,6 +62,13 @@ export class DeclarationExecutor {
     if (node.initializer) {
       try {
         value = this.evaluator.evaluate(node.initializer);
+        if (Array.isArray(value)) {
+          if (typeLower.includes("unordered_set") || typeLower.includes("set")) {
+            value = new Set(value);
+          } else if (typeLower.includes("unordered_map") || typeLower.includes("map")) {
+            value = new Map(value as any);
+          }
+        }
       } catch (e) {
         logStepToConsole(
           `[StatementExecutor] Failed to evaluate initializer for '${node.name}': ` +
@@ -289,6 +296,11 @@ export class DeclarationExecutor {
       typeLower === "std::wstring"
     )
       return "";
+    if (typeLower.includes("bitset")) {
+      const match = typeLower.match(/<(\d+)>/);
+      const size = match ? parseInt(match[1]) : 0;
+      return { __type: "bitset", data: "0".repeat(size) };
+    }
     if (typeLower.includes("bool")) return false;
     if (
       typeLower.includes("int") ||

@@ -15,7 +15,7 @@ export function handleStdMathExtra(
     }
     return a;
   }
-  
+
   if (fn === "lcm") {
     let a = Math.abs(currentEvaluator.evaluate(callNode.arguments[0]) as number);
     let b = Math.abs(currentEvaluator.evaluate(callNode.arguments[1]) as number);

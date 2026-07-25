@@ -40,7 +40,7 @@ export class ProgramLoader {
       visited.add(structName);
       const struct = this.classBlueprints.get(structName);
       if (!struct) return;
-      
+
       if (struct.baseClasses) {
         for (const baseName of struct.baseClasses) {
           flattenStruct(baseName, visited);

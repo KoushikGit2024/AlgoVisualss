@@ -152,7 +152,7 @@ export function buildStructDeclaration(node: SyntaxNode, builder: IRBuilder): IR
   const nameNode = node.namedChildren.find((c: any) => c.type === "type_identifier");
   const name = nameNode?.text ?? "anonymous_struct";
   const bodyNode = node.namedChildren.find((c: any) => c.type === "field_declaration_list");
-  
+
   const baseClasses: string[] = [];
   const baseClassClause = node.namedChildren.find((c: any) => c.type === "base_class_clause");
   if (baseClassClause) {
@@ -162,7 +162,11 @@ export function buildStructDeclaration(node: SyntaxNode, builder: IRBuilder): IR
         if (name) baseClasses.push(name);
       } else if (n.type === "base_class") {
         for (const child of n.namedChildren) {
-          if (child.type === "type_identifier" || child.type === "template_type" || child.type === "identifier") {
+          if (
+            child.type === "type_identifier" ||
+            child.type === "template_type" ||
+            child.type === "identifier"
+          ) {
             const name = child.text.split("<")[0].trim();
             if (name) baseClasses.push(name);
           }
@@ -215,9 +219,12 @@ export function buildStructDeclaration(node: SyntaxNode, builder: IRBuilder): IR
       if (decl) {
         let currDecl = decl;
         if (currDecl.type === "init_declarator") {
-           currDecl = currDecl.child(0) as SyntaxNode;
+          currDecl = currDecl.child(0) as SyntaxNode;
         }
-        while (currDecl && (currDecl.type === "pointer_declarator" || currDecl.type === "reference_declarator")) {
+        while (
+          currDecl &&
+          (currDecl.type === "pointer_declarator" || currDecl.type === "reference_declarator")
+        ) {
           if (currDecl.type === "pointer_declarator") type += "*";
           if (currDecl.type === "reference_declarator") type += "&";
           currDecl = currDecl.child(1) as SyntaxNode;

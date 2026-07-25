@@ -6,6 +6,7 @@ export interface CodeSnippet {
   title: string;
   code: string;
   lastModified: number;
+  lastVisited?: number;
 }
 
 export function useSnippets(initialCode: string) {
@@ -28,8 +29,14 @@ export function useSnippets(initialCode: string) {
           const parsed: CodeSnippet[] = JSON.parse(stored);
           if (parsed.length > 0) {
             setSnippets(parsed);
-            setActiveSnippetId(parsed[0].id);
-            setActiveCode(parsed[0].code);
+
+            // Auto-select the most recently visited snippet
+            const sorted = [...parsed].sort(
+              (a, b) =>
+                (b.lastVisited || b.lastModified || 0) - (a.lastVisited || a.lastModified || 0),
+            );
+            setActiveSnippetId(sorted[0].id);
+            setActiveCode(sorted[0].code);
             return;
           }
         }
@@ -40,14 +47,15 @@ export function useSnippets(initialCode: string) {
       // Fallback to legacy or initial
       const legacyCode = localStorage.getItem("editor-code");
       const codeToUse = legacyCode || initialCode;
-      
+
       const defaultSnippet: CodeSnippet = {
         id: Date.now().toString(),
         title: "Untitled-1",
         code: codeToUse,
         lastModified: Date.now(),
+        lastVisited: Date.now(),
       };
-      
+
       setSnippets([defaultSnippet]);
       setActiveSnippetId(defaultSnippet.id);
       setActiveCode(codeToUse);
@@ -72,23 +80,29 @@ export function useSnippets(initialCode: string) {
   }, [isEditor, isAlgorithms, algoId, initialCode]);
 
   // Update active code
-  const updateCode = useCallback((newCode: string) => {
-    setActiveCode(newCode);
-    if (isEditor && activeSnippetId) {
-      const original = snippets.find(s => s.id === activeSnippetId);
-      if (original) {
-        setHasUnsavedChanges(newCode !== original.code);
+  const updateCode = useCallback(
+    (newCode: string) => {
+      setActiveCode(newCode);
+      if (isEditor && activeSnippetId) {
+        const original = snippets.find((s) => s.id === activeSnippetId);
+        if (original) {
+          setHasUnsavedChanges(newCode !== original.code);
+        }
+      } else if (isAlgorithms && algoId) {
+        setHasUnsavedChanges(newCode !== initialCode);
+        // Auto-save algorithm modifications
+        if (newCode !== initialCode) {
+          localStorage.setItem(
+            `algo-modifications-${algoId}`,
+            JSON.stringify({ code: newCode, lastModified: Date.now() }),
+          );
+        } else {
+          localStorage.removeItem(`algo-modifications-${algoId}`);
+        }
       }
-    } else if (isAlgorithms && algoId) {
-      setHasUnsavedChanges(newCode !== initialCode);
-      // Auto-save algorithm modifications
-      if (newCode !== initialCode) {
-        localStorage.setItem(`algo-modifications-${algoId}`, JSON.stringify({ code: newCode, lastModified: Date.now() }));
-      } else {
-        localStorage.removeItem(`algo-modifications-${algoId}`);
-      }
-    }
-  }, [isEditor, activeSnippetId, snippets, isAlgorithms, algoId, initialCode]);
+    },
+    [isEditor, activeSnippetId, snippets, isAlgorithms, algoId, initialCode],
+  );
 
   const restoreOriginalAlgoCode = useCallback(() => {
     if (!isAlgorithms || !algoId) return;
@@ -98,37 +112,42 @@ export function useSnippets(initialCode: string) {
   }, [isAlgorithms, algoId, initialCode]);
 
   // Save snippet
-  const saveSnippet = useCallback((newTitle?: string) => {
-    if (!isEditor || !activeSnippetId) return;
-    
-    setSnippets(prev => {
-      const updated = prev.map(s => {
-        if (s.id === activeSnippetId) {
-          return {
-            ...s,
-            title: newTitle || s.title,
-            code: activeCode,
-            lastModified: Date.now(),
-          };
-        }
-        return s;
+  const saveSnippet = useCallback(
+    (newTitle?: string) => {
+      if (!isEditor || !activeSnippetId) return;
+
+      setSnippets((prev) => {
+        const updated = prev.map((s) => {
+          if (s.id === activeSnippetId) {
+            return {
+              ...s,
+              title: newTitle || s.title,
+              code: activeCode,
+              lastModified: Date.now(),
+              lastVisited: Date.now(),
+            };
+          }
+          return s;
+        });
+        localStorage.setItem("editor-snippets", JSON.stringify(updated));
+        return updated;
       });
-      localStorage.setItem("editor-snippets", JSON.stringify(updated));
-      return updated;
-    });
-    setHasUnsavedChanges(false);
-  }, [isEditor, activeSnippetId, activeCode]);
+      setHasUnsavedChanges(false);
+    },
+    [isEditor, activeSnippetId, activeCode],
+  );
 
   // Create snippet
   const createSnippet = useCallback(() => {
     const newSnippet: CodeSnippet = {
       id: Date.now().toString(),
       title: `Untitled-${snippets.length + 1}`,
-      code: "#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << \"Hello, World!\" << endl;\n    return 0;\n}",
+      code: '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, World!" << endl;\n    return 0;\n}',
       lastModified: Date.now(),
+      lastVisited: Date.now(),
     };
-    
-    setSnippets(prev => {
+
+    setSnippets((prev) => {
       const updated = [...prev, newSnippet];
       localStorage.setItem("editor-snippets", JSON.stringify(updated));
       return updated;
@@ -139,52 +158,73 @@ export function useSnippets(initialCode: string) {
   }, [snippets.length]);
 
   // Delete snippet
-  const deleteSnippet = useCallback((id: string) => {
-    if (snippets.length <= 1) return; // Don't delete the last snippet
-    
-    setSnippets(prev => {
-      const updated = prev.filter(s => s.id !== id);
-      localStorage.setItem("editor-snippets", JSON.stringify(updated));
-      return updated;
-    });
-    
-    if (activeSnippetId === id) {
-      const remaining = snippets.filter(s => s.id !== id);
-      setActiveSnippetId(remaining[0].id);
-      setActiveCode(remaining[0].code);
-      setHasUnsavedChanges(false);
-    }
-  }, [snippets, activeSnippetId]);
+  const deleteSnippet = useCallback(
+    (id: string) => {
+      if (snippets.length <= 1) return; // Don't delete the last snippet
+
+      setSnippets((prev) => {
+        const updated = prev.filter((s) => s.id !== id);
+        localStorage.setItem("editor-snippets", JSON.stringify(updated));
+
+        if (activeSnippetId === id) {
+          const sorted = [...updated].sort(
+            (a, b) =>
+              (b.lastVisited || b.lastModified || 0) - (a.lastVisited || a.lastModified || 0),
+          );
+          setActiveSnippetId(sorted[0].id);
+          setActiveCode(sorted[0].code);
+          setHasUnsavedChanges(false);
+        }
+
+        return updated;
+      });
+    },
+    [snippets, activeSnippetId],
+  );
 
   // Switch snippet
-  const switchSnippet = useCallback((id: string) => {
-    if (hasUnsavedChanges && isEditor) {
-      const confirm = window.confirm("You have unsaved changes. Do you want to discard them?");
-      if (!confirm) return;
-    }
-    
-    const target = snippets.find(s => s.id === id);
-    if (target) {
-      setActiveSnippetId(target.id);
-      setActiveCode(target.code);
-      setHasUnsavedChanges(false);
-    }
-  }, [snippets, hasUnsavedChanges, isEditor]);
+  const switchSnippet = useCallback(
+    (id: string) => {
+      if (hasUnsavedChanges && isEditor) {
+        const confirm = window.confirm("You have unsaved changes. Do you want to discard them?");
+        if (!confirm) return;
+      }
+
+      const target = snippets.find((s) => s.id === id);
+      if (target) {
+        setActiveSnippetId(target.id);
+        setActiveCode(target.code);
+        setHasUnsavedChanges(false);
+
+        setSnippets((prev) => {
+          const updated = prev.map((s) => (s.id === id ? { ...s, lastVisited: Date.now() } : s));
+          localStorage.setItem("editor-snippets", JSON.stringify(updated));
+          return updated;
+        });
+      }
+    },
+    [snippets, hasUnsavedChanges, isEditor],
+  );
 
   // Rename snippet
   const renameSnippet = useCallback((id: string, newTitle: string) => {
     if (!newTitle.trim()) return;
-    setSnippets(prev => {
-      const updated = prev.map(s => s.id === id ? { ...s, title: newTitle.trim() } : s);
+    setSnippets((prev) => {
+      const updated = prev.map((s) => (s.id === id ? { ...s, title: newTitle.trim() } : s));
       localStorage.setItem("editor-snippets", JSON.stringify(updated));
       return updated;
     });
   }, []);
 
+  // Sort snippets by last visited (descending) before returning
+  const sortedSnippets = [...snippets].sort(
+    (a, b) => (b.lastVisited || b.lastModified || 0) - (a.lastVisited || a.lastModified || 0),
+  );
+
   return {
     isEditor,
     isAlgorithms,
-    snippets,
+    snippets: sortedSnippets,
     activeSnippetId,
     activeCode,
     hasUnsavedChanges,
@@ -194,6 +234,6 @@ export function useSnippets(initialCode: string) {
     deleteSnippet,
     switchSnippet,
     renameSnippet,
-    restoreOriginalAlgoCode
+    restoreOriginalAlgoCode,
   };
 }

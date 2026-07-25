@@ -5,7 +5,7 @@ import type {
   IRExpressionStatement,
   IRAssignment,
   IRCoutStatement,
-  IRExpression
+  IRExpression,
 } from "../../ir/IRNode";
 import { logStepToConsole } from "../../utils/helpers";
 import type { SyntaxNode, IRBuilder } from "../IRBuilder";
@@ -180,5 +180,3 @@ export function buildExpressionStatement(
     expression: builder.buildExpression(exprNode),
   };
 }
-
-

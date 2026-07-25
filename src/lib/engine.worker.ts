@@ -32,6 +32,30 @@ self.onmessage = async (e) => {
     const tree = parser.parse(sourceCode);
     if (!tree) throw new Error("Failed to parse AST. Please check syntax.");
 
+    if (tree.rootNode.hasError) {
+      const findError = (node: any): any => {
+        if (node.type === "ERROR" || node.isMissing) return node;
+        for (let i = 0; i < node.childCount; i++) {
+          const err = findError(node.child(i));
+          if (err) return err;
+        }
+        return null;
+      };
+      const errNode = findError(tree.rootNode);
+      if (errNode) {
+        if (errNode.isMissing) {
+          throw new Error(
+            `Line ${errNode.startPosition.row + 1}: Syntax Error: Missing '${errNode.type}'`,
+          );
+        } else {
+          throw new Error(
+            `Line ${errNode.startPosition.row + 1}: Syntax Error near '${errNode.text}'`,
+          );
+        }
+      }
+      throw new Error("Line 1: Syntax Error detected in code.");
+    }
+
     // 3. Convert AST to IR
     const builder = new IRBuilder();
     const irProgram = builder.build(tree.rootNode as any);

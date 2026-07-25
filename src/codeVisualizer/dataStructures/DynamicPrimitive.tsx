@@ -1,4 +1,12 @@
 import React from "react";
+import D1Array from "./D1Array";
+import D2Array from "./D2Array";
+import MapComponent from "./Map";
+import SetComponent from "./Set";
+import StringComponent from "./String";
+import Queue from "./Queue";
+import Stack from "./Stack";
+import Bitset from "./Bitset";
 
 export interface DynamicPrimitiveProps {
   value: any;
@@ -26,60 +34,92 @@ export const DynamicPrimitive: React.FC<DynamicPrimitiveProps> = ({ value, depth
     return <span className="text-green-400 font-mono">"{value}"</span>;
   }
 
-  // Arrays (Recursive visualization of internal elements)
+  // Arrays (Recursive visualization using D1Array or D2Array)
   if (Array.isArray(value)) {
     if (value.length === 0) return <span className="text-muted font-mono">[]</span>;
 
+    // Check for 2D Array
+    if (Array.isArray(value[0])) {
+      return (
+        <div className="transform scale-[0.85] origin-center my-1 w-full flex items-center justify-center">
+          <D2Array value={value} />
+        </div>
+      );
+    }
+
     return (
-      <div className="flex flex-row items-center gap-1 border border-border/50 bg-bg/50 rounded-sm p-1">
-        {value.map((v, i) => (
-          <div
-            key={i}
-            className="px-1.5 py-0.5 min-w-[20px] text-center border border-border/30 bg-surface rounded-sm flex items-center justify-center"
-          >
-            <DynamicPrimitive value={v} depth={depth + 1} />
-          </div>
-        ))}
+      <div className="transform scale-[0.85] origin-center my-1 w-full flex items-center justify-center">
+        <D1Array value={value} />
       </div>
     );
   }
 
   // Maps / Objects mapped as maps
   if (typeof value === "object") {
-    // If it's explicitly tagged as a map or we have an object
-    let entries: [any, any][] = [];
-    let isSet = false;
-
     if (value.__type === "map" && Array.isArray(value.entries)) {
-      entries = value.entries;
+      if (value.entries.length === 0) return <span className="text-muted font-mono">{"{}"}</span>;
+      return (
+        <div className="transform scale-[0.85] origin-center my-1 w-full flex items-center justify-center">
+          <MapComponent entries={value.entries} />
+        </div>
+      );
     } else if (value.__type === "set" && Array.isArray(value.values)) {
-      entries = value.values.map((v: any) => [v, true]);
-      isSet = true;
+      if (value.values.length === 0) return <span className="text-muted font-mono">{"Set{}"}</span>;
+      return (
+        <div className="transform scale-[0.85] origin-center my-1 w-full flex items-center justify-center">
+          <SetComponent values={value.values} />
+        </div>
+      );
+    } else if (value.__type === "string") {
+      return (
+        <div className="transform scale-[0.85] origin-center my-1 w-full flex items-center justify-center">
+          <StringComponent value={value.data || value} />
+        </div>
+      );
+    } else if (value.__type === "queue" && Array.isArray(value.data)) {
+      if (value.data.length === 0) return <span className="text-muted font-mono">{"Queue[]"}</span>;
+      return (
+        <div className="transform scale-[0.85] origin-center my-1 w-full flex items-center justify-center overflow-x-auto">
+          <Queue value={value.data} />
+        </div>
+      );
+    } else if (value.__type === "stack" && Array.isArray(value.data)) {
+      if (value.data.length === 0) return <span className="text-muted font-mono">{"Stack[]"}</span>;
+      return (
+        <div className="transform scale-[0.85] origin-center my-1 w-full flex items-center justify-center overflow-x-auto">
+          <Stack value={value.data} />
+        </div>
+      );
+    } else if (value.__type === "bitset") {
+      return (
+        <div className="transform scale-[0.85] origin-center my-1 w-full flex items-center justify-center overflow-x-auto">
+          <Bitset value={value.data || ""} />
+        </div>
+      );
     } else if (value.__type === "container" && Array.isArray(value.data)) {
       return <DynamicPrimitive value={value.data} depth={depth} />;
-    } else {
-      // Generic Object
-      entries = Object.entries(value).filter(([k]) => !k.startsWith("__"));
     }
 
-    if (entries.length === 0)
-      return <span className="text-muted font-mono">{isSet ? "Set{}" : "{}"}</span>;
+    // Generic Object
+    const entries = Object.entries(value).filter(([k]) => !k.startsWith("__"));
+    if (entries.length === 0) return <span className="text-muted font-mono">{"{}"}</span>;
 
     return (
-      <div className="flex flex-col gap-1 border border-border/50 bg-bg/50 rounded-sm p-1.5 min-w-[60px]">
+      <div className="flex flex-col items-center justify-center gap-1 border border-border/50 bg-bg/50 rounded-sm p-1.5 min-w-[60px] w-full">
         {entries.map(([k, v], i) => (
-          <div key={i} className="flex flex-row items-center gap-2 text-[calc(11rem/16)]">
-            <div className="bg-surface px-1.5 py-0.5 border border-border/50 rounded-sm font-mono font-bold text-accent-2">
+          <div
+            key={i}
+            className="flex flex-row items-stretch justify-center gap-2 text-[calc(11rem/16)] w-full"
+          >
+            <div className="bg-surface px-1.5 py-0.5 border border-border/50 rounded-sm font-mono font-bold text-accent-2 flex items-center justify-center shrink-0">
               <DynamicPrimitive value={k} depth={depth + 1} />
             </div>
-            {!isSet && (
-              <>
-                <span className="text-muted opacity-60">→</span>
-                <div className="bg-surface px-1.5 py-0.5 border border-border/50 rounded-sm font-mono">
-                  <DynamicPrimitive value={v} depth={depth + 1} />
-                </div>
-              </>
-            )}
+            <span className="text-muted opacity-60 flex items-center justify-center shrink-0">
+              →
+            </span>
+            <div className="bg-surface px-1.5 py-0.5 border border-border/50 rounded-sm font-mono flex-1 flex items-center justify-center overflow-hidden">
+              <DynamicPrimitive value={v} depth={depth + 1} />
+            </div>
           </div>
         ))}
       </div>

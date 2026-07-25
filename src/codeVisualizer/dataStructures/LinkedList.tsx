@@ -109,7 +109,7 @@ const LinkedList = ({
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="flex items-center gap-2 relative min-w-max"
+        className="flex items-center justify-center gap-6 relative min-w-full w-max"
       >
         <AnimatePresence mode="popLayout">
           {safeNodes.map((node, idx) => {

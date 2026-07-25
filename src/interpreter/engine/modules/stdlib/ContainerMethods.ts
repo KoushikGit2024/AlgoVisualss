@@ -1,6 +1,10 @@
 import { cloneRuntimeValue } from "../../../utils/helpers";
 
-export function handleSetMethod(method: string, args: any[], s: Set<any>): { handled: boolean; result?: any } {
+export function handleSetMethod(
+  method: string,
+  args: any[],
+  s: Set<any>,
+): { handled: boolean; result?: any } {
   let result: any = undefined;
   switch (method) {
     case "insert":
@@ -40,7 +44,11 @@ export function handleSetMethod(method: string, args: any[], s: Set<any>): { han
   return { handled: true, result };
 }
 
-export function handleMapMethod(method: string, args: any[], m: Map<any, any>): { handled: boolean; result?: any } {
+export function handleMapMethod(
+  method: string,
+  args: any[],
+  m: Map<any, any>,
+): { handled: boolean; result?: any } {
   let result: any = undefined;
   switch (method) {
     case "insert":

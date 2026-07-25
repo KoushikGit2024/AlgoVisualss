@@ -38,14 +38,63 @@ export function tryDetectAdjacencyGraph(
   const edges: GraphEdge[] = [];
   const seenEdges = new Set<string>();
 
+  // Try to find a variable that holds node details (e.g. locations, nodes, vertices)
+  let nodeDetailsArr: any[] | null = null;
+  let nodeDetailsKey: string | null = null;
+  for (const k of keys) {
+    if (
+      (k.toLowerCase().includes("node") ||
+        k.toLowerCase().includes("location") ||
+        k.toLowerCase().includes("vert")) &&
+      Array.isArray(vars[k]?.value) &&
+      vars[k].value.length >= data.length
+    ) {
+      nodeDetailsArr = vars[k].value;
+      nodeDetailsKey = k;
+      break;
+    }
+  }
+
   data.forEach((neighbors: any, i: number) => {
-    nodes.push({ id: String(i), label: i, x: 50, y: 50 });
+    let lbl: any = i;
+    if (nodeDetailsArr && nodeDetailsArr[i]) {
+      const details = nodeDetailsArr[i];
+      if (typeof details === "object" && details !== null) {
+        // Pass the entire object to the UI so it can be rendered recursively
+        lbl = details;
+      } else if (typeof details === "string" || typeof details === "number") {
+        lbl = `${i}: ${details}`;
+      }
+    }
+    nodes.push({ id: String(i), label: lbl, x: 50, y: 50 });
     if (!Array.isArray(neighbors)) return;
-    neighbors.forEach((j: number) => {
+    neighbors.forEach((nbr: any) => {
+      let j: number;
+      let w: any = undefined;
+
+      if (typeof nbr === "object" && nbr !== null) {
+        // Try to find the destination node ID in the struct
+        j =
+          nbr.to ??
+          nbr.dest ??
+          nbr.destination ??
+          nbr.target ??
+          nbr.node ??
+          nbr.vertex ??
+          nbr.v ??
+          -1;
+        // Try to find weight
+        w = nbr.weight ?? nbr.cost ?? nbr.distance ?? nbr.w;
+      } else {
+        j = Number(nbr);
+      }
+
+      if (j === -1 || isNaN(j)) return;
+
       const key = `${i}-${j}`;
       if (!seenEdges.has(key)) {
         seenEdges.add(key);
-        edges.push({ id: key, source: String(i), target: String(j), isDirected: true });
+        edges.push({ id: key, source: String(i), target: String(j), weight: w, isDirected: true });
       }
     });
   });
@@ -94,7 +143,7 @@ export function tryDetectAdjacencyGraph(
   }
 
   const { pointers, usedKeys: ptrKeys } = collectGraphPointers(keys, vars, name, pointerContext);
-  const usedKeys = [name, "current", "v", visitedKey, parentKey, ...ptrKeys].filter(
+  const usedKeys = [name, "current", "v", visitedKey, parentKey, nodeDetailsKey, ...ptrKeys].filter(
     (k) => k && vars[k as string],
   ) as string[];
 

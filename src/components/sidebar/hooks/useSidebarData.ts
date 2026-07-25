@@ -72,7 +72,10 @@ export function useSidebarData(
           label: algo.name,
           url: algo.href,
           icon: React.createElement(CategoryIcon, { name: algo.iconId }),
-          hoverIcon: React.createElement(CategoryIcon, { name: algo.hoverIconId || algo.iconId, hover: true }),
+          hoverIcon: React.createElement(CategoryIcon, {
+            name: algo.hoverIconId || algo.iconId,
+            hover: true,
+          }),
           children: algo.items?.map((sub: any) => ({
             id: sub.name.toLowerCase().replace(/\s+/g, "-"),
             label: sub.name,
@@ -103,7 +106,10 @@ export function useSidebarData(
           name: a.name,
           href: a.href,
           icon: React.createElement(CategoryIcon, { name: a.iconId }),
-          hoverIcon: React.createElement(CategoryIcon, { name: a.hoverIconId || a.iconId, hover: true }),
+          hoverIcon: React.createElement(CategoryIcon, {
+            name: a.hoverIconId || a.iconId,
+            hover: true,
+          }),
           featured: (a as any).featured,
         };
       });
