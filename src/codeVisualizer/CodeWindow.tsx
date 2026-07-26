@@ -18,11 +18,13 @@ import {
   ChevronDown,
   Check,
   Trash2,
+  Share2,
 } from "lucide-react";
 import VisualizerNamingConventions from "./namingConventions/VisualizerNamingConventions";
 // import { ALGODATA } from '../Pages/algorithms/data/categories/AlgoData';
 import { cn } from "../lib/utils";
 import { useSearchParams } from "react-router-dom";
+import LZString from "lz-string";
 
 const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -102,6 +104,20 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
   const [hideMobileWarning, setHideMobileWarning] = useState(() => {
     return localStorage.getItem("hideMobileWarning") === "true";
   });
+  const [shareCopied, setShareCopied] = useState(false);
+
+  const handleShareCode = () => {
+    const url = new URL(window.location.href);
+    if (isAlgorithms && !hasUnsavedChanges) {
+      url.searchParams.delete("code");
+    } else {
+      const compressed = LZString.compressToEncodedURIComponent(activeCode);
+      url.searchParams.set("code", compressed);
+    }
+    navigator.clipboard.writeText(url.toString());
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
+  };
 
   const handleShowInfo = () => {
     setShowInfo(true);
@@ -271,7 +287,22 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
                     <Info size={14} />
                   </button>
                 </div>
-                <span className="text-[calc(10rem/16)] font-semibold text-muted uppercase tracking-wider">
+                {(isEditor || isAlgorithms) && (
+                  <button
+                    onClick={handleShareCode}
+                    className={cn(
+                      "flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider transition-colors",
+                      shareCopied
+                        ? "bg-emerald-500/10 text-emerald-500"
+                        : "bg-surface-3 text-muted hover:text-text"
+                    )}
+                    title={isAlgorithms ? "Share your custom algorithm mod" : "Copy Shareable Link"}
+                  >
+                    {shareCopied ? <Check size={12} /> : <Share2 size={12} />}
+                    {shareCopied ? "Copied" : "Share"}
+                  </button>
+                )}
+                <span className="text-[calc(10rem/16)] font-semibold text-muted uppercase tracking-wider ml-1">
                   Editor
                 </span>
                 <button

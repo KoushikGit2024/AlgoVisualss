@@ -3,6 +3,7 @@ const CodeWindow = lazy(() => import("../../codeVisualizer/CodeWindow"));
 import SEO from "../../components/SEO";
 const Editor = () => {
   const [storedCode] = useState<String>(() => {
+
     const code = localStorage.getItem("editor-code");
     const defaultCode = `#include <iostream>
 using namespace std;

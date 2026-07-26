@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
+import LZString from "lz-string";
 
 export interface CodeSnippet {
   id: string;
@@ -22,14 +23,47 @@ export function useSnippets(initialCode: string) {
 
   // Load from local storage
   useEffect(() => {
+    const urlCode = new URLSearchParams(window.location.search).get("code");
+    const hasSharedCode = urlCode !== null;
+    let decodedCode: string | null = null;
+    
+    if (hasSharedCode) {
+      try {
+        decodedCode = LZString.decompressFromEncodedURIComponent(urlCode);
+      } catch (e) {
+        console.error("Failed to decode shared code", e);
+      }
+    }
+
     if (isEditor) {
       try {
         const stored = localStorage.getItem("editor-snippets");
         if (stored) {
           const parsed: CodeSnippet[] = JSON.parse(stored);
           if (parsed.length > 0) {
-            setSnippets(parsed);
+            if (hasSharedCode && decodedCode) {
+              // Create a new snippet for the shared code
+              const sharedSnippet: CodeSnippet = {
+                id: Date.now().toString(),
+                title: "Shared Code",
+                code: decodedCode,
+                lastModified: Date.now(),
+                lastVisited: Date.now(),
+              };
+              const updatedSnippets = [...parsed, sharedSnippet];
+              setSnippets(updatedSnippets);
+              setActiveSnippetId(sharedSnippet.id);
+              setActiveCode(decodedCode);
+              localStorage.setItem("editor-snippets", JSON.stringify(updatedSnippets));
+              
+              // Clean up URL so it doesn't keep creating snippets on refresh
+              const url = new URL(window.location.href);
+              url.searchParams.delete("code");
+              window.history.replaceState({}, "", url.toString());
+              return;
+            }
 
+            setSnippets(parsed);
             // Auto-select the most recently visited snippet
             const sorted = [...parsed].sort(
               (a, b) =>
@@ -46,11 +80,11 @@ export function useSnippets(initialCode: string) {
 
       // Fallback to legacy or initial
       const legacyCode = localStorage.getItem("editor-code");
-      const codeToUse = legacyCode || initialCode;
+      const codeToUse = hasSharedCode && decodedCode ? decodedCode : (legacyCode || initialCode);
 
       const defaultSnippet: CodeSnippet = {
         id: Date.now().toString(),
-        title: "Untitled-1",
+        title: (hasSharedCode && decodedCode) ? "Shared Code" : "Untitled-1",
         code: codeToUse,
         lastModified: Date.now(),
         lastVisited: Date.now(),
@@ -59,7 +93,25 @@ export function useSnippets(initialCode: string) {
       setSnippets([defaultSnippet]);
       setActiveSnippetId(defaultSnippet.id);
       setActiveCode(codeToUse);
+      
+      if (hasSharedCode) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("code");
+        window.history.replaceState({}, "", url.toString());
+      }
     } else if (isAlgorithms && algoId) {
+      if (hasSharedCode && decodedCode) {
+        setActiveCode(decodedCode);
+        setHasUnsavedChanges(decodedCode !== initialCode);
+        localStorage.setItem(
+          `algo-modifications-${algoId}`,
+          JSON.stringify({ code: decodedCode, lastModified: Date.now() }),
+        );
+        const url = new URL(window.location.href);
+        url.searchParams.delete("code");
+        window.history.replaceState({}, "", url.toString());
+        return;
+      }
       // In algorithms page
       try {
         const stored = localStorage.getItem(`algo-modifications-${algoId}`);
