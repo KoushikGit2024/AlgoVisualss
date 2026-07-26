@@ -41,3 +41,6 @@ issues.txt
 # Prettier
 .prettierrc
 .prettierignore
+
+parse-ast.ts
+parsed-ast.json

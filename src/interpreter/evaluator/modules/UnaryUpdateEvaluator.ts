@@ -25,6 +25,9 @@ export class UnaryUpdateEvaluator {
       case "~":
         return ~(argValue as number); // Bitwise NOT
       case "*":
+        if (argValue && typeof argValue === "object" && (argValue as any).__isListIter) {
+          return (argValue as any).__iterValue;
+        }
         return argValue; // Dereference — no-op in duck-typed JS
       case "&":
         if (expr.argument.kind === "Identifier") {
@@ -130,6 +133,20 @@ export class UnaryUpdateEvaluator {
     const newValue = node.operator === "++" ? currentValue + 1 : currentValue - 1;
 
     if (identifierName) {
+      try {
+        const symbol = targetScopeManager.getVariable(identifierName);
+        if (symbol && symbol.value && typeof symbol.value === "object" && (symbol.value as any).__isListIter) {
+          const iter = symbol.value as any;
+          iter.__iterIndex = newValue;
+          iter.__iterValue = iter.__targetArr[iter.__iterIndex];
+          
+          this.eventEmitter.emit(node.line, EventType.ASSIGNMENT, {
+            target: identifierName,
+            value: iter.__iterIndex,
+          });
+          return node.prefix ? iter : { ...iter, __iterIndex: currentValue };
+        }
+      } catch {}
       targetScopeManager.assignVariable(identifierName, newValue);
     } else if (targetObject !== null && targetKey !== null) {
       if (targetObject instanceof Map) {

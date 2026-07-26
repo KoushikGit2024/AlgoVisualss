@@ -183,7 +183,8 @@ export class DeclarationExecutor {
         } else if (typeLower.includes("pair")) {
           value = [arg0, arg1 !== undefined ? arg1 : 0];
         } else {
-          const baseTypeResolved = resolvedType.split("<")[0].trim();
+          const parts = resolvedType.split("::");
+          const baseTypeResolved = parts[parts.length - 1].split("<")[0].trim();
           if (this.classBlueprints?.has(baseTypeResolved)) {
             value = this.instantiateStruct(baseTypeResolved, node.constructorArgs);
           } else {

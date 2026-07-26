@@ -54,6 +54,15 @@ export class IRBuilder {
               }
             }
             break;
+          case "namespace_definition": {
+            const body = child.namedChildren.find((c) => c.type === "declaration_list");
+            if (body) {
+              for (const c of body.namedChildren) {
+                processNode(c);
+              }
+            }
+            break;
+          }
           case "function_definition":
             functions.push(this.buildFunctionDeclaration(child));
             break;

@@ -127,9 +127,11 @@ export class BinaryEvaluator {
       case ">=":
         return (left as number) >= (right as number);
       case "==": {
-        // v2: Handle loose pointer comparison (ptr == 0 <-> ptr == nullptr)
         const isLeftObj = left === null || typeof left === "object";
         const isRightObj = right === null || typeof right === "object";
+        if (isLeftObj && isRightObj && left && right && (left as any).__isListIter && (right as any).__isListIter) {
+          return (left as any).__iterIndex === (right as any).__iterIndex && (left as any).__targetArr === (right as any).__targetArr;
+        }
         if (left === 0 && isRightObj) return right === null;
         if (right === 0 && isLeftObj) return left === null;
         if (left === undefined && right === null) return true;
@@ -137,9 +139,11 @@ export class BinaryEvaluator {
         return left === right;
       }
       case "!=": {
-        // v2: Handle loose pointer comparison
         const isLeftObj = left === null || typeof left === "object";
         const isRightObj = right === null || typeof right === "object";
+        if (isLeftObj && isRightObj && left && right && (left as any).__isListIter && (right as any).__isListIter) {
+          return (left as any).__iterIndex !== (right as any).__iterIndex || (left as any).__targetArr !== (right as any).__targetArr;
+        }
         if (left === 0 && isRightObj) return right !== null;
         if (right === 0 && isLeftObj) return left !== null;
         if (left === undefined && right === null) return false;

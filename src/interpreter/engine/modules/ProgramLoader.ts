@@ -32,7 +32,29 @@ export class ProgramLoader {
 
     this.classBlueprints.clear();
     for (const struct of program.structs ?? []) {
-      this.classBlueprints.set(struct.name, struct);
+      const existing = this.classBlueprints.get(struct.name);
+      if (existing) {
+        const existingFields = new Set(existing.fields.map((f: any) => f.name));
+        for (const field of struct.fields) {
+          if (!existingFields.has(field.name)) existing.fields.push(field);
+        }
+        if (struct.methods) {
+          if (!existing.methods) existing.methods = [];
+          const existingMethods = new Set(existing.methods.map((m: any) => m.name));
+          for (const method of struct.methods) {
+            if (!existingMethods.has(method.name)) existing.methods.push(method);
+          }
+        }
+        if (struct.constructors) {
+          if (!existing.constructors) existing.constructors = [];
+          const existingCtorSig = new Set(existing.constructors.map((c: any) => c.parameters.length));
+          for (const ctor of struct.constructors) {
+            if (!existingCtorSig.has(ctor.parameters.length)) existing.constructors.push(ctor);
+          }
+        }
+      } else {
+        this.classBlueprints.set(struct.name, struct);
+      }
     }
 
     const flattenStruct = (structName: string, visited: Set<string> = new Set()) => {

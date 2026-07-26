@@ -147,8 +147,10 @@ export function handleArrayMethod(
       result = {
         __isListIter: true,
         __iterValue: targetArr[0],
+        __targetArr: targetArr,
+        __iterIndex: 0,
         valueOf() {
-          return 0;
+          return this.__iterIndex;
         },
         toString() {
           return String(this.__iterValue);
@@ -159,8 +161,10 @@ export function handleArrayMethod(
       result = {
         __isListIter: true,
         __iterValue: undefined,
+        __targetArr: targetArr,
+        __iterIndex: targetArr.length,
         valueOf() {
-          return targetArr.length;
+          return this.__iterIndex;
         },
         toString() {
           return "undefined";

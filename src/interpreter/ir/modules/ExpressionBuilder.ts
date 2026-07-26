@@ -208,8 +208,13 @@ export function buildExpression(node: SyntaxNode, builder: IRBuilder): IRExpress
           arrow: calleeNode.child(1)?.text === "->",
         };
       let calleeName = calleeNode?.text ?? "unknown";
-      if (calleeNode?.type === "template_function")
-        calleeName = calleeNode.child(0)?.text ?? calleeName;
+      if (calleeNode?.type === "template_function") {
+        if (calleeNode.child(0)?.text === "make_shared") {
+          calleeName = calleeNode.text;
+        } else {
+          calleeName = calleeNode.child(0)?.text ?? calleeName;
+        }
+      }
       if (calleeName.startsWith("std::")) calleeName = calleeName.slice(5);
       return {
         kind: "FunctionCall",

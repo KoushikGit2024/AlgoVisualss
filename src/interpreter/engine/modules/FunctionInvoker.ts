@@ -38,7 +38,7 @@ export class FunctionInvoker {
     callNode: IRFunctionCall,
     currentEvaluator: ExpressionEvaluator,
   ): CppValue {
-    const fn = callNode.callee;
+    let fn = callNode.callee;
 
     if (!this.ctx.callStack.isEmpty()) {
       const activeScope = this.ctx.callStack.peek().scopeManager;
@@ -166,6 +166,11 @@ export class FunctionInvoker {
       }
     }
 
+    if (fn.includes("::") && !this.ctx.functions.has(fn) && !localFuncRef) {
+      const bareFn = fn.split("::").pop()!;
+      if (this.ctx.functions.has(bareFn)) fn = bareFn;
+    }
+
     if (localFuncRef || this.ctx.functions.has(fn)) {
       const args = callNode.arguments.map((arg: any) => currentEvaluator.evaluate(arg));
       if (localFuncRef) {
@@ -207,6 +212,25 @@ export class FunctionInvoker {
         container.__isContainer = true;
         return container;
       }
+    }
+
+    if (fn.startsWith("make_shared<")) {
+      const typeStr = fn.substring(12, fn.length - 1);
+      if (this.ctx.classBlueprints.has(typeStr)) {
+        return this.instantiateStructAndExecuteConstructor(typeStr, callNode.arguments, currentEvaluator);
+      }
+    }
+
+    if (fn.startsWith("dynamic_cast<")) {
+      // const typeStr = fn.substring(13, fn.length - 2); // e.g., Engineer* -> Engineer
+      const evaluatedArgs = callNode.arguments.map((arg: any) => currentEvaluator.evaluate(arg));
+      if (evaluatedArgs.length > 0) {
+        const obj = evaluatedArgs[0];
+        if (obj && typeof obj === "object" && (obj as any).__type) {
+          return obj;
+        }
+      }
+      return 0; // NULL
     }
 
     if (["reverse", "max_element", "min_element", "accumulate"].includes(fn)) {
@@ -448,7 +472,14 @@ export class FunctionInvoker {
       }
     }
 
+    if (!handled && method === "get" && objInstance && (objInstance as any).__type) {
+      result = objInstance;
+      handled = true;
+    }
+
     if (!handled) {
+      const b = objInstance && (objInstance as any).__type ? this.ctx.classBlueprints.get((objInstance as any).__type) : null;
+      console.log(`[FunctionInvoker] Linker error for '${method}'. Object type: ${objInstance ? (objInstance as any).__type : 'unknown'}, Blueprint methods: ${b?.methods ? b.methods.map((m: any) => m.name).join(", ") : 'none'}`);
       throw new Error(
         `Linker Error at line ${methodNode.line}: Method '${method}' is not defined on this object type.`,
       );

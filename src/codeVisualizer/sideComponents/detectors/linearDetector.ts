@@ -1,4 +1,4 @@
-import { type CanvasState, type VarMap, deepUnwrap, isFlatArray, matchesPrefix } from "./coreUtils";
+import { type CanvasState, type VarMap, deepUnwrap, matchesPrefix } from "./coreUtils";
 import { collectIndexPointers, collectNodePointers } from "./pointerCollector";
 
 export const STACK_PREFIXES = ["stack", "stk", "history", "undo", "frames"];

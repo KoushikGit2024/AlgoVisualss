@@ -21,7 +21,7 @@ export default function HomePage() {
     <div className="relative flex flex-col flex-1 items-center bg-[var(--bg)] overflow-hidden selection:bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] selection:text-[var(--text)]">
       <SEO
         title="Interactive Algorithm Visualizer"
-        description="A high-fidelity sandbox to visualize data structures, trace algorithms step-by-step, and deeply understand software architecture."
+        description="Master Data Structures and Algorithms with AlgoVisuals. Experience a powerful interactive learning platform featuring real-time C++ code execution, synchronized step-by-step algorithm tracing, dynamic memory visualization, and immersive data structure animations."
         canonical="https://algovisuals-na1c.onrender.com/"
         jsonLd={{
           "@context": "https://schema.org",
@@ -29,7 +29,7 @@ export default function HomePage() {
           name: "AlgoVisuals",
           url: "https://algovisuals-na1c.onrender.com/",
           description:
-            "AlgoVisuals is an interactive DSA learning platform that visualizes supported C++ implementations through synchronized code execution, data structure animation, and algorithm simulation.",
+            "Master Data Structures and Algorithms with AlgoVisuals. Experience a powerful interactive learning platform featuring real-time C++ code execution, synchronized step-by-step algorithm tracing, dynamic memory visualization, and immersive data structure animations.",
           applicationCategory: "EducationalApplication",
           applicationSubCategory: "ProgrammingEnvironment",
           operatingSystem: "All",
