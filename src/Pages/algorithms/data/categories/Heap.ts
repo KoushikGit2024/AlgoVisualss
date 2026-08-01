@@ -24,22 +24,22 @@ const HEAP_SECTION = {
       headers: ["Algorithm", "Heap Type & Size", "Core Technique"],
       rows: [
         [
-          "Kth Largest Element",
+          "[Kth Largest Element](/algorithms/heap/kth-largest)",
           "Min-heap, size k",
           "Keep only the k largest seen so far; the heap's root is the answer",
         ],
         [
-          "Merge K Sorted Lists",
+          "[Merge K Sorted Lists](/algorithms/heap/merge-k)",
           "Min-heap, size ≤ k",
           "Always extract the globally smallest 'current front' across k lists",
         ],
         [
-          "Top K Frequent Elements",
+          "[Top K Frequent Elements](/algorithms/heap/top-k-frequent)",
           "Min-heap, size k (by frequency)",
           "Same size-k-heap trick, keyed by frequency instead of value",
         ],
         [
-          "Find Median from Data Stream",
+          "[Find Median from Data Stream](/algorithms/heap/median-stream)",
           "Two heaps (max-heap + min-heap), combined size n",
           "Split the stream into a 'lower half' max-heap and 'upper half' min-heap, kept balanced",
         ],
@@ -60,6 +60,12 @@ const HEAP_SECTION = {
       name: "Kth Largest Element",
       href: "/algorithms/heap/kth-largest",
       type: "Medium",
+
+      related: [
+        { name: "Merge K Sorted Lists", href: "/algorithms/heap/merge-k" },
+        { name: "Top K Frequent Elements", href: "/algorithms/heap/top-k-frequent" },
+        { name: "Find Median from Data Stream", href: "/algorithms/heap/median-stream" },
+      ],
 
       about: [
         { tag: "h1", text: "Kth Largest Element" },
@@ -568,6 +574,12 @@ fn main() {
       name: "Merge K Sorted Lists",
       href: "/algorithms/heap/merge-k",
       type: "Hard",
+
+      related: [
+        { name: "Kth Largest Element", href: "/algorithms/heap/kth-largest" },
+        { name: "Top K Frequent Elements", href: "/algorithms/heap/top-k-frequent" },
+        { name: "Find Median from Data Stream", href: "/algorithms/heap/median-stream" },
+      ],
 
       about: [
         { tag: "h1", text: "Merge K Sorted Lists" },
@@ -1546,6 +1558,12 @@ fn main() {
       href: "/algorithms/heap/top-k-frequent",
       type: "Medium",
 
+      related: [
+        { name: "Kth Largest Element", href: "/algorithms/heap/kth-largest" },
+        { name: "Merge K Sorted Lists", href: "/algorithms/heap/merge-k" },
+        { name: "Find Median from Data Stream", href: "/algorithms/heap/median-stream" },
+      ],
+
       about: [
         { tag: "h1", text: "Top K Frequent Elements" },
         {
@@ -2182,6 +2200,12 @@ fn main() {
       name: "Find Median from Data Stream",
       href: "/algorithms/heap/median-stream",
       type: "Hard",
+
+      related: [
+        { name: "Kth Largest Element", href: "/algorithms/heap/kth-largest" },
+        { name: "Merge K Sorted Lists", href: "/algorithms/heap/merge-k" },
+        { name: "Top K Frequent Elements", href: "/algorithms/heap/top-k-frequent" },
+      ],
 
       about: [
         { tag: "h1", text: "Find Median from Data Stream" },

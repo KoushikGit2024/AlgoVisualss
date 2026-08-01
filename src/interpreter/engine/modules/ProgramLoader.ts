@@ -47,7 +47,9 @@ export class ProgramLoader {
         }
         if (struct.constructors) {
           if (!existing.constructors) existing.constructors = [];
-          const existingCtorSig = new Set(existing.constructors.map((c: any) => c.parameters.length));
+          const existingCtorSig = new Set(
+            existing.constructors.map((c: any) => c.parameters.length),
+          );
           for (const ctor of struct.constructors) {
             if (!existingCtorSig.has(ctor.parameters.length)) existing.constructors.push(ctor);
           }

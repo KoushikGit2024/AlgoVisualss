@@ -2,8 +2,9 @@ import type { IRUnaryExpression, IRUpdateExpression } from "../../ir/IRNode";
 import { EventEmitter } from "../../events/EventEmitter";
 import { EventType } from "../../types";
 import { ScopeManager } from "../../runtime/ScopeManager";
-import type { CppValue } from "../../types";
+import type { CppValue, EvalResult, CppType } from "../../types";
 import type { ExpressionEvaluator } from "../ExpressionEvaluator";
+import { TypeConversion } from "./TypeConversion";
 
 export class UnaryUpdateEvaluator {
   constructor(
@@ -13,34 +14,44 @@ export class UnaryUpdateEvaluator {
   ) {}
 
   public evaluateUnary(expr: IRUnaryExpression): CppValue {
-    const argValue = this.evaluator.evaluate(expr.argument);
+    return this.evaluateUnaryTyped(expr).value;
+  }
+
+  public evaluateUnaryTyped(expr: IRUnaryExpression): EvalResult {
+    const argRes = this.evaluator.evaluateWithType(expr.argument);
+    const argValue = argRes.value;
 
     switch (expr.operator) {
       case "-":
-        return -(argValue as number);
+        return { type: argRes.type, value: -(argValue as number) };
       case "+":
-        return +(argValue as number);
+        return { type: argRes.type, value: +(argValue as number) };
       case "!":
-        return !argValue;
+        return { type: "bool", value: !argValue };
       case "~":
-        return ~(argValue as number); // Bitwise NOT
+        return { type: argRes.type, value: ~(argValue as number) }; // Bitwise NOT
       case "*":
         if (argValue && typeof argValue === "object" && (argValue as any).__isListIter) {
-          return (argValue as any).__iterValue;
+          return { type: "unknown", value: (argValue as any).__iterValue };
         }
-        return argValue; // Dereference — no-op in duck-typed JS
+        return argRes; // Dereference — no-op in duck-typed JS
       case "&":
         if (expr.argument.kind === "Identifier") {
           const varName = (expr.argument as any).name;
-          return this.scopeManager.getVariable(varName).value;
+          const sym = this.scopeManager.getVariable(varName);
+          return { type: `${sym.type}*`, value: sym.value };
         }
-        return argValue;
+        return argRes;
       default:
         throw new Error(`Runtime Exception: Unsupported unary operator '${expr.operator}'.`);
     }
   }
 
   public evaluateUpdate(node: IRUpdateExpression): CppValue {
+    return this.evaluateUpdateTyped(node).value;
+  }
+
+  public evaluateUpdateTyped(node: IRUpdateExpression): EvalResult {
     let currentValue: number = 0;
     let targetObject: any = null;
     let targetKey: string | number | null = null;
@@ -130,22 +141,37 @@ export class UnaryUpdateEvaluator {
       );
     }
 
-    const newValue = node.operator === "++" ? currentValue + 1 : currentValue - 1;
+    const oldValue = currentValue;
+    let newValue = node.operator === "++" ? currentValue + 1 : currentValue - 1;
+    let resultType: CppType = "unknown";
 
     if (identifierName) {
       try {
         const symbol = targetScopeManager.getVariable(identifierName);
-        if (symbol && symbol.value && typeof symbol.value === "object" && (symbol.value as any).__isListIter) {
+        resultType = symbol.type;
+
+        if (
+          symbol &&
+          symbol.value &&
+          typeof symbol.value === "object" &&
+          (symbol.value as any).__isListIter
+        ) {
           const iter = symbol.value as any;
           iter.__iterIndex = newValue;
           iter.__iterValue = iter.__targetArr[iter.__iterIndex];
-          
+
           this.eventEmitter.emit(node.line, EventType.ASSIGNMENT, {
             target: identifierName,
             value: iter.__iterIndex,
           });
-          return node.prefix ? iter : { ...iter, __iterIndex: currentValue };
+          return {
+            type: resultType,
+            value: node.prefix ? iter : { ...iter, __iterIndex: currentValue },
+          };
         }
+
+        const converted = TypeConversion.convert({ type: "int", value: newValue }, symbol.type);
+        newValue = converted.value as number;
       } catch {}
       targetScopeManager.assignVariable(identifierName, newValue);
     } else if (targetObject !== null && targetKey !== null) {
@@ -165,6 +191,6 @@ export class UnaryUpdateEvaluator {
       value: newValue,
     });
 
-    return node.prefix ? newValue : currentValue;
+    return { type: resultType, value: node.prefix ? newValue : oldValue };
   }
 }

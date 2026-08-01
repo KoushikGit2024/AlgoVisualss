@@ -69,6 +69,18 @@ export type CppValue =
   | Map<any, any>
   | ((...args: any[]) => any);
 
+/**
+ * Encapsulates a C++ runtime primitive with its strict C++ type metadata.
+ *
+ * Used exclusively within the evaluation layer (ExpressionEvaluator,
+ * BinaryEvaluator, etc.) to ensure 100% accurate implicit conversion,
+ * assignment, and formatting rules without relying on JavaScript type heuristics.
+ */
+export interface EvalResult {
+  type: CppType | "unknown";
+  value: CppValue;
+}
+
 // ─── Opaque Key Types ─────────────────────────────────────────────────────────
 
 /**

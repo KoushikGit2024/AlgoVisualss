@@ -57,6 +57,13 @@ const HASH_MAPS_SECTION = {
       href: "/algorithms/hash_maps/two-sum",
       type: "Easy",
 
+      related: [
+        { name: "Longest Consecutive Sequence", href: "/algorithms/hash_maps/longest-consecutive" },
+        { name: "Group Anagrams", href: "/algorithms/hash_maps/group-anagrams" },
+        { name: "Design Hashmap", href: "/algorithms/hash_maps/design" },
+        { name: "LFU Cache Design", href: "/algorithms/hash_maps/lfu-cache" },
+      ],
+
       about: [
         { tag: "h1", text: "Two Sum" },
         {
@@ -608,6 +615,13 @@ fn main() {
       name: "Longest Consecutive Sequence",
       href: "/algorithms/hash_maps/longest-consecutive",
       type: "Medium",
+
+      related: [
+        { name: "Two Sum", href: "/algorithms/hash_maps/two-sum" },
+        { name: "Group Anagrams", href: "/algorithms/hash_maps/group-anagrams" },
+        { name: "Design Hashmap", href: "/algorithms/hash_maps/design" },
+        { name: "LFU Cache Design", href: "/algorithms/hash_maps/lfu-cache" },
+      ],
 
       about: [
         { tag: "h1", text: "Longest Consecutive Sequence" },
@@ -1201,6 +1215,13 @@ fn main() {
       href: "/algorithms/hash_maps/group-anagrams",
       type: "Medium",
 
+      related: [
+        { name: "Two Sum", href: "/algorithms/hash_maps/two-sum" },
+        { name: "Longest Consecutive Sequence", href: "/algorithms/hash_maps/longest-consecutive" },
+        { name: "Design Hashmap", href: "/algorithms/hash_maps/design" },
+        { name: "LFU Cache Design", href: "/algorithms/hash_maps/lfu-cache" },
+      ],
+
       about: [
         { tag: "h1", text: "Group Anagrams" },
         {
@@ -1730,6 +1751,13 @@ fn main() {
       name: "Design Hashmap",
       href: "/algorithms/hash_maps/design",
       type: "Medium",
+
+      related: [
+        { name: "Two Sum", href: "/algorithms/hash_maps/two-sum" },
+        { name: "Longest Consecutive Sequence", href: "/algorithms/hash_maps/longest-consecutive" },
+        { name: "Group Anagrams", href: "/algorithms/hash_maps/group-anagrams" },
+        { name: "LFU Cache Design", href: "/algorithms/hash_maps/lfu-cache" },
+      ],
 
       about: [
         { tag: "h1", text: "Design Hashmap" },
@@ -3075,6 +3103,13 @@ fn main() {
       name: "LFU Cache Design",
       href: "/algorithms/hash_maps/lfu-cache",
       type: "Hard",
+
+      related: [
+        { name: "Two Sum", href: "/algorithms/hash_maps/two-sum" },
+        { name: "Longest Consecutive Sequence", href: "/algorithms/hash_maps/longest-consecutive" },
+        { name: "Group Anagrams", href: "/algorithms/hash_maps/group-anagrams" },
+        { name: "Design Hashmap", href: "/algorithms/hash_maps/design" },
+      ],
 
       about: [
         { tag: "h1", text: "LFU Cache Design" },

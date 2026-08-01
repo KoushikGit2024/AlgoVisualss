@@ -45,6 +45,11 @@ const TRIES_SECTION = {
       href: "/algorithms/tries/word-search-ii",
       type: "Hard",
 
+      related: [
+        { name: "Implement Trie", href: "/algorithms/tries/implementation" },
+        { name: "Add and Search Words", href: "/algorithms/tries/add-search" },
+      ],
+
       about: [
         { tag: "h1", text: "Word Search II" },
         {
@@ -514,6 +519,11 @@ console.log(findWords(board, words));`,
       href: "/algorithms/tries/implementation",
       type: "Medium",
 
+      related: [
+        { name: "Word Search II", href: "/algorithms/tries/word-search-ii" },
+        { name: "Add and Search Words", href: "/algorithms/tries/add-search" },
+      ],
+
       about: [
         { tag: "h1", text: "Implement Trie" },
         {
@@ -944,6 +954,11 @@ console.log("Starts with 'xyz':", startsWith(root, "xyz"));      // false`,
       name: "Add and Search Words",
       href: "/algorithms/tries/add-search",
       type: "Medium",
+
+      related: [
+        { name: "Word Search II", href: "/algorithms/tries/word-search-ii" },
+        { name: "Implement Trie", href: "/algorithms/tries/implementation" },
+      ],
 
       about: [
         { tag: "h1", text: "Add and Search Words" },

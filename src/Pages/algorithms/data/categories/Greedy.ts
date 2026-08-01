@@ -67,6 +67,13 @@ const GREEDY_SECTION = {
       href: "/algorithms/greedy/jump-game",
       type: "Medium",
 
+      related: [
+        { name: "Huffman Coding", href: "/algorithms/greedy/huffman" },
+        { name: "Minimum Spanning Tree", href: "/algorithms/greedy/mst" },
+        { name: "Activity Selection", href: "/algorithms/greedy/activity-selection" },
+        { name: "Fractional Knapsack", href: "/algorithms/greedy/fractional-knapsack" },
+      ],
+
       about: [
         { tag: "h1", text: "Jump Game" },
         {
@@ -429,6 +436,13 @@ fn main() {
       name: "Huffman Coding",
       href: "/algorithms/greedy/huffman",
       type: "Medium",
+
+      related: [
+        { name: "Jump Game", href: "/algorithms/greedy/jump-game" },
+        { name: "Minimum Spanning Tree", href: "/algorithms/greedy/mst" },
+        { name: "Activity Selection", href: "/algorithms/greedy/activity-selection" },
+        { name: "Fractional Knapsack", href: "/algorithms/greedy/fractional-knapsack" },
+      ],
 
       about: [
         { tag: "h1", text: "Huffman Coding" },
@@ -889,6 +903,13 @@ fn main() {
       name: "Minimum Spanning Tree",
       href: "/algorithms/greedy/mst",
       type: "Hard",
+
+      related: [
+        { name: "Jump Game", href: "/algorithms/greedy/jump-game" },
+        { name: "Huffman Coding", href: "/algorithms/greedy/huffman" },
+        { name: "Activity Selection", href: "/algorithms/greedy/activity-selection" },
+        { name: "Fractional Knapsack", href: "/algorithms/greedy/fractional-knapsack" },
+      ],
 
       about: [
         { tag: "h1", text: "Minimum Spanning Tree — The Greedy Principle" },
@@ -1636,6 +1657,13 @@ fn main() {
       href: "/algorithms/greedy/activity-selection",
       type: "Easy",
 
+      related: [
+        { name: "Jump Game", href: "/algorithms/greedy/jump-game" },
+        { name: "Huffman Coding", href: "/algorithms/greedy/huffman" },
+        { name: "Minimum Spanning Tree", href: "/algorithms/greedy/mst" },
+        { name: "Fractional Knapsack", href: "/algorithms/greedy/fractional-knapsack" },
+      ],
+
       about: [
         { tag: "h1", text: "Activity Selection" },
         {
@@ -2046,6 +2074,13 @@ fn main() {
       name: "Fractional Knapsack",
       href: "/algorithms/greedy/fractional-knapsack",
       type: "Medium",
+
+      related: [
+        { name: "Jump Game", href: "/algorithms/greedy/jump-game" },
+        { name: "Huffman Coding", href: "/algorithms/greedy/huffman" },
+        { name: "Minimum Spanning Tree", href: "/algorithms/greedy/mst" },
+        { name: "Activity Selection", href: "/algorithms/greedy/activity-selection" },
+      ],
 
       about: [
         { tag: "h1", text: "Fractional Knapsack" },

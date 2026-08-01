@@ -20,28 +20,28 @@ const RANGE_STRUCTURES_SECTION = {
       headers: ["Structure", "Build", "Query", "Update", "Best For"],
       rows: [
         [
-          "Segment Tree",
+          "[Segment Tree](/algorithms/range_structures/segment-tree)",
           "O(n)",
           "O(log n)",
           "O(log n)",
           "General-purpose: any associative operation, point or range updates",
         ],
         [
-          "Fenwick Tree (BIT)",
+          "[Fenwick Tree (BIT)](/algorithms/range_structures/fenwick)",
           "O(n log n) naive / O(n) optimal",
           "O(log n)",
           "O(log n)",
           "Prefix sums and similar invertible operations, simpler to code than Segment Tree",
         ],
         [
-          "Sparse Table",
+          "[Sparse Table](/algorithms/range_structures/sparse-table)",
           "O(n log n)",
           "O(1)",
           "Not supported (static only)",
           "Static arrays with many repeated queries — e.g. Range Minimum Query",
         ],
         [
-          "Square Root Decomposition",
+          "[Square Root Decomposition](/algorithms/range_structures/sqrt-decomp)",
           "O(n)",
           "O(√n)",
           "O(√n)",
@@ -69,6 +69,12 @@ const RANGE_STRUCTURES_SECTION = {
       name: "Segment Tree",
       href: "/algorithms/range_structures/segment-tree",
       type: "Hard",
+
+      related: [
+        { name: "Fenwick Tree (BIT)", href: "/algorithms/range_structures/fenwick" },
+        { name: "Sparse Table", href: "/algorithms/range_structures/sparse-table" },
+        { name: "Square Root Decomposition", href: "/algorithms/range_structures/sqrt-decomp" },
+      ],
 
       about: [
         { tag: "h1", text: "Segment Tree" },
@@ -759,6 +765,12 @@ fn main() {
       href: "/algorithms/range_structures/fenwick",
       type: "Medium",
 
+      related: [
+        { name: "Segment Tree", href: "/algorithms/range_structures/segment-tree" },
+        { name: "Sparse Table", href: "/algorithms/range_structures/sparse-table" },
+        { name: "Square Root Decomposition", href: "/algorithms/range_structures/sqrt-decomp" },
+      ],
+
       about: [
         { tag: "h1", text: "Fenwick Tree (Binary Indexed Tree)" },
         {
@@ -1279,6 +1291,12 @@ fn main() {
       name: "Sparse Table",
       href: "/algorithms/range_structures/sparse-table",
       type: "Hard",
+
+      related: [
+        { name: "Segment Tree", href: "/algorithms/range_structures/segment-tree" },
+        { name: "Fenwick Tree (BIT)", href: "/algorithms/range_structures/fenwick" },
+        { name: "Square Root Decomposition", href: "/algorithms/range_structures/sqrt-decomp" },
+      ],
 
       about: [
         { tag: "h1", text: "Sparse Table" },
@@ -1847,6 +1865,12 @@ fn main() {
       name: "Square Root Decomposition",
       href: "/algorithms/range_structures/sqrt-decomp",
       type: "Hard",
+
+      related: [
+        { name: "Segment Tree", href: "/algorithms/range_structures/segment-tree" },
+        { name: "Fenwick Tree (BIT)", href: "/algorithms/range_structures/fenwick" },
+        { name: "Sparse Table", href: "/algorithms/range_structures/sparse-table" },
+      ],
 
       about: [
         { tag: "h1", text: "Square Root Decomposition" },

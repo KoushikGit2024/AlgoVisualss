@@ -1,5 +1,4 @@
 import type {
-  IRExpression,
   IRIdentifier,
   IRAssignment,
   IRSubscriptExpression,
@@ -11,9 +10,10 @@ import type {
 import { ScopeManager } from "../../runtime/ScopeManager";
 import { EventEmitter } from "../../events/EventEmitter";
 import { EventType } from "../../types";
-import type { CppValue } from "../../types";
+import type { CppValue, EvalResult, CppType } from "../../types";
 import { cloneRuntimeValue } from "../../utils/helpers";
 import type { ExpressionEvaluator } from "../ExpressionEvaluator";
+import { TypeConversion } from "./TypeConversion";
 
 const SIZEOF_TABLE: Array<[string, number]> = [
   ["long long", 8],
@@ -47,13 +47,18 @@ export class CoreEvaluator {
   ) {}
 
   public evaluateIdentifier(expr: IRIdentifier): CppValue {
-    if (expr.name === "cout") return { __isCout: true } as unknown as CppValue;
+    return this.evaluateIdentifierTyped(expr).value;
+  }
+
+  public evaluateIdentifierTyped(expr: IRIdentifier): EvalResult {
+    if (expr.name === "cout")
+      return { type: "unknown", value: { __isCout: true } as unknown as CppValue };
     if (expr.name === "cin")
       throw new Error(`Line ${expr.line}: 'cin' is not supported in this environment.`);
-    if (expr.name === "nullptr" || expr.name === "NULL") return null;
-    if (expr.name === "endl") return "\n";
-    if (expr.name === "true") return true;
-    if (expr.name === "false") return false;
+    if (expr.name === "nullptr" || expr.name === "NULL") return { type: "nullptr_t", value: null };
+    if (expr.name === "endl") return { type: "char", value: "\n" };
+    if (expr.name === "true") return { type: "bool", value: true };
+    if (expr.name === "false") return { type: "bool", value: false };
 
     try {
       const symbol = this.scopeManager.getVariable(expr.name);
@@ -67,7 +72,7 @@ export class CoreEvaluator {
         val = targetScope.getVariable(refName).value;
       }
       this.eventEmitter.emit(expr.line, EventType.READ, { variable: expr.name, value: val });
-      return val;
+      return { type: symbol.type, value: val };
     } catch (originalError) {
       try {
         const thisSym = this.scopeManager.getVariable("this");
@@ -82,12 +87,12 @@ export class CoreEvaluator {
             variable: `this->${expr.name}`,
             value: val,
           });
-          return val;
+          return { type: "unknown", value: val };
         }
       } catch {}
 
       const constVal = this.resolveGlobalConstant(expr.name);
-      if (constVal !== undefined) return constVal;
+      if (constVal !== undefined) return { type: "unknown", value: constVal };
       throw new Error(`Memory Access Violation: Variable '${expr.name}' is not defined.`);
     }
   }
@@ -112,13 +117,21 @@ export class CoreEvaluator {
   }
 
   public evaluateComma(expr: IRCommaExpression): CppValue {
-    this.evaluator.evaluate(expr.left);
-    return this.evaluator.evaluate(expr.right);
+    return this.evaluateCommaTyped(expr).value;
+  }
+
+  public evaluateCommaTyped(expr: IRCommaExpression): EvalResult {
+    this.evaluator.evaluateWithType(expr.left);
+    return this.evaluator.evaluateWithType(expr.right);
   }
 
   public evaluateAssignment(expr: IRAssignment): CppValue {
-    let newValue = this.evaluator.evaluate(expr.value);
-    newValue = cloneRuntimeValue(newValue);
+    return this.evaluateAssignmentTyped(expr).value;
+  }
+
+  public evaluateAssignmentTyped(expr: IRAssignment): EvalResult {
+    const rawRes = this.evaluator.evaluateWithType(expr.value);
+    let newValue = cloneRuntimeValue(rawRes.value);
 
     let targetObj: any = null;
     let index: string | number | null = null;
@@ -212,7 +225,16 @@ export class CoreEvaluator {
       );
     }
 
+    let resultType: CppType = rawRes.type;
+
     if (identifierName) {
+      const symbol = targetScopeManager.getVariable(identifierName);
+      const convertedRes = TypeConversion.convert(
+        { type: rawRes.type, value: newValue },
+        symbol.type,
+      );
+      newValue = convertedRes.value;
+      resultType = convertedRes.type;
       targetScopeManager.assignVariable(identifierName, newValue);
     } else if (targetObj !== null && index !== null) {
       if (targetObj instanceof Map) {
@@ -235,10 +257,14 @@ export class CoreEvaluator {
       value: newValue,
     });
 
-    return newValue;
+    return { type: resultType, value: newValue };
   }
 
   public evaluateSubscript(expr: IRSubscriptExpression): CppValue {
+    return this.evaluateSubscriptTyped(expr).value;
+  }
+
+  public evaluateSubscriptTyped(expr: IRSubscriptExpression): EvalResult {
     const targetObj = this.evaluator.evaluate(expr.object) as any;
     const index = this.evaluator.evaluate(expr.index) as string | number;
 
@@ -290,10 +316,24 @@ export class CoreEvaluator {
       indexVariables: indexVariables.length > 0 ? indexVariables : undefined,
     });
 
-    return val;
+    // Subscript into a string yields a char
+    if (expr.object.kind === "Identifier") {
+      try {
+        const type = this.scopeManager.getVariable((expr.object as IRIdentifier).name).type;
+        if (type === "string" || type === "std::string" || type === "char*") {
+          return { type: "char", value: val };
+        }
+      } catch {}
+    }
+
+    return { type: "unknown", value: val };
   }
 
   public evaluateMember(expr: any): CppValue {
+    return this.evaluateMemberTyped(expr).value;
+  }
+
+  public evaluateMemberTyped(expr: any): EvalResult {
     const targetObj = this.evaluator.evaluate(expr.object) as any;
 
     if (targetObj === null || targetObj === undefined) {
@@ -332,13 +372,17 @@ export class CoreEvaluator {
       value: val,
     });
 
-    return val;
+    return { type: "unknown", value: val };
   }
 
   public evaluateTernary(expr: IRTernaryExpression): CppValue {
+    return this.evaluateTernaryTyped(expr).value;
+  }
+
+  public evaluateTernaryTyped(expr: IRTernaryExpression): EvalResult {
     return this.evaluator.evaluate(expr.condition)
-      ? this.evaluator.evaluate(expr.consequent)
-      : this.evaluator.evaluate(expr.alternate);
+      ? this.evaluator.evaluateWithType(expr.consequent)
+      : this.evaluator.evaluateWithType(expr.alternate);
   }
 
   public evaluateInitList(expr: IRInitializerList): CppValue {
@@ -414,28 +458,8 @@ export class CoreEvaluator {
     }
   }
 
-  public isTypeChar(expr: IRExpression): boolean {
-    if (expr.kind === "Literal") {
-      return (expr as any).valueType === "char";
-    }
-    if (expr.kind === "Identifier") {
-      try {
-        return this.scopeManager.getVariable((expr as any).name).type === "char";
-      } catch {
-        return false;
-      }
-    }
-    if (expr.kind === "SubscriptExpression") {
-      const obj = (expr as any).object;
-      if (obj.kind === "Identifier") {
-        try {
-          const type = this.scopeManager.getVariable(obj.name).type;
-          return type === "string" || type === "std::string" || type === "char*";
-        } catch {
-          return false;
-        }
-      }
-    }
-    return false;
+  public evaluateCastTyped(expr: any): EvalResult {
+    const innerRes = this.evaluator.evaluateWithType(expr.argument);
+    return TypeConversion.convert(innerRes, expr.targetType);
   }
 }

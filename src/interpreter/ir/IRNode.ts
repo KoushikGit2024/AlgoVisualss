@@ -156,7 +156,8 @@ export type IRExpression =
   | IRLambdaExpression
   | IRAssignment
   | IRSizeofExpression // v2: sizeof(type) / sizeof(expr)
-  | IRCommaExpression; // v2: expr1, expr2  (comma operator)
+  | IRCommaExpression // v2: expr1, expr2  (comma operator)
+  | IRCastExpression;
 
 // ─── 3. Base Interface ────────────────────────────────────────────────────────
 
@@ -779,4 +780,15 @@ export interface IRCommaExpression extends IRBaseNode {
   kind: "CommaExpression";
   left: IRExpression;
   right: IRExpression;
+}
+
+/**
+ * An explicit type cast expression: `(int)x`, `int(x)`, `static_cast<int>(x)`.
+ * ExpressionEvaluator evaluates the argument and delegates to TypeConversion
+ * to coerce the resulting EvalResult to `targetType`.
+ */
+export interface IRCastExpression extends IRBaseNode {
+  kind: "CastExpression";
+  targetType: string;
+  argument: IRExpression;
 }

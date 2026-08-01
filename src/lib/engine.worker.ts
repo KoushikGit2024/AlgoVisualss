@@ -34,7 +34,11 @@ self.onmessage = async (e) => {
 
     if (tree.rootNode.hasError) {
       const findError = (node: any): any => {
-        if (node.type === "ERROR" || (typeof node.isMissing === 'function' ? node.isMissing() : node.isMissing)) return node;
+        if (
+          node.type === "ERROR" ||
+          (typeof node.isMissing === "function" ? node.isMissing() : node.isMissing)
+        )
+          return node;
         for (let i = 0; i < node.childCount; i++) {
           const err = findError(node.child(i));
           if (err) return err;
@@ -43,7 +47,7 @@ self.onmessage = async (e) => {
       };
       const errNode = findError(tree.rootNode);
       if (errNode) {
-        if (typeof errNode.isMissing === 'function' ? errNode.isMissing() : errNode.isMissing) {
+        if (typeof errNode.isMissing === "function" ? errNode.isMissing() : errNode.isMissing) {
           throw new Error(
             `Line ${errNode.startPosition.row + 1}: Syntax Error: Missing '${errNode.type}'`,
           );

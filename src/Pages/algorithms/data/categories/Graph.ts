@@ -7753,38 +7753,48 @@ const GRAPHS_SECTION = {
       rows: [
         ["BFS", "Shortest path by edge count (unweighted)", "O(V + E)", "N/A (unweighted)"],
         ["DFS", "Reachability, cycle detection, ordering", "O(V + E)", "N/A (unweighted)"],
-        ["Topological Sort", "Linear ordering respecting DAG dependencies", "O(V + E)", "N/A"],
         [
-          "Dijkstra's Algorithm",
+          "[Topological Sort](/algorithms/graphs/topological-sort)",
+          "Linear ordering respecting DAG dependencies",
+          "O(V + E)",
+          "N/A",
+        ],
+        [
+          "[Dijkstra's Algorithm](/algorithms/graphs/dijkstra)",
           "Single-source shortest path, non-negative weights",
           "O((V+E) log V)",
           "No",
         ],
         [
-          "Bellman-Ford Algorithm",
+          "[Bellman-Ford Algorithm](/algorithms/graphs/bellman-ford)",
           "Single-source shortest path, detects negative cycles",
           "O(VE)",
           "Yes",
         ],
         [
-          "Floyd-Warshall Algorithm",
+          "[Floyd-Warshall Algorithm](/algorithms/graphs/floyd-warshall)",
           "All-pairs shortest path",
           "O(V³)",
           "Yes (no negative cycles)",
         ],
         [
-          "Kruskal's Algorithm",
+          "[Kruskal's Algorithm](/algorithms/graphs/kruskal)",
           "Minimum spanning tree, edge-driven",
           "O(E log E)",
           "N/A (MST, not shortest path)",
         ],
         [
-          "Prim's Algorithm",
+          "[Prim's Algorithm](/algorithms/graphs/prim)",
           "Minimum spanning tree, vertex-driven",
           "O((V+E) log V)",
           "N/A (MST, not shortest path)",
         ],
-        ["Tarjan's SCC", "Strongly connected components (directed graphs)", "O(V + E)", "N/A"],
+        [
+          "[Tarjan's SCC](/algorithms/graphs/tarjans)",
+          "Strongly connected components (directed graphs)",
+          "O(V + E)",
+          "N/A",
+        ],
       ],
     },
     {
@@ -7802,6 +7812,13 @@ const GRAPHS_SECTION = {
       name: "Breadth-First Search (BFS)",
       href: "/algorithms/graphs/bfs",
       type: "Easy",
+
+      related: [
+        { name: "Topological Sort", href: "/algorithms/graphs/topological-sort" },
+        { name: "Dijkstra's Algorithm", href: "/algorithms/graphs/dijkstra" },
+        { name: "Bellman-Ford Algorithm", href: "/algorithms/graphs/bellman-ford" },
+        { name: "Floyd-Warshall Algorithm", href: "/algorithms/graphs/floyd-warshall" },
+      ],
 
       about: [
         { tag: "h1", text: "Breadth-First Search (BFS)" },
@@ -8409,6 +8426,13 @@ fn main() {
       href: "/algorithms/graphs/topological-sort",
       type: "Medium",
 
+      related: [
+        { name: "Breadth-First Search (BFS)", href: "/algorithms/graphs/bfs" },
+        { name: "Dijkstra's Algorithm", href: "/algorithms/graphs/dijkstra" },
+        { name: "Bellman-Ford Algorithm", href: "/algorithms/graphs/bellman-ford" },
+        { name: "Floyd-Warshall Algorithm", href: "/algorithms/graphs/floyd-warshall" },
+      ],
+
       about: [
         { tag: "h1", text: "Topological Sort" },
         {
@@ -8958,6 +8982,13 @@ fn main() {
       name: "Dijkstra's Algorithm",
       href: "/algorithms/graphs/dijkstra",
       type: "Medium",
+
+      related: [
+        { name: "Breadth-First Search (BFS)", href: "/algorithms/graphs/bfs" },
+        { name: "Topological Sort", href: "/algorithms/graphs/topological-sort" },
+        { name: "Bellman-Ford Algorithm", href: "/algorithms/graphs/bellman-ford" },
+        { name: "Floyd-Warshall Algorithm", href: "/algorithms/graphs/floyd-warshall" },
+      ],
 
       about: [
         { tag: "h1", text: "Dijkstra's Algorithm" },
@@ -9623,6 +9654,13 @@ fn main() {
       href: "/algorithms/graphs/bellman-ford",
       type: "Hard",
 
+      related: [
+        { name: "Breadth-First Search (BFS)", href: "/algorithms/graphs/bfs" },
+        { name: "Topological Sort", href: "/algorithms/graphs/topological-sort" },
+        { name: "Dijkstra's Algorithm", href: "/algorithms/graphs/dijkstra" },
+        { name: "Floyd-Warshall Algorithm", href: "/algorithms/graphs/floyd-warshall" },
+      ],
+
       about: [
         { tag: "h1", text: "Bellman-Ford Algorithm" },
         {
@@ -10129,6 +10167,13 @@ fn main() {
       name: "Floyd-Warshall Algorithm",
       href: "/algorithms/graphs/floyd-warshall",
       type: "Hard",
+
+      related: [
+        { name: "Breadth-First Search (BFS)", href: "/algorithms/graphs/bfs" },
+        { name: "Topological Sort", href: "/algorithms/graphs/topological-sort" },
+        { name: "Dijkstra's Algorithm", href: "/algorithms/graphs/dijkstra" },
+        { name: "Bellman-Ford Algorithm", href: "/algorithms/graphs/bellman-ford" },
+      ],
 
       about: [
         { tag: "h1", text: "Floyd-Warshall Algorithm" },
@@ -10649,6 +10694,13 @@ fn main() {
       name: "Kruskal's Algorithm",
       href: "/algorithms/graphs/kruskal",
       type: "Medium",
+
+      related: [
+        { name: "Breadth-First Search (BFS)", href: "/algorithms/graphs/bfs" },
+        { name: "Topological Sort", href: "/algorithms/graphs/topological-sort" },
+        { name: "Dijkstra's Algorithm", href: "/algorithms/graphs/dijkstra" },
+        { name: "Bellman-Ford Algorithm", href: "/algorithms/graphs/bellman-ford" },
+      ],
 
       about: [
         { tag: "h1", text: "Kruskal's Algorithm" },
@@ -11280,6 +11332,13 @@ fn main() {
       href: "/algorithms/graphs/prim",
       type: "Medium",
 
+      related: [
+        { name: "Breadth-First Search (BFS)", href: "/algorithms/graphs/bfs" },
+        { name: "Topological Sort", href: "/algorithms/graphs/topological-sort" },
+        { name: "Dijkstra's Algorithm", href: "/algorithms/graphs/dijkstra" },
+        { name: "Bellman-Ford Algorithm", href: "/algorithms/graphs/bellman-ford" },
+      ],
+
       about: [
         { tag: "h1", text: "Prim's Algorithm" },
         {
@@ -11877,6 +11936,13 @@ fn main() {
       href: "/algorithms/graphs/dfs",
       type: "Easy",
 
+      related: [
+        { name: "Breadth-First Search (BFS)", href: "/algorithms/graphs/bfs" },
+        { name: "Topological Sort", href: "/algorithms/graphs/topological-sort" },
+        { name: "Dijkstra's Algorithm", href: "/algorithms/graphs/dijkstra" },
+        { name: "Bellman-Ford Algorithm", href: "/algorithms/graphs/bellman-ford" },
+      ],
+
       about: [
         { tag: "h1", text: "Depth-First Search (DFS)" },
         {
@@ -12298,6 +12364,13 @@ fn main() {
       name: "Tarjan's SCC",
       href: "/algorithms/graphs/tarjans",
       type: "Hard",
+
+      related: [
+        { name: "Breadth-First Search (BFS)", href: "/algorithms/graphs/bfs" },
+        { name: "Topological Sort", href: "/algorithms/graphs/topological-sort" },
+        { name: "Dijkstra's Algorithm", href: "/algorithms/graphs/dijkstra" },
+        { name: "Bellman-Ford Algorithm", href: "/algorithms/graphs/bellman-ford" },
+      ],
 
       about: [
         { tag: "h1", text: "Tarjan's Strongly Connected Components Algorithm" },

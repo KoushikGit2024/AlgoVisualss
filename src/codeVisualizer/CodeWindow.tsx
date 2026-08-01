@@ -294,7 +294,7 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
                       "flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider transition-colors",
                       shareCopied
                         ? "bg-emerald-500/10 text-emerald-500"
-                        : "bg-surface-3 text-muted hover:text-text"
+                        : "bg-surface-3 text-muted hover:text-text",
                     )}
                     title={isAlgorithms ? "Share your custom algorithm mod" : "Copy Shareable Link"}
                   >

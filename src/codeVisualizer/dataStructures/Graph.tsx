@@ -414,10 +414,10 @@ const Graph = ({
               scale = 1.06;
               zIdx = 20;
             } else if (isCompare) {
-              bgCls = "bg-orange-500/25 backdrop-blur-sm";
-              borderCls = "border-orange-500";
-              textCls = "text-orange-500";
-              ringCls = "ring-4 ring-orange-500/15";
+              bgCls = "bg-accent-2/25 backdrop-blur-sm";
+              borderCls = "border-accent-2";
+              textCls = "text-accent-2";
+              ringCls = "ring-4 ring-accent-2/15";
               scale = 1.04;
               zIdx = 15;
             } else if (isRead) {

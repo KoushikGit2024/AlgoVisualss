@@ -56,10 +56,10 @@ const LinkedList = ({
 
       if (targetNode && lastNode) {
         const p1x = lastNode.offsetLeft + lastNode.offsetWidth / 2;
-        const p1y = lastNode.offsetTop + 48; // Bottom of the node block
+        const p1y = lastNode.offsetTop + lastNode.offsetHeight;
 
         const p2x = targetNode.offsetLeft + targetNode.offsetWidth / 2;
-        const p2y = targetNode.offsetTop + 48;
+        const p2y = targetNode.offsetTop + targetNode.offsetHeight;
 
         const dx = Math.abs(p1x - p2x);
         const depth = Math.max(50, dx * 0.3);
@@ -104,12 +104,15 @@ const LinkedList = ({
   }
 
   return (
-    <div className="w-full flex flex-col items-start overflow-x-auto styled-scrollbar pb-16 pt-4 px-4 relative">
+    <div
+      className="overflow-auto styled-scrollbar w-full h-full relative grid"
+      style={{ placeItems: "safe center" }}
+    >
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="flex items-center justify-center gap-6 relative min-w-full w-max"
+        className="flex items-center justify-center relative w-max px-12 py-20"
       >
         <AnimatePresence mode="popLayout">
           {safeNodes.map((node, idx) => {
@@ -169,9 +172,9 @@ const LinkedList = ({
               activeScale = 1.05;
               activeZIndex = 20;
             } else if (isCompare) {
-              bgClass = "bg-orange-500/20";
-              borderClass = "border-orange-500";
-              textClass = "text-orange-500";
+              bgClass = "bg-accent-2/20";
+              borderClass = "border-accent-2";
+              textClass = "text-accent-2";
               shadowClass = "shadow-none";
               activeScale = 1.02;
               activeZIndex = 15;
@@ -200,14 +203,14 @@ const LinkedList = ({
                 initial="hidden"
                 animate="show"
                 exit="exit"
-                className="flex items-center gap-2"
+                className="flex items-center"
               >
                 {/* ─── THE FRONT NULL TERMINATOR (If First Node & Doubly Linked) ─── */}
                 {isDoublyLinked && idx === 0 && (
                   <>
                     <motion.div
                       layout
-                      className="flex items-center justify-center shrink-0 opacity-60"
+                      className="flex items-center justify-center shrink-0 opacity-60 mr-1"
                     >
                       <div className="flex items-center justify-center px-2 py-0.5 rounded bg-surface border-2 border-dashed border-border-2 shadow-sm">
                         <span className="text-[calc(10rem/16)] font-mono font-bold text-muted">
@@ -218,21 +221,20 @@ const LinkedList = ({
 
                     <motion.div
                       layout
-                      className="flex items-center justify-center w-8 shrink-0 relative z-0"
+                      className="flex items-center justify-center w-8 shrink-0 z-0 mx-1"
                     >
                       <motion.svg
                         width="32"
                         height="24"
                         viewBox="0 0 32 24"
                         fill="none"
-                        className="absolute"
+                        className="overflow-visible"
                       >
                         <motion.path
-                          d="M0 12 L32 12"
+                          d="M6 12 L26 12"
                           stroke="currentColor"
                           className="text-border-2 opacity-70"
                           strokeWidth="2"
-                          markerEnd="url(#normalArrowhead)"
                           markerStart="url(#reverseArrowhead)"
                           initial={{ pathLength: 0, opacity: 0 }}
                           animate={{ pathLength: 1, opacity: 1 }}
@@ -247,7 +249,7 @@ const LinkedList = ({
                 <motion.div
                   id={`ll-node-${node.id}`}
                   layout
-                  className="relative flex flex-col items-center shrink-0 mt-8 mb-6"
+                  className="relative flex flex-col items-center shrink-0"
                 >
                   {/* Anchored Pointers (e.g. 'head', 'slow', 'fast') */}
                   <div className="absolute -top-14 flex items-end justify-center gap-1.5 w-full flex-wrap pointer-events-none">
@@ -339,14 +341,14 @@ const LinkedList = ({
                 {/* ─── THE CONNECTING ARROW ─── */}
                 <motion.div
                   layout
-                  className="flex items-center justify-center w-10 shrink-0 relative z-0"
+                  className="flex items-center justify-center w-10 shrink-0 z-0 mx-1"
                 >
                   <motion.svg
                     width="40"
                     height="24"
                     viewBox="0 0 40 24"
                     fill="none"
-                    className="absolute"
+                    className="overflow-visible"
                   >
                     <defs>
                       <marker
@@ -373,12 +375,14 @@ const LinkedList = ({
                       </marker>
                     </defs>
                     <motion.path
-                      d="M0 12 L36 12"
+                      d="M6 12 L34 12"
                       stroke="currentColor"
                       className="text-border-2 opacity-70"
                       strokeWidth="2"
                       markerEnd="url(#normalArrowhead)"
-                      markerStart={isDoublyLinked ? "url(#reverseArrowhead)" : undefined}
+                      markerStart={
+                        isDoublyLinked && !isLastNode ? "url(#reverseArrowhead)" : undefined
+                      }
                       initial={{ pathLength: 0, opacity: 0 }}
                       animate={{ pathLength: 1, opacity: 1 }}
                       transition={{ duration: 0.3 }}
@@ -390,7 +394,7 @@ const LinkedList = ({
                 {isLastNode && (
                   <motion.div
                     layout
-                    className="flex items-center justify-center shrink-0 opacity-60"
+                    className="flex items-center justify-center shrink-0 opacity-60 ml-1"
                   >
                     <div className="flex items-center justify-center px-2 py-0.5 rounded bg-surface border-2 border-dashed border-border-2 shadow-sm">
                       <span className="text-[calc(10rem/16)] font-mono font-bold text-muted">

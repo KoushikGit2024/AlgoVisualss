@@ -23,18 +23,95 @@ const SORTING_SECTION = {
       tag: "table",
       headers: ["Algorithm", "Best", "Average", "Worst", "Space", "Stable?"],
       rows: [
-        ["Bubble Sort", "O(n)", "O(n²)", "O(n²)", "O(1)", "Yes"],
-        ["Selection Sort", "O(n²)", "O(n²)", "O(n²)", "O(1)", "No"],
-        ["Insertion Sort", "O(n)", "O(n²)", "O(n²)", "O(1)", "Yes"],
-        ["Shell Sort", "O(n log n)", "O(n log² n)", "O(n²)", "O(1)", "No"],
-        ["Merge Sort", "O(n log n)", "O(n log n)", "O(n log n)", "O(n)", "Yes"],
-        ["Quick Sort", "O(n log n)", "O(n log n)", "O(n²)", "O(log n)", "No"],
-        ["Heap Sort", "O(n log n)", "O(n log n)", "O(n log n)", "O(1)", "No"],
-        ["Timsort", "O(n)", "O(n log n)", "O(n log n)", "O(n)", "Yes"],
-        ["Introsort", "O(n log n)", "O(n log n)", "O(n log n)", "O(log n)", "No"],
-        ["Counting Sort", "O(n + k)", "O(n + k)", "O(n + k)", "O(k)", "Yes"],
-        ["Radix Sort", "O(d(n + k))", "O(d(n + k))", "O(d(n + k))", "O(n + k)", "Yes"],
-        ["Bucket Sort", "O(n + k)", "O(n + k)", "O(n²)", "O(n + k)", "Yes"],
+        ["[Bubble Sort](/algorithms/sorting/bubble-sort)", "O(n)", "O(n²)", "O(n²)", "O(1)", "Yes"],
+        [
+          "[Selection Sort](/algorithms/sorting/selection-sort)",
+          "O(n²)",
+          "O(n²)",
+          "O(n²)",
+          "O(1)",
+          "No",
+        ],
+        [
+          "[Insertion Sort](/algorithms/sorting/insertion-sort)",
+          "O(n)",
+          "O(n²)",
+          "O(n²)",
+          "O(1)",
+          "Yes",
+        ],
+        [
+          "[Shell Sort](/algorithms/sorting/shell-sort)",
+          "O(n log n)",
+          "O(n log² n)",
+          "O(n²)",
+          "O(1)",
+          "No",
+        ],
+        [
+          "[Merge Sort](/algorithms/sorting/merge-sort)",
+          "O(n log n)",
+          "O(n log n)",
+          "O(n log n)",
+          "O(n)",
+          "Yes",
+        ],
+        [
+          "[Quick Sort](/algorithms/sorting/quick-sort)",
+          "O(n log n)",
+          "O(n log n)",
+          "O(n²)",
+          "O(log n)",
+          "No",
+        ],
+        [
+          "[Heap Sort](/algorithms/sorting/heap-sort)",
+          "O(n log n)",
+          "O(n log n)",
+          "O(n log n)",
+          "O(1)",
+          "No",
+        ],
+        [
+          "[Timsort](/algorithms/sorting/tim-sort)",
+          "O(n)",
+          "O(n log n)",
+          "O(n log n)",
+          "O(n)",
+          "Yes",
+        ],
+        [
+          "[Introsort](/algorithms/sorting/intro-sort)",
+          "O(n log n)",
+          "O(n log n)",
+          "O(n log n)",
+          "O(log n)",
+          "No",
+        ],
+        [
+          "[Counting Sort](/algorithms/sorting/counting-sort)",
+          "O(n + k)",
+          "O(n + k)",
+          "O(n + k)",
+          "O(k)",
+          "Yes",
+        ],
+        [
+          "[Radix Sort](/algorithms/sorting/radix-sort)",
+          "O(d(n + k))",
+          "O(d(n + k))",
+          "O(d(n + k))",
+          "O(n + k)",
+          "Yes",
+        ],
+        [
+          "[Bucket Sort](/algorithms/sorting/bucket-sort)",
+          "O(n + k)",
+          "O(n + k)",
+          "O(n²)",
+          "O(n + k)",
+          "Yes",
+        ],
       ],
     },
     {
@@ -206,6 +283,8 @@ const SORTING_SECTION = {
       related: [
         { name: "Selection Sort", href: "/algorithms/sorting/selection-sort" },
         { name: "Insertion Sort", href: "/algorithms/sorting/insertion-sort" },
+        { name: "Merge Sort", href: "/algorithms/sorting/merge-sort" },
+        { name: "Timsort", href: "/algorithms/sorting/tim-sort" },
       ],
       codes: {
         "c++": `#include <iostream>
@@ -640,6 +719,8 @@ function merge(left, right):
       related: [
         { name: "Quick Sort", href: "/algorithms/sorting/quick-sort" },
         { name: "Heap Sort", href: "/algorithms/sorting/heap-sort" },
+        { name: "Bubble Sort", href: "/algorithms/sorting/bubble-sort" },
+        { name: "Timsort", href: "/algorithms/sorting/tim-sort" },
       ],
       codes: {
         "c++": `#include <iostream>
@@ -962,6 +1043,13 @@ fn main() {
       name: "Timsort",
       href: "/algorithms/sorting/tim-sort",
       type: "Hard",
+
+      related: [
+        { name: "Bubble Sort", href: "/algorithms/sorting/bubble-sort" },
+        { name: "Merge Sort", href: "/algorithms/sorting/merge-sort" },
+        { name: "Quick Sort", href: "/algorithms/sorting/quick-sort" },
+        { name: "Heap Sort", href: "/algorithms/sorting/heap-sort" },
+      ],
 
       about: [
         { tag: "h1", text: "Timsort" },
@@ -1664,6 +1752,13 @@ fn main() {
       href: "/algorithms/sorting/quick-sort",
       type: "Medium",
 
+      related: [
+        { name: "Bubble Sort", href: "/algorithms/sorting/bubble-sort" },
+        { name: "Merge Sort", href: "/algorithms/sorting/merge-sort" },
+        { name: "Timsort", href: "/algorithms/sorting/tim-sort" },
+        { name: "Heap Sort", href: "/algorithms/sorting/heap-sort" },
+      ],
+
       about: [
         { tag: "h1", text: "Quick Sort" },
         {
@@ -2144,6 +2239,13 @@ fn main() {
       href: "/algorithms/sorting/heap-sort",
       type: "Medium",
 
+      related: [
+        { name: "Bubble Sort", href: "/algorithms/sorting/bubble-sort" },
+        { name: "Merge Sort", href: "/algorithms/sorting/merge-sort" },
+        { name: "Timsort", href: "/algorithms/sorting/tim-sort" },
+        { name: "Quick Sort", href: "/algorithms/sorting/quick-sort" },
+      ],
+
       about: [
         { tag: "h1", text: "Heap Sort" },
         {
@@ -2612,6 +2714,13 @@ fn main() {
       href: "/algorithms/sorting/counting-sort",
       type: "Medium",
 
+      related: [
+        { name: "Bubble Sort", href: "/algorithms/sorting/bubble-sort" },
+        { name: "Merge Sort", href: "/algorithms/sorting/merge-sort" },
+        { name: "Timsort", href: "/algorithms/sorting/tim-sort" },
+        { name: "Quick Sort", href: "/algorithms/sorting/quick-sort" },
+      ],
+
       about: [
         { tag: "h1", text: "Counting Sort" },
         {
@@ -3017,6 +3126,13 @@ fn main() {
       href: "/algorithms/sorting/selection-sort",
       type: "Easy",
 
+      related: [
+        { name: "Bubble Sort", href: "/algorithms/sorting/bubble-sort" },
+        { name: "Merge Sort", href: "/algorithms/sorting/merge-sort" },
+        { name: "Timsort", href: "/algorithms/sorting/tim-sort" },
+        { name: "Quick Sort", href: "/algorithms/sorting/quick-sort" },
+      ],
+
       about: [
         { tag: "h1", text: "Selection Sort" },
         {
@@ -3376,6 +3492,13 @@ fn main() {
       name: "Radix Sort",
       href: "/algorithms/sorting/radix-sort",
       type: "Medium",
+
+      related: [
+        { name: "Bubble Sort", href: "/algorithms/sorting/bubble-sort" },
+        { name: "Merge Sort", href: "/algorithms/sorting/merge-sort" },
+        { name: "Timsort", href: "/algorithms/sorting/tim-sort" },
+        { name: "Quick Sort", href: "/algorithms/sorting/quick-sort" },
+      ],
 
       about: [
         { tag: "h1", text: "Radix Sort" },
@@ -3868,6 +3991,13 @@ fn main() {
       href: "/algorithms/sorting/insertion-sort",
       type: "Easy",
 
+      related: [
+        { name: "Bubble Sort", href: "/algorithms/sorting/bubble-sort" },
+        { name: "Merge Sort", href: "/algorithms/sorting/merge-sort" },
+        { name: "Timsort", href: "/algorithms/sorting/tim-sort" },
+        { name: "Quick Sort", href: "/algorithms/sorting/quick-sort" },
+      ],
+
       about: [
         { tag: "h1", text: "Insertion Sort" },
         {
@@ -4219,6 +4349,13 @@ fn main() {
       name: "Bucket Sort",
       href: "/algorithms/sorting/bucket-sort",
       type: "Medium",
+
+      related: [
+        { name: "Bubble Sort", href: "/algorithms/sorting/bubble-sort" },
+        { name: "Merge Sort", href: "/algorithms/sorting/merge-sort" },
+        { name: "Timsort", href: "/algorithms/sorting/tim-sort" },
+        { name: "Quick Sort", href: "/algorithms/sorting/quick-sort" },
+      ],
 
       about: [
         { tag: "h1", text: "Bucket Sort" },
@@ -4637,6 +4774,13 @@ fn main() {
       href: "/algorithms/sorting/shell-sort",
       type: "Medium",
 
+      related: [
+        { name: "Bubble Sort", href: "/algorithms/sorting/bubble-sort" },
+        { name: "Merge Sort", href: "/algorithms/sorting/merge-sort" },
+        { name: "Timsort", href: "/algorithms/sorting/tim-sort" },
+        { name: "Quick Sort", href: "/algorithms/sorting/quick-sort" },
+      ],
+
       about: [
         { tag: "h1", text: "Shell Sort" },
         {
@@ -5037,6 +5181,13 @@ fn main() {
       name: "Introsort",
       href: "/algorithms/sorting/intro-sort",
       type: "Hard",
+
+      related: [
+        { name: "Bubble Sort", href: "/algorithms/sorting/bubble-sort" },
+        { name: "Merge Sort", href: "/algorithms/sorting/merge-sort" },
+        { name: "Timsort", href: "/algorithms/sorting/tim-sort" },
+        { name: "Quick Sort", href: "/algorithms/sorting/quick-sort" },
+      ],
 
       about: [
         { tag: "h1", text: "Introsort" },

@@ -9,6 +9,7 @@ import type {
   IRSubscriptExpression,
   IRTernaryExpression,
   IRFunctionCall,
+  IRCastExpression,
 } from "../../ir/IRNode";
 import { logStepToConsole } from "../../utils/helpers";
 import type { SyntaxNode, IRBuilder } from "../IRBuilder";
@@ -183,14 +184,20 @@ export function buildExpression(node: SyntaxNode, builder: IRBuilder): IRExpress
           : { kind: "Literal", line: node.startPosition.row + 1, valueType: "int", value: 0 };
       }
       const stripped = node.text.replace(/\s+/g, "");
-      if (stripped.startsWith("(int)") || stripped.startsWith("(long)"))
-        return {
-          kind: "FunctionCall",
-          line: node.startPosition.row + 1,
-          callee: "trunc",
-          arguments: [innerExpr],
-        } as IRFunctionCall;
-      return innerExpr;
+      let typeTarget = "unknown";
+      if (stripped.startsWith("(int)")) typeTarget = "int";
+      else if (stripped.startsWith("(long)")) typeTarget = "long";
+      else if (stripped.startsWith("(double)")) typeTarget = "double";
+      else if (stripped.startsWith("(float)")) typeTarget = "float";
+      else if (stripped.startsWith("(char)")) typeTarget = "char";
+      else if (stripped.startsWith("(bool)")) typeTarget = "bool";
+
+      return {
+        kind: "CastExpression",
+        line: node.startPosition.row + 1,
+        targetType: typeTarget,
+        argument: innerExpr,
+      } as IRCastExpression;
     }
     case "call_expression": {
       const calleeNode = node.child(0),
@@ -216,6 +223,32 @@ export function buildExpression(node: SyntaxNode, builder: IRBuilder): IRExpress
         }
       }
       if (calleeName.startsWith("std::")) calleeName = calleeName.slice(5);
+
+      const castTypes = [
+        "int",
+        "long",
+        "long long",
+        "short",
+        "float",
+        "double",
+        "char",
+        "bool",
+        "string",
+      ];
+      if (castTypes.includes(calleeName)) {
+        return {
+          kind: "CastExpression",
+          line: node.startPosition.row + 1,
+          targetType: calleeName,
+          argument: args[0] || {
+            kind: "Literal",
+            line: node.startPosition.row + 1,
+            valueType: "int",
+            value: 0,
+          },
+        } as IRCastExpression;
+      }
+
       return {
         kind: "FunctionCall",
         line: node.startPosition.row + 1,

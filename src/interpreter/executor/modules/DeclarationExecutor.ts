@@ -9,6 +9,7 @@ import { EventEmitter } from "../../events/EventEmitter";
 import { EventType } from "../../types";
 import type { CppValue, CppType, StaticStorageKey } from "../../types";
 import { ExpressionEvaluator } from "../../evaluator/ExpressionEvaluator";
+import { TypeConversion } from "../../evaluator/modules/TypeConversion";
 import { cloneRuntimeValue, logStepToConsole } from "../../utils/helpers";
 import { createMockContainer } from "./helpers/MockContainerBuilder";
 
@@ -61,7 +62,8 @@ export class DeclarationExecutor {
 
     if (node.initializer) {
       try {
-        value = this.evaluator.evaluate(node.initializer);
+        const evalRes = this.evaluator.evaluateWithType(node.initializer);
+        value = TypeConversion.convert(evalRes, typeLower as CppType).value;
         if (Array.isArray(value)) {
           if (typeLower.includes("unordered_set") || typeLower.includes("set")) {
             value = new Set(value);

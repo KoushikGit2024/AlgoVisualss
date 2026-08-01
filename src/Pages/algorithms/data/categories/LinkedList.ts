@@ -54,6 +54,13 @@ const LINKED_LISTS_SECTION = {
       href: "/algorithms/linked_lists/lru-cache",
       type: "Hard",
 
+      related: [
+        { name: "Reverse Linked List", href: "/algorithms/linked_lists/reverse" },
+        { name: "Doubly Linked Lists", href: "/algorithms/linked_lists/doubly" },
+        { name: "Floyd's Cycle Detection", href: "/algorithms/linked_lists/cycle-detection" },
+        { name: "Merge Sorted Lists", href: "/algorithms/linked_lists/merge" },
+      ],
+
       about: [
         { tag: "h1", text: "LRU Cache Design" },
         {
@@ -1334,6 +1341,13 @@ fn main() {
       href: "/algorithms/linked_lists/reverse",
       type: "Easy",
 
+      related: [
+        { name: "LRU Cache Design", href: "/algorithms/linked_lists/lru-cache" },
+        { name: "Doubly Linked Lists", href: "/algorithms/linked_lists/doubly" },
+        { name: "Floyd's Cycle Detection", href: "/algorithms/linked_lists/cycle-detection" },
+        { name: "Merge Sorted Lists", href: "/algorithms/linked_lists/merge" },
+      ],
+
       about: [
         { tag: "h1", text: "Reverse Linked List" },
         {
@@ -2085,6 +2099,13 @@ fn main() {
       name: "Doubly Linked Lists",
       href: "/algorithms/linked_lists/doubly",
       type: "Medium",
+
+      related: [
+        { name: "LRU Cache Design", href: "/algorithms/linked_lists/lru-cache" },
+        { name: "Reverse Linked List", href: "/algorithms/linked_lists/reverse" },
+        { name: "Floyd's Cycle Detection", href: "/algorithms/linked_lists/cycle-detection" },
+        { name: "Merge Sorted Lists", href: "/algorithms/linked_lists/merge" },
+      ],
 
       about: [
         { tag: "h1", text: "Doubly Linked Lists" },
@@ -3205,6 +3226,13 @@ fn main() {
       href: "/algorithms/linked_lists/cycle-detection",
       type: "Easy",
 
+      related: [
+        { name: "LRU Cache Design", href: "/algorithms/linked_lists/lru-cache" },
+        { name: "Reverse Linked List", href: "/algorithms/linked_lists/reverse" },
+        { name: "Doubly Linked Lists", href: "/algorithms/linked_lists/doubly" },
+        { name: "Merge Sorted Lists", href: "/algorithms/linked_lists/merge" },
+      ],
+
       about: [
         { tag: "h1", text: "Floyd's Cycle Detection (Tortoise and Hare)" },
         {
@@ -4132,6 +4160,13 @@ fn main() {
       name: "Merge Sorted Lists",
       href: "/algorithms/linked_lists/merge",
       type: "Easy",
+
+      related: [
+        { name: "LRU Cache Design", href: "/algorithms/linked_lists/lru-cache" },
+        { name: "Reverse Linked List", href: "/algorithms/linked_lists/reverse" },
+        { name: "Doubly Linked Lists", href: "/algorithms/linked_lists/doubly" },
+        { name: "Floyd's Cycle Detection", href: "/algorithms/linked_lists/cycle-detection" },
+      ],
 
       about: [
         { tag: "h1", text: "Merge Sorted Lists" },

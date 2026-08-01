@@ -26,7 +26,7 @@ export function useSnippets(initialCode: string) {
     const urlCode = new URLSearchParams(window.location.search).get("code");
     const hasSharedCode = urlCode !== null;
     let decodedCode: string | null = null;
-    
+
     if (hasSharedCode) {
       try {
         decodedCode = LZString.decompressFromEncodedURIComponent(urlCode);
@@ -55,7 +55,7 @@ export function useSnippets(initialCode: string) {
               setActiveSnippetId(sharedSnippet.id);
               setActiveCode(decodedCode);
               localStorage.setItem("editor-snippets", JSON.stringify(updatedSnippets));
-              
+
               // Clean up URL so it doesn't keep creating snippets on refresh
               const url = new URL(window.location.href);
               url.searchParams.delete("code");
@@ -80,11 +80,11 @@ export function useSnippets(initialCode: string) {
 
       // Fallback to legacy or initial
       const legacyCode = localStorage.getItem("editor-code");
-      const codeToUse = hasSharedCode && decodedCode ? decodedCode : (legacyCode || initialCode);
+      const codeToUse = hasSharedCode && decodedCode ? decodedCode : legacyCode || initialCode;
 
       const defaultSnippet: CodeSnippet = {
         id: Date.now().toString(),
-        title: (hasSharedCode && decodedCode) ? "Shared Code" : "Untitled-1",
+        title: hasSharedCode && decodedCode ? "Shared Code" : "Untitled-1",
         code: codeToUse,
         lastModified: Date.now(),
         lastVisited: Date.now(),
@@ -93,7 +93,7 @@ export function useSnippets(initialCode: string) {
       setSnippets([defaultSnippet]);
       setActiveSnippetId(defaultSnippet.id);
       setActiveCode(codeToUse);
-      
+
       if (hasSharedCode) {
         const url = new URL(window.location.href);
         url.searchParams.delete("code");

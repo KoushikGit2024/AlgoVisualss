@@ -148,7 +148,10 @@ const TrieTree = ({
 
   return (
     // Scrollable wrapper — allows wide tries to overflow horizontally
-    <div className="overflow-auto styled-scrollbar w-full h-full relative">
+    <div
+      className="overflow-auto styled-scrollbar w-full h-full relative grid"
+      style={{ placeItems: "safe center" }}
+    >
       {/* Pixel-sized canvas — grows with leaf count (width) and depth (height) */}
       <div className="relative shrink-0" style={{ width: canvasW, height: canvasH }}>
         {/* ── SVG layer: tree-style edges (gentle curve down from parent to child) ── */}
@@ -252,9 +255,9 @@ const TrieTree = ({
               scale = 1.1;
               zIdx = 20;
             } else if (isCompare) {
-              bg = "bg-orange-500/15";
-              border = "border-orange-400";
-              text = "text-orange-300";
+              bg = "bg-accent-2/15";
+              border = "border-accent-2";
+              text = "text-accent-2";
               shadow = "shadow-none";
               scale = 1.05;
               zIdx = 15;

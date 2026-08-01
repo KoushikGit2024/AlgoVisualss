@@ -45,14 +45,14 @@ const TREES_SECTION = {
           "Write-heavy workloads (most language standard libraries)",
         ],
         [
-          "Tree Traversals",
+          "[Tree Traversals](/algorithms/trees/traversals)",
           "N/A — visits every node",
           "O(n) to visit all nodes",
           "N/A",
           "Serialisation, expression evaluation, search",
         ],
         [
-          "Lowest Common Ancestor",
+          "[Lowest Common Ancestor](/algorithms/trees/lca)",
           "Depends on tree type",
           "O(log n) for BST, O(n) general",
           "N/A",
@@ -75,6 +75,13 @@ const TREES_SECTION = {
       name: "AVL Trees",
       href: "/algorithms/trees/avl",
       type: "Hard",
+
+      related: [
+        { name: "Tree Traversals", href: "/algorithms/trees/traversals" },
+        { name: "Binary Search Tree", href: "/algorithms/trees/bst" },
+        { name: "Lowest Common Ancestor", href: "/algorithms/trees/lca" },
+        { name: "Red-Black Trees", href: "/algorithms/trees/red-black" },
+      ],
 
       about: [
         { tag: "h1", text: "AVL Trees" },
@@ -1692,6 +1699,13 @@ fn main() {
       href: "/algorithms/trees/traversals",
       type: "Easy",
 
+      related: [
+        { name: "AVL Trees", href: "/algorithms/trees/avl" },
+        { name: "Binary Search Tree", href: "/algorithms/trees/bst" },
+        { name: "Lowest Common Ancestor", href: "/algorithms/trees/lca" },
+        { name: "Red-Black Trees", href: "/algorithms/trees/red-black" },
+      ],
+
       about: [
         { tag: "h1", text: "Tree Traversals" },
         {
@@ -2964,6 +2978,13 @@ fn main() {
       name: "Binary Search Tree",
       href: "/algorithms/trees/bst",
       type: "Medium",
+
+      related: [
+        { name: "AVL Trees", href: "/algorithms/trees/avl" },
+        { name: "Tree Traversals", href: "/algorithms/trees/traversals" },
+        { name: "Lowest Common Ancestor", href: "/algorithms/trees/lca" },
+        { name: "Red-Black Trees", href: "/algorithms/trees/red-black" },
+      ],
 
       about: [
         { tag: "h1", text: "Binary Search Tree (BST)" },
@@ -4334,6 +4355,13 @@ fn main() {
       href: "/algorithms/trees/lca",
       type: "Medium",
 
+      related: [
+        { name: "AVL Trees", href: "/algorithms/trees/avl" },
+        { name: "Tree Traversals", href: "/algorithms/trees/traversals" },
+        { name: "Binary Search Tree", href: "/algorithms/trees/bst" },
+        { name: "Red-Black Trees", href: "/algorithms/trees/red-black" },
+      ],
+
       about: [
         { tag: "h1", text: "Lowest Common Ancestor (LCA)" },
         {
@@ -5154,6 +5182,13 @@ fn main() {
       name: "Red-Black Trees",
       href: "/algorithms/trees/red-black",
       type: "Hard",
+
+      related: [
+        { name: "AVL Trees", href: "/algorithms/trees/avl" },
+        { name: "Tree Traversals", href: "/algorithms/trees/traversals" },
+        { name: "Binary Search Tree", href: "/algorithms/trees/bst" },
+        { name: "Lowest Common Ancestor", href: "/algorithms/trees/lca" },
+      ],
 
       about: [
         { tag: "h1", text: "Red-Black Trees" },

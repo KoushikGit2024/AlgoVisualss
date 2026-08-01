@@ -332,9 +332,9 @@ const Tree = ({
                 scale = 1.06;
                 zIdx = 20;
               } else if (isCompare) {
-                bg = "bg-orange-500/20";
-                border = "border-orange-500";
-                text = "text-orange-500";
+                bg = "bg-accent-2/15";
+                border = "border-accent-2";
+                text = "text-accent-2";
                 shadow = "shadow-none";
                 scale = 1.03;
                 zIdx = 15;

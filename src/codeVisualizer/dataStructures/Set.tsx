@@ -17,8 +17,11 @@ export default function Set({ values = [] }: SetProps) {
   }
 
   return (
-    <div className="w-full flex flex-col items-center overflow-x-auto styled-scrollbar pb-6 pt-2">
-      <div className="flex items-center justify-center min-w-full w-max px-4">
+    <div
+      className="overflow-auto styled-scrollbar w-full h-full relative grid"
+      style={{ placeItems: "safe center" }}
+    >
+      <div className="flex items-center justify-center relative w-max px-8 py-12">
         <span className="text-muted/50 text-3xl font-mono font-light mr-3 mt-1">{"{"}</span>
 
         <div className="flex items-center gap-2.5">

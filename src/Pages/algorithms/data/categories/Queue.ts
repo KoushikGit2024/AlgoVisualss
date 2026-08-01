@@ -57,6 +57,12 @@ const QUEUES_SECTION = {
       href: "/algorithms/queues/implementation",
       type: "Easy",
 
+      related: [
+        { name: "Sliding Window Maximum", href: "/algorithms/queues/sliding-window-max" },
+        { name: "Circular Queue (Linked List)", href: "/algorithms/queues/circular-linked-list" },
+        { name: "Double-ended Queue (Deque)", href: "/algorithms/queues/deque" },
+      ],
+
       about: [
         { tag: "h1", text: "Queue Implementation" },
         {
@@ -543,6 +549,12 @@ display();`,
       href: "/algorithms/queues/sliding-window-max",
       type: "Hard",
 
+      related: [
+        { name: "Queue Implementation", href: "/algorithms/queues/implementation" },
+        { name: "Circular Queue (Linked List)", href: "/algorithms/queues/circular-linked-list" },
+        { name: "Double-ended Queue (Deque)", href: "/algorithms/queues/deque" },
+      ],
+
       about: [
         { tag: "h1", text: "Sliding Window Maximum" },
         {
@@ -840,6 +852,12 @@ console.log(maxSlidingWindow(nums, k));`,
       name: "Circular Queue (Linked List)",
       href: "/algorithms/queues/circular-linked-list",
       type: "Medium",
+
+      related: [
+        { name: "Queue Implementation", href: "/algorithms/queues/implementation" },
+        { name: "Sliding Window Maximum", href: "/algorithms/queues/sliding-window-max" },
+        { name: "Double-ended Queue (Deque)", href: "/algorithms/queues/deque" },
+      ],
 
       about: [
         { tag: "h1", text: "Circular Queue (Linked List)" },
@@ -1343,6 +1361,12 @@ display();`,
       name: "Double-ended Queue (Deque)",
       href: "/algorithms/queues/deque",
       type: "Medium",
+
+      related: [
+        { name: "Queue Implementation", href: "/algorithms/queues/implementation" },
+        { name: "Sliding Window Maximum", href: "/algorithms/queues/sliding-window-max" },
+        { name: "Circular Queue (Linked List)", href: "/algorithms/queues/circular-linked-list" },
+      ],
 
       about: [
         { tag: "h1", text: "Double-ended Queue (Deque)" },

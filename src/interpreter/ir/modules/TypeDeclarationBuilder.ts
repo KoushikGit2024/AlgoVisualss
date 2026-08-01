@@ -149,8 +149,9 @@ export function buildFunctionDeclaration(
 }
 
 export function buildStructDeclaration(node: SyntaxNode, builder: IRBuilder): IRStructDeclaration {
-  const nameNode = node.namedChildren.find((c: any) => 
-    c.type === "type_identifier" || c.type === "template_type" || c.type === "identifier"
+  const nameNode = node.namedChildren.find(
+    (c: any) =>
+      c.type === "type_identifier" || c.type === "template_type" || c.type === "identifier",
   );
   const name = (nameNode?.text ?? "anonymous_struct").split("<")[0].trim();
   const bodyNode = node.namedChildren.find((c: any) => c.type === "field_declaration_list");
@@ -208,25 +209,49 @@ export function buildStructDeclaration(node: SyntaxNode, builder: IRBuilder): IR
               let foundSemicolon = false;
               while (j < children.length) {
                 if (children[j].type === "compound_statement") break;
-                if (children[j].type === ";") { foundSemicolon = true; break; }
+                if (children[j].type === ";") {
+                  foundSemicolon = true;
+                  break;
+                }
                 j++;
               }
-              if (!foundSemicolon && j < children.length && children[j].type === "compound_statement") {
+              if (
+                !foundSemicolon &&
+                j < children.length &&
+                children[j].type === "compound_statement"
+              ) {
                 const methodName = children[i].text;
                 const paramsNode = children[i + 1];
                 const bodyNode = children[j];
-                
+
                 const parameters: IRFunctionDeclaration["parameters"] = [];
                 for (const param of paramsNode.namedChildren) {
-                  if (param.type !== "parameter_declaration" && param.type !== "optional_parameter_declaration") continue;
+                  if (
+                    param.type !== "parameter_declaration" &&
+                    param.type !== "optional_parameter_declaration"
+                  )
+                    continue;
                   let paramTypeParts: string[] = [];
                   let paramName = "unknown";
                   let isReference = false;
-                  
+
                   for (const c of param.namedChildren) {
-                    if (["identifier", "pointer_declarator", "reference_declarator", "array_declarator", "function_declarator"].includes(c.type)) {
+                    if (
+                      [
+                        "identifier",
+                        "pointer_declarator",
+                        "reference_declarator",
+                        "array_declarator",
+                        "function_declarator",
+                      ].includes(c.type)
+                    ) {
                       let pNode: any = c;
-                      while (pNode && ["array_declarator", "pointer_declarator", "reference_declarator"].includes(pNode.type)) {
+                      while (
+                        pNode &&
+                        ["array_declarator", "pointer_declarator", "reference_declarator"].includes(
+                          pNode.type,
+                        )
+                      ) {
                         if (pNode.type === "reference_declarator") {
                           isReference = true;
                           pNode = pNode.child(1) ?? undefined;
@@ -243,7 +268,7 @@ export function buildStructDeclaration(node: SyntaxNode, builder: IRBuilder): IR
                     isReference,
                   });
                 }
-                
+
                 const funcDecl: IRFunctionDeclaration = {
                   kind: "FunctionDeclaration",
                   line: children[i].startPosition.row + 1,
@@ -263,8 +288,12 @@ export function buildStructDeclaration(node: SyntaxNode, builder: IRBuilder): IR
         }
         return;
       }
-      
-      if (field.type === "function_definition" || field.type === "template_function" || field.type === "declaration") {
+
+      if (
+        field.type === "function_definition" ||
+        field.type === "template_function" ||
+        field.type === "declaration"
+      ) {
         const hasBody = field.namedChildren.some((c: any) => c.type === "compound_statement");
         if (hasBody) {
           try {

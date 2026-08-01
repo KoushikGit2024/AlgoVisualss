@@ -93,12 +93,15 @@ const D1Array = ({
   }
 
   return (
-    <div className="w-full flex flex-col items-start overflow-x-auto styled-scrollbar pb-12 pt-2 px-6">
+    <div
+      className="overflow-auto styled-scrollbar w-full h-full relative grid"
+      style={{ placeItems: "safe center" }}
+    >
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="flex items-start justify-center gap-1.5 relative min-w-full w-max"
+        className="flex items-center justify-center gap-[3px] relative w-max px-8 py-16"
       >
         <AnimatePresence mode="popLayout">
           {/* CRITICAL: Mapping over safeValue, never value */}
@@ -158,9 +161,9 @@ const D1Array = ({
               activeScale = 1.05;
               activeZIndex = 20;
             } else if (isCompare) {
-              bgClass = "bg-orange-500/20";
-              borderClass = "border-orange-500";
-              textClass = "text-orange-500";
+              bgClass = "bg-accent-2/20";
+              borderClass = "border-accent-2";
+              textClass = "text-accent-2";
               shadowClass = "shadow-none";
               activeScale = 1.02;
               activeZIndex = 15;

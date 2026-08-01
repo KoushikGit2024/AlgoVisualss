@@ -59,6 +59,13 @@ const BIT_MANIPULATION_SECTION = {
       href: "/algorithms/bit_manipulation/single-number",
       type: "Easy",
 
+      related: [
+        { name: "Counting Bits", href: "/algorithms/bit_manipulation/counting-bits" },
+        { name: "Bitwise AND of Numbers Range", href: "/algorithms/bit_manipulation/bitwise-and" },
+        { name: "Reverse Bits", href: "/algorithms/bit_manipulation/reverse-bits" },
+        { name: "Missing Number", href: "/algorithms/bit_manipulation/missing-number" },
+      ],
+
       about: [
         { tag: "h1", text: "Single Number" },
         {
@@ -341,6 +348,13 @@ fn main() {
       name: "Counting Bits",
       href: "/algorithms/bit_manipulation/counting-bits",
       type: "Easy",
+
+      related: [
+        { name: "Single Number", href: "/algorithms/bit_manipulation/single-number" },
+        { name: "Bitwise AND of Numbers Range", href: "/algorithms/bit_manipulation/bitwise-and" },
+        { name: "Reverse Bits", href: "/algorithms/bit_manipulation/reverse-bits" },
+        { name: "Missing Number", href: "/algorithms/bit_manipulation/missing-number" },
+      ],
 
       about: [
         { tag: "h1", text: "Counting Bits" },
@@ -647,6 +661,13 @@ fn main() {
       name: "Bitwise AND of Numbers Range",
       href: "/algorithms/bit_manipulation/bitwise-and",
       type: "Medium",
+
+      related: [
+        { name: "Single Number", href: "/algorithms/bit_manipulation/single-number" },
+        { name: "Counting Bits", href: "/algorithms/bit_manipulation/counting-bits" },
+        { name: "Reverse Bits", href: "/algorithms/bit_manipulation/reverse-bits" },
+        { name: "Missing Number", href: "/algorithms/bit_manipulation/missing-number" },
+      ],
 
       about: [
         { tag: "h1", text: "Bitwise AND of Numbers Range" },
@@ -975,6 +996,13 @@ fn main() {
       href: "/algorithms/bit_manipulation/reverse-bits",
       type: "Easy",
 
+      related: [
+        { name: "Single Number", href: "/algorithms/bit_manipulation/single-number" },
+        { name: "Counting Bits", href: "/algorithms/bit_manipulation/counting-bits" },
+        { name: "Bitwise AND of Numbers Range", href: "/algorithms/bit_manipulation/bitwise-and" },
+        { name: "Missing Number", href: "/algorithms/bit_manipulation/missing-number" },
+      ],
+
       about: [
         { tag: "h1", text: "Reverse Bits" },
         {
@@ -1288,6 +1316,13 @@ fn main() {
       name: "Missing Number",
       href: "/algorithms/bit_manipulation/missing-number",
       type: "Easy",
+
+      related: [
+        { name: "Single Number", href: "/algorithms/bit_manipulation/single-number" },
+        { name: "Counting Bits", href: "/algorithms/bit_manipulation/counting-bits" },
+        { name: "Bitwise AND of Numbers Range", href: "/algorithms/bit_manipulation/bitwise-and" },
+        { name: "Reverse Bits", href: "/algorithms/bit_manipulation/reverse-bits" },
+      ],
 
       about: [
         { tag: "h1", text: "Missing Number" },

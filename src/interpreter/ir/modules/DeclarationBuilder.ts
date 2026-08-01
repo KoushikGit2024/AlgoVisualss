@@ -53,7 +53,8 @@ export function buildVariableDeclaration(
       c.type !== "type_qualifier" &&
       c.type !== "storage_class_specifier" &&
       c.type !== "struct_specifier" &&
-      c.type !== "enum_specifier",
+      c.type !== "enum_specifier" &&
+      c.type !== "placeholder_type_specifier",
   );
 
   const targetDeclarators = declarators.length > 0 ? declarators : node.namedChildren.slice(1);

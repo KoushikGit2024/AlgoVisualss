@@ -79,12 +79,15 @@ const SortBars = ({
   }
 
   return (
-    <div className="w-full flex flex-col items-center overflow-x-auto styled-scrollbar pb-12 pt-6 px-6">
+    <div
+      className="overflow-auto styled-scrollbar w-full h-full relative grid"
+      style={{ placeItems: "safe center" }}
+    >
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="flex items-end justify-center gap-1.5 relative w-full h-[180px]"
+        className="flex items-end justify-center gap-[3px] relative w-max h-48 px-12 py-16"
       >
         <AnimatePresence mode="popLayout">
           {safeValue.map((val, idx) => {
@@ -131,10 +134,9 @@ const SortBars = ({
               textClass = "text-bg";
               activeZIndex = 20;
             } else if (isCompare) {
-              bgClass = "bg-orange-500";
-              borderClass = "border-orange-500";
+              bgClass = "bg-accent-2";
+              borderClass = "border-accent-2";
               textClass = "text-bg";
-              activeZIndex = 15;
             } else if (isRead) {
               bgClass = "bg-accent";
               borderClass = "border-accent";

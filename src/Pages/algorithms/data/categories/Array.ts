@@ -23,19 +23,19 @@ const ARRAYS_SECTION = {
       headers: ["Pattern", "Core Idea", "Typical Time", "Typical Space"],
       rows: [
         [
-          "Two Pointers",
+          "[Two Pointers](/algorithms/arrays/two-pointers)",
           "Two indices converge or co-traverse to avoid nested loops",
           "O(n)",
           "O(1)",
         ],
         [
-          "Kadane's Algorithm",
+          "[Kadane's Algorithm](/algorithms/arrays/kadanes)",
           "Track the best sum ending at each position, restarting whenever the running total drops below the current element",
           "O(n)",
           "O(1)",
         ],
         [
-          "Sliding Window",
+          "[Sliding Window](/algorithms/arrays/sliding-window)",
           "Maintain a contiguous range, expanding/contracting its bounds",
           "O(n)",
           "O(1) – O(k)",
@@ -47,13 +47,13 @@ const ARRAYS_SECTION = {
           "O(1)",
         ],
         [
-          "Prefix Sum",
+          "[Prefix Sum](/algorithms/arrays/prefix-sum)",
           "Precompute cumulative sums for O(1) range-sum queries",
           "O(n) build",
           "O(n)",
         ],
         [
-          "Dutch National Flag",
+          "[Dutch National Flag](/algorithms/arrays/dutch-national-flag)",
           "3-way in-place partition around a pivot in one pass",
           "O(n)",
           "O(1)",
@@ -75,6 +75,13 @@ const ARRAYS_SECTION = {
       name: "Two Pointers",
       href: "/algorithms/arrays/two-pointers",
       type: "Easy",
+
+      related: [
+        { name: "Kadane's Algorithm", href: "/algorithms/arrays/kadanes" },
+        { name: "Sliding Window", href: "/algorithms/arrays/sliding-window" },
+        { name: "Boyer-Moore Majority", href: "/algorithms/arrays/boyer-moore" },
+        { name: "Prefix Sum", href: "/algorithms/arrays/prefix-sum" },
+      ],
 
       about: [
         { tag: "h1", text: "Two Pointers" },
@@ -578,6 +585,13 @@ fn main() {
       href: "/algorithms/arrays/kadanes",
       type: "Medium",
 
+      related: [
+        { name: "Two Pointers", href: "/algorithms/arrays/two-pointers" },
+        { name: "Sliding Window", href: "/algorithms/arrays/sliding-window" },
+        { name: "Boyer-Moore Majority", href: "/algorithms/arrays/boyer-moore" },
+        { name: "Prefix Sum", href: "/algorithms/arrays/prefix-sum" },
+      ],
+
       about: [
         { tag: "h1", text: "Kadane's Algorithm" },
         {
@@ -980,6 +994,13 @@ fn main() {
       name: "Sliding Window",
       href: "/algorithms/arrays/sliding-window",
       type: "Medium",
+
+      related: [
+        { name: "Two Pointers", href: "/algorithms/arrays/two-pointers" },
+        { name: "Kadane's Algorithm", href: "/algorithms/arrays/kadanes" },
+        { name: "Boyer-Moore Majority", href: "/algorithms/arrays/boyer-moore" },
+        { name: "Prefix Sum", href: "/algorithms/arrays/prefix-sum" },
+      ],
 
       about: [
         { tag: "h1", text: "Sliding Window" },
@@ -1445,6 +1466,13 @@ fn main() {
       href: "/algorithms/arrays/boyer-moore",
       type: "Medium",
 
+      related: [
+        { name: "Two Pointers", href: "/algorithms/arrays/two-pointers" },
+        { name: "Kadane's Algorithm", href: "/algorithms/arrays/kadanes" },
+        { name: "Sliding Window", href: "/algorithms/arrays/sliding-window" },
+        { name: "Prefix Sum", href: "/algorithms/arrays/prefix-sum" },
+      ],
+
       about: [
         { tag: "h1", text: "Boyer-Moore Majority Vote Algorithm" },
         {
@@ -1841,6 +1869,13 @@ fn main() {
       name: "Prefix Sum",
       href: "/algorithms/arrays/prefix-sum",
       type: "Easy",
+
+      related: [
+        { name: "Two Pointers", href: "/algorithms/arrays/two-pointers" },
+        { name: "Kadane's Algorithm", href: "/algorithms/arrays/kadanes" },
+        { name: "Sliding Window", href: "/algorithms/arrays/sliding-window" },
+        { name: "Boyer-Moore Majority", href: "/algorithms/arrays/boyer-moore" },
+      ],
 
       about: [
         { tag: "h1", text: "Prefix Sum" },
@@ -2275,6 +2310,13 @@ fn main() {
       name: "Dutch National Flag",
       href: "/algorithms/arrays/dutch-national-flag",
       type: "Medium",
+
+      related: [
+        { name: "Two Pointers", href: "/algorithms/arrays/two-pointers" },
+        { name: "Kadane's Algorithm", href: "/algorithms/arrays/kadanes" },
+        { name: "Sliding Window", href: "/algorithms/arrays/sliding-window" },
+        { name: "Boyer-Moore Majority", href: "/algorithms/arrays/boyer-moore" },
+      ],
 
       about: [
         { tag: "h1", text: "Dutch National Flag Algorithm" },

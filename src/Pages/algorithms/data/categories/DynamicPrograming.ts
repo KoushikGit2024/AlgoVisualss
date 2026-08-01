@@ -20,31 +20,31 @@ const DYNAMIC_PROGRAMMING_SECTION = {
       headers: ["Problem", "Core Idea", "Typical Time", "Typical Space"],
       rows: [
         [
-          "0/1 Knapsack",
+          "[0/1 Knapsack](/algorithms/dynamic_programming/knapsack)",
           "Two-dimensional state: items considered × remaining capacity",
           "O(nW)",
           "O(nW) — reducible to O(W)",
         ],
         [
-          "Matrix Chain Multiplication",
+          "[Matrix Chain Multiplication](/algorithms/dynamic_programming/matrix-chain)",
           "Interval DP: try every split point of a contiguous chain [i, j]",
           "O(n³)",
           "O(n²)",
         ],
         [
-          "Longest Common Subsequence",
+          "[Longest Common Subsequence](/algorithms/dynamic_programming/lcs)",
           "Two-pointer 2D state walking both sequences in lockstep",
           "O(mn)",
           "O(mn) — reducible to O(min(m, n))",
         ],
         [
-          "Longest Increasing Subsequence",
+          "[Longest Increasing Subsequence](/algorithms/dynamic_programming/lis)",
           "Track the smallest possible 'tail' for every subsequence length seen so far",
           "O(n log n)",
           "O(n)",
         ],
         [
-          "Coin Change",
+          "[Coin Change](/algorithms/dynamic_programming/coin-change)",
           "1D state over the target amount, trying every denomination at each amount",
           "O(n · amount)",
           "O(amount)",
@@ -56,7 +56,7 @@ const DYNAMIC_PROGRAMMING_SECTION = {
           "O(2ⁿ · n)",
         ],
         [
-          "Fibonacci Sequence",
+          "[Fibonacci Sequence](/algorithms/dynamic_programming/fibonacci)",
           "The canonical 1D recurrence — introduces memoization vs. tabulation",
           "O(n)",
           "O(1) with rolling variables",
@@ -107,6 +107,16 @@ const DYNAMIC_PROGRAMMING_SECTION = {
       name: "0/1 Knapsack",
       href: "/algorithms/dynamic_programming/knapsack",
       type: "Medium",
+
+      related: [
+        {
+          name: "Matrix Chain Multiplication",
+          href: "/algorithms/dynamic_programming/matrix-chain",
+        },
+        { name: "Longest Common Subsequence", href: "/algorithms/dynamic_programming/lcs" },
+        { name: "Longest Increasing Subsequence", href: "/algorithms/dynamic_programming/lis" },
+        { name: "Coin Change", href: "/algorithms/dynamic_programming/coin-change" },
+      ],
 
       about: [
         { tag: "h1", text: "0/1 Knapsack" },
@@ -574,6 +584,13 @@ fn main() {
       name: "Matrix Chain Multiplication",
       href: "/algorithms/dynamic_programming/matrix-chain",
       type: "Hard",
+
+      related: [
+        { name: "0/1 Knapsack", href: "/algorithms/dynamic_programming/knapsack" },
+        { name: "Longest Common Subsequence", href: "/algorithms/dynamic_programming/lcs" },
+        { name: "Longest Increasing Subsequence", href: "/algorithms/dynamic_programming/lis" },
+        { name: "Coin Change", href: "/algorithms/dynamic_programming/coin-change" },
+      ],
 
       about: [
         { tag: "h1", text: "Matrix Chain Multiplication" },
@@ -1044,6 +1061,16 @@ fn main() {
       href: "/algorithms/dynamic_programming/lcs",
       type: "Medium",
 
+      related: [
+        { name: "0/1 Knapsack", href: "/algorithms/dynamic_programming/knapsack" },
+        {
+          name: "Matrix Chain Multiplication",
+          href: "/algorithms/dynamic_programming/matrix-chain",
+        },
+        { name: "Longest Increasing Subsequence", href: "/algorithms/dynamic_programming/lis" },
+        { name: "Coin Change", href: "/algorithms/dynamic_programming/coin-change" },
+      ],
+
       about: [
         { tag: "h1", text: "Longest Common Subsequence" },
         {
@@ -1455,6 +1482,16 @@ fn main() {
       name: "Longest Increasing Subsequence",
       href: "/algorithms/dynamic_programming/lis",
       type: "Medium",
+
+      related: [
+        { name: "0/1 Knapsack", href: "/algorithms/dynamic_programming/knapsack" },
+        {
+          name: "Matrix Chain Multiplication",
+          href: "/algorithms/dynamic_programming/matrix-chain",
+        },
+        { name: "Longest Common Subsequence", href: "/algorithms/dynamic_programming/lcs" },
+        { name: "Coin Change", href: "/algorithms/dynamic_programming/coin-change" },
+      ],
 
       about: [
         { tag: "h1", text: "Longest Increasing Subsequence (Linear Patience Sorting)" },
@@ -1884,6 +1921,16 @@ fn main() {
       href: "/algorithms/dynamic_programming/coin-change",
       type: "Medium",
 
+      related: [
+        { name: "0/1 Knapsack", href: "/algorithms/dynamic_programming/knapsack" },
+        {
+          name: "Matrix Chain Multiplication",
+          href: "/algorithms/dynamic_programming/matrix-chain",
+        },
+        { name: "Longest Common Subsequence", href: "/algorithms/dynamic_programming/lcs" },
+        { name: "Longest Increasing Subsequence", href: "/algorithms/dynamic_programming/lis" },
+      ],
+
       about: [
         { tag: "h1", text: "Coin Change" },
         {
@@ -2298,6 +2345,16 @@ fn main() {
       name: "Travelling Salesperson",
       href: "/algorithms/dynamic_programming/tsp",
       type: "Hard",
+
+      related: [
+        { name: "0/1 Knapsack", href: "/algorithms/dynamic_programming/knapsack" },
+        {
+          name: "Matrix Chain Multiplication",
+          href: "/algorithms/dynamic_programming/matrix-chain",
+        },
+        { name: "Longest Common Subsequence", href: "/algorithms/dynamic_programming/lcs" },
+        { name: "Longest Increasing Subsequence", href: "/algorithms/dynamic_programming/lis" },
+      ],
 
       about: [
         { tag: "h1", text: "Travelling Salesperson Problem (Held-Karp DP)" },
@@ -2896,6 +2953,16 @@ fn main() {
       name: "Fibonacci Sequence",
       href: "/algorithms/dynamic_programming/fibonacci",
       type: "Easy",
+
+      related: [
+        { name: "0/1 Knapsack", href: "/algorithms/dynamic_programming/knapsack" },
+        {
+          name: "Matrix Chain Multiplication",
+          href: "/algorithms/dynamic_programming/matrix-chain",
+        },
+        { name: "Longest Common Subsequence", href: "/algorithms/dynamic_programming/lcs" },
+        { name: "Longest Increasing Subsequence", href: "/algorithms/dynamic_programming/lis" },
+      ],
 
       about: [
         { tag: "h1", text: "Fibonacci Sequence (Array Tabulation)" },

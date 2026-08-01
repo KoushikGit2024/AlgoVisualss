@@ -65,181 +65,187 @@ const Stack = ({
   }
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center overflow-y-auto styled-scrollbar py-8 px-4">
-      {/* ─── Stack Bucket Container ─── */}
-      <div className="relative flex flex-col items-center min-h-[150px]">
-        {/* The Open-Top Bucket Visual */}
-        <div className="absolute inset-y-[-12px] -inset-x-4 border-x-2 border-b-2 border-dashed border-border/50 bg-surface-2/10 rounded-b-md pointer-events-none" />
+    <div
+      className="overflow-auto styled-scrollbar w-full h-full relative grid"
+      style={{ placeItems: "safe center" }}
+    >
+      <div className="px-12 py-16 w-max h-max">
+        {/* ─── Stack Bucket Container ─── */}
+        <div className="relative flex flex-col items-center min-h-[150px]">
+          {/* The Open-Top Bucket Visual */}
+          <div className="absolute inset-y-[-12px] -inset-x-4 border-x-2 border-b-2 border-dashed border-border/50 bg-surface-2/10 rounded-b-md pointer-events-none" />
 
-        {/* Structural Indicator */}
-        <div className="absolute -top-8 w-full flex items-center justify-center text-[calc(10rem/16)] font-bold font-mono text-muted uppercase tracking-widest gap-1">
-          <span>Top</span>
-        </div>
+          {/* Structural Indicator */}
+          <div className="absolute -top-8 w-full flex items-center justify-center text-[calc(10rem/16)] font-bold font-mono text-muted uppercase tracking-widest gap-1">
+            <span>Top</span>
+          </div>
 
-        {/* Using flex-col-reverse ensures index 0 stays locked at the bottom, 
+          {/* Using flex-col-reverse ensures index 0 stays locked at the bottom, 
           and new elements push the stack upwards natively.
         */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-          className="flex flex-col-reverse gap-1.5 relative z-10 w-[4.5rem]"
-        >
-          <AnimatePresence mode="popLayout">
-            {safeValue.map((val, idx) => {
-              const isDelete = deleteIndices?.includes(idx);
-              const isSwap = swapIndices?.includes(idx);
-              const isWrite = writeIndices?.includes(idx);
-              const isInsert = insertIndices?.includes(idx);
-              const isFound = foundIndices?.includes(idx);
-              const isCompare = compareIndices?.includes(idx);
-              const isRead = readIndices?.includes(idx);
-              const isHighlight = highLightIndices?.includes(idx);
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="flex flex-col-reverse gap-1.5 relative z-10 w-[4.5rem]"
+          >
+            <AnimatePresence mode="popLayout">
+              {safeValue.map((val, idx) => {
+                const isDelete = deleteIndices?.includes(idx);
+                const isSwap = swapIndices?.includes(idx);
+                const isWrite = writeIndices?.includes(idx);
+                const isInsert = insertIndices?.includes(idx);
+                const isFound = foundIndices?.includes(idx);
+                const isCompare = compareIndices?.includes(idx);
+                const isRead = readIndices?.includes(idx);
+                const isHighlight = highLightIndices?.includes(idx);
 
-              const cellPointers = pointers?.filter((p) => p.index === idx) || [];
+                const cellPointers = pointers?.filter((p) => p.index === idx) || [];
 
-              // Dynamic Styling
-              let bgClass = "bg-surface";
-              let borderClass = "border-border";
-              let textClass = "text-text";
-              let shadowClass = "shadow-sm";
-              let activeScale = 1;
-              let activeZIndex = 1;
+                // Dynamic Styling
+                let bgClass = "bg-surface";
+                let borderClass = "border-border";
+                let textClass = "text-text";
+                let shadowClass = "shadow-sm";
+                let activeScale = 1;
+                let activeZIndex = 1;
 
-              if (isFound) {
-                bgClass = "bg-ds-read/20";
-                borderClass = "border-ds-read";
-                textClass = "text-ds-read";
-                shadowClass = "shadow-none";
-                activeScale = 1.1;
-                activeZIndex = 30;
-              } else if (isDelete) {
-                bgClass = "bg-failure/20";
-                borderClass = "border-failure";
-                textClass = "text-failure";
-                shadowClass = "shadow-none";
-                activeScale = 0.95;
-                activeZIndex = 10;
-              } else if (isSwap) {
-                bgClass = "bg-accent-3/20";
-                borderClass = "border-accent-3";
-                textClass = "text-accent-3";
-                shadowClass = "shadow-none";
-                activeScale = 1.05;
-                activeZIndex = 20;
-              } else if (isInsert) {
-                bgClass = "bg-ds-write/20";
-                borderClass = "border-ds-write";
-                textClass = "text-ds-write";
-                shadowClass = "shadow-none";
-                activeScale = 1.08;
-                activeZIndex = 25;
-              } else if (isWrite) {
-                bgClass = "bg-success/20";
-                borderClass = "border-success";
-                textClass = "text-success";
-                shadowClass = "shadow-none";
-                activeScale = 1.05;
-                activeZIndex = 20;
-              } else if (isCompare) {
-                bgClass = "bg-orange-500/20";
-                borderClass = "border-orange-500";
-                textClass = "text-orange-500";
-                shadowClass = "shadow-none";
-                activeScale = 1.02;
-                activeZIndex = 15;
-              } else if (isRead) {
-                bgClass = "bg-accent/20";
-                borderClass = "border-accent";
-                textClass = "text-accent";
-                shadowClass = "shadow-none";
-                activeScale = 1.02;
-                activeZIndex = 10;
-              } else if (isHighlight) {
-                bgClass = "bg-accent-2/20";
-                borderClass = "border-accent-2";
-                textClass = "text-accent-2";
-                activeZIndex = 5;
-              }
+                if (isFound) {
+                  bgClass = "bg-ds-read/20";
+                  borderClass = "border-ds-read";
+                  textClass = "text-ds-read";
+                  shadowClass = "shadow-none";
+                  activeScale = 1.1;
+                  activeZIndex = 30;
+                } else if (isDelete) {
+                  bgClass = "bg-failure/20";
+                  borderClass = "border-failure";
+                  textClass = "text-failure";
+                  shadowClass = "shadow-none";
+                  activeScale = 0.95;
+                  activeZIndex = 10;
+                } else if (isSwap) {
+                  bgClass = "bg-accent-3/20";
+                  borderClass = "border-accent-3";
+                  textClass = "text-accent-3";
+                  shadowClass = "shadow-none";
+                  activeScale = 1.05;
+                  activeZIndex = 20;
+                } else if (isInsert) {
+                  bgClass = "bg-ds-write/20";
+                  borderClass = "border-ds-write";
+                  textClass = "text-ds-write";
+                  shadowClass = "shadow-none";
+                  activeScale = 1.08;
+                  activeZIndex = 25;
+                } else if (isWrite) {
+                  bgClass = "bg-success/20";
+                  borderClass = "border-success";
+                  textClass = "text-success";
+                  shadowClass = "shadow-none";
+                  activeScale = 1.05;
+                  activeZIndex = 20;
+                } else if (isCompare) {
+                  bgClass = "bg-accent-2/20";
+                  borderClass = "border-accent-2";
+                  textClass = "text-accent-2";
+                  shadowClass = "shadow-none";
+                  activeScale = 1.02;
+                  activeZIndex = 15;
+                } else if (isRead) {
+                  bgClass = "bg-accent/20";
+                  borderClass = "border-accent";
+                  textClass = "text-accent";
+                  shadowClass = "shadow-none";
+                  activeScale = 1.02;
+                  activeZIndex = 10;
+                } else if (isHighlight) {
+                  bgClass = "bg-accent-2/20";
+                  borderClass = "border-accent-2";
+                  textClass = "text-accent-2";
+                  activeZIndex = 5;
+                }
 
-              const safeValToDisplay = typeof val === "object" ? JSON.stringify(val) : String(val);
+                const safeValToDisplay =
+                  typeof val === "object" ? JSON.stringify(val) : String(val);
 
-              return (
-                <motion.div
-                  key={`stack-cell-${idx}`}
-                  layout
-                  variants={cellVariants}
-                  className="flex items-center justify-center relative w-full h-[2.5rem]"
-                >
-                  {/* Left Side: Array Index */}
-                  <div className="absolute right-full mr-2 text-[calc(10rem/16)] text-muted font-mono opacity-60">
-                    {idx}
-                  </div>
-
-                  {/* Right Side: Pointers (e.g., 'top') */}
-                  <div className="absolute left-full ml-2 flex items-center gap-1">
-                    <AnimatePresence>
-                      {cellPointers.map((ptr) => (
-                        <motion.div
-                          key={ptr.name}
-                          layoutId={`pointer-stack-${ptr.name}`}
-                          initial={{ opacity: 0, x: -10, scale: 0.8 }}
-                          animate={{ opacity: 1, x: 0, scale: 1 }}
-                          exit={{ opacity: 0, x: 10, scale: 0.8 }}
-                          transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
-                          className="flex items-center text-accent-3 z-30"
-                        >
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="mr-0.5 opacity-80 rotate-90"
-                          >
-                            <path d="M12 19V5M5 12l7-7 7 7" />
-                          </svg>
-                          <span className="text-[calc(9rem/16)] font-mono font-bold bg-surface-2 text-accent-3 px-1.5 py-[1px] rounded border border-accent-3/30 truncate max-w-[60px]">
-                            {ptr.name}
-                          </span>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  </div>
-
-                  {/* Main Data Cell */}
+                return (
                   <motion.div
+                    key={`stack-cell-${idx}`}
                     layout
-                    initial={false}
-                    animate={{ scale: activeScale, zIndex: activeZIndex }}
-                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                    className={cn(`
+                    variants={cellVariants}
+                    className="flex items-center justify-center relative w-full h-[2.5rem]"
+                  >
+                    {/* Left Side: Array Index */}
+                    <div className="absolute right-full mr-2 text-[calc(10rem/16)] text-muted font-mono opacity-60">
+                      {idx}
+                    </div>
+
+                    {/* Right Side: Pointers (e.g., 'top') */}
+                    <div className="absolute left-full ml-2 flex items-center gap-1">
+                      <AnimatePresence>
+                        {cellPointers.map((ptr) => (
+                          <motion.div
+                            key={ptr.name}
+                            layoutId={`pointer-stack-${ptr.name}`}
+                            initial={{ opacity: 0, x: -10, scale: 0.8 }}
+                            animate={{ opacity: 1, x: 0, scale: 1 }}
+                            exit={{ opacity: 0, x: 10, scale: 0.8 }}
+                            transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
+                            className="flex items-center text-accent-3 z-30"
+                          >
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="mr-0.5 opacity-80 rotate-90"
+                            >
+                              <path d="M12 19V5M5 12l7-7 7 7" />
+                            </svg>
+                            <span className="text-[calc(9rem/16)] font-mono font-bold bg-surface-2 text-accent-3 px-1.5 py-[1px] rounded border border-accent-3/30 truncate max-w-[60px]">
+                              {ptr.name}
+                            </span>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Main Data Cell */}
+                    <motion.div
+                      layout
+                      initial={false}
+                      animate={{ scale: activeScale, zIndex: activeZIndex }}
+                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                      className={cn(`
                       w-full h-full px-1 flex items-center justify-center font-mono text-[calc(14rem/16)] font-bold 
                       rounded-sm border transition-colors duration-200 shrink-0
                       ${bgClass} ${borderClass} ${textClass} ${shadowClass}
                     `)}
-                  >
-                    <AnimatePresence mode="wait">
-                      <motion.span
-                        key={`val-${safeValToDisplay}`}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.15 }}
-                        className="truncate max-w-full"
-                      >
-                        {safeValToDisplay}
-                      </motion.span>
-                    </AnimatePresence>
+                    >
+                      <AnimatePresence mode="wait">
+                        <motion.span
+                          key={`val-${safeValToDisplay}`}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          transition={{ duration: 0.15 }}
+                          className="truncate max-w-full"
+                        >
+                          {safeValToDisplay}
+                        </motion.span>
+                      </AnimatePresence>
+                    </motion.div>
                   </motion.div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

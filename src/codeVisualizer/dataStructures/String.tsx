@@ -62,12 +62,15 @@ const StringComponent = ({
   }
 
   return (
-    <div className="w-full flex flex-col items-start overflow-x-auto styled-scrollbar pb-8 pt-2 px-2">
+    <div
+      className="overflow-auto styled-scrollbar w-full h-full relative grid"
+      style={{ placeItems: "safe center" }}
+    >
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="flex items-start justify-center relative min-w-full w-max"
+        className="flex items-center justify-center gap-1 relative w-max px-8 py-16"
       >
         {/* Opening Quote */}
         <span className="text-accent/60 text-3xl font-mono font-light leading-none mr-3 self-center translate-y-2">

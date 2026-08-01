@@ -8,8 +8,10 @@ import type {
 import { EventEmitter } from "../../events/EventEmitter";
 import { EventType } from "../../types";
 import { ScopeManager } from "../../runtime/ScopeManager";
-import type { CppValue } from "../../types";
+import type { CppValue, CppType, EvalResult } from "../../types";
 import { ExpressionEvaluator } from "../../evaluator/ExpressionEvaluator";
+import { TypeConversion } from "../../evaluator/modules/TypeConversion";
+import { StreamFormatter } from "../../evaluator/modules/StreamFormatter";
 import { cloneRuntimeValue } from "../../utils/helpers";
 
 export class AssignmentExecutor {
@@ -20,8 +22,9 @@ export class AssignmentExecutor {
   ) {}
 
   public executeAssignment(stmt: IRAssignment): void {
-    let newValue = this.evaluator.evaluate(stmt.value);
-    newValue = cloneRuntimeValue(newValue);
+    let newEvalRes = this.evaluator.evaluateWithType(stmt.value);
+    let newValue = cloneRuntimeValue(newEvalRes.value);
+    newEvalRes.value = newValue;
 
     if (stmt.target.kind === "Identifier") {
       const varName = (stmt.target as IRIdentifier).name;
@@ -53,14 +56,12 @@ export class AssignmentExecutor {
         resolvedValue =
           stmt.operator === "="
             ? newValue
-            : this.computeCompoundValue(stmt.operator, existing, newValue);
+            : this.computeCompoundValue(stmt.operator, existing, newEvalRes);
 
-        if (
-          (symbol.type === "char" || symbol.type === "const char") &&
-          typeof resolvedValue === "number"
-        ) {
-          resolvedValue = String.fromCharCode(resolvedValue);
-        }
+        resolvedValue = TypeConversion.convert(
+          { type: newEvalRes.type, value: resolvedValue },
+          symbol.type as CppType,
+        ).value;
 
         targetScopeManager.assignVariable(targetVarName, resolvedValue);
       } catch (e: any) {
@@ -122,7 +123,7 @@ export class AssignmentExecutor {
       const finalValue =
         stmt.operator === "="
           ? newValue
-          : this.computeCompoundValue(stmt.operator, existingValue ?? 0, newValue);
+          : this.computeCompoundValue(stmt.operator, existingValue ?? 0, newEvalRes);
 
       if (typeof targetObj === "string") {
         const i = typeof index === "string" ? parseInt(index) : (index as number);
@@ -169,7 +170,7 @@ export class AssignmentExecutor {
       const finalValue =
         stmt.operator === "="
           ? newValue
-          : this.computeCompoundValue(stmt.operator, existingValue ?? 0, newValue);
+          : this.computeCompoundValue(stmt.operator, existingValue ?? 0, newEvalRes);
 
       targetObj[property] = finalValue;
 
@@ -245,14 +246,14 @@ export class AssignmentExecutor {
   private computeCompoundValue(
     operator: IRAssignment["operator"],
     existing: any,
-    incoming: CppValue,
+    incoming: EvalResult,
   ): CppValue {
     if (operator === "+=" && typeof existing === "string") {
-      return existing + String(incoming ?? "");
+      return existing + StreamFormatter.format(incoming);
     }
 
     const lhs = Number(existing);
-    const rhs = Number(incoming);
+    const rhs = Number(incoming.value);
 
     switch (operator) {
       case "+=":
@@ -277,7 +278,7 @@ export class AssignmentExecutor {
       case ">>=":
         return lhs >> rhs;
       default:
-        return incoming;
+        return incoming.value;
     }
   }
 }

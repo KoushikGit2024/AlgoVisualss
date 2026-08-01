@@ -38,24 +38,28 @@ const RECURSION_SECTION = {
       tag: "table",
       headers: ["Problem", "What's Being Chosen", "Pruning Check"],
       rows: [
-        ["Subsets", "Include or exclude each element", "None needed — every combination is valid"],
         [
-          "Permutations",
+          "[Subsets](/algorithms/recursion/subsets)",
+          "Include or exclude each element",
+          "None needed — every combination is valid",
+        ],
+        [
+          "[Permutations](/algorithms/recursion/permutations)",
           "Which unused element goes next",
           "Element must not already be used in this permutation",
         ],
         [
-          "N-Queens",
+          "[N-Queens](/algorithms/recursion/n-queens)",
           "Which column to place a queen in, per row",
           "No conflict with any previously placed queen (column, diagonal)",
         ],
         [
-          "Sudoku Solver",
+          "[Sudoku Solver](/algorithms/recursion/sudoku)",
           "Which digit 1-9 to place in the next empty cell",
           "Digit must not violate row/column/box constraints",
         ],
         [
-          "Combination Sum",
+          "[Combination Sum](/algorithms/recursion/combination-sum)",
           "Include a candidate value (possibly repeated)",
           "Running sum must not exceed the target",
         ],
@@ -76,6 +80,13 @@ const RECURSION_SECTION = {
       name: "Subsets",
       href: "/algorithms/recursion/subsets",
       type: "Medium",
+
+      related: [
+        { name: "N-Queens", href: "/algorithms/recursion/n-queens" },
+        { name: "Sudoku Solver", href: "/algorithms/recursion/sudoku" },
+        { name: "Permutations", href: "/algorithms/recursion/permutations" },
+        { name: "Combination Sum", href: "/algorithms/recursion/combination-sum" },
+      ],
 
       about: [
         { tag: "h1", text: "Subsets (Power Set)" },
@@ -556,6 +567,13 @@ fn main() {
       name: "N-Queens",
       href: "/algorithms/recursion/n-queens",
       type: "Hard",
+
+      related: [
+        { name: "Subsets", href: "/algorithms/recursion/subsets" },
+        { name: "Sudoku Solver", href: "/algorithms/recursion/sudoku" },
+        { name: "Permutations", href: "/algorithms/recursion/permutations" },
+        { name: "Combination Sum", href: "/algorithms/recursion/combination-sum" },
+      ],
 
       about: [
         { tag: "h1", text: "N-Queens" },
@@ -1264,6 +1282,13 @@ fn main() {
       name: "Sudoku Solver",
       href: "/algorithms/recursion/sudoku",
       type: "Hard",
+
+      related: [
+        { name: "Subsets", href: "/algorithms/recursion/subsets" },
+        { name: "N-Queens", href: "/algorithms/recursion/n-queens" },
+        { name: "Permutations", href: "/algorithms/recursion/permutations" },
+        { name: "Combination Sum", href: "/algorithms/recursion/combination-sum" },
+      ],
 
       about: [
         { tag: "h1", text: "Sudoku Solver" },
@@ -2107,6 +2132,13 @@ fn main() {
       href: "/algorithms/recursion/permutations",
       type: "Medium",
 
+      related: [
+        { name: "Subsets", href: "/algorithms/recursion/subsets" },
+        { name: "N-Queens", href: "/algorithms/recursion/n-queens" },
+        { name: "Sudoku Solver", href: "/algorithms/recursion/sudoku" },
+        { name: "Combination Sum", href: "/algorithms/recursion/combination-sum" },
+      ],
+
       about: [
         { tag: "h1", text: "Permutations" },
         {
@@ -2596,6 +2628,13 @@ fn main() {
       name: "Combination Sum",
       href: "/algorithms/recursion/combination-sum",
       type: "Medium",
+
+      related: [
+        { name: "Subsets", href: "/algorithms/recursion/subsets" },
+        { name: "N-Queens", href: "/algorithms/recursion/n-queens" },
+        { name: "Sudoku Solver", href: "/algorithms/recursion/sudoku" },
+        { name: "Permutations", href: "/algorithms/recursion/permutations" },
+      ],
 
       about: [
         { tag: "h1", text: "Combination Sum" },

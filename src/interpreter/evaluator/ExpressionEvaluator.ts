@@ -13,7 +13,7 @@ import type {
 } from "../ir/IRNode";
 import { ScopeManager } from "../runtime/ScopeManager";
 import { EventEmitter } from "../events/EventEmitter";
-import type { CppValue } from "../types";
+import type { CppValue, EvalResult } from "../types";
 
 import { BinaryEvaluator } from "./modules/BinaryEvaluator";
 import { UnaryUpdateEvaluator } from "./modules/UnaryUpdateEvaluator";
@@ -24,12 +24,12 @@ export class ExpressionEvaluator {
   private binary: BinaryEvaluator;
   private unaryUpdate: UnaryUpdateEvaluator;
   private cinInput: CinInputEvaluator;
-  private core: CoreEvaluator;
+  public core: CoreEvaluator;
 
   constructor(scopeManager: ScopeManager, eventEmitter: EventEmitter) {
     this.cinInput = new CinInputEvaluator(this, scopeManager, eventEmitter);
     this.core = new CoreEvaluator(this, scopeManager, eventEmitter);
-    this.binary = new BinaryEvaluator(this, eventEmitter, this.cinInput, this.core);
+    this.binary = new BinaryEvaluator(this, eventEmitter, this.cinInput);
     this.unaryUpdate = new UnaryUpdateEvaluator(this, scopeManager, eventEmitter);
   }
 
@@ -38,34 +38,40 @@ export class ExpressionEvaluator {
   }
 
   public evaluate(expr: IRExpression): CppValue {
+    return this.evaluateWithType(expr).value;
+  }
+
+  public evaluateWithType(expr: IRExpression): EvalResult {
     try {
       switch (expr.kind) {
         case "Literal":
-          return (expr as any).value;
+          return { type: (expr as any).valueType || "unknown", value: (expr as any).value };
         case "Identifier":
-          return this.core.evaluateIdentifier(expr as IRIdentifier);
+          return this.core.evaluateIdentifierTyped(expr as IRIdentifier);
         case "SizeofExpression":
-          return this.core.evaluateSizeof(expr as IRSizeofExpression);
+          return { type: "int", value: this.core.evaluateSizeof(expr as IRSizeofExpression) };
         case "CommaExpression":
-          return this.core.evaluateComma(expr as IRCommaExpression);
+          return this.core.evaluateCommaTyped(expr as IRCommaExpression);
         case "UnaryExpression":
-          return this.unaryUpdate.evaluateUnary(expr as IRUnaryExpression);
+          return this.unaryUpdate.evaluateUnaryTyped(expr as IRUnaryExpression);
         case "BinaryExpression":
-          return this.binary.evaluateBinary(expr as IRBinaryExpression);
+          return this.binary.evaluateBinaryTyped(expr as IRBinaryExpression);
         case "UpdateExpression":
-          return this.unaryUpdate.evaluateUpdate(expr as IRUpdateExpression);
+          return this.unaryUpdate.evaluateUpdateTyped(expr as IRUpdateExpression);
         case "Assignment":
-          return this.core.evaluateAssignment(expr as IRAssignment);
+          return this.core.evaluateAssignmentTyped(expr as IRAssignment);
         case "SubscriptExpression":
-          return this.core.evaluateSubscript(expr as IRSubscriptExpression);
+          return this.core.evaluateSubscriptTyped(expr as IRSubscriptExpression);
         case "MemberExpression":
-          return this.core.evaluateMember(expr as any);
+          return this.core.evaluateMemberTyped(expr as any);
         case "TernaryExpression":
-          return this.core.evaluateTernary(expr as IRTernaryExpression);
+          return this.core.evaluateTernaryTyped(expr as IRTernaryExpression);
         case "InitializerList":
-          return this.core.evaluateInitList(expr as IRInitializerList);
+          return { type: "unknown", value: this.core.evaluateInitList(expr as IRInitializerList) };
         case "LambdaExpression":
-          return expr as unknown as CppValue;
+          return { type: "unknown", value: expr as unknown as CppValue };
+        case "CastExpression":
+          return this.core.evaluateCastTyped(expr as any);
         case "FunctionCall":
           throw new Error(
             "Execution Context Violation: FunctionCall nodes must be intercepted " +

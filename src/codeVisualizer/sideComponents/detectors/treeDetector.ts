@@ -6,16 +6,21 @@ export const TRIE_PREFIXES = ["trie", "prefix_tree", "ptree", "dictionary_tree",
 
 function looksLikeTrieNode(obj: any): boolean {
   if (!obj || typeof obj !== "object" || Array.isArray(obj)) return false;
+  const isMapLike = (v: any) =>
+    v instanceof Map || (v && typeof v === "object" && v.__type === "map");
   return (
     Array.isArray(obj.children) ||
     Array.isArray(obj.links) ||
     Array.isArray(obj.edges) ||
-    obj.children instanceof Map ||
-    obj.links instanceof Map ||
+    Array.isArray(obj.next) ||
+    isMapLike(obj.children) ||
+    isMapLike(obj.links) ||
+    isMapLike(obj.next) ||
     "isEndOfWord" in obj ||
     "isEnd" in obj ||
     "endOfWord" in obj ||
-    "terminal" in obj
+    "terminal" in obj ||
+    "isWord" in obj
   );
 }
 
@@ -31,8 +36,27 @@ function unrollPointerTrie(rootNode: any): any[] {
   function getChildEntries(node: any): [string, any][] {
     const entries: [string, any][] = [];
 
+    const isSerializedMap = (v: any) =>
+      v && typeof v === "object" && v.__type === "map" && Array.isArray(v.entries);
+    const isSerializedContainer = (v: any) =>
+      v && typeof v === "object" && Array.isArray(v.data) && v.__type !== "map";
+
+    // ── Map-backed children (children[char] via map/unordered_map) ──
     const mapField =
-      node.children instanceof Map ? node.children : node.links instanceof Map ? node.links : null;
+      node.children instanceof Map
+        ? node.children
+        : node.links instanceof Map
+          ? node.links
+          : node.next instanceof Map
+            ? node.next
+            : isSerializedMap(node.children)
+              ? new Map(node.children.entries)
+              : isSerializedMap(node.links)
+                ? new Map(node.links.entries)
+                : isSerializedMap(node.next)
+                  ? new Map(node.next.entries)
+                  : null;
+
     if (mapField) {
       mapField.forEach((child: any, key: any) => {
         if (child) entries.push([String(key), child]);
@@ -40,13 +64,22 @@ function unrollPointerTrie(rootNode: any): any[] {
       return entries;
     }
 
+    // ── Array-backed children (bare JS array OR cloned mock container) ──
     const arrField: any[] | null = Array.isArray(node.children)
       ? node.children
       : Array.isArray(node.links)
         ? node.links
         : Array.isArray(node.edges)
           ? node.edges
-          : null;
+          : Array.isArray(node.next)
+            ? node.next
+            : isSerializedContainer(node.children)
+              ? node.children.data
+              : isSerializedContainer(node.links)
+                ? node.links.data
+                : isSerializedContainer(node.next)
+                  ? node.next.data
+                  : null;
 
     if (arrField) {
       arrField.forEach((child, i) => {
@@ -58,7 +91,13 @@ function unrollPointerTrie(rootNode: any): any[] {
       return entries;
     }
 
-    if (node.children && typeof node.children === "object") {
+    // Generic object fallback — only for genuinely plain objects, never wrappers
+    if (
+      node.children &&
+      typeof node.children === "object" &&
+      !isSerializedMap(node.children) &&
+      !isSerializedContainer(node.children)
+    ) {
       Object.entries(node.children).forEach(([k, v]) => {
         if (v && typeof v === "object") entries.push([k, v]);
       });
@@ -68,6 +107,8 @@ function unrollPointerTrie(rootNode: any): any[] {
     if (
       node.next &&
       typeof node.next === "object" &&
+      !isSerializedMap(node.next) &&
+      !isSerializedContainer(node.next) &&
       !Array.isArray(node.next) &&
       !("val" in node.next) &&
       !("value" in node.next && "next" in (node.next.next ?? {}))
@@ -85,11 +126,14 @@ function unrollPointerTrie(rootNode: any): any[] {
       node.endOfWord ||
       node.end ||
       node.terminal ||
+      node.isWord ||
       node.word
     );
   }
 
-  function traverse(node: any, charKey?: string): string | null {
+  function traverse(rawNode: any, charKey?: string): string | null {
+    if (!rawNode) return null;
+    const node = deepUnwrap(rawNode);
     if (!node || typeof node !== "object" || Array.isArray(node)) return null;
     if (seen.has(node)) return null;
     seen.add(node);
@@ -129,7 +173,9 @@ function unrollPointerTree(rootNode: any): any[] {
   let idCounter = 0;
   const seen = new Set<any>();
 
-  function traverse(node: any): string | null {
+  function traverse(rawNode: any): string | null {
+    if (!rawNode) return null;
+    const node = deepUnwrap(rawNode);
     if (!node || typeof node !== "object") return null;
     if (seen.has(node)) return null;
     seen.add(node);

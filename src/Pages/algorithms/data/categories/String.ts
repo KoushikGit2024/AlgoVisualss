@@ -25,7 +25,7 @@ const STRINGS_SECTION = {
           "O(n + m)",
         ],
         [
-          "Z-Algorithm",
+          "[Z-Algorithm](/algorithms/strings/z-algorithm)",
           "Precompute, for every position, the length of the longest substring starting there that matches the string's own prefix",
           "O(n + m)",
         ],
@@ -56,6 +56,13 @@ const STRINGS_SECTION = {
       name: "Longest Substring Without Repeating Characters",
       href: "/algorithms/strings/longest-substring",
       type: "Medium",
+
+      related: [
+        { name: "Rabin-Karp Algorithm", href: "/algorithms/strings/rabin-karp" },
+        { name: "KMP Algorithm", href: "/algorithms/strings/kmp" },
+        { name: "Valid Palindrome", href: "/algorithms/strings/palindrome" },
+        { name: "Z-Algorithm", href: "/algorithms/strings/z-algorithm" },
+      ],
 
       about: [
         { tag: "h1", text: "Longest Substring Without Repeating Characters" },
@@ -723,6 +730,16 @@ fn main() {
       name: "Rabin-Karp Algorithm",
       href: "/algorithms/strings/rabin-karp",
       type: "Medium",
+
+      related: [
+        {
+          name: "Longest Substring Without Repeating Characters",
+          href: "/algorithms/strings/longest-substring",
+        },
+        { name: "KMP Algorithm", href: "/algorithms/strings/kmp" },
+        { name: "Valid Palindrome", href: "/algorithms/strings/palindrome" },
+        { name: "Z-Algorithm", href: "/algorithms/strings/z-algorithm" },
+      ],
 
       about: [
         { tag: "h1", text: "Rabin-Karp Algorithm" },
@@ -1680,6 +1697,16 @@ fn main() {
       name: "KMP Algorithm",
       href: "/algorithms/strings/kmp",
       type: "Hard",
+
+      related: [
+        {
+          name: "Longest Substring Without Repeating Characters",
+          href: "/algorithms/strings/longest-substring",
+        },
+        { name: "Rabin-Karp Algorithm", href: "/algorithms/strings/rabin-karp" },
+        { name: "Valid Palindrome", href: "/algorithms/strings/palindrome" },
+        { name: "Z-Algorithm", href: "/algorithms/strings/z-algorithm" },
+      ],
 
       about: [
         { tag: "h1", text: "Knuth-Morris-Pratt (KMP) Algorithm" },
@@ -2746,6 +2773,16 @@ fn main() {
       href: "/algorithms/strings/palindrome",
       type: "Easy",
 
+      related: [
+        {
+          name: "Longest Substring Without Repeating Characters",
+          href: "/algorithms/strings/longest-substring",
+        },
+        { name: "Rabin-Karp Algorithm", href: "/algorithms/strings/rabin-karp" },
+        { name: "KMP Algorithm", href: "/algorithms/strings/kmp" },
+        { name: "Z-Algorithm", href: "/algorithms/strings/z-algorithm" },
+      ],
+
       about: [
         { tag: "h1", text: "Valid Palindrome" },
         {
@@ -3416,6 +3453,16 @@ fn main() {
       name: "Z-Algorithm",
       href: "/algorithms/strings/z-algorithm",
       type: "Hard",
+
+      related: [
+        {
+          name: "Longest Substring Without Repeating Characters",
+          href: "/algorithms/strings/longest-substring",
+        },
+        { name: "Rabin-Karp Algorithm", href: "/algorithms/strings/rabin-karp" },
+        { name: "KMP Algorithm", href: "/algorithms/strings/kmp" },
+        { name: "Valid Palindrome", href: "/algorithms/strings/palindrome" },
+      ],
 
       about: [
         { tag: "h1", text: "Z-Algorithm" },

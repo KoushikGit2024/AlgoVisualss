@@ -32,8 +32,11 @@ const Bitset = ({ value }: BitsetProps) => {
   const displayBits = bits.map((b, i) => ({ bit: b, index: i })).reverse();
 
   return (
-    <div className="w-full flex flex-col items-center overflow-x-auto styled-scrollbar pb-6 pt-2 px-4">
-      <div className="flex items-center gap-1.5">
+    <div
+      className="overflow-auto styled-scrollbar w-full h-full relative grid"
+      style={{ placeItems: "safe center" }}
+    >
+      <div className="flex items-center justify-center gap-1.5 relative w-max px-8 py-12">
         <AnimatePresence mode="popLayout">
           {displayBits.map(({ bit, index }) => {
             const isActive = bit === 1;

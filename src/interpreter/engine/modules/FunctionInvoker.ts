@@ -10,7 +10,7 @@ import { ExpressionEvaluator } from "../../evaluator/ExpressionEvaluator";
 import { StatementExecutor } from "../../executor/StatementExecutor";
 import { IRWalker } from "../../walker/IRWalker";
 import { EventType } from "../../types";
-import type { CppValue, CppType, StaticStorageKey } from "../../types";
+import type { CppValue, CppType, StaticStorageKey, EvalResult } from "../../types";
 import {
   ReturnSignal,
   BreakpointSignal,
@@ -217,7 +217,11 @@ export class FunctionInvoker {
     if (fn.startsWith("make_shared<")) {
       const typeStr = fn.substring(12, fn.length - 1);
       if (this.ctx.classBlueprints.has(typeStr)) {
-        return this.instantiateStructAndExecuteConstructor(typeStr, callNode.arguments, currentEvaluator);
+        return this.instantiateStructAndExecuteConstructor(
+          typeStr,
+          callNode.arguments,
+          currentEvaluator,
+        );
       }
     }
 
@@ -478,8 +482,13 @@ export class FunctionInvoker {
     }
 
     if (!handled) {
-      const b = objInstance && (objInstance as any).__type ? this.ctx.classBlueprints.get((objInstance as any).__type) : null;
-      console.log(`[FunctionInvoker] Linker error for '${method}'. Object type: ${objInstance ? (objInstance as any).__type : 'unknown'}, Blueprint methods: ${b?.methods ? b.methods.map((m: any) => m.name).join(", ") : 'none'}`);
+      const b =
+        objInstance && (objInstance as any).__type
+          ? this.ctx.classBlueprints.get((objInstance as any).__type)
+          : null;
+      console.log(
+        `[FunctionInvoker] Linker error for '${method}'. Object type: ${objInstance ? (objInstance as any).__type : "unknown"}, Blueprint methods: ${b?.methods ? b.methods.map((m: any) => m.name).join(", ") : "none"}`,
+      );
       throw new Error(
         `Linker Error at line ${methodNode.line}: Method '${method}' is not defined on this object type.`,
       );
@@ -905,29 +914,38 @@ export class FunctionInvoker {
   }
 
   public attachEvaluationInterceptor(evaluator: ExpressionEvaluator): void {
-    const originalEvaluate = evaluator.evaluate.bind(evaluator);
+    const originalEvaluateWithType = evaluator.evaluateWithType.bind(evaluator);
 
-    evaluator.evaluate = (expr: any): CppValue => {
-      if (expr.kind === "FunctionCall")
-        return this.invokeFunctionCall(expr as IRFunctionCall, evaluator);
-      if (expr.kind === "MethodCall") return this.invokeMethodCall(expr as IRMethodCall, evaluator);
+    evaluator.evaluateWithType = (expr: any): EvalResult => {
+      if (expr.kind === "FunctionCall") {
+        const val = this.invokeFunctionCall(expr as IRFunctionCall, evaluator);
+        const returnType =
+          this.ctx.functions.get((expr as IRFunctionCall).callee)?.returnType || "unknown";
+        return { type: returnType as CppType, value: val };
+      }
+      if (expr.kind === "MethodCall") {
+        const val = this.invokeMethodCall(expr as IRMethodCall, evaluator);
+        return { type: "unknown", value: val };
+      }
       if (expr.kind === "UnaryExpression" && (expr as any).operator === "*")
-        return evaluator.evaluate((expr as any).argument);
+        return evaluator.evaluateWithType((expr as any).argument);
 
       if (expr.kind === "NewExpression") {
         const newExpr = expr as IRNewExpression;
         if (newExpr.typeName.includes("[")) {
           const evaluatedArgs = newExpr.arguments.map((arg: any) => evaluator.evaluate(arg));
           const size = evaluatedArgs[0] as number;
-          return typeof size === "number" ? new Array(size).fill(0) : [];
+          const val = typeof size === "number" ? new Array(size).fill(0) : [];
+          return { type: `${newExpr.typeName}*` as CppType, value: val };
         }
         const baseTypeName = newExpr.typeName.split("<")[0].trim();
         if (this.ctx.classBlueprints.has(baseTypeName)) {
-          return this.instantiateStructAndExecuteConstructor(
+          const val = this.instantiateStructAndExecuteConstructor(
             baseTypeName,
             newExpr.arguments,
             evaluator,
           );
+          return { type: `${baseTypeName}*` as CppType, value: val };
         }
         const evaluatedArgs = newExpr.arguments.map((arg: any) => evaluator.evaluate(arg));
         const newObj: Record<string, any> = {
@@ -938,7 +956,7 @@ export class FunctionInvoker {
           left: evaluatedArgs[1] ?? null,
           right: evaluatedArgs[2] ?? null,
         };
-        return newObj;
+        return { type: `${baseTypeName}*` as CppType, value: newObj };
       }
 
       if (expr.kind === "LambdaExpression") {
@@ -951,7 +969,7 @@ export class FunctionInvoker {
         const definitionScope = this.ctx.callStack.peek().scopeManager;
         const captured = definitionScope.captureState();
 
-        return ((...args: any[]) => {
+        const lambdaFn = ((...args: any[]) => {
           const lambdaFrame = this.ctx.callStack.push(lambdaName);
           for (const [vName, vSym] of Object.entries(captured)) {
             lambdaFrame.scopeManager.defineVariable(
@@ -1001,15 +1019,12 @@ export class FunctionInvoker {
             this.ctx.callStack.pop();
           }
           return retVal;
-        }) as unknown as CppValue;
+        }) as any;
+
+        return { type: "unknown", value: lambdaFn };
       }
 
-      if (expr.kind === "Identifier") {
-        if ((expr as any).name === "endl") return "\n";
-        if ((expr as any).name === "nullptr" || (expr as any).name === "NULL") return null;
-      }
-
-      return originalEvaluate(expr);
+      return originalEvaluateWithType(expr);
     };
   }
 }

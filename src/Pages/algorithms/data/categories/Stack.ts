@@ -58,6 +58,13 @@ const STACKS_SECTION = {
       href: "/algorithms/stacks/valid-parentheses",
       type: "Easy",
 
+      related: [
+        { name: "Min Stack", href: "/algorithms/stacks/min-stack" },
+        { name: "Next Greater Element", href: "/algorithms/stacks/next-greater" },
+        { name: "Monotonic Stack", href: "/algorithms/stacks/monotonic" },
+        { name: "Largest Rectangle in Histogram", href: "/algorithms/stacks/histogram" },
+      ],
+
       about: [
         { tag: "h1", text: "Valid Parentheses" },
         {
@@ -659,6 +666,13 @@ fn main() {
       name: "Min Stack",
       href: "/algorithms/stacks/min-stack",
       type: "Medium",
+
+      related: [
+        { name: "Valid Parentheses", href: "/algorithms/stacks/valid-parentheses" },
+        { name: "Next Greater Element", href: "/algorithms/stacks/next-greater" },
+        { name: "Monotonic Stack", href: "/algorithms/stacks/monotonic" },
+        { name: "Largest Rectangle in Histogram", href: "/algorithms/stacks/histogram" },
+      ],
 
       about: [
         { tag: "h1", text: "Min Stack" },
@@ -1498,6 +1512,13 @@ fn main() {
       href: "/algorithms/stacks/next-greater",
       type: "Medium",
 
+      related: [
+        { name: "Valid Parentheses", href: "/algorithms/stacks/valid-parentheses" },
+        { name: "Min Stack", href: "/algorithms/stacks/min-stack" },
+        { name: "Monotonic Stack", href: "/algorithms/stacks/monotonic" },
+        { name: "Largest Rectangle in Histogram", href: "/algorithms/stacks/histogram" },
+      ],
+
       about: [
         { tag: "h1", text: "Next Greater Element" },
         {
@@ -2051,6 +2072,13 @@ fn main() {
       name: "Monotonic Stack",
       href: "/algorithms/stacks/monotonic",
       type: "Medium",
+
+      related: [
+        { name: "Valid Parentheses", href: "/algorithms/stacks/valid-parentheses" },
+        { name: "Min Stack", href: "/algorithms/stacks/min-stack" },
+        { name: "Next Greater Element", href: "/algorithms/stacks/next-greater" },
+        { name: "Largest Rectangle in Histogram", href: "/algorithms/stacks/histogram" },
+      ],
 
       about: [
         { tag: "h1", text: "Monotonic Stack" },
@@ -2645,6 +2673,13 @@ fn main() {
       name: "Largest Rectangle in Histogram",
       href: "/algorithms/stacks/histogram",
       type: "Hard",
+
+      related: [
+        { name: "Valid Parentheses", href: "/algorithms/stacks/valid-parentheses" },
+        { name: "Min Stack", href: "/algorithms/stacks/min-stack" },
+        { name: "Next Greater Element", href: "/algorithms/stacks/next-greater" },
+        { name: "Monotonic Stack", href: "/algorithms/stacks/monotonic" },
+      ],
 
       about: [
         { tag: "h1", text: "Largest Rectangle in Histogram" },

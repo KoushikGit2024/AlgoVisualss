@@ -122,12 +122,15 @@ const D2Array = ({
   }
 
   return (
-    <div className="w-full overflow-auto styled-scrollbar pb-6 pt-2 px-2">
+    <div
+      className="overflow-auto styled-scrollbar w-full h-full relative grid"
+      style={{ placeItems: "safe center" }}
+    >
       <motion.div
         variants={gridVariants}
         initial="hidden"
         animate="show"
-        className="flex flex-col items-start gap-1.5 relative w-max mx-auto"
+        className="flex flex-col gap-1 w-max relative px-8 py-12"
       >
         {/* Column Indices */}
         <div className="flex items-center gap-1.5 mb-0.5">
@@ -212,11 +215,11 @@ const D2Array = ({
                     activeScale = 1.05;
                     activeZIndex = 20;
                   } else if (isCompare) {
-                    bgClass = "bg-orange-500/20";
-                    borderClass = "border-orange-500";
-                    textClass = "text-orange-500";
+                    bgClass = "bg-accent-2/20";
+                    borderClass = "border-accent-2";
+                    textClass = "text-accent-2";
                     shadowClass = "shadow-none";
-                    activeScale = 1.02;
+                    activeScale = 1.05;
                     activeZIndex = 15;
                   } else if (isRead) {
                     bgClass = "bg-accent/20";
