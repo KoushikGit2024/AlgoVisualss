@@ -107,22 +107,26 @@ function buildLayout(nodes: TreeNode[], rootId?: string) {
   };
   traverse(actualRootId, 0);
 
-  const xStep = xRank > 1 ? Math.min(80 / (xRank - 1), 13) : 0;
-  const totalW = (xRank > 1 ? xRank - 1 : 0) * xStep;
-  const startX = 50 - totalW / 2;
-
-  const yStep = maxDepth > 0 ? Math.min(75 / maxDepth, 20) : 0;
-  const startY = 14;
+  const xStep = 40; // Fixed pixel horizontal gap
+  const yStep = 50; // Fixed pixel vertical gap
+  
+  const paddingX = 80; // Padding to ensure nodes don't hit the absolute edges
+  const totalW = Math.max((xRank > 1 ? xRank - 1 : 0) * xStep + paddingX * 2, 600);
+  const startX = totalW / 2;
+  
+  const startY = 60;
+  const paddingY = 80;
+  const totalH = Math.max(startY + maxDepth * yStep + paddingY, 400);
 
   const finalLayout = new Map<string, { x: number; y: number }>();
   layout.forEach((pos, id) => {
     finalLayout.set(id, {
-      x: xRank === 1 ? 50 : startX + pos.x * xStep,
-      y: maxDepth === 0 ? 50 : startY + pos.y * yStep,
+      x: xRank === 1 ? startX : startX + (pos.x - (xRank - 1) / 2) * xStep,
+      y: startY + pos.y * yStep,
     });
   });
 
-  return { finalLayout, nodeMap, treeWidth: totalW, treeDepth: maxDepth };
+  return { finalLayout, nodeMap, canvasW: totalW, canvasH: totalH };
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -144,13 +148,12 @@ const Tree = ({
 
   const treeKind = useMemo(() => detectTreeKind(nodes), [nodes]);
 
-  const { finalLayout, treeWidth, treeDepth } = useMemo(
+  const { finalLayout, canvasW, canvasH } = useMemo(
     () => buildLayout(nodes, rootId),
     [nodes, rootId],
   );
 
-  const getPos = (id: string) => finalLayout.get(id) ?? { x: 50, y: 50 };
-  const isLarge = treeWidth > 80 || treeDepth > 5;
+  const getPos = (id: string) => finalLayout.get(id) ?? { x: canvasW / 2, y: 60 };
 
   const kindLabel: Record<TreeKind, string> = {
     segment: "Segment Tree",
@@ -180,38 +183,30 @@ const Tree = ({
     );
   }
 
-  const isComplexTree = useMemo(
-    () => nodes.some((n) => typeof n.value === "object" && n.value !== null),
-    [nodes],
-  );
-  const canvasScale = isComplexTree ? 3.5 : isLarge ? 1.5 : 1;
-
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full min-w-87.5 min-h-105 flex items-center justify-center overflow-hidden bg-bg/40"
+      className="relative w-full h-full overflow-hidden bg-bg/40 flex items-center justify-center"
     >
       {treeKind !== "generic" && (
         <div className="absolute top-2 left-2 z-50 pointer-events-none">
-          <span className="text-[9px] font-mono uppercase tracking-widest text-muted/60 border border-border/40 rounded px-1.5 py-0.5">
+          <span className="text-[9px] font-mono uppercase tracking-widest text-muted/60 border border-border/40 rounded px-1.5 py-0.5 bg-bg/80 backdrop-blur-sm">
             {kindLabel[treeKind]}
           </span>
         </div>
       )}
 
       <motion.div
-        className="absolute"
+        className="relative shrink-0"
         drag
         dragConstraints={containerRef}
-        dragElastic={isLarge || isComplexTree ? 0.15 : 0}
+        dragElastic={0.15}
         dragMomentum={false}
         whileTap={{ cursor: "grabbing" }}
         style={{
-          cursor: isLarge || isComplexTree ? "grab" : "default",
-          width: `${100 * canvasScale}%`,
-          height: `${100 * canvasScale}%`,
-          left: `-${50 * (canvasScale - 1)}%`,
-          top: `-${50 * (canvasScale - 1)}%`,
+          cursor: "grab",
+          width: canvasW,
+          height: canvasH,
         }}
       >
         {/* SVG Edge Layer */}
@@ -235,18 +230,18 @@ const Tree = ({
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.35, ease: "easeOut" }}
-                      x1={`${src.x}%`}
-                      y1={`${src.y}%`}
-                      x2={`${tgt.x}%`}
-                      y2={`${tgt.y}%`}
+                      x1={`${src.x}px`}
+                      y1={`${src.y}px`}
+                      x2={`${tgt.x}px`}
+                      y2={`${tgt.y}px`}
                       className="stroke-border transition-colors duration-300"
                       strokeWidth={isSegTree ? 1.5 : 2}
                       strokeDasharray={isSegTree ? "4 2" : undefined}
                     />
                     {isSegTree && (
                       <text
-                        x={`${(src.x + tgt.x) / 2}%`}
-                        y={`${(src.y + tgt.y) / 2}%`}
+                        x={`${(src.x + tgt.x) / 2}px`}
+                        y={`${(src.y + tgt.y) / 2}px`}
                         className="fill-muted"
                         fontSize="8"
                         textAnchor="middle"
@@ -353,7 +348,10 @@ const Tree = ({
 
               const pos = getPos(node.id);
               const isComplex = typeof node.value === "object" && node.value !== null;
-              const dispVal = isComplex ? JSON.stringify(node.value) : String(node.value);
+              let dispVal = isComplex ? JSON.stringify(node.value) : String(node.value);
+              if (dispVal === "undefined" || dispVal === "null") {
+                dispVal = "Φ";
+              }
               const cellPtrs = pointers.filter((p) => p.nodeId === node.id);
               const nodeSize =
                 treeKind === "segment"
@@ -372,7 +370,7 @@ const Tree = ({
                   animate="show"
                   exit="exit"
                   className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2"
-                  style={{ left: `${pos.x}%`, top: `${pos.y}%`, zIndex: zIdx }}
+                  style={{ left: `${pos.x}px`, top: `${pos.y}px`, zIndex: zIdx }}
                 >
                   {/* Range label above node (Segment Tree) */}
                   {meta.rangeLabel && (
@@ -446,13 +444,6 @@ const Tree = ({
           </AnimatePresence>
         </div>
       </motion.div>
-
-      {/* Pan hint for large trees */}
-      {isLarge && (
-        <div className="absolute bottom-2 right-2 z-50 pointer-events-none opacity-40">
-          <span className="text-[8px] font-mono text-muted">drag to pan</span>
-        </div>
-      )}
     </div>
   );
 };

@@ -195,7 +195,6 @@ const CodeEditor = ({
           overviewRulerLanes: 0,
           hideCursorInOverviewRuler: true,
           overviewRulerBorder: false,
-          wordWrap: "on",
           scrollbar: {
             verticalScrollbarSize: 8,
             horizontalScrollbarSize: 8,

@@ -492,7 +492,11 @@ export function unwrapObject(obj: any): any {
 }
 
 export function logStepToConsole(stepObj: any, stepNumber?: number): void {
-  if (typeof window !== "undefined" && window.localStorage.getItem("ALGO_DEV_CONSOLE") === "true") {
+  const isWorker = typeof window === 'undefined';
+  const hasConsoleFlag = !isWorker && window.localStorage.getItem("ALGO_DEV_CONSOLE") === "true";
+
+  // Run if we are inside a worker, OR if the local storage flag is enabled on the main thread
+  if (isWorker && hasConsoleFlag) {
     if (stepNumber !== undefined) {
       console.log(`--- Step ${stepNumber} ---`);
     }
@@ -500,7 +504,13 @@ export function logStepToConsole(stepObj: any, stepNumber?: number): void {
     if (typeof stepObj === "string") {
       console.log(stepObj);
     } else {
-      console.dir(unwrapObject(stepObj), { depth: null });
+      const clone = JSON.parse(JSON.stringify(unwrapObject(stepObj)));
+      console.groupCollapsed(`--- Step ${stepNumber ?? 'Log'} ---`);
+      for (const key of Object.keys(clone)) {
+        console.log(key, clone[key]);
+      }
+      console.groupEnd();
     }
   }
 }
+

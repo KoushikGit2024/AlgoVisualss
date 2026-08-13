@@ -19,10 +19,11 @@ export function buildExpression(node: SyntaxNode, builder: IRBuilder): IRExpress
   switch (node.type) {
     case "number_literal": {
       const clean = node.text.replace(/[fFuUlL]+$/, "");
+      const isFloatLiteral = /[.eE]/.test(clean) || /[fF]$/.test(node.text);
       return {
         kind: "Literal",
         line: node.startPosition.row + 1,
-        valueType: "double",
+        valueType: isFloatLiteral ? "double" : "int",
         value: Number(clean),
       };
     }

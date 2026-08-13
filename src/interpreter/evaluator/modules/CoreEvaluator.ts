@@ -133,6 +133,8 @@ export class CoreEvaluator {
     const rawRes = this.evaluator.evaluateWithType(expr.value);
     let newValue = cloneRuntimeValue(rawRes.value);
 
+
+
     let targetObj: any = null;
     let index: string | number | null = null;
     let identifierName: string | null = null;
@@ -227,10 +229,74 @@ export class CoreEvaluator {
 
     let resultType: CppType = rawRes.type;
 
+    if (expr.operator && expr.operator !== "=") {
+      let existingValue: any = null;
+      if (identifierName) {
+        existingValue = targetScopeManager.getVariable(identifierName).value;
+      } else if (targetObj !== null && index !== null) {
+        if (targetObj instanceof Map) {
+          existingValue = targetObj.get(index);
+        } else if (Array.isArray(targetObj)) {
+          existingValue = targetObj[index as number];
+        } else if (
+          typeof targetObj === "object" &&
+          "data" in targetObj &&
+          Array.isArray(targetObj.data)
+        ) {
+          existingValue = targetObj.data[index as number];
+        } else {
+          existingValue = targetObj[index];
+        }
+      }
+
+      if (existingValue === undefined || existingValue === null) {
+         existingValue = 0; // fallback for uninitialized values in C++
+      }
+
+      const op = expr.operator.slice(0, -1); // e.g. "+=" -> "+"
+      switch (op) {
+        case "+":
+          if (typeof existingValue === "string" || typeof newValue === "string") {
+            newValue = String(existingValue) + String(newValue);
+            resultType = "string";
+          } else {
+            newValue = (existingValue as number) + (newValue as number);
+          }
+          break;
+        case "-":
+          newValue = (existingValue as number) - (newValue as number);
+          break;
+        case "*":
+          newValue = (existingValue as number) * (newValue as number);
+          break;
+        case "/":
+          newValue = Math.trunc((existingValue as number) / (newValue as number));
+          break;
+        case "%":
+          newValue = (existingValue as number) % (newValue as number);
+          break;
+        case "&":
+          newValue = (existingValue as number) & (newValue as number);
+          break;
+        case "|":
+          newValue = (existingValue as number) | (newValue as number);
+          break;
+        case "^":
+          newValue = (existingValue as number) ^ (newValue as number);
+          break;
+        case "<<":
+          newValue = (existingValue as number) << (newValue as number);
+          break;
+        case ">>":
+          newValue = (existingValue as number) >> (newValue as number);
+          break;
+      }
+    }
+
     if (identifierName) {
       const symbol = targetScopeManager.getVariable(identifierName);
       const convertedRes = TypeConversion.convert(
-        { type: rawRes.type, value: newValue },
+        { type: resultType, value: newValue },
         symbol.type,
       );
       newValue = convertedRes.value;
