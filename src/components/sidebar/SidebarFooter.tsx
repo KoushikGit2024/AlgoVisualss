@@ -36,33 +36,41 @@ export function SidebarFooter({
   return (
     <div className="shrink-0 flex flex-col border-t border-(--border) bg-(--surface) p-3 gap-3 relative z-30">
       {/* Toggle Docs/Visualizer */}
-      {isAlgo && subTopic && !collapsed && (
-        <div className="flex items-center bg-(--surface-2) rounded-lg p-1 shadow-inner">
+      {isAlgo && subTopic && (
+        collapsed ? (
           <button
-            onClick={() => handleViewChange("docs")}
-            className={cn(
-              `flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[12px] font-semibold transition-all duration-300 ${
+            onClick={() => handleViewChange(activeView === "docs" ? "visualizer" : "docs")}
+            title={`Switch to ${activeView === "docs" ? 'Visualize' : 'Theory'}`}
+            className="flex items-center justify-center p-2 rounded-lg transition-all duration-300 mx-auto w-10 h-10 border border-(--border) bg-(--surface-2) text-(--muted) hover:text-(--accent) hover:border-(--accent)/50 hover:bg-(--accent)/10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
+          >
+            {activeView === "docs" ? <Code2 size={20} /> : <BookOpen size={20} />}
+          </button>
+        ) : (
+          <div className="flex items-center bg-(--surface-2) rounded-lg p-1 shadow-inner">
+            <button
+              onClick={() => handleViewChange("docs")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[12px] font-semibold transition-all duration-300",
                 activeView === "docs"
                   ? "bg-(--accent) text-[#ffffff] shadow-sm"
                   : "text-(--muted) hover:text-(--text) hover:bg-[color-mix(in_srgb,var(--text)_5%,transparent)]"
-              }`,
-            )}
-          >
-            <BookOpen size={14} /> Theory
-          </button>
-          <button
-            onClick={() => handleViewChange("visualizer")}
-            className={cn(
-              `flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[12px] font-semibold transition-all duration-300 ${
+              )}
+            >
+              <BookOpen size={14} /> Theory
+            </button>
+            <button
+              onClick={() => handleViewChange("visualizer")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[12px] font-semibold transition-all duration-300",
                 activeView === "visualizer"
                   ? "bg-(--accent) text-[#ffffff] shadow-sm"
                   : "text-(--muted) hover:text-(--text) hover:bg-[color-mix(in_srgb,var(--text)_5%,transparent)]"
-              }`,
-            )}
-          >
-            <Code2 size={14} /> Visualize
-          </button>
-        </div>
+              )}
+            >
+              <Code2 size={14} /> Visualize
+            </button>
+          </div>
+        )
       )}
 
       {/* Settings Menu Popover */}
