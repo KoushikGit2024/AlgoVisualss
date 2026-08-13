@@ -254,12 +254,12 @@ const Graph = ({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full min-w-[320px] min-h-[300px] rounded-2xl overflow-hidden"
+      className="relative w-full h-full min-w-[320px] min-h-75 rounded-2xl overflow-hidden"
       style={{ width: vWidth, height: vHeight, minWidth: vWidth, minHeight: vHeight }}
     >
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">{defs}</svg>
 
-      <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none z-[1]">
+      <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none z-1">
         <AnimatePresence>
           {[...edges]
             .sort((a, b) => {
@@ -364,7 +364,7 @@ const Graph = ({
                       <text
                         textAnchor="middle"
                         dy="3.5"
-                        className="fill-muted font-mono text-[calc(10rem/16)] font-semibold tracking-wide"
+                        className="fill-muted font-mono text-[10px] font-semibold tracking-wide"
                       >
                         {edge.weight}
                       </text>
@@ -454,10 +454,10 @@ const Graph = ({
                   animate={{ scale, zIndex: zIdx }}
                   transition={{ type: "spring", stiffness: 340, damping: 22 }}
                   className={cn(
-                    "flex items-center justify-center font-mono text-[calc(13rem/16)] font-semibold tracking-wide",
+                    "flex items-center justify-center font-mono text-[13px] font-semibold tracking-wide",
                     "border-[1.5px] shrink-0 transition-colors duration-200 cursor-default",
                     typeof node.label === "object"
-                      ? "p-2 min-w-[60px] rounded-xl text-left"
+                      ? "p-2 min-w-15 rounded-xl text-left"
                       : "w-11 h-11 rounded-full",
                     bgCls,
                     borderCls,
@@ -472,7 +472,7 @@ const Graph = ({
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
-                      className="w-max max-w-[350px]"
+                      className="w-max max-w-87.5"
                     >
                       {typeof node.label === "object" ? (
                         <DynamicPrimitive value={node.label} />
@@ -510,9 +510,9 @@ const Graph = ({
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.5 }}
                         transition={{ type: "spring", stiffness: 400, damping: 25, mass: 0.8 }}
-                        className="flex items-center bg-accent-3 text-white border border-bg rounded-full px-2 py-[3px]"
+                        className="flex items-center bg-accent-3 text-white border border-bg rounded-full px-2 py-0.75"
                       >
-                        <span className="text-[calc(9rem/16)] font-mono font-bold leading-none uppercase tracking-wider">
+                        <span className="text-[9px] font-mono font-bold leading-none uppercase tracking-wider">
                           {ptr.name}
                         </span>
                       </motion.div>

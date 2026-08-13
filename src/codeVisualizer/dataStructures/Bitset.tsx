@@ -65,7 +65,7 @@ const Bitset = ({ value }: BitsetProps) => {
                 >
                   {bit}
                 </motion.div>
-                <span className="text-[calc(9rem/16)] text-muted/60 font-mono">{index}</span>
+                <span className="text-[9px] text-muted/60 font-mono">{index}</span>
               </motion.div>
             );
           })}

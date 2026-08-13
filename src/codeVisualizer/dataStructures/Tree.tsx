@@ -173,7 +173,7 @@ const Tree = ({
   if (!nodes || nodes.length === 0) {
     return (
       <div className="w-full h-full flex items-center justify-center p-4">
-        <span className="text-muted text-[calc(10rem/16)] font-mono border border-dashed border-border rounded p-2">
+        <span className="text-muted text-[10px] font-mono border border-dashed border-border rounded p-2">
           Awaiting valid Tree initialization...
         </span>
       </div>
@@ -189,11 +189,11 @@ const Tree = ({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full min-w-[350px] min-h-[420px] flex items-center justify-center overflow-hidden bg-bg/40"
+      className="relative w-full h-full min-w-87.5 min-h-105 flex items-center justify-center overflow-hidden bg-bg/40"
     >
       {treeKind !== "generic" && (
         <div className="absolute top-2 left-2 z-50 pointer-events-none">
-          <span className="text-[calc(9rem/16)] font-mono uppercase tracking-widest text-muted/60 border border-border/40 rounded px-1.5 py-0.5">
+          <span className="text-[9px] font-mono uppercase tracking-widest text-muted/60 border border-border/40 rounded px-1.5 py-0.5">
             {kindLabel[treeKind]}
           </span>
         </div>
@@ -377,7 +377,7 @@ const Tree = ({
                   {/* Range label above node (Segment Tree) */}
                   {meta.rangeLabel && (
                     <div className="mb-0.5 pointer-events-none">
-                      <span className="text-[calc(8rem/16)] font-mono font-semibold text-accent/70 whitespace-nowrap bg-accent/5 border border-accent/20 px-1 rounded">
+                      <span className="text-[8px] font-mono font-semibold text-accent/70 whitespace-nowrap bg-accent/5 border border-accent/20 px-1 rounded">
                         {meta.rangeLabel}
                       </span>
                     </div>
@@ -412,7 +412,7 @@ const Tree = ({
                   {/* Sub-label below node (AVL height, balance factor) */}
                   {meta.subLabel && (
                     <div className="mt-0.5 pointer-events-none">
-                      <span className="text-[calc(8rem/16)] font-mono text-muted/70 whitespace-nowrap">
+                      <span className="text-[8px] font-mono text-muted/70 whitespace-nowrap">
                         {meta.subLabel}
                       </span>
                     </div>
@@ -430,9 +430,9 @@ const Tree = ({
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.5 }}
                             transition={{ type: "spring", stiffness: 400, damping: 25, mass: 0.8 }}
-                            className="bg-accent-3 text-white shadow-md border border-bg rounded-full px-1.5 py-[2px] flex items-center justify-center"
+                            className="bg-accent-3 text-white shadow-md border border-bg rounded-full px-1.5 py-0.5 flex items-center justify-center"
                           >
-                            <span className="text-[calc(8rem/16)] font-mono font-bold leading-none uppercase tracking-wider">
+                            <span className="text-[8px] font-mono font-bold leading-none uppercase tracking-wider">
                               {ptr.name}
                             </span>
                           </motion.div>
@@ -450,7 +450,7 @@ const Tree = ({
       {/* Pan hint for large trees */}
       {isLarge && (
         <div className="absolute bottom-2 right-2 z-50 pointer-events-none opacity-40">
-          <span className="text-[calc(8rem/16)] font-mono text-muted">drag to pan</span>
+          <span className="text-[8px] font-mono text-muted">drag to pan</span>
         </div>
       )}
     </div>

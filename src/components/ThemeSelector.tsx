@@ -136,7 +136,7 @@ export default function ThemeSelector({ className }: ThemeSelectorProps) {
             }}
           >
             {/* Elegant Hover Tooltip */}
-            <span className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0 px-2.5 py-1 bg-zinc-800 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-800 text-[calc(11rem/16)] font-medium rounded-md pointer-events-none whitespace-nowrap shadow-xl">
+            <span className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0 px-2.5 py-1 bg-zinc-800 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-800 text-[11px] font-medium rounded-md pointer-events-none whitespace-nowrap shadow-xl">
               {theme.name}
               {/* Tooltip triangle indicator */}
               <svg

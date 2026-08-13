@@ -18,7 +18,7 @@ export function NavigationBlocker({ when, onConfirm }: { when: boolean; onConfir
 
   if (blocker.state === "blocked") {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div className="bg-surface rounded-lg border border-border shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
           <div className="p-6">
             <h3 className="text-lg font-semibold text-text mb-2">Unsaved Changes</h3>

@@ -26,6 +26,24 @@ export class DeclarationExecutor {
     private instantiateCallback?: (typeName: string, args: IRExpression[]) => CppValue,
   ) {}
 
+  private padArray(arr: any[], dimensions: number[], depth: number = 0): any[] {
+    if (depth >= dimensions.length) return arr;
+    const size = dimensions[depth];
+    if (size >= 0) {
+      const isLastDim = depth === dimensions.length - 1;
+      let padVal = arr.length > 0 ? arr[arr.length - 1] : (isLastDim ? 0 : []);
+      while (arr.length < size) {
+        arr.push(typeof padVal === "object" ? JSON.parse(JSON.stringify(padVal)) : padVal);
+      }
+    }
+    for (let i = 0; i < arr.length; i++) {
+      if (Array.isArray(arr[i])) {
+        arr[i] = this.padArray(arr[i], dimensions, depth + 1);
+      }
+    }
+    return arr;
+  }
+
   public executeVariableDeclaration(node: IRVariableDeclaration): void {
     const isConst = node.isConst ?? false;
     const isStatic = node.isStatic ?? false;
@@ -202,6 +220,16 @@ export class DeclarationExecutor {
     }
 
     if (value !== undefined && Array.isArray(value) && this.isContainerType(typeLower)) {
+      if (node.constructorArgs && node.constructorArgs.length > 0) {
+        try {
+          const dims = node.constructorArgs.map((arg) => {
+            const val = this.evaluator.evaluate(arg);
+            return typeof val === "number" ? val : -1;
+          });
+          value = this.padArray(value as any[], dims);
+        } catch (e) {}
+      }
+
       const extractInnerType = (type: string): string => {
         const match = type.match(/^(?:vector|list|deque|stack|queue|array|priority_queue)<(.+)>$/);
         return match ? match[1].trim() : "";
@@ -268,7 +296,8 @@ export class DeclarationExecutor {
       baseType === "deque" ||
       baseType === "stack" ||
       baseType === "queue" ||
-      baseType === "priority_queue"
+      baseType === "priority_queue" ||
+      typeLower.endsWith("[]")
     );
   }
 

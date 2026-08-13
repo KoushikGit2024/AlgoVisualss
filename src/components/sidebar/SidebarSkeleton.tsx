@@ -23,15 +23,15 @@ export function SidebarSkeleton() {
         <div key={i} className="flex flex-col gap-2">
           <motion.div
             variants={item}
-            className="h-5 rounded-md bg-[var(--surface-2)] animate-pulse w-2/3"
+            className="h-5 rounded-md bg-(--surface-2) animate-pulse w-2/3"
           />
           <motion.div
             variants={item}
-            className="h-4 rounded-md bg-[var(--surface-2)] animate-pulse w-5/6 ml-4 opacity-60"
+            className="h-4 rounded-md bg-(--surface-2) animate-pulse w-5/6 ml-4 opacity-60"
           />
           <motion.div
             variants={item}
-            className="h-4 rounded-md bg-[var(--surface-2)] animate-pulse w-3/4 ml-4 opacity-60"
+            className="h-4 rounded-md bg-(--surface-2) animate-pulse w-3/4 ml-4 opacity-60"
           />
         </div>
       ))}
@@ -44,10 +44,10 @@ export function NotFound() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex flex-col items-center justify-center h-48 text-[var(--muted)] text-center p-6 text-[calc(13rem/16)]"
+      className="flex flex-col items-center justify-center h-48 text-(--muted) text-center p-6 text-[13px]"
     >
-      <AlertCircle size={28} className="mb-3 opacity-40 text-[var(--accent)]" />
-      <p className="font-semibold text-sm mb-0.5 text-[var(--text)] tracking-tight">
+      <AlertCircle size={28} className="mb-3 opacity-40 text-(--accent)" />
+      <p className="font-semibold text-sm mb-0.5 text-(--text) tracking-tight">
         No Results Found
       </p>
       <p className="opacity-80">Try tweaking your search index query.</p>

@@ -114,7 +114,7 @@ export default function Sidebar() {
       animate={{ width: collapsed ? 72 : sidebarWidth }}
       transition={isResizing ? { duration: 0 } : { type: "tween", bounce: 0, duration: 0.4 }}
       className={cn(
-        `h-[calc(100vh-64px)] flex flex-col bg-[var(--surface)] border-r border-[var(--border)] z-20 shrink-0 ${isResizing ? "select-none" : ""}`,
+        `h-[calc(100vh-64px)] flex flex-col bg-(--surface) border-r border-(--border) z-20 shrink-0 ${isResizing ? "select-none" : ""}`,
       )}
     >
       {/* Sidebar Header Section */}
@@ -126,7 +126,7 @@ export default function Sidebar() {
       >
         {!collapsed && (
           <div className="flex items-center gap-2 px-2 overflow-hidden">
-            <span className="text-[calc(12rem/16)] font-semibold text-[var(--muted)] uppercase tracking-wider truncate">
+            <span className="text-[12px] font-semibold text-(--muted) uppercase tracking-wider truncate">
               {isAlgo ? "Algorithm Explorer" : "Visualizer"}
             </span>
           </div>
@@ -140,7 +140,7 @@ export default function Sidebar() {
               setCollapsed(true);
             }
           }}
-          className="flex items-center justify-center w-8 aspect-square rounded-[6px] text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)] transition-colors shrink-0"
+          className="flex items-center justify-center w-8 aspect-square rounded-[6px] text-(--muted) hover:text-(--text) hover:bg-(--surface-2) transition-colors shrink-0"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
@@ -172,28 +172,28 @@ export default function Sidebar() {
         )}
       >
         {!collapsed ? (
-          <div className="flex-1 min-w-0 overflow-hidden flex items-center gap-2 px-3 py-2 bg-[var(--bg)] border border-[var(--border)] rounded-[4px] transition-all duration-200 focus-within:border-[var(--accent)] focus-within:ring-[3px] focus-within:ring-[color-mix(in_srgb,var(--accent)_15%,transparent)] shadow-sm">
-            <Search size={15} className="text-[var(--muted)] shrink-0" />
+          <div className="flex-1 min-w-0 overflow-hidden flex items-center gap-2 px-3 py-2 bg-(--bg) border border-(--border) rounded-sm transition-all duration-200 focus-within:border-(--accent) focus-within:ring-[3px] focus-within:ring-[color-mix(in_srgb,var(--accent)_15%,transparent)] shadow-sm">
+            <Search size={15} className="text-(--muted) shrink-0" />
             <input
               value={query}
               aria-label="search-question"
               onChange={(e) => setQuery(e.target.value)}
               placeholder={isVis ? "Search by title or ID..." : "Quick search index…"}
-              className="flex-1 w-full min-w-0 bg-transparent border-none outline-none text-[13.5px] text-[var(--text)] font-medium truncate placeholder:text-[var(--muted)] placeholder:font-normal"
+              className="flex-1 w-full min-w-0 bg-transparent border-none outline-none text-[13.5px] text-(--text) font-medium truncate placeholder:text-(--muted) placeholder:font-normal"
             />
             {isVis && (
               <div
                 title="For LeetCode, CodeForces and CodeChef IDs"
                 className="shrink-0 flex items-center"
               >
-                <BadgeInfo size={16} className="text-[var(--muted)]" />
+                <BadgeInfo size={16} className="text-(--muted)" />
               </div>
             )}
             {query && (
               <button
                 aria-label="Clear search"
                 onClick={() => setQuery("")}
-                className="text-[var(--muted)] hover:text-[var(--text)] transition-colors shrink-0 flex items-center"
+                className="text-(--muted) hover:text-(--text) transition-colors shrink-0 flex items-center"
               >
                 <X size={14} strokeWidth={3} aria-hidden="true" />
               </button>
@@ -206,7 +206,7 @@ export default function Sidebar() {
               setCollapsed(false);
               if (sidebarWidth < 150) setSidebarWidth(288);
             }}
-            className="flex items-center justify-center w-8 aspect-square rounded-[6px] text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text)] transition-colors"
+            className="flex items-center justify-center w-8 aspect-square rounded-[6px] text-(--muted) hover:bg-(--surface-2) hover:text-(--text) transition-colors"
             title="Search"
           >
             <Search size={16} aria-hidden="true" />
@@ -222,10 +222,10 @@ export default function Sidebar() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center h-48 text-[var(--muted)] text-center p-6 text-[calc(13rem/16)]"
+            className="flex flex-col items-center justify-center h-48 text-(--muted) text-center p-6 text-[13px]"
           >
-            <Search size={28} className="mb-3 opacity-40 text-[var(--accent)]" />
-            <p className="font-semibold text-sm mb-0.5 text-[var(--text)] tracking-tight">
+            <Search size={28} className="mb-3 opacity-40 text-(--accent)" />
+            <p className="font-semibold text-sm mb-0.5 text-(--text) tracking-tight">
               Search Questions
             </p>
             <p className="opacity-80">
@@ -267,7 +267,7 @@ export default function Sidebar() {
       {/* Drag Handle */}
       <div
         onMouseDown={startResizing}
-        className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-[var(--accent)] active:bg-[var(--accent)] z-50 transition-colors"
+        className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-(--accent) active:bg-(--accent) z-50 transition-colors"
         title="Drag to resize"
       />
     </motion.aside>

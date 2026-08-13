@@ -200,7 +200,7 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
       >
         {/* Small Screen Warning Banner */}
         {!hideMobileWarning && (
-          <div className="lg:hidden w-full flex items-center justify-between gap-2 px-3 py-2 bg-orange-500/10 border border-orange-500/20 text-orange-500 text-[calc(11rem/16)] font-medium shrink-0 rounded-sm mb-1 z-20">
+          <div className="lg:hidden w-full flex items-center justify-between gap-2 px-3 py-2 bg-orange-500/10 border border-orange-500/20 text-orange-500 text-[11px] font-medium shrink-0 rounded-sm mb-1 z-20">
             <div className="flex items-center gap-2">
               <MonitorPlay className="w-4 h-4 shrink-0" />
               <span>
@@ -228,11 +228,11 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
             title="Expand Editor"
           >
             <Code size={16} className="text-muted mr-3 lg:mr-0 lg:mb-4 shrink-0" />
-            <span className="text-[calc(10rem/16)] font-semibold text-muted uppercase tracking-widest lg:hidden">
+            <span className="text-[10px] font-semibold text-muted uppercase tracking-widest lg:hidden">
               Code Editor
             </span>
             <span
-              className="hidden lg:block text-[calc(10rem/16)] font-semibold text-muted uppercase tracking-widest"
+              className="hidden lg:block text-[10px] font-semibold text-muted uppercase tracking-widest"
               style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
             >
               Code Editor
@@ -271,7 +271,7 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
               <div className="flex items-center gap-2">
                 <div className="relative flex items-center justify-center">
                   {!hasViewedConventions && (
-                    <span className="absolute inset-0 rounded-full border-[2px] border-amber-500 animate-ping opacity-75 pointer-events-none"></span>
+                    <span className="absolute inset-0 rounded-full border-2 border-amber-500 animate-ping opacity-75 pointer-events-none"></span>
                   )}
                   <button
                     onClick={handleShowInfo}
@@ -302,7 +302,7 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
                     {shareCopied ? "Copied" : "Share"}
                   </button>
                 )}
-                <span className="text-[calc(10rem/16)] font-semibold text-muted uppercase tracking-wider ml-1">
+                <span className="text-[10px] font-semibold text-muted uppercase tracking-wider ml-1">
                   Editor
                 </span>
                 <button
@@ -326,7 +326,7 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
             </div>
 
             {/* Bottom Toolbar: Snippets and Actions */}
-            <div className="bg-surface-2 border-t border-border px-2 lg:px-3 py-1 lg:py-2 flex items-center justify-between z-20 w-full shrink-0 min-h-[40px]">
+            <div className="bg-surface-2 border-t border-border px-2 lg:px-3 py-1 lg:py-2 flex items-center justify-between z-20 w-full shrink-0 min-h-10">
               {isEditor && lang === "c++" ? (
                 <div className="flex items-center gap-2">
                   <div className="relative" ref={dropdownRef}>
@@ -497,11 +497,11 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
             title="Expand Visualizer"
           >
             <MonitorPlay size={16} className="text-muted mr-3 lg:mr-0 lg:mb-4 shrink-0" />
-            <span className="text-[calc(10rem/16)] font-semibold text-muted uppercase tracking-widest lg:hidden">
+            <span className="text-[10px] font-semibold text-muted uppercase tracking-widest lg:hidden">
               Visual Output
             </span>
             <span
-              className="hidden lg:block text-[calc(10rem/16)] font-semibold text-muted uppercase tracking-widest"
+              className="hidden lg:block text-[10px] font-semibold text-muted uppercase tracking-widest"
               style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
             >
               Visual Output
@@ -540,13 +540,13 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
                   <ChevronRight size={14} className="hidden lg:block" />
                   <ChevronDown size={14} className="lg:hidden" />
                 </button>
-                <span className="text-[calc(9rem/16)] sm:text-[calc(10rem/16)] font-semibold text-muted uppercase tracking-wider font-display">
+                <span className="text-[9px] sm:text-[10px] font-semibold text-muted uppercase tracking-wider font-display">
                   Visualizer Output
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-[calc(9rem/16)] sm:text-[calc(10rem/16)] text-muted font-mono">
+                <span className="text-[9px] sm:text-[10px] text-muted font-mono">
                   {lang === "c++" ? "Active" : "Inactive"}
                 </span>
 

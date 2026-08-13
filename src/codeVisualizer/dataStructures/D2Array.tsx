@@ -114,7 +114,7 @@ const D2Array = ({
   if (safeValue.length === 0 || numCols === 0) {
     return (
       <div className="w-full flex items-center justify-center p-4">
-        <span className="text-muted text-[calc(10rem/16)] font-mono border border-dashed border-border rounded p-2">
+        <span className="text-muted text-[10px] font-mono border border-dashed border-border rounded p-2">
           Awaiting valid 2D Matrix initialization...
         </span>
       </div>
@@ -137,7 +137,7 @@ const D2Array = ({
           <div className="w-6 h-6 shrink-0" />
           {Array.from({ length: numCols }).map((_, c) => (
             <div key={`col-idx-${c}`} className="w-12 flex justify-center shrink-0">
-              <span className="text-[calc(10rem/16)] text-muted font-mono">{c}</span>
+              <span className="text-[10px] text-muted font-mono">{c}</span>
             </div>
           ))}
         </div>
@@ -155,7 +155,7 @@ const D2Array = ({
               >
                 {/* Row Index */}
                 <div className="w-6 flex justify-end pr-2 shrink-0">
-                  <span className="text-[calc(10rem/16)] text-muted font-mono">{r}</span>
+                  <span className="text-[10px] text-muted font-mono">{r}</span>
                 </div>
 
                 {/* CRITICAL: Mapping exactly over safeRow for jagged arrays */}
@@ -287,7 +287,7 @@ const D2Array = ({
                       </motion.div>
 
                       {/* Corner Anchored Pointers */}
-                      <div className="absolute top-0 right-0 flex flex-col gap-0.5 z-30 translate-x-[30%] -translate-y-[30%] pointer-events-none">
+                      <div className="absolute top-0 right-0 flex flex-col gap-0.5 z-30 translate-x-[30%] translate-y-[-30%] pointer-events-none">
                         <AnimatePresence>
                           {cellPointers.map((ptr) => (
                             <motion.div
@@ -302,9 +302,9 @@ const D2Array = ({
                                 damping: 25,
                                 mass: 0.8,
                               }}
-                              className="bg-accent-3 text-white shadow-md border border-bg rounded px-1 py-[1px] flex items-center justify-center"
+                              className="bg-accent-3 text-white shadow-md border border-bg rounded px-1 py-px flex items-center justify-center"
                             >
-                              <span className="text-[calc(8rem/16)] font-mono font-bold leading-none uppercase tracking-wider">
+                              <span className="text-[8px] font-mono font-bold leading-none uppercase tracking-wider">
                                 {ptr.name}
                               </span>
                             </motion.div>

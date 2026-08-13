@@ -204,14 +204,39 @@ export function buildVariableDeclaration(
     }
 
     let actualType = typeNode.text;
-    let currDecl = declaratorNode;
+    let currDecl =
+      declaratorNode.type === "init_declarator"
+        ? (declaratorNode.child(0) as SyntaxNode)
+        : declaratorNode;
     while (
       currDecl &&
-      (currDecl.type === "pointer_declarator" || currDecl.type === "reference_declarator")
+      (currDecl.type === "pointer_declarator" ||
+        currDecl.type === "reference_declarator" ||
+        currDecl.type === "array_declarator")
     ) {
-      if (currDecl.type === "pointer_declarator") actualType += "*";
-      if (currDecl.type === "reference_declarator") actualType += "&";
-      currDecl = currDecl.child(1) as SyntaxNode;
+      if (currDecl.type === "pointer_declarator") {
+        actualType += "*";
+        currDecl = currDecl.child(1) as SyntaxNode;
+      } else if (currDecl.type === "reference_declarator") {
+        actualType += "&";
+        currDecl = currDecl.child(1) as SyntaxNode;
+      } else if (currDecl.type === "array_declarator") {
+        actualType += "[]";
+        const sizeNodes = (currDecl as any).namedChildren?.filter(
+          (c: any) => c.type === "number_literal" || c.type === "identifier"
+        );
+        const sizeNode = sizeNodes && sizeNodes.length > 0 ? sizeNodes[sizeNodes.length - 1] : undefined;
+        if (sizeNode && sizeNode.type !== "array_declarator") {
+          try {
+            const sizeExpr = builder.buildExpression(sizeNode);
+            if (sizeExpr) {
+              if (!constructorArgs) constructorArgs = [];
+              constructorArgs.unshift(sizeExpr);
+            }
+          } catch (e) {}
+        }
+        currDecl = currDecl.child(0) as SyntaxNode;
+      }
     }
 
     declarations.push({

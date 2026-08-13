@@ -119,7 +119,7 @@ const highlight = (text: string, query: string): ReactNode => {
   return (
     <>
       {text.slice(0, idx)}
-      <mark className="bg-accent/20 text-accent rounded-[3px] px-[1px] font-semibold">
+      <mark className="bg-accent/20 text-accent rounded-[3px] px-px font-semibold">
         {text.slice(idx, idx + query.length)}
       </mark>
       {text.slice(idx + query.length)}
@@ -229,7 +229,7 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4">
+        <div className="fixed inset-0 z-100 flex items-start justify-center pt-[15vh] px-4">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -246,7 +246,7 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-            className="relative w-[95%] sm:w-[85%] max-w-[420px] sm:max-w-[520px] md:max-w-[640px] lg:max-w-[720px] xl:max-w-[800px] bg-[var(--bg)]/95 backdrop-blur-xl rounded-lg border border-[var(--border)] shadow-2xl overflow-hidden flex flex-col focus-visible:!outline-none"
+            className="relative w-[95%] sm:w-[85%] max-w-105 sm:max-w-130 md:max-w-160 lg:max-w-180 xl:max-w-200 bg-(--bg)/95 backdrop-blur-xl rounded-lg border border-(--border) shadow-2xl overflow-hidden flex flex-col focus-visible:outline-none!"
           >
             {/* Signature gradient hairline — ties the palette to the brand accent trio */}
             {/* <div
@@ -255,22 +255,22 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
             /> */}
 
             {/* Input Header */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border)] bg-transparent transition-shadow duration-200">
-              <Search size={18} className="text-[var(--accent)] shrink-0" strokeWidth={2.25} />
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-(--border) bg-transparent transition-shadow duration-200">
+              <Search size={18} className="text-(--accent) shrink-0" strokeWidth={2.25} />
               <input
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Search algorithms, data structures..."
-                className="flex-1 bg-transparent border-none outline-none focus:outline-none focus-visible:!outline-none focus-visible:!ring-0 text-[var(--text)] text-[calc(14rem/16)] placeholder:text-[var(--muted)]/60 font-medium tracking-tight"
+                className="flex-1 bg-transparent border-none outline-none focus:outline-none focus-visible:outline-none! focus-visible:ring-0! text-(--text) text-[14px] placeholder:text-(--muted)/60 font-medium tracking-tight"
               />
               {query && (
-                <span className="hidden sm:block text-[calc(10rem/16)] font-mono font-semibold text-[var(--muted)] shrink-0">
+                <span className="hidden sm:block text-[10px] font-mono font-semibold text-(--muted) shrink-0">
                   {results.length} result{results.length === 1 ? "" : "s"}
                 </span>
               )}
-              <kbd className="hidden sm:flex items-center justify-center h-5 px-1.5 rounded-[4px] bg-[var(--surface-2)] border border-[var(--border)] text-[calc(10rem/16)] font-mono font-bold text-[var(--muted)] shrink-0 shadow-sm">
+              <kbd className="hidden sm:flex items-center justify-center h-5 px-1.5 rounded-sm bg-(--surface-2) border border-(--border) text-[10px] font-mono font-bold text-(--muted) shrink-0 shadow-sm">
                 ESC
               </kbd>
             </div>
@@ -278,12 +278,12 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
             {/* Results List */}
             <div
               ref={listRef}
-              className="max-h-[400px] overflow-y-auto styled-scrollbar p-3 flex flex-col gap-1"
+              className="max-h-100 overflow-y-auto styled-scrollbar p-3 flex flex-col gap-1"
             >
               {!query.trim() && (
                 <div className="flex items-center gap-2 px-2 pb-1 pt-0.5">
-                  <Compass size={12} className="text-[var(--muted)] opacity-70" />
-                  <span className="text-[calc(11rem/16)] font-semibold text-[var(--muted)] uppercase tracking-wider">
+                  <Compass size={12} className="text-(--muted) opacity-70" />
+                  <span className="text-[11px] font-semibold text-(--muted) uppercase tracking-wider">
                     Jump back in
                   </span>
                 </div>
@@ -291,10 +291,10 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
 
               {results.length === 0 ? (
                 <div className="py-12 flex flex-col items-center justify-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-[var(--surface-2)] flex items-center justify-center">
-                    <Search size={20} className="text-[var(--muted)] opacity-50" />
+                  <div className="w-12 h-12 rounded-full bg-(--surface-2) flex items-center justify-center">
+                    <Search size={20} className="text-(--muted) opacity-50" />
                   </div>
-                  <span className="text-[calc(14rem/16)] font-medium text-[var(--muted)]">
+                  <span className="text-[14px] font-medium text-(--muted)">
                     No results for "{query}"
                   </span>
                   <div className="flex flex-wrap items-center justify-center gap-2 px-6">
@@ -302,7 +302,7 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
                       <button
                         key={topic.id}
                         onClick={() => handleSelect(topic)}
-                        className="flex items-center gap-1.5 text-[calc(12rem/16)] font-medium text-[var(--text)] bg-[var(--surface-2)] border border-[var(--border)] rounded-full px-3 py-1.5 hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+                        className="flex items-center gap-1.5 text-[12px] font-medium text-(--text) bg-(--surface-2) border border-(--border) rounded-full px-3 py-1.5 hover:border-(--accent) hover:text-(--accent) transition-colors"
                       >
                         {topic.title}
                         <ArrowRight size={11} className="opacity-60" />
@@ -314,15 +314,15 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
                 groups.map(([category, items]) => (
                   <div key={category} className="flex flex-col gap-1">
                     {/* Section header */}
-                    <div className="sticky top-0 z-10 flex items-center gap-2 px-2 pt-2 pb-1 bg-[var(--bg)]">
+                    <div className="sticky top-0 z-10 flex items-center gap-2 px-2 pt-2 pb-1 bg-(--bg)">
                       <span
                         className="w-1.5 h-1.5 rounded-full shrink-0"
                         style={{ backgroundColor: categoryColor(category) }}
                       />
-                      <span className="text-[10.5px] font-bold uppercase tracking-wider text-[var(--muted)]">
+                      <span className="text-[10.5px] font-bold uppercase tracking-wider text-(--muted)">
                         {category}
                       </span>
-                      <span className="text-[calc(10rem/16)] font-mono text-[var(--muted)] opacity-50">
+                      <span className="text-[10px] font-mono text-(--muted) opacity-50">
                         {items.length}
                       </span>
                     </div>
@@ -340,17 +340,17 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
                           onClick={() => handleSelect(item)}
                           onMouseEnter={() => setSelectedIndex(idx)}
                           className={cn(
-                            `group relative w-full text-left flex items-start gap-2.5 pl-3 pr-3 py-2 rounded-none border transition-all duration-150 outline-none focus-visible:!outline-none ${
+                            `group relative w-full text-left flex items-start gap-2.5 pl-3 pr-3 py-2 rounded-none border transition-all duration-150 outline-none focus-visible:outline-none! ${
                               isActive
-                                ? "bg-[var(--surface-2)]/80 border-[var(--border-2)] shadow-sm"
-                                : "border-transparent hover:bg-[var(--surface)]/50"
+                                ? "bg-(--surface-2)/80 border-(--border-2) shadow-sm"
+                                : "border-transparent hover:bg-(--surface)/50"
                             }`,
                           )}
                         >
                           {isActive && (
                             <motion.div
                               layoutId="search-active-pill"
-                              className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-[2px]"
+                              className="absolute left-0 top-1.5 bottom-1.5 w-0.75 rounded-r-xs"
                               style={{ backgroundColor: accent }}
                               transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
                             />
@@ -358,13 +358,13 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
 
                           <div className="flex-1 min-w-0 flex flex-col gap-1">
                             <div className="flex items-center justify-between gap-4">
-                              <span className="font-semibold text-[calc(15rem/16)] truncate text-[var(--text)]">
+                              <span className="font-semibold text-[15px] truncate text-(--text)">
                                 {highlight(item.title, query)}
                               </span>
                               {item.type && (
                                 <span
                                   className={cn(
-                                    `text-[calc(10rem/16)] font-bold font-mono tracking-wider px-2 py-0.5 rounded-full border shrink-0 ${TYPE_COLORS[item.type]}`,
+                                    `text-[10px] font-bold font-mono tracking-wider px-2 py-0.5 rounded-full border shrink-0 ${TYPE_COLORS[item.type]}`,
                                   )}
                                 >
                                   {item.type.toUpperCase()}
@@ -375,10 +375,10 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
                             {item.snippet && (
                               <span
                                 className={cn(
-                                  `text-[calc(13rem/16)] line-clamp-1 leading-relaxed transition-colors ${
+                                  `text-[13px] line-clamp-1 leading-relaxed transition-colors ${
                                     isActive
-                                      ? "text-[var(--text)] opacity-80"
-                                      : "text-[var(--muted)]"
+                                      ? "text-(--text) opacity-80"
+                                      : "text-(--muted)"
                                   }`,
                                 )}
                               >
@@ -389,7 +389,7 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
 
                           {isActive && (
                             <div className="hidden sm:flex items-center self-center shrink-0 ml-2">
-                              <CornerDownLeft size={16} className="text-[var(--muted)]" />
+                              <CornerDownLeft size={16} className="text-(--muted)" />
                             </div>
                           )}
                         </button>
@@ -401,29 +401,29 @@ export default function SearchPalette({ isOpen, onClose }: SearchPaletteProps) {
             </div>
 
             {/* Footer */}
-            <div className="px-4 py-2 border-t border-[var(--border)] flex items-center justify-between bg-transparent">
-              <div className="flex items-center gap-4 text-[calc(10.5rem/16)] text-[var(--muted)] font-medium">
+            <div className="px-4 py-2 border-t border-(--border) flex items-center justify-between bg-transparent">
+              <div className="flex items-center gap-4 text-[10.5px] text-(--muted) font-medium">
                 <span className="flex items-center gap-1.5">
                   <span className="flex items-center gap-1">
-                    <kbd className="flex items-center justify-center w-4 h-4 rounded-[3px] bg-[var(--surface-2)] border border-[var(--border)] shadow-sm text-[calc(9rem/16)]">
+                    <kbd className="flex items-center justify-center w-4 h-4 rounded-[3px] bg-(--surface-2) border border-(--border) shadow-sm text-[9px]">
                       ↑
                     </kbd>
-                    <kbd className="flex items-center justify-center w-4 h-4 rounded-[3px] bg-[var(--surface-2)] border border-[var(--border)] shadow-sm text-[calc(9rem/16)]">
+                    <kbd className="flex items-center justify-center w-4 h-4 rounded-[3px] bg-(--surface-2) border border-(--border) shadow-sm text-[9px]">
                       ↓
                     </kbd>
                   </span>
                   Navigate
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <kbd className="flex items-center justify-center w-4 h-4 rounded-[3px] bg-[var(--surface-2)] border border-[var(--border)] shadow-sm text-[calc(9rem/16)]">
+                  <kbd className="flex items-center justify-center w-4 h-4 rounded-[3px] bg-(--surface-2) border border-(--border) shadow-sm text-[9px]">
                     ↵
                   </kbd>
                   Select
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 text-[calc(10rem/16)] font-mono font-bold opacity-80">
-                <Command size={10} className="text-[var(--muted)]" />
-                <span className="text-[var(--muted)]">AlgoVisuals</span>
+              <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold opacity-80">
+                <Command size={10} className="text-(--muted)" />
+                <span className="text-(--muted)">AlgoVisuals</span>
               </div>
             </div>
           </motion.div>

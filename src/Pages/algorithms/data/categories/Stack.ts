@@ -28,17 +28,17 @@ const STACKS_SECTION = {
       tag: "table",
       headers: ["Pattern", "Stack Holds", "Typical Problems"],
       rows: [
-        ["Bracket matching", "Unmatched opening symbols", "Valid Parentheses, HTML tag validation"],
-        ["Min/Max tracking", "Running min/max alongside each element", "Min Stack, Max Stack"],
+        ["Bracket matching", "Unmatched opening symbols", "[Valid Parentheses](/algorithms/stacks/valid-parentheses), HTML tag validation"],
+        ["Min/Max tracking", "Running min/max alongside each element", "[Min Stack](/algorithms/stacks/min-stack), Max Stack"],
         [
           "Monotonic stack (next greater/smaller)",
           "Indices/values waiting for a 'resolving' element",
-          "Next Greater Element, Daily Temperatures",
+          "[Next Greater Element](/algorithms/stacks/next-greater), Daily Temperatures",
         ],
         [
           "Monotonic stack (area/span)",
           "Indices bounding a candidate rectangle/span",
-          "Largest Rectangle in Histogram, Maximal Rectangle",
+          "[Largest Rectangle in Histogram](/algorithms/stacks/histogram), Maximal Rectangle",
         ],
       ],
     },

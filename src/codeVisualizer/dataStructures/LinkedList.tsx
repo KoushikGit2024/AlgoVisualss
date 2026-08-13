@@ -96,7 +96,7 @@ const LinkedList = ({
   if (safeNodes.length === 0) {
     return (
       <div className="w-full flex items-center justify-center p-4">
-        <span className="text-muted text-[calc(10rem/16)] font-mono border border-dashed border-border rounded p-2">
+        <span className="text-muted text-[10px] font-mono border border-dashed border-border rounded p-2">
           Awaiting valid Linked List initialization...
         </span>
       </div>
@@ -213,7 +213,7 @@ const LinkedList = ({
                       className="flex items-center justify-center shrink-0 opacity-60 mr-1"
                     >
                       <div className="flex items-center justify-center px-2 py-0.5 rounded bg-surface border-2 border-dashed border-border-2 shadow-sm">
-                        <span className="text-[calc(10rem/16)] font-mono font-bold text-muted">
+                        <span className="text-[10px] font-mono font-bold text-muted">
                           NULL
                         </span>
                       </div>
@@ -264,7 +264,7 @@ const LinkedList = ({
                           transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
                           className="flex flex-col items-center text-accent-3 z-30 pointer-events-auto"
                         >
-                          <span className="text-[calc(10rem/16)] font-mono font-bold bg-surface-2 text-accent-3 px-1.5 py-0.5 rounded shadow-sm border border-accent-3/30 truncate max-w-[70px]">
+                          <span className="text-[10px] font-mono font-bold bg-surface-2 text-accent-3 px-1.5 py-0.5 rounded shadow-sm border border-accent-3/30 truncate max-w-17.5">
                             {ptr.name}
                           </span>
                           <div className="w-0.5 h-3 bg-accent-3/70 rounded-full mt-0.5 mb-0.5" />
@@ -280,7 +280,7 @@ const LinkedList = ({
                     animate={{ scale: activeScale, zIndex: activeZIndex }}
                     transition={{ type: "spring", stiffness: 400, damping: 25 }}
                     className={cn(`
-                      flex items-stretch font-mono text-[calc(14rem/16)] font-medium 
+                      flex items-stretch font-mono text-[14px] font-medium 
                       rounded-md border-2 transition-colors duration-200 shadow-md
                       ${bgClass} ${borderClass} ${textClass} ${shadowClass}
                       overflow-hidden
@@ -303,7 +303,7 @@ const LinkedList = ({
                     )}
 
                     {/* Value Block */}
-                    <div className="flex-1 flex items-center justify-center px-4 min-w-[3rem] bg-bg/40 backdrop-blur-sm">
+                    <div className="flex-1 flex items-center justify-center px-4 min-w-12 bg-bg/40 backdrop-blur-sm">
                       <AnimatePresence mode="wait">
                         <motion.span
                           key={`val-${safeValToDisplay}`}
@@ -311,7 +311,7 @@ const LinkedList = ({
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 2 }}
                           transition={{ duration: 0.1 }}
-                          className="truncate max-w-[80px]"
+                          className="truncate max-w-20"
                         >
                           {safeValToDisplay}
                         </motion.span>
@@ -397,7 +397,7 @@ const LinkedList = ({
                     className="flex items-center justify-center shrink-0 opacity-60 ml-1"
                   >
                     <div className="flex items-center justify-center px-2 py-0.5 rounded bg-surface border-2 border-dashed border-border-2 shadow-sm">
-                      <span className="text-[calc(10rem/16)] font-mono font-bold text-muted">
+                      <span className="text-[10px] font-mono font-bold text-muted">
                         NULL
                       </span>
                     </div>

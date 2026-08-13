@@ -85,7 +85,7 @@ const D1Array = ({
   if (safeValue.length === 0) {
     return (
       <div className="w-full flex items-center justify-center p-4">
-        <span className="text-muted text-[calc(10rem/16)] font-mono border border-dashed border-border rounded p-2">
+        <span className="text-muted text-[10px] font-mono border border-dashed border-border rounded p-2">
           Awaiting valid 1D Array initialization...
         </span>
       </div>
@@ -101,7 +101,7 @@ const D1Array = ({
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="flex items-center justify-center gap-[3px] relative w-max px-8 py-16"
+        className="flex items-center justify-center gap-0.75 relative w-max px-8 py-16"
       >
         <AnimatePresence mode="popLayout">
           {/* CRITICAL: Mapping over safeValue, never value */}
@@ -201,9 +201,9 @@ const D1Array = ({
                 key={`cell-container-${idx}`}
                 layout
                 variants={cellVariants}
-                className="flex flex-col items-center relative min-w-[3rem] shrink-0"
+                className="flex flex-col items-center relative min-w-12 shrink-0"
               >
-                <motion.span layout className="text-[calc(10rem/16)] text-muted font-mono mb-1">
+                <motion.span layout className="text-[10px] text-muted font-mono mb-1">
                   {idx}
                 </motion.span>
 
@@ -213,7 +213,7 @@ const D1Array = ({
                   animate={{ scale: activeScale, zIndex: activeZIndex }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
                   className={cn(`
-                    min-w-full min-h-[3rem] px-1.5 py-1.5 flex items-center justify-center font-mono font-medium 
+                    min-w-full min-h-12 px-1.5 py-1.5 flex items-center justify-center font-mono font-medium 
                     rounded-sm border transition-colors duration-200 shrink-0
                     ${bgClass} ${borderClass} ${textClass} ${shadowClass}
                   `)}
@@ -256,7 +256,7 @@ const D1Array = ({
                         >
                           <path d="M12 19V5M5 12l7-7 7 7" />
                         </svg>
-                        <div className="flex flex-row flex-wrap justify-center gap-1 w-max max-w-[8rem]">
+                        <div className="flex flex-row flex-wrap justify-center gap-1 w-max max-w-32">
                           {cellPointers.map((ptr) => (
                             <motion.span
                               key={ptr.name}
@@ -267,7 +267,7 @@ const D1Array = ({
                                 damping: 25,
                                 mass: 0.8,
                               }}
-                              className="text-[calc(9rem/16)] font-mono font-bold bg-surface-2 text-accent-3 px-1 rounded border border-accent-3/30 whitespace-nowrap"
+                              className="text-[9px] font-mono font-bold bg-surface-2 text-accent-3 px-1 rounded border border-accent-3/30 whitespace-nowrap"
                             >
                               {ptr.name}
                             </motion.span>

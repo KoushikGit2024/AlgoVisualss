@@ -105,11 +105,11 @@ export const DynamicPrimitive: React.FC<DynamicPrimitiveProps> = ({ value, depth
     if (entries.length === 0) return <span className="text-muted font-mono">{"{}"}</span>;
 
     return (
-      <div className="flex flex-col items-center justify-center gap-1 border border-border/50 bg-bg/50 rounded-sm p-1.5 min-w-[60px] w-full">
+      <div className="flex flex-col items-center justify-center gap-1 border border-border/50 bg-bg/50 rounded-sm p-1.5 min-w-15 w-full">
         {entries.map(([k, v], i) => (
           <div
             key={i}
-            className="flex flex-row items-stretch justify-center gap-2 text-[calc(11rem/16)] w-full"
+            className="flex flex-row items-stretch justify-center gap-2 text-[11px] w-full"
           >
             <div className="bg-surface px-1.5 py-0.5 border border-border/50 rounded-sm font-mono font-bold text-accent-2 flex items-center justify-center shrink-0">
               <DynamicPrimitive value={k} depth={depth + 1} />

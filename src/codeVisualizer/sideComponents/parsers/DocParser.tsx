@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React,{ useState, useRef, useEffect } from "react";
 import { cn } from "../../../lib/utils";
 import { useNavigate } from "react-router-dom";
 import {
@@ -62,24 +62,40 @@ export interface TopicItem {
  * "[label](href)" match (including cells with no link at all) renders as
  * plain text exactly as before.
  */
-const MARKDOWN_LINK_REGEX = /^\s*\[([^\]]+)\]\(([^)]+)\)\s*$/;
+const MARKDOWN_LINK_REGEX = /\[([^\]]+)\]\(([^)]+)\)/;
+const GLOBAL_MARKDOWN_LINK_REGEX = /\[([^\]]+)\]\(([^)]+)\)/g;
 
 const renderTableCell = (cellText: string) => {
   if (typeof cellText !== "string") return cellText;
 
-  const match = cellText.match(MARKDOWN_LINK_REGEX);
-  if (match) {
-    const [, label] = match;
-    // When rendering within a clickable row, just render the label without the anchor tag
-    // since the row handles navigation
-    return (
-      <span className="font-medium text-accent group-hover:text-accent-2 transition-colors">
-        {label}
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+
+  // Reset regex state
+  GLOBAL_MARKDOWN_LINK_REGEX.lastIndex = 0;
+
+  while ((match = GLOBAL_MARKDOWN_LINK_REGEX.exec(cellText)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(cellText.substring(lastIndex, match.index));
+    }
+    
+    parts.push(
+      <span key={match.index} className="font-medium text-accent group-hover:text-accent-2 transition-colors">
+        {match[1]}
       </span>
     );
+    
+    lastIndex = match.index + match[0].length;
   }
 
-  return cellText;
+  if (lastIndex < cellText.length) {
+    parts.push(cellText.substring(lastIndex));
+  }
+
+  if (parts.length === 0) return cellText;
+
+  return <>{parts.map((part, i) => <React.Fragment key={i}>{part}</React.Fragment>)}</>;
 };
 
 const ClickableTableRow = ({ row }: { row: string[] }) => {
@@ -150,7 +166,7 @@ const ScrollableTableWrapper = ({ children }: { children: React.ReactNode }) => 
       <div
         ref={containerRef}
         onScroll={checkScroll}
-        className="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        className="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] scrollbar-none"
       >
         {children}
       </div>
@@ -190,14 +206,14 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <h3
             key={index}
-            className="text-[calc(13rem/16)] font-semibold text-text/80 mt-4 mb-1.5 uppercase tracking-wide"
+            className="text-[13px] font-semibold text-text/80 mt-4 mb-1.5 uppercase tracking-wide"
           >
             {node.text}
           </h3>
         );
       case "h4":
         return (
-          <h4 key={index} className="text-[calc(13rem/16)] font-medium text-text/70 mt-3 mb-1">
+          <h4 key={index} className="text-[13px] font-medium text-text/70 mt-3 mb-1">
             {node.text}
           </h4>
         );
@@ -207,7 +223,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <p
             key={index}
-            className="text-[calc(13rem/16)] leading-relaxed text-muted mb-3 last:mb-0"
+            className="text-[13px] leading-relaxed text-muted mb-3 last:mb-0"
           >
             {node.text}
           </p>
@@ -218,7 +234,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <blockquote
             key={index}
-            className="border-l-[3px] border-accent bg-accent/5 px-3 py-2 my-3 rounded-r-md italic text-[calc(13rem/16)] text-muted leading-relaxed"
+            className="border-l-[3px] border-accent bg-accent/5 px-3 py-2 my-3 rounded-r-md italic text-[13px] text-muted leading-relaxed"
           >
             {node.text}
           </blockquote>
@@ -229,7 +245,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <ul
             key={index}
-            className="list-disc pl-5 mb-3 text-[calc(13rem/16)] text-muted space-y-1.5 last:mb-0"
+            className="list-disc pl-5 mb-3 text-[13px] text-muted space-y-1.5 last:mb-0"
           >
             {node.items.map((item, i) => (
               <li key={i} className="leading-relaxed">
@@ -242,7 +258,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <ol
             key={index}
-            className="list-decimal pl-5 mb-3 text-[calc(13rem/16)] text-muted space-y-1.5 last:mb-0"
+            className="list-decimal pl-5 mb-3 text-[13px] text-muted space-y-1.5 last:mb-0"
           >
             {node.items.map((item, i) => (
               <li key={i} className="leading-relaxed">
@@ -255,7 +271,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
       /* ── Definition list ───────────────────────────────────────────── */
       case "dl":
         return (
-          <dl key={index} className="mb-3 flex flex-col gap-2 text-[calc(13rem/16)]">
+          <dl key={index} className="mb-3 flex flex-col gap-2 text-[13px]">
             {node.items.map((item, i) => (
               <div key={i} className="bg-surface-2 p-2.5 rounded-md border border-border">
                 <dt className="font-semibold text-accent mb-0.5">{item.term}</dt>
@@ -279,7 +295,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
                 <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
                 <span className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
               </div>
-              <span className="font-mono text-[calc(10rem/16)] text-muted uppercase tracking-widest">
+              <span className="font-mono text-[10px] text-muted uppercase tracking-widest">
                 {node.language || "text"}
               </span>
             </div>
@@ -352,7 +368,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
             <div>
               <span
                 className={cn(
-                  `${c.labelClass} font-mono text-[calc(10rem/16)] tracking-widest mr-2`,
+                  `${c.labelClass} font-mono text-[10px] tracking-widest mr-2`,
                 )}
               >
                 {c.label}
@@ -369,7 +385,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <div
             key={index}
-            className="font-mono text-accent my-3 p-3 bg-surface-2 border border-border rounded-lg text-center text-[calc(13rem/16)]"
+            className="font-mono text-accent my-3 p-3 bg-surface-2 border border-border rounded-lg text-center text-[13px]"
           >
             {node.text}
           </div>
@@ -386,7 +402,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
 const CaseDivider = () => (
   <div className="flex items-center gap-2 my-1" role="separator" aria-hidden="true">
     <div className="flex-1 h-px bg-border" />
-    <span className="text-[calc(10rem/16)] font-mono text-border tracking-widest">···</span>
+    <span className="text-[10px] font-mono text-border tracking-widest">···</span>
     <div className="flex-1 h-px bg-border" />
   </div>
 );
@@ -423,11 +439,11 @@ const ComplexityCard = ({
     {/* Card header */}
     <div className="bg-surface-2 px-4 py-2.5 border-b border-border flex items-center gap-2 shrink-0">
       <span className={cn(`${iconColorClass} shrink-0`)}>{icon}</span>
-      <h2 className="font-semibold text-[calc(13rem/16)] text-text">{title}</h2>
+      <h2 className="font-semibold text-[13px] text-text">{title}</h2>
       {notation && (
         <span
           className={cn(
-            `ml-auto font-mono text-[calc(11rem/16)] px-2 py-0.5 rounded border ${notationColorClass}`,
+            `ml-auto font-mono text-[11px] px-2 py-0.5 rounded border ${notationColorClass}`,
           )}
         >
           {notation}
@@ -491,7 +507,7 @@ const DocParser = ({ data }: { data: any }) => {
               {sub.type && (
                 <span
                   className={cn(
-                    `shrink-0 inline-block font-mono text-[calc(10rem/16)] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border ${
+                    `shrink-0 inline-block font-mono text-[10px] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border ${
                       TYPE_STYLES[sub.type] ?? TYPE_STYLES.Medium
                     }`,
                   )}
@@ -504,7 +520,7 @@ const DocParser = ({ data }: { data: any }) => {
             sub.type && (
               <span
                 className={cn(
-                  `inline-block font-mono text-[calc(10rem/16)] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border mb-4 ${
+                  `inline-block font-mono text-[10px] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border mb-4 ${
                     TYPE_STYLES[sub.type] ?? TYPE_STYLES.Medium
                   }`,
                 )}
@@ -528,7 +544,7 @@ const DocParser = ({ data }: { data: any }) => {
               {/* Section header */}
               <div className="bg-surface-2 px-4 py-2.5 border-b border-border flex items-center gap-2">
                 <Terminal size={15} className="text-accent-3 shrink-0" />
-                <h2 className="font-semibold text-[calc(13rem/16)] text-text">
+                <h2 className="font-semibold text-[13px] text-text">
                   Implementation &amp; Reasoning
                 </h2>
               </div>
@@ -565,7 +581,7 @@ const DocParser = ({ data }: { data: any }) => {
           <section className="bg-surface border border-border rounded-lg overflow-hidden">
             <div className="bg-surface-2 px-4 py-2.5 border-b border-border flex items-center gap-2">
               <Lightbulb size={15} className="text-accent-4 shrink-0" />
-              <h2 className="font-semibold text-[calc(13rem/16)] text-text">Related Algorithms</h2>
+              <h2 className="font-semibold text-[13px] text-text">Related Algorithms</h2>
             </div>
             <div className="p-4 flex flex-wrap gap-3">
               {sub.related.map((rel, i) => (

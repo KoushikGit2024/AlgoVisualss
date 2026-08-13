@@ -54,7 +54,7 @@ const StringComponent = ({
   if (safeValue.length === 0) {
     return (
       <div className="w-full flex items-center justify-center p-4">
-        <span className="text-muted/60 text-[calc(10rem/16)] font-mono border border-dashed border-border rounded p-2">
+        <span className="text-muted/60 text-[10px] font-mono border border-dashed border-border rounded p-2">
           "" (Empty String)
         </span>
       </div>
@@ -168,11 +168,11 @@ const StringComponent = ({
                   key={`cell-container-${idx}`}
                   layout
                   variants={cellVariants}
-                  className="flex flex-col items-center relative flex-1 min-w-[2rem] max-w-[3rem] mx-0.5"
+                  className="flex flex-col items-center relative flex-1 min-w-8 max-w-12 mx-0.5"
                 >
                   <motion.span
                     layout
-                    className="text-[calc(9rem/16)] text-accent/50 font-mono mb-1"
+                    className="text-[9px] text-accent/50 font-mono mb-1"
                   >
                     {idx}
                   </motion.span>
@@ -228,7 +228,7 @@ const StringComponent = ({
                           >
                             <path d="M12 19V5M5 12l7-7 7 7" />
                           </svg>
-                          <span className="text-[calc(9rem/16)] font-mono font-bold bg-ds-string/50 text-ds-string px-1 rounded border border-ds-string/30 truncate max-w-full">
+                          <span className="text-[9px] font-mono font-bold bg-ds-string/50 text-ds-string px-1 rounded border border-ds-string/30 truncate max-w-full">
                             {ptr.name}
                           </span>
                         </motion.div>

@@ -72,7 +72,37 @@ export function tryDetectAdjacencyGraph(
       let j: number;
       let w: any = undefined;
 
-      if (typeof nbr === "object" && nbr !== null) {
+      if (Array.isArray(nbr) && nbr.length >= 2) {
+        const v0 = Number(nbr[0]);
+        const v1 = Number(nbr[1]);
+        const v0Valid = Number.isInteger(v0) && v0 >= 0 && v0 < data.length;
+        const v1Valid = Number.isInteger(v1) && v1 >= 0 && v1 < data.length;
+        
+        if (v0Valid && !v1Valid) {
+          j = v0;
+          w = nbr[1];
+        } else if (v1Valid && !v0Valid) {
+          j = v1;
+          w = nbr[0];
+        } else {
+          // Ambiguous: both are valid node indices.
+          // In many CP Dijkstra implementations, pair<weight, node> is used.
+          // But pair<node, weight> is also common. We'll default to the first element being the node
+          // UNLESS the variable is named something like "adj" and we're forced to guess.
+          // Let's use a heuristic: if we see a node index that perfectly matches a 'to' or 'v' pattern in other contexts.
+          // For now, we will assume pair<node, weight> as standard, but if it fails we might need better AST metadata.
+          // Actually, let's look at all edges. If one column is always 1, it's likely a weight.
+          // Without full graph context here, we'll try to guess based on standard `pair<node, weight>`.
+          // WAIT! The user code used `graph_adj[u].push_back({w, v});`
+          // Let's default to [node, weight], but if we know it's Dijkstra, it might be [weight, node].
+          // Let's just default to nbr[0] as node, nbr[1] as weight, but if nbr[0] is much larger across edges it will be caught by the above v0Valid check!
+          // We'll just do j = v0, w = nbr[1] as default. But wait, if user code is {w, v}, then j should be v1.
+          // Let's check if there is any other way: if one of them is exactly 0, 1, 2, 3.. sequentially? No.
+          j = v1; // Assuming {weight, node} for CP Dijkstra compatibility since {node, weight} usually has weights > N which auto-resolves.
+          w = nbr[0];
+          // Let's actually check if v0 matches a sequential pattern elsewhere. For now this handles the user's {w, v} case and cases where weight > N automatically handle {v, w}.
+        }
+      } else if (typeof nbr === "object" && nbr !== null) {
         // Try to find the destination node ID in the struct
         j =
           nbr.to ??

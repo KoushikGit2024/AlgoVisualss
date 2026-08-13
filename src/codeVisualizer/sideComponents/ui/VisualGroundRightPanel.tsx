@@ -57,14 +57,14 @@ export function VisualGroundRightPanel({
             : { flex: isVariablesCollapsed ? "1 1 0%" : `${vSplit} 1 0%` }
         }
         className={cn(
-          `w-full flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden ${isCallStackCollapsed ? "min-h-0" : "min-h-[80px]"}`,
+          `w-full flex flex-col rounded-sm border border-border bg-bg/90 overflow-hidden ${isCallStackCollapsed ? "min-h-0" : "min-h-20"}`,
         )}
       >
         <div
           className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0 flex items-center justify-between cursor-pointer hover:bg-surface-3"
           onClick={() => setIsCallStackCollapsed(!isCallStackCollapsed)}
         >
-          <h4 className="text-[calc(9rem/16)] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
+          <h4 className="text-[9px] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
             {isCallStackCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />} Call
             Stack
           </h4>
@@ -79,7 +79,7 @@ export function VisualGroundRightPanel({
                 return (
                   <div
                     key={idx}
-                    className={cn(`px-2 py-1 rounded-sm border shadow-sm text-[calc(9rem/16)] font-mono flex items-center justify-between
+                    className={cn(`px-2 py-1 rounded-sm border shadow-sm text-[9px] font-mono flex items-center justify-between
                   ${
                     isTop
                       ? "border-accent-3 bg-accent-3/10  text-accent-3 font-bold"
@@ -88,7 +88,7 @@ export function VisualGroundRightPanel({
                   >
                     <span>{frame}()</span>
                     {isTop && (
-                      <span className="text-[calc(8rem/16)] bg-bg px-1 border border-border rounded">
+                      <span className="text-[8px] bg-bg px-1 border border-border rounded">
                         Active
                       </span>
                     )}
@@ -103,7 +103,7 @@ export function VisualGroundRightPanel({
       {!isCallStackCollapsed && !isVariablesCollapsed && (
         <div
           onMouseDown={() => setDraggingDiv("v")}
-          className="flex items-center justify-center h-1 cursor-row-resize z-10 shrink-0 hover:bg-surface-2 transition-colors my-[-2px]"
+          className="flex items-center justify-center h-1 cursor-row-resize z-10 shrink-0 hover:bg-surface-2 transition-colors -my-0.5"
         >
           <div className="h-px w-12 rounded-full bg-border" />
         </div>
@@ -118,7 +118,7 @@ export function VisualGroundRightPanel({
             : { flex: isCallStackCollapsed ? "1 1 0%" : `${100 - vSplit} 1 0%` }
         }
         className={cn(
-          `w-full flex flex-col overflow-hidden ${isVariablesCollapsed && isConsoleCollapsed ? "min-h-0" : "min-h-[120px]"}`,
+          `w-full flex flex-col overflow-hidden ${isVariablesCollapsed && isConsoleCollapsed ? "min-h-0" : "min-h-30"}`,
         )}
       >
         {/* Variables */}
@@ -134,7 +134,7 @@ export function VisualGroundRightPanel({
             className="bg-surface-2/50 border-b border-border px-2 py-1 shrink-0 flex items-center justify-between cursor-pointer hover:bg-surface-3"
             onClick={() => setIsVariablesCollapsed(!isVariablesCollapsed)}
           >
-            <h4 className="text-[calc(9rem/16)] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
+            <h4 className="text-[9px] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
               {isVariablesCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />}{" "}
               Variables
             </h4>
@@ -143,7 +143,7 @@ export function VisualGroundRightPanel({
             <div className="flex-1 overflow-y-auto styled-scrollbar p-1">
               <div className="flex flex-col gap-px">
                 {overviewVars.length === 0 && (
-                  <span className="text-[calc(9rem/16)] text-muted font-mono p-1">No locals.</span>
+                  <span className="text-[9px] text-muted font-mono p-1">No locals.</span>
                 )}
                 {overviewVars.map((v) => {
                   const isExp = expandedVars.has(v.id);
@@ -176,7 +176,7 @@ export function VisualGroundRightPanel({
                       key={v.id}
                       onClick={() => toggleVarExpand(v.id)}
                       className={cn(
-                        `flex flex-col px-1.5 py-1 text-[calc(10rem/16)] font-mono rounded-sm border border-transparent transition-colors cursor-pointer hover:bg-surface-3 ${v.opStyle}`,
+                        `flex flex-col px-1.5 py-1 text-[10px] font-mono rounded-sm border border-transparent transition-colors cursor-pointer hover:bg-surface-3 ${v.opStyle}`,
                       )}
                     >
                       <div className="flex items-center justify-between">
@@ -184,18 +184,18 @@ export function VisualGroundRightPanel({
                           <span className="text-muted shrink-0">
                             {isExp ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
                           </span>
-                          <span className="text-accent-2 opacity-80 text-[calc(8rem/16)] uppercase shrink-0">
+                          <span className="text-accent-2 opacity-80 text-[8px] uppercase shrink-0">
                             {v.type}
                           </span>
                           <span className="font-bold shrink-0">{v.name}</span>
                           <span className="opacity-50 shrink-0">=</span>
                           {!isExp && (
-                            <span className="text-accent-3 font-bold truncate max-w-[150px]">
+                            <span className="text-accent-3 font-bold truncate max-w-37.5">
                               {v.value}
                             </span>
                           )}
                         </div>
-                        <span className="text-[calc(8rem/16)] text-muted opacity-50 shrink-0 ml-1">
+                        <span className="text-[8px] text-muted opacity-50 shrink-0 ml-1">
                           in {v.func}()
                         </span>
                       </div>
@@ -216,7 +216,7 @@ export function VisualGroundRightPanel({
         {!isVariablesCollapsed && !isConsoleCollapsed && (
           <div
             onMouseDown={() => setDraggingDiv("c")}
-            className="flex items-center justify-center h-1 cursor-row-resize z-10 shrink-0 hover:bg-surface-2 transition-colors my-[2px]"
+            className="flex items-center justify-center h-1 cursor-row-resize z-10 shrink-0 hover:bg-surface-2 transition-colors my-0.5"
           >
             <div className="h-px w-12 rounded-full bg-border" />
           </div>
@@ -238,7 +238,7 @@ export function VisualGroundRightPanel({
             onClick={() => setIsConsoleCollapsed(!isConsoleCollapsed)}
           >
             <div className="flex items-center gap-1">
-              <h4 className="text-[calc(9rem/16)] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
+              <h4 className="text-[9px] uppercase tracking-widest text-muted font-semibold flex items-center gap-1">
                 {isConsoleCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />}{" "}
                 Console Output
               </h4>
@@ -247,7 +247,7 @@ export function VisualGroundRightPanel({
           {!isConsoleCollapsed && (
             <div
               ref={outputRef}
-              className="flex-1 overflow-y-auto styled-scrollbar p-2 font-mono text-[calc(10rem/16)] text-text whitespace-pre-wrap"
+              className="flex-1 overflow-y-auto styled-scrollbar p-2 font-mono text-[10px] text-text whitespace-pre-wrap"
             >
               {consoleOutput || <span className="text-muted opacity-50 italic">No output...</span>}
             </div>

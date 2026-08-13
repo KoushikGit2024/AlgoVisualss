@@ -24,21 +24,21 @@ const TREES_SECTION = {
       headers: ["Structure", "Guarantee", "Lookup", "Insert/Delete", "Typical Use"],
       rows: [
         [
-          "Plain BST",
+          "[Binary Search Tree](/algorithms/trees/bst)",
           "None — height depends on insertion order",
           "O(log n) avg / O(n) worst",
           "O(log n) avg / O(n) worst",
           "Simple ordered maps, teaching",
         ],
         [
-          "AVL Tree",
+          "[AVL Tree](/algorithms/trees/avl)",
           "Strictly balanced: height difference of subtrees ≤ 1",
           "O(log n) guaranteed",
           "O(log n) guaranteed",
           "Read-heavy workloads",
         ],
         [
-          "Red-Black Tree",
+          "[Red-Black Tree](/algorithms/trees/red-black)",
           "Loosely balanced via coloring rules",
           "O(log n) guaranteed",
           "O(log n) guaranteed, fewer rotations",

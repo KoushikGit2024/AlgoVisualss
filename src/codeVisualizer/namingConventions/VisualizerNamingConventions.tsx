@@ -5,10 +5,10 @@ import { PriorityTable } from "./PriorityTable";
 const VisualizerNamingConventions = () => {
   return (
     <div className="w-full h-full overflow-y-auto styled-scrollbar bg-bg">
-      <article className="max-w-[1000px] mx-auto px-6 py-8 pb-16">
+      <article className="max-w-250 mx-auto px-6 py-8 pb-16">
         <header className="mb-10 text-center">
           <h1 className="text-3xl font-bold text-accent mb-4">Naming Conventions</h1>
-          <p className="text-[calc(13rem/16)] text-muted max-w-2xl mx-auto leading-relaxed">
+          <p className="text-[13px] text-muted max-w-2xl mx-auto leading-relaxed">
             The visualizer engine automatically determines how to render your variables by analyzing
             both their <strong>structural shape</strong> in memory and their{" "}
             <strong>variable names</strong>. Use the prefixes below to force the engine to render a
@@ -22,7 +22,7 @@ const VisualizerNamingConventions = () => {
             <Terminal size={18} className="text-accent" />
             <h2 className="font-semibold text-text">How the Engine Works</h2>
           </div>
-          <div className="p-5 flex flex-col gap-4 text-[calc(13rem/16)] text-muted">
+          <div className="p-5 flex flex-col gap-4 text-[13px] text-muted">
             <div className="flex gap-3">
               <span className="text-accent shrink-0 mt-0.5">•</span>
               <p>
@@ -77,16 +77,16 @@ const VisualizerNamingConventions = () => {
                 className={`px-4 py-3 border-b border-border flex items-center gap-3 ${ds.color}`}
               >
                 {ds.icon}
-                <h3 className={`font-bold text-[calc(13rem/16)] ${ds.textColor}`}>{ds.title}</h3>
+                <h3 className={`font-bold text-[13px] ${ds.textColor}`}>{ds.title}</h3>
               </div>
 
               {/* Body */}
               <div className="p-4 flex-1 flex flex-col gap-4">
-                <p className="text-[calc(13rem/16)] text-muted leading-relaxed">{ds.description}</p>
+                <p className="text-[13px] text-muted leading-relaxed">{ds.description}</p>
 
                 {/* Requirement */}
                 <div>
-                  <h4 className="text-[calc(11rem/16)] font-semibold text-text/70 uppercase tracking-wider mb-2">
+                  <h4 className="text-[11px] font-semibold text-text/70 uppercase tracking-wider mb-2">
                     Shape Requirement
                   </h4>
                   <p className="text-[12.5px] text-muted bg-surface-2 p-2.5 rounded border border-border leading-relaxed">
@@ -96,7 +96,7 @@ const VisualizerNamingConventions = () => {
 
                 {/* Prefixes */}
                 <div>
-                  <h4 className="text-[calc(11rem/16)] font-semibold text-text/70 uppercase tracking-wider mb-2">
+                  <h4 className="text-[11px] font-semibold text-text/70 uppercase tracking-wider mb-2">
                     Valid Prefixes
                   </h4>
                   <div className="flex flex-col gap-1.5">
@@ -121,7 +121,7 @@ const VisualizerNamingConventions = () => {
                 {/* Auxiliary */}
                 {ds.auxiliary.length > 0 && (
                   <div className="mt-auto pt-4">
-                    <h4 className="text-[calc(11rem/16)] font-semibold text-text/70 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <h4 className="text-[11px] font-semibold text-text/70 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                       <Code size={14} /> Associated Variables
                     </h4>
                     <div className="flex flex-col gap-2">

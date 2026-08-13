@@ -20,22 +20,22 @@ const QUEUES_SECTION = {
       headers: ["Variant", "Adds Capability", "Typical Use"],
       rows: [
         [
-          "Plain Queue",
+          "[Plain Queue](/algorithms/queues/implementation)",
           "FIFO enqueue/dequeue",
           "BFS, task scheduling, producer-consumer buffering",
         ],
         [
-          "Circular Queue",
+          "[Circular Queue](/algorithms/queues/circular-linked-list)",
           "Fixed-capacity buffer reusing freed slots via wraparound",
           "Ring buffers, streaming data, OS-level I/O buffers",
         ],
         [
-          "Deque (Double-ended Queue)",
+          "[Deque (Double-ended Queue)](/algorithms/queues/deque)",
           "O(1) insertion/removal at BOTH ends",
           "Sliding window problems, undo/redo with both-direction access",
         ],
         [
-          "Monotonic Deque",
+          "[Monotonic Deque](/algorithms/queues/sliding-window-max)",
           "Deque kept in sorted order to track a window's max/min",
           "Sliding Window Maximum, and the queue-based cousin of the monotonic stack pattern",
         ],

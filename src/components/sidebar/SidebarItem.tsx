@@ -12,7 +12,7 @@ function Highlighted({ text, query }: { text: string; query: string }) {
   return (
     <>
       {text.slice(0, idx)}
-      <mark className="px-1 py-px rounded-[4px] bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] text-[var(--accent)] font-semibold shadow-[0_0_8px_color-mix(in_srgb,var(--accent)_40%,transparent)]">
+      <mark className="px-1 py-px rounded-sm bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] text-(--accent) font-semibold shadow-[0_0_8px_color-mix(in_srgb,var(--accent)_40%,transparent)]">
         {text.slice(idx, idx + query.length)}
       </mark>
       {text.slice(idx + query.length)}
@@ -56,14 +56,14 @@ export function RecursiveNavNode({
     <div className="flex flex-col">
       <div
         onClick={handleClick}
-        className={cn(`group relative w-full flex items-center py-2 rounded-[4px] cursor-pointer transition-all duration-200 ease-out outline-none my-[2px]
+        className={cn(`group relative w-full flex items-center py-2 rounded-sm cursor-pointer transition-all duration-200 ease-out outline-none my-0.5
           ${collapsed ? "justify-center px-0" : "pr-3"}
           ${
             isActiveLink
-              ? "text-[var(--accent)] font-semibold"
+              ? "text-(--accent) font-semibold"
               : isTopLevel
-                ? "text-[var(--text)] font-medium tracking-tight hover:bg-[var(--surface-2)]"
-                : "text-[var(--muted)] font-normal hover:text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--surface-2)_40%,transparent)]"
+                ? "text-(--text) font-medium tracking-tight hover:bg-(--surface-2)"
+                : "text-(--muted) font-normal hover:text-(--text) hover:bg-[color-mix(in_srgb,var(--surface-2)_40%,transparent)]"
           }`)}
         style={{ paddingLeft: collapsed ? "0px" : `${16 + level * 12}px` }}
       >
@@ -71,7 +71,7 @@ export function RecursiveNavNode({
         {isActiveLink && !isFolder && (
           <motion.div
             layoutId="sidebar-premium-pill"
-            className="absolute inset-0 bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] rounded-0 border-l-2 border-[var(--accent)]"
+            className="absolute inset-0 bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] rounded-0 border-l-2 border-(--accent)"
             initial={false}
             transition={{ type: "spring", stiffness: 380, damping: 30 }}
           />
@@ -89,7 +89,7 @@ export function RecursiveNavNode({
           >
             {/* SVG Swap magic driven by CSS classes */}
             {item.icon && typeof item.icon !== "string" && (
-              <div className="w-5 h-5 flex items-center justify-center shrink-0 text-[var(--muted)] group-hover:hidden transition-opacity">
+              <div className="w-5 h-5 flex items-center justify-center shrink-0 text-(--muted) group-hover:hidden transition-opacity">
                 {item.icon}
               </div>
             )}
@@ -106,7 +106,7 @@ export function RecursiveNavNode({
                   <span
                     title={item.label}
                     className={cn(
-                      `block truncate ${isTopLevel ? "text-[calc(14rem/16)] font-semibold" : "text-[calc(13rem/16)]"}`,
+                      `block truncate ${isTopLevel ? "text-[14px] font-semibold" : "text-[13px]"}`,
                     )}
                   >
                     <Highlighted text={item.label} query={query} />
@@ -116,7 +116,7 @@ export function RecursiveNavNode({
                 {/* Difficulty Badge System */}
                 {item.badge && (
                   <span
-                    className={cn(`text-[calc(9rem/16)] font-bold px-1.5 py-0.5 rounded-sm shrink-0 whitespace-nowrap uppercase tracking-widest
+                    className={cn(`text-[9px] font-bold px-1.5 py-0.5 rounded-sm shrink-0 whitespace-nowrap uppercase tracking-widest
                     ${
                       item.badge === "Easy"
                         ? "text-[#34D399] bg-[#34D399]/10"
@@ -124,7 +124,7 @@ export function RecursiveNavNode({
                           ? "text-[#FBBF24] bg-[#FBBF24]/10"
                           : item.badge === "Hard"
                             ? "text-[#EF4444] bg-[#EF4444]/10"
-                            : "text-[var(--muted)] bg-[var(--surface-2)]"
+                            : "text-(--muted) bg-(--surface-2)"
                     }
                   `)}
                   >
@@ -140,7 +140,7 @@ export function RecursiveNavNode({
             <ChevronRight
               size={14}
               className={cn(
-                `shrink-0 transition-transform duration-300 ease-out text-[var(--muted)] group-hover:text-[var(--text)] ${isExpanded ? "rotate-90" : ""}`,
+                `shrink-0 transition-transform duration-300 ease-out text-(--muted) group-hover:text-(--text) ${isExpanded ? "rotate-90" : ""}`,
               )}
             />
           )}
@@ -155,7 +155,7 @@ export function RecursiveNavNode({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden border-l border-[color-mix(in_srgb,var(--border)_50%,transparent)] ml-[23px] pl-1"
+            className="overflow-hidden border-l border-[color-mix(in_srgb,var(--border)_50%,transparent)] ml-5.75 pl-1"
           >
             <div className="flex flex-col py-0.5">
               {item.children!.map((subItem) => (

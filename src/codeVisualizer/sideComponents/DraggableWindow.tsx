@@ -132,7 +132,7 @@ export function DraggableWindow({
         `absolute flex flex-col bg-bg/95 border border-border rounded-md shadow-xl overflow-hidden ${
           windowState.isMaximized
             ? "inset-0"
-            : "min-w-[60px] max-w-[calc(100%-32px)] max-h-[calc(100%-32px)]"
+            : "min-w-15 max-w-[calc(100%-32px)] max-h-[calc(100%-32px)]"
         }`,
       )}
       style={{
@@ -167,7 +167,7 @@ export function DraggableWindow({
       >
         <div className="flex items-center gap-1.5 text-text/80">
           <Move size={10} className="opacity-50 group-hover:opacity-100 transition-opacity" />
-          <span className="text-[calc(10rem/16)] font-bold uppercase tracking-widest">{title}</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest">{title}</span>
         </div>
 
         {/* Stop pointer-down here so clicking buttons doesn't also start a drag */}
@@ -192,7 +192,7 @@ export function DraggableWindow({
       {/* ─── Content Body ─── */}
       <div
         className={cn(
-          `flex-1 overflow-auto styled-scrollbar p-2 relative flex flex-col ${!cornerAnchor && "min-h-[100px]"}`,
+          `flex-1 overflow-auto styled-scrollbar p-2 relative flex flex-col ${!cornerAnchor && "min-h-25"}`,
         )}
       >
         {/* m-auto centers when content fits; collapses to 0 when content overflows,

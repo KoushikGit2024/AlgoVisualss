@@ -50,7 +50,7 @@ const DYNAMIC_PROGRAMMING_SECTION = {
           "O(amount)",
         ],
         [
-          "Travelling Salesperson (Held-Karp)",
+          "[Travelling Salesperson (Held-Karp)](/algorithms/dynamic_programming/tsp)",
           "Bitmask state: which cities are visited + current city",
           "O(2ⁿ · n²)",
           "O(2ⁿ · n)",

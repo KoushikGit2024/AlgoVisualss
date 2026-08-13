@@ -139,7 +139,7 @@ const TrieTree = ({
   if (nodes.length === 0 || !layout) {
     return (
       <div className="w-full h-full flex items-center justify-center p-4">
-        <span className="text-muted text-[calc(10rem/16)] font-mono border border-dashed border-border rounded p-2">
+        <span className="text-muted text-[10px] font-mono border border-dashed border-border rounded p-2">
           Awaiting Trie initialization…
         </span>
       </div>
@@ -293,7 +293,7 @@ const TrieTree = ({
                   transition={{ type: "spring", stiffness: 380, damping: 24 }}
                   className={cn(`
                     w-10 h-10 flex items-center justify-center relative
-                    font-mono text-[calc(13rem/16)] rounded-full border-2 shrink-0
+                    font-mono text-[13px] rounded-full border-2 shrink-0
                     transition-colors duration-150
                     ${bg} ${border} ${text} ${shadow}
                   `)}
@@ -314,7 +314,7 @@ const TrieTree = ({
                   {/* End-of-word dot */}
                   {node.isEnd && (
                     <span
-                      className="absolute -top-[3px] -right-[3px] w-[10px] h-[10px]
+                      className="absolute -top-0.75 -right-0.75 w-2.5 h-2.5
                                  rounded-full bg-accent-3 border border-bg
                                  shadow-[0_0_5px_var(--accent-3)]"
                       title="End of word"
@@ -326,7 +326,7 @@ const TrieTree = ({
                 {cellPtrs.length > 0 && (
                   <div
                     className="absolute top-0 right-0 flex flex-col gap-0.5 z-30
-                                  translate-x-[45%] -translate-y-[45%]"
+                                  translate-x-[45%] translate-y-[-45%]"
                   >
                     <AnimatePresence>
                       {cellPtrs.map((ptr) => (
@@ -338,9 +338,9 @@ const TrieTree = ({
                           exit={{ opacity: 0, scale: 0.5 }}
                           transition={{ type: "spring", stiffness: 400, damping: 25 }}
                           className="bg-accent-3 text-white shadow-md border border-bg
-                                     rounded-full px-1.5 py-[2px]"
+                                     rounded-full px-1.5 py-0.5"
                         >
-                          <span className="text-[calc(8rem/16)] font-mono font-bold leading-none uppercase tracking-wider">
+                          <span className="text-[8px] font-mono font-bold leading-none uppercase tracking-wider">
                             {ptr.name}
                           </span>
                         </motion.div>

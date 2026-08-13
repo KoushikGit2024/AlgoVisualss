@@ -196,10 +196,10 @@ const VisualGround = ({
         <div className="flex items-start gap-2 rounded-sm border border-cyan-500/25 bg-cyan-500/8 px-2.5 py-2 shadow-sm">
           <InfoIcon size={16} className="text-cyan-400 shrink-0 mt-px" strokeWidth={2.2} />
           <div className="min-w-0">
-            <p className="text-[calc(11rem/16)] font-medium text-cyan-300 leading-tight">
+            <p className="text-[11px] font-medium text-cyan-300 leading-tight">
               Visualization unavailable
             </p>
-            <p className="text-[calc(10rem/16)] text-muted leading-tight mt-0.5">
+            <p className="text-[10px] text-muted leading-tight mt-0.5">
               Currently supported only for C++.
             </p>
           </div>
@@ -216,11 +216,11 @@ const VisualGround = ({
             <Cpu size={16} /> Engine Crash
           </h3>
           <div className="bg-bg/50 p-2 rounded border border-failure/20 overflow-auto max-h-32">
-            <p className="text-[calc(10rem/16)] text-failure font-mono text-left">{error}</p>
+            <p className="text-[10px] text-failure font-mono text-left">{error}</p>
           </div>
           <button
             onClick={handleResetError}
-            className="self-center flex items-center gap-1 px-3 py-1.5 bg-surface border border-border hover:bg-surface-2 text-text text-[calc(11rem/16)] rounded-sm transition-colors"
+            className="self-center flex items-center gap-1 px-3 py-1.5 bg-surface border border-border hover:bg-surface-2 text-text text-[11px] rounded-sm transition-colors"
           >
             <RefreshCw size={12} /> Dismiss & Reset
           </button>
@@ -233,13 +233,13 @@ const VisualGround = ({
     <div className="flex flex-col h-full w-full text-text font-display gap-0 overflow-hidden pb-1">
       {/* ─── LIVE HEADER ─── */}
       <div className="w-full flex items-center justify-between bg-surface-2 border border-border rounded-sm px-2 py-1 shadow-sm shrink-0">
-        <div className="flex items-center gap-1.5 text-[calc(10rem/16)]">
+        <div className="flex items-center gap-1.5 text-[10px]">
           <span className="font-mono text-muted uppercase tracking-wider">Status</span>
           <code className="bg-bg px-1.5 py-0.5 rounded-sm border border-border text-accent-3 font-bold">
             {activeFunction || "Idle()"}
           </code>
         </div>
-        <div className="flex items-center gap-1.5 text-[calc(10rem/16)]">
+        <div className="flex items-center gap-1.5 text-[10px]">
           <span className="font-mono text-muted uppercase tracking-wider flex items-center gap-1">
             <Activity size={10} className="text-accent" /> Event
           </span>
@@ -279,7 +279,7 @@ const VisualGround = ({
           </div>
 
           {/* ─── TASKBAR ─── */}
-          <div className="w-full bg-surface-2 border-t border-border px-2 py-1.5 flex items-center gap-1.5 overflow-x-auto shrink-0 shadow-inner z-50 min-h-[36px]">
+          <div className="w-full bg-surface-2 border-t border-border px-2 py-1.5 flex items-center gap-1.5 overflow-x-auto shrink-0 shadow-inner z-50 min-h-9">
             {Object.keys(groupedStates).map((type) => {
               const ws = windowStates[type] || { isMinimized: false, zIndex: 20 };
               const isActive = type === activeWindowId;
@@ -295,7 +295,7 @@ const VisualGround = ({
                       bringToFront(type);
                     }
                   }}
-                  className={cn(`px-3 py-1 border rounded-sm text-[calc(10rem/16)] font-bold transition-all flex items-center gap-1.5 min-w-[80px] max-w-[150px] truncate justify-center hover:-translate-y-px active:translate-y-0
+                  className={cn(`px-3 py-1 border rounded-sm text-[10px] font-bold transition-all flex items-center gap-1.5 min-w-20 max-w-37.5 truncate justify-center hover:-translate-y-px active:translate-y-0
                     ${
                       isActive
                         ? "bg-surface-3 border-accent/50 text-accent shadow-sm"
@@ -309,7 +309,7 @@ const VisualGround = ({
               );
             })}
             {Object.keys(groupedStates).length === 0 && (
-              <span className="text-[calc(10rem/16)] text-muted opacity-50 font-mono italic">
+              <span className="text-[10px] text-muted opacity-50 font-mono italic">
                 No windows open
               </span>
             )}
@@ -338,11 +338,11 @@ const VisualGround = ({
             title="Expand Inspectors"
           >
             <PanelRightOpen size={14} className="text-muted mr-3 md:mr-0 md:mb-4 shrink-0" />
-            <span className="text-[calc(9rem/16)] font-semibold text-muted uppercase tracking-widest md:hidden">
+            <span className="text-[9px] font-semibold text-muted uppercase tracking-widest md:hidden">
               Inspectors
             </span>
             <span
-              className="hidden md:block text-[calc(9rem/16)] font-semibold text-muted uppercase tracking-widest"
+              className="hidden md:block text-[9px] font-semibold text-muted uppercase tracking-widest"
               style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
             >
               Inspectors

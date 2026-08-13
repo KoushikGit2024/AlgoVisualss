@@ -71,7 +71,7 @@ const SortBars = ({
   if (safeValue.length === 0) {
     return (
       <div className="w-full flex items-center justify-center p-4">
-        <span className="text-muted text-[calc(10rem/16)] font-mono border border-dashed border-border rounded p-2">
+        <span className="text-muted text-[10px] font-mono border border-dashed border-border rounded p-2">
           Awaiting sort array initialization...
         </span>
       </div>
@@ -87,7 +87,7 @@ const SortBars = ({
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="flex items-end justify-center gap-[3px] relative w-max h-48 px-12 py-16"
+        className="flex items-end justify-center gap-0.75 relative w-max h-48 px-12 py-16"
       >
         <AnimatePresence mode="popLayout">
           {safeValue.map((val, idx) => {
@@ -191,7 +191,7 @@ const SortBars = ({
                 {/* Index below the bar */}
                 <motion.span
                   layout
-                  className="text-[calc(9rem/16)] text-muted font-mono mt-1 absolute top-full"
+                  className="text-[9px] text-muted font-mono mt-1 absolute top-full"
                 >
                   {idx}
                 </motion.span>
@@ -207,10 +207,10 @@ const SortBars = ({
                       style={{ bottom: `calc(${heightPercent}% + ${pIdx * 16 + 8}px)`, zIndex: 50 }}
                       className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none"
                     >
-                      <div className="bg-bg text-text text-[calc(9rem/16)] font-bold px-1.5 py-0.5 rounded border border-border whitespace-nowrap shadow-sm">
+                      <div className="bg-bg text-text text-[9px] font-bold px-1.5 py-0.5 rounded border border-border whitespace-nowrap shadow-sm">
                         {ptr.name}
                       </div>
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-t-[4px] border-t-border" />
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-3 border-l-transparent border-r-3 border-r-transparent border-t-4 border-t-border" />
                     </motion.div>
                   ))}
                 </AnimatePresence>

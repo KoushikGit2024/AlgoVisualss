@@ -50,7 +50,7 @@ const Queue = ({
   if (safeValue.length === 0) {
     return (
       <div className="w-full flex items-center justify-center p-4">
-        <span className="text-muted text-[calc(10rem/16)] font-mono border border-dashed border-border rounded p-2 flex items-center gap-2">
+        <span className="text-muted text-[10px] font-mono border border-dashed border-border rounded p-2 flex items-center gap-2">
           {/* <span>Front &larr;</span> */}
           <span className="opacity-50">Empty Queue</span>
           {/* <span>&larr; Rear</span> */}
@@ -66,20 +66,20 @@ const Queue = ({
     >
       <div className="px-12 py-24 w-max h-max">
         {/* ─── Queue Tube Container ─── */}
-        <div className="relative flex items-center w-max min-w-[200px] h-20 mx-24">
+        <div className="relative flex items-center w-max min-w-50 h-20 mx-24">
           {/* The Queue Track (Clean Pipe) */}
-          <div className="absolute inset-y-[-16px] -inset-x-12 border-y-2 border-accent/40 bg-surface-2/10 rounded-sm pointer-events-none" />
+          <div className="absolute -inset-y-4 -inset-x-12 border-y-2 border-accent/40 bg-surface-2/10 rounded-sm pointer-events-none" />
 
           {/* Structural Indicators (Front / Rear Labels) */}
           <div className="absolute -left-20 flex flex-col items-center justify-center">
-            <span className="text-[calc(10rem/16)] font-black font-mono text-ds-write uppercase tracking-widest bg-emerald-400/10 px-2 py-0.5 rounded border border-ds-write/30 mb-1">
+            <span className="text-[10px] font-black font-mono text-ds-write uppercase tracking-widest bg-emerald-400/10 px-2 py-0.5 rounded border border-ds-write/30 mb-1">
               Front
             </span>
             {/* <span className="text-ds-write/70 text-xs font-black tracking-widest animate-pulse">← OUT</span> */}
           </div>
 
           <div className="absolute -right-20 flex flex-col items-center justify-center">
-            <span className="text-[calc(10rem/16)] font-black font-mono text-accent-3 uppercase tracking-widest bg-accent-3/10 px-2 py-0.5 rounded border border-accent-3/30 mb-1">
+            <span className="text-[10px] font-black font-mono text-accent-3 uppercase tracking-widest bg-accent-3/10 px-2 py-0.5 rounded border border-accent-3/30 mb-1">
               Rear
             </span>
             {/* <span className="text-accent-3/70 text-xs font-black tracking-widest animate-pulse">IN ←</span> */}
@@ -168,7 +168,7 @@ const Queue = ({
                     key={`queue-cell-${val}-${idx}`}
                     layout
                     variants={cellVariants}
-                    className="flex flex-col items-center relative shrink-0 min-w-[3rem] max-w-[4.5rem]"
+                    className="flex flex-col items-center relative shrink-0 min-w-12 max-w-18"
                   >
                     {/* Top Pointers (Front/Rear/Indices) */}
                     <div className="absolute bottom-full mb-1.5 flex flex-col items-center gap-0.5 w-full">
@@ -183,7 +183,7 @@ const Queue = ({
                             transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
                             className="flex flex-col items-center text-accent-3 z-30"
                           >
-                            <span className="text-[calc(9rem/16)] font-mono font-bold bg-surface-2 text-accent-3 px-1.5 py-[1px] rounded border border-accent-3/30 truncate max-w-full">
+                            <span className="text-[9px] font-mono font-bold bg-surface-2 text-accent-3 px-1.5 py-px rounded border border-accent-3/30 truncate max-w-full">
                               {ptr.name}
                             </span>
                             <svg
@@ -211,7 +211,7 @@ const Queue = ({
                       animate={{ scale: activeScale, zIndex: activeZIndex }}
                       transition={{ type: "spring", stiffness: 400, damping: 25 }}
                       className={cn(`
-                      w-full aspect-square px-1 flex items-center justify-center font-mono text-[calc(15rem/16)] font-bold 
+                      w-full aspect-square px-1 flex items-center justify-center font-mono text-[15px] font-bold 
                       rounded-md border transition-colors duration-200 shrink-0
                       ${bgClass} ${borderClass} ${textClass} ${shadowClass}
                     `)}

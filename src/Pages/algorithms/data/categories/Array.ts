@@ -41,7 +41,7 @@ const ARRAYS_SECTION = {
           "O(1) – O(k)",
         ],
         [
-          "Boyer-Moore Majority Vote",
+          "[Boyer-Moore Majority Vote](/algorithms/arrays/boyer-moore)",
           "Cancel out non-majority votes against a running candidate",
           "O(n)",
           "O(1)",

@@ -7,7 +7,7 @@ export const PriorityTable = () => {
         <AlertCircle size={20} className="text-yellow-400" />
         Type Resolution Priority
       </h2>
-      <p className="text-[calc(13rem/16)] text-muted mb-4 leading-relaxed">
+      <p className="text-[13px] text-muted mb-4 leading-relaxed">
         When a variable matches multiple types (e.g. a <code className="text-accent">vector</code>{" "}
         could be a Graph, a Tree, a Queue, a Stack, or an Array), the visualizer resolves the type
         based on the following priority:

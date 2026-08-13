@@ -52,8 +52,10 @@ export function detectArraysAndMaps(
 
     // ── 3. STRING ───────────────────────────────────────────────────────
     if (typeof val === "string") {
+      const typeStr = vars[key]?.type || "";
+      if ((val === "[Function]" || val === "[Lambda]") && !typeStr.includes("string") && !typeStr.includes("char")) return;
+      
       // Explicitly ignore variables typed as char
-      const typeStr = vars[key]?.type;
       if (typeStr === "char" || typeStr === "const char") return;
       const { pointers, usedKeys: ptrKeys } = collectIndexPointers(
         keys,

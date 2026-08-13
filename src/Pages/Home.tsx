@@ -18,7 +18,7 @@ import SEO from "../components/SEO";
 // ─── Main Landing Page Component (Unchanged) ──────────────────────────────────
 export default function HomePage() {
   return (
-    <div className="relative flex flex-col flex-1 items-center bg-[var(--bg)] overflow-hidden selection:bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] selection:text-[var(--text)]">
+    <div className="relative flex flex-col flex-1 items-center bg-(--bg) overflow-hidden selection:bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] selection:text-(--text)">
       <SEO
         title="Interactive Algorithm Visualizer"
         description="Master Data Structures and Algorithms with AlgoVisuals. Experience a powerful interactive learning platform featuring real-time C++ code execution, synchronized step-by-step algorithm tracing, dynamic memory visualization, and immersive data structure animations."
@@ -74,9 +74,9 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[6px] bg-[var(--surface-2)] border border-[var(--border)] text-[calc(12rem/16)] font-[var(--font-geist-mono)] text-[var(--text)] mb-8 tracking-wide uppercase shadow-sm"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[6px] bg-(--surface-2) border border-(--border) text-[12px] font-(--font-geist-mono) text-(--text) mb-8 tracking-wide uppercase shadow-sm"
           >
-            <Activity size={14} className="text-[var(--accent)]" aria-hidden="true" />
+            <Activity size={14} className="text-(--accent)" aria-hidden="true" />
             AlgoVisuals Engine v2.0
           </motion.div>
 
@@ -84,17 +84,17 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-[var(--text)] leading-[1.1] mb-6"
+            className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-(--text) leading-[1.1] mb-6"
           >
             Don't just read code. <br />
-            <span className="text-[var(--accent)]">Watch it execute.</span>
+            <span className="text-(--accent)">Watch it execute.</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg sm:text-xl text-[var(--muted)] max-w-2xl font-normal leading-relaxed mb-10"
+            className="text-lg sm:text-xl text-(--muted) max-w-2xl font-normal leading-relaxed mb-10"
           >
             Understand algorithms by watching C++ implementations execute step-by-step. Visualize
             data structures, inspect execution state, and build intuition through interactive
@@ -109,13 +109,13 @@ export default function HomePage() {
           >
             <Link
               to="/visualizer"
-              className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3.5 rounded-[8px] bg-[var(--accent)] text-[#ffffff] font-bold shadow-sm transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3.5 rounded-md bg-(--accent) text-[#ffffff] font-bold shadow-sm transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               Launch Visualizer <ChevronRight size={18} aria-hidden="true" />
             </Link>
             <Link
               to="/algorithms"
-              className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3.5 rounded-[8px] bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text)] font-semibold transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3.5 rounded-md bg-(--surface-2) border border-(--border) text-(--text) font-semibold transition-colors duration-200 hover:border-(--accent) hover:text-(--accent)"
             >
               Explore Library
             </Link>
@@ -125,12 +125,12 @@ export default function HomePage() {
 
       {/* ─── Structural Feature Grid ─── */}
       <section className="relative z-10 w-full max-w-6xl px-6 pb-32">
-        <div className="mb-12 text-center md:text-left flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-[var(--border)] pb-6">
+        <div className="mb-12 text-center md:text-left flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-(--border) pb-6">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-[var(--text)] mb-2">
+            <h2 className="text-3xl font-bold tracking-tight text-(--text) mb-2">
               Engineered for clarity.
             </h2>
-            <p className="text-[var(--muted)]">
+            <p className="text-(--muted)">
               Core features designed to make complex logic entirely transparent.
             </p>
           </div>
@@ -142,38 +142,38 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="md:col-span-2 flex flex-col justify-between p-8 rounded-xl bg-[var(--surface)] border border-[var(--border)] overflow-hidden transition-colors hover:border-[var(--muted)]"
+            className="md:col-span-2 flex flex-col justify-between p-8 rounded-xl bg-(--surface) border border-(--border) overflow-hidden transition-colors hover:border-(--muted)"
           >
             <div>
-              <div className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text)] mb-6">
+              <div className="w-10 h-10 flex items-center justify-center rounded-md bg-(--surface-2) border border-(--border) text-(--text) mb-6">
                 <Activity size={20} aria-hidden="true" />
               </div>
-              <h3 className="text-lg font-semibold text-[var(--text)] mb-2">
+              <h3 className="text-lg font-semibold text-(--text) mb-2">
                 Granular Execution Control
               </h3>
-              <p className="text-[var(--muted)] text-[calc(15rem/16)] leading-relaxed max-w-md">
+              <p className="text-(--muted) text-[15px] leading-relaxed max-w-md">
                 Take the wheel. Pause, rewind, fast-forward, or step through algorithms line-by-line
                 to observe state mutations at every cycle and intuitively grasp complex logic.
               </p>
             </div>
 
             {/* Minimal Player UI */}
-            <div className="mt-10 flex items-center justify-center gap-3 p-3 rounded-[8px] bg-[var(--surface-2)] border border-[var(--border)] w-fit shadow-sm">
+            <div className="mt-10 flex items-center justify-center gap-3 p-3 rounded-md bg-(--surface-2) border border-(--border) w-fit shadow-sm">
               <button
                 aria-label="Pause execution"
-                className="p-2 rounded-md text-[var(--muted)] hover:text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)] transition-colors"
+                className="p-2 rounded-md text-(--muted) hover:text-(--text) hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent) transition-colors"
               >
                 <Pause size={16} fill="currentColor" aria-hidden="true" />
               </button>
               <button
                 aria-label="Start execution"
-                className="p-2.5 rounded-md bg-[var(--accent)] text-[#ffffff] hover:opacity-90 transition-opacity"
+                className="p-2.5 rounded-md bg-(--accent) text-[#ffffff] hover:opacity-90 transition-opacity"
               >
                 <Play size={18} fill="currentColor" aria-hidden="true" />
               </button>
               <button
                 aria-label="Fast forward execution"
-                className="p-2 rounded-md text-[var(--muted)] hover:text-[var(--text)] hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)] transition-colors"
+                className="p-2 rounded-md text-(--muted) hover:text-(--text) hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)] transition-colors"
               >
                 <FastForward size={16} fill="currentColor" aria-hidden="true" />
               </button>
@@ -186,13 +186,13 @@ export default function HomePage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ delay: 0.1 }}
-            className="flex flex-col p-8 rounded-xl bg-[var(--surface)] border border-[var(--border)] transition-colors hover:border-[var(--muted)]"
+            className="flex flex-col p-8 rounded-xl bg-(--surface) border border-(--border) transition-colors hover:border-(--muted)"
           >
-            <div className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text)] mb-6">
+            <div className="w-10 h-10 flex items-center justify-center rounded-md bg-(--surface-2) border border-(--border) text-(--text) mb-6">
               <Code2 size={20} aria-hidden="true" />
             </div>
-            <h3 className="text-lg font-semibold text-[var(--text)] mb-2">Live Code Tracing</h3>
-            <p className="text-[var(--muted)] text-[calc(15rem/16)] leading-relaxed">
+            <h3 className="text-lg font-semibold text-(--text) mb-2">Live Code Tracing</h3>
+            <p className="text-(--muted) text-[15px] leading-relaxed">
               Synchronize C++ source code with algorithm visualization so every execution step
               corresponds to the program's evolving state.
             </p>
@@ -204,13 +204,13 @@ export default function HomePage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ delay: 0.2 }}
-            className="flex flex-col p-8 rounded-xl bg-[var(--surface)] border border-[var(--border)] transition-colors hover:border-[var(--muted)]"
+            className="flex flex-col p-8 rounded-xl bg-(--surface) border border-(--border) transition-colors hover:border-(--muted)"
           >
-            <div className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text)] mb-6">
+            <div className="w-10 h-10 flex items-center justify-center rounded-md bg-(--surface-2) border border-(--border) text-(--text) mb-6">
               <Network size={20} aria-hidden="true" />
             </div>
-            <h3 className="text-lg font-semibold text-[var(--text)] mb-2">Interactive Graphs</h3>
-            <p className="text-[var(--muted)] text-[calc(15rem/16)] leading-relaxed">
+            <h3 className="text-lg font-semibold text-(--text) mb-2">Interactive Graphs</h3>
+            <p className="text-(--muted) text-[15px] leading-relaxed">
               Build custom graphs and explore traversal and pathfinding algorithms using your own
               test cases.
             </p>
@@ -222,38 +222,38 @@ export default function HomePage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ delay: 0.3 }}
-            className="md:col-span-2 flex flex-col md:flex-row items-center justify-between p-8 rounded-xl bg-[var(--surface)] border border-[var(--border)] overflow-hidden transition-colors hover:border-[var(--muted)]"
+            className="md:col-span-2 flex flex-col md:flex-row items-center justify-between p-8 rounded-xl bg-(--surface) border border-(--border) overflow-hidden transition-colors hover:border-(--muted)"
           >
             <div className="mb-8 md:mb-0 max-w-sm">
-              <div className="w-10 h-10 flex items-center justify-center rounded-[8px] bg-[var(--surface-2)] border border-[var(--border)] text-[var(--text)] mb-6">
+              <div className="w-10 h-10 flex items-center justify-center rounded-md bg-(--surface-2) border border-(--border) text-(--text) mb-6">
                 <Braces size={20} aria-hidden="true" />
               </div>
-              <h3 className="text-lg font-semibold text-[var(--text)] mb-2">State Introspection</h3>
-              <p className="text-[var(--muted)] text-[calc(15rem/16)] leading-relaxed">
+              <h3 className="text-lg font-semibold text-(--text) mb-2">State Introspection</h3>
+              <p className="text-(--muted) text-[15px] leading-relaxed">
                 Track variables, arrays, containers, and execution state as your C++ program runs,
                 making abstract algorithm behavior concrete and easier to understand.
               </p>
             </div>
 
             {/* Clean Monospace State UI */}
-            <div className="w-full md:w-auto bg-[var(--surface-2)] border border-[var(--border)] rounded-[6px] p-5 font-[var(--font-geist-mono)] text-[calc(13rem/16)] shadow-sm text-left min-w-[240px]">
-              <div className="flex items-center gap-2 text-[var(--text)] mb-3 pb-2 border-b border-[var(--border)] font-semibold">
-                <CornerDownRight size={14} className="text-[var(--accent)]" aria-hidden="true" />{" "}
+            <div className="w-full md:w-auto bg-(--surface-2) border border-(--border) rounded-[6px] p-5 font-(--font-geist-mono) text-[13px] shadow-sm text-left min-w-60">
+              <div className="flex items-center gap-2 text-(--text) mb-3 pb-2 border-b border-(--border) font-semibold">
+                <CornerDownRight size={14} className="text-(--accent)" aria-hidden="true" />{" "}
                 <span>Scope State</span>
               </div>
               <div className="flex justify-between mb-1">
-                <span className="text-[var(--muted)]">target</span>
-                <span className="text-[var(--accent)] font-bold">42</span>
+                <span className="text-(--muted)">target</span>
+                <span className="text-(--accent) font-bold">42</span>
               </div>
               <div className="flex justify-between mb-1">
-                <span className="text-[var(--muted)]">left</span>
-                <span className="text-[var(--accent)] font-bold">0</span>
+                <span className="text-(--muted)">left</span>
+                <span className="text-(--accent) font-bold">0</span>
               </div>
               <div className="flex justify-between mb-3">
-                <span className="text-[var(--muted)]">right</span>
-                <span className="text-[var(--accent)] font-bold">9</span>
+                <span className="text-(--muted)">right</span>
+                <span className="text-(--accent) font-bold">9</span>
               </div>
-              <div className="flex items-center gap-2 text-[#ffffff] bg-[var(--accent)] px-2 py-1 -mx-2 rounded">
+              <div className="flex items-center gap-2 text-[#ffffff] bg-(--accent) px-2 py-1 -mx-2 rounded">
                 <span>▶</span> <span className="font-semibold">mid = 4</span>
               </div>
             </div>
@@ -263,18 +263,18 @@ export default function HomePage() {
 
       {/* ─── CTA ─── */}
       <section className="w-full max-w-4xl px-6 pb-32">
-        <div className="flex flex-col items-center justify-center p-12 sm:p-16 rounded-2xl border border-[var(--border)] bg-[var(--surface)] text-center shadow-sm">
-          <h2 className="text-3xl font-bold tracking-tight text-[var(--text)] mb-3">
+        <div className="flex flex-col items-center justify-center p-12 sm:p-16 rounded-2xl border border-(--border) bg-(--surface) text-center shadow-sm">
+          <h2 className="text-3xl font-bold tracking-tight text-(--text) mb-3">
             Start mastering algorithms.
           </h2>
-          <p className="text-[var(--muted)] text-[calc(15rem/16)] mb-8 max-w-md">
+          <p className="text-(--muted) text-[15px] mb-8 max-w-md">
             Students, competitive programmers, educators, and self-learners—jump into the algorithm
             library or load up the visualizer sandbox to begin building your mental models.
           </p>
           {/* Fixed Contrast: Solid Accent with White Text */}
           <Link
             to="/algorithms"
-            className="px-8 py-3.5 rounded-[8px] bg-[var(--accent)] text-[#ffffff] font-bold shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            className="px-8 py-3.5 rounded-md bg-(--accent) text-[#ffffff] font-bold shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98]"
           >
             Explore Library
           </Link>

@@ -20,7 +20,7 @@ const STRINGS_SECTION = {
       headers: ["Algorithm", "Core Idea", "Time"],
       rows: [
         [
-          "KMP (Knuth-Morris-Pratt)",
+          "[KMP (Knuth-Morris-Pratt)](/algorithms/strings/kmp)",
           "Precompute a 'failure function' so a failed match can skip ahead without re-comparing known-matching characters",
           "O(n + m)",
         ],
@@ -30,7 +30,7 @@ const STRINGS_SECTION = {
           "O(n + m)",
         ],
         [
-          "Rabin-Karp",
+          "[Rabin-Karp](/algorithms/strings/rabin-karp)",
           "Hash the pattern and every text window of the same length; only do a full character comparison when hashes match",
           "O(n + m) average",
         ],

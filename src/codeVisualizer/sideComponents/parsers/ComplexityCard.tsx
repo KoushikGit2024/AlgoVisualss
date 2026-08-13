@@ -6,7 +6,7 @@ import { renderNodes } from "./DocNodeRenderer";
 export const CaseDivider = () => (
   <div className="flex items-center gap-2 my-1" role="separator" aria-hidden="true">
     <div className="flex-1 h-px bg-border" />
-    <span className="text-[calc(10rem/16)] font-mono text-border tracking-widest">···</span>
+    <span className="text-[10px] font-mono text-border tracking-widest">···</span>
     <div className="flex-1 h-px bg-border" />
   </div>
 );
@@ -42,11 +42,11 @@ export const ComplexityCard = ({
     {/* Card header */}
     <div className="bg-surface-2 px-4 py-2.5 border-b border-border flex items-center gap-2 shrink-0">
       <span className={cn(`${iconColorClass} shrink-0`)}>{icon}</span>
-      <h2 className="font-semibold text-[calc(13rem/16)] text-text">{title}</h2>
+      <h2 className="font-semibold text-[13px] text-text">{title}</h2>
       {notation && (
         <span
           className={cn(
-            `ml-auto font-mono text-[calc(11rem/16)] px-2 py-0.5 rounded border ${notationColorClass}`,
+            `ml-auto font-mono text-[11px] px-2 py-0.5 rounded border ${notationColorClass}`,
           )}
         >
           {notation}

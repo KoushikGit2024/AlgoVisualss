@@ -33,14 +33,14 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <h3
             key={index}
-            className="text-[calc(13rem/16)] font-semibold text-text/80 mt-4 mb-1.5 uppercase tracking-wide"
+            className="text-[13px] font-semibold text-text/80 mt-4 mb-1.5 uppercase tracking-wide"
           >
             {node.text}
           </h3>
         );
       case "h4":
         return (
-          <h4 key={index} className="text-[calc(13rem/16)] font-medium text-text/70 mt-3 mb-1">
+          <h4 key={index} className="text-[13px] font-medium text-text/70 mt-3 mb-1">
             {node.text}
           </h4>
         );
@@ -50,7 +50,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <p
             key={index}
-            className="text-[calc(13rem/16)] leading-relaxed text-muted mb-3 last:mb-0"
+            className="text-[13px] leading-relaxed text-muted mb-3 last:mb-0"
           >
             {node.text}
           </p>
@@ -61,7 +61,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <blockquote
             key={index}
-            className="border-l-[3px] border-accent bg-accent/5 px-3 py-2 my-3 rounded-r-md italic text-[calc(13rem/16)] text-muted leading-relaxed"
+            className="border-l-[3px] border-accent bg-accent/5 px-3 py-2 my-3 rounded-r-md italic text-[13px] text-muted leading-relaxed"
           >
             {node.text}
           </blockquote>
@@ -72,7 +72,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <ul
             key={index}
-            className="list-disc pl-5 mb-3 text-[calc(13rem/16)] text-muted space-y-1.5 last:mb-0"
+            className="list-disc pl-5 mb-3 text-[13px] text-muted space-y-1.5 last:mb-0"
           >
             {node.items.map((item, i) => (
               <li key={i} className="leading-relaxed">
@@ -85,7 +85,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <ol
             key={index}
-            className="list-decimal pl-5 mb-3 text-[calc(13rem/16)] text-muted space-y-1.5 last:mb-0"
+            className="list-decimal pl-5 mb-3 text-[13px] text-muted space-y-1.5 last:mb-0"
           >
             {node.items.map((item, i) => (
               <li key={i} className="leading-relaxed">
@@ -98,7 +98,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
       /* ── Definition list ───────────────────────────────────────────── */
       case "dl":
         return (
-          <dl key={index} className="mb-3 flex flex-col gap-2 text-[calc(13rem/16)]">
+          <dl key={index} className="mb-3 flex flex-col gap-2 text-[13px]">
             {node.items.map((item, i) => (
               <div key={i} className="bg-surface-2 p-2.5 rounded-md border border-border">
                 <dt className="font-semibold text-accent mb-0.5">{item.term}</dt>
@@ -122,7 +122,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
                 <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
                 <span className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
               </div>
-              <span className="font-mono text-[calc(10rem/16)] text-muted uppercase tracking-widest">
+              <span className="font-mono text-[10px] text-muted uppercase tracking-widest">
                 {node.language || "text"}
               </span>
             </div>
@@ -210,7 +210,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
             <div>
               <span
                 className={cn(
-                  `${c.labelClass} font-mono text-[calc(10rem/16)] tracking-widest mr-2`,
+                  `${c.labelClass} font-mono text-[10px] tracking-widest mr-2`,
                 )}
               >
                 {c.label}
@@ -227,7 +227,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <div
             key={index}
-            className="font-mono text-accent my-3 p-3 bg-surface-2 border border-border rounded-lg text-center text-[calc(13rem/16)]"
+            className="font-mono text-accent my-3 p-3 bg-surface-2 border border-border rounded-lg text-center text-[13px]"
           >
             {node.text}
           </div>
