@@ -34,6 +34,7 @@ export default function HomePage() {
           applicationSubCategory: "ProgrammingEnvironment",
           operatingSystem: "All",
           browserRequirements: "Requires JavaScript",
+          keywords: "DSA visualizer, Data structures visualizer, Algorithm visualizer, Algorithm animation, Interactive DSA visualizer, Code execution visualizer, modern DSA dashboard, dark algorithm visualizer, algorithm simulator, step-by-step algorithm UI, tree visualization, graph algorithm animation, C++ code visualizer, React algorithm visualizer, advanced algorithm visualizer, program execution visualization",
           audience: {
             "@type": "EducationalAudience",
           },
