@@ -5,8 +5,7 @@ const Visualizer = () => {
     <div>
       <SEO
         title="Code Visualizer"
-        description="Visualize execution for specific problem IDs."
-        noindex={true}
+        description="Visualize C++ algorithm execution step-by-step with real-time memory and data structure tracking."
       />
       Visualizer
     </div>

@@ -8,6 +8,8 @@ function generateSitemap() {
   const staticRoutes = [
     '/',
     '/algorithms',
+    '/visualizer',
+    '/editor',
   ];
 
   const dynamicRoutes: string[] = [];

@@ -15,7 +15,7 @@ int main() {
   });
   return (
     <>
-      <SEO title="Editor" description="Code editor sandbox." noindex={true} />
+      <SEO title="Interactive Editor" description="Interactive C++ code editor sandbox with real-time algorithmic execution and compilation." />
       <Suspense
         fallback={
           <div className="w-full h-screen flex items-center justify-center text-muted">

@@ -14,7 +14,7 @@ export default function SEO({
   title,
   description,
   canonical,
-  ogImage = "https://algovisuals-na1c.onrender.com/og-image.jpg",
+  ogImage = "https://algovisuals-na1c.onrender.com/og-image.png",
   ogType = "website",
   jsonLd,
   noindex = false,
@@ -32,7 +32,7 @@ export default function SEO({
       {noindex ? (
         <meta name="robots" content="noindex,follow" />
       ) : (
-        <meta name="robots" content="index,follow" />
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
       )}
 
       {/* Open Graph */}

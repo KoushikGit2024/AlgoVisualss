@@ -122,14 +122,14 @@ int main() {
       "@type": "Person",
       name: "Koushik",
     },
-    publisher: {
-      "@type": "Organization",
-      name: "AlgoVisuals",
-      logo: {
-        "@type": "ImageObject",
-        url: "https://algovisuals-na1c.onrender.com/logo.png",
+      publisher: {
+        "@type": "Organization",
+        name: "AlgoVisuals",
+        logo: {
+          "@type": "ImageObject",
+          url: "https://algovisuals-na1c.onrender.com/icon.svg",
+        },
       },
-    },
     datePublished: "2024-01-01T00:00:00Z",
     dateModified: new Date().toISOString().split("T")[0] + "T00:00:00Z",
   };
