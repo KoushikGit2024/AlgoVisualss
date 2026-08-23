@@ -4,8 +4,9 @@
     <meta charset="UTF-8" />
 
     <!-- Primary -->
-    <title>Interactive Algorithm & C++ Code Visualizer | AlgoVisuals</title>
+    <title data-rh="true">Interactive Algorithm & C++ Code Visualizer | AlgoVisuals</title>
     <meta
+      data-rh="true"
       name="description"
       content="Interactive DSA visualizer and algorithm simulator. Master Data Structures and Algorithms with real-time C++ code execution, step-by-step animations, dynamic memory tracking, and modern dark UI. Explore sorting, graphs, trees, and dynamic programming."
     />
@@ -13,6 +14,7 @@
 
     <!-- Search Engines -->
     <meta
+      data-rh="true"
       name="robots"
       content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
     />
@@ -21,6 +23,7 @@
 
     <!-- Canonical -->
     <link
+      data-rh="true"
       rel="canonical"
       href="https://algovisuals-na1c.onrender.com/"
     />
@@ -45,38 +48,44 @@
     />
 
     <!-- Open Graph -->
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="AlgoVisuals" />
-    <meta property="og:title" content="Interactive Algorithm & C++ Code Visualizer | AlgoVisuals" />
+    <meta data-rh="true" property="og:type" content="website" />
+    <meta data-rh="true" property="og:site_name" content="AlgoVisuals" />
+    <meta data-rh="true" property="og:title" content="Interactive Algorithm & C++ Code Visualizer | AlgoVisuals" />
     <meta
+      data-rh="true"
       property="og:description"
       content="Interactive DSA visualizer and algorithm simulator. Master Data Structures and Algorithms with real-time C++ code execution, step-by-step animations, dynamic memory tracking, and modern dark UI."
     />
     <meta
+      data-rh="true"
       property="og:url"
       content="https://algovisuals-na1c.onrender.com/"
     />
     <meta
+      data-rh="true"
       property="og:image"
       content="https://algovisuals-na1c.onrender.com/og-image.png"
     />
     <meta
+      data-rh="true"
       property="og:image:secure_url"
       content="https://algovisuals-na1c.onrender.com/og-image.png"
     />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:type" content="image/png" />
-    <meta property="og:locale" content="en_US" />
+    <meta data-rh="true" property="og:image:width" content="1200" />
+    <meta data-rh="true" property="og:image:height" content="630" />
+    <meta data-rh="true" property="og:image:type" content="image/png" />
+    <meta data-rh="true" property="og:locale" content="en_US" />
 
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Interactive Algorithm & C++ Code Visualizer | AlgoVisuals" />
+    <meta data-rh="true" name="twitter:card" content="summary_large_image" />
+    <meta data-rh="true" name="twitter:title" content="Interactive Algorithm & C++ Code Visualizer | AlgoVisuals" />
     <meta
+      data-rh="true"
       name="twitter:description"
       content="Interactive DSA visualizer and algorithm simulator. Master Data Structures and Algorithms with real-time C++ code execution, step-by-step animations, dynamic memory tracking, and modern dark UI."
     />
     <meta
+      data-rh="true"
       name="twitter:image"
       content="https://algovisuals-na1c.onrender.com/og-image.png"
     />
@@ -272,6 +281,12 @@
         <div class="loader-text">Loading Workspace</div>
       </div>
     </div>
+    <script>
+      // Prevent react-helmet-async from duplicating static tags
+      document.querySelectorAll('[data-rh="true"]').forEach(function(el) {
+        el.remove();
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

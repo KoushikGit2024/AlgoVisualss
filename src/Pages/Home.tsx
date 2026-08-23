@@ -67,7 +67,6 @@ export default function HomePage() {
       {/* ─── Clean Background ─── */}
       {/* ─── Hero Section ─── */}
       <section className="relative flex flex-col items-center justify-center w-full px-6 pt-32 pb-24 text-center">
-        {/* The Animated Raining Text Background */}
         <NetworkBackground />
 
         <div className="relative z-10 flex flex-col items-center">
