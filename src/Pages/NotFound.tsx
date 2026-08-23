@@ -108,7 +108,7 @@ export default function NotFound() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.5 }}
-        className="mt-3 text-[calc(11rem/16)] font-mono font-semibold uppercase tracking-[0.15em]"
+        className="mt-3 text-[11px] font-mono font-semibold uppercase tracking-[0.15em]"
         style={{ color: "var(--accent-3)" }}
       >
         Node unreachable · 404
@@ -149,7 +149,7 @@ export default function NotFound() {
         </Link>
         <Link
           to="/algorithms"
-          className="px-5 py-2.5 rounded-full text-sm font-medium border transition-colors duration-150 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+          className="px-5 py-2.5 rounded-full text-sm font-medium border transition-colors duration-150 hover:border-(--accent) hover:text-(--accent)"
           style={{ borderColor: "var(--border)", color: "var(--muted)" }}
         >
           Browse algorithms

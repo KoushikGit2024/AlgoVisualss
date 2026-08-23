@@ -29,7 +29,7 @@ export function VisualGroundToolbar({
     <div className="w-full bg-surface-2 border border-border rounded-sm p-1.5 flex flex-col gap-1.5 shrink-0 mt-auto shadow-sm">
       {/* Progress track */}
       <div className="flex items-center gap-2 w-full px-1">
-        <span className="text-[calc(9rem/16)] font-mono text-muted whitespace-nowrap min-w-[35px]">
+        <span className="text-[9px] font-mono text-muted whitespace-nowrap min-w-8.75">
           {snapshotsLength > 0 ? currentStep + 1 : 0} / {snapshotsLength}
         </span>
         <input
@@ -42,6 +42,8 @@ export function VisualGroundToolbar({
             setCurrentStep(parseInt(e.target.value));
           }}
           disabled={snapshotsLength === 0}
+          title="Simulation progress"
+          aria-label="Simulation progress"
           className="flex-1 h-1 bg-bg rounded-full border border-border accent-accent cursor-pointer disabled:opacity-50"
         />
       </div>
@@ -56,6 +58,7 @@ export function VisualGroundToolbar({
             }}
             disabled={snapshotsLength === 0}
             title="Restart Visualization"
+            aria-label="Restart Visualization"
             className="p-1 bg-surface border border-border hover:bg-surface-2 hover:text-accent disabled:opacity-50 rounded-sm text-text transition-all"
           >
             <RotateCcw size={10} />
@@ -65,7 +68,7 @@ export function VisualGroundToolbar({
             disabled={isCompiling}
             title="Compile & Simulate"
             className={cn(
-              `px-2 py-1 text-white border border-transparent rounded-sm text-[calc(9rem/16)] font-bold transition-all shadow-sm flex items-center gap-1 ${
+              `px-2 py-1 text-white border border-transparent rounded-sm text-[9px] font-bold transition-all shadow-sm flex items-center gap-1 ${
                 isCompiling ? "bg-accent/50 cursor-not-allowed" : "bg-accent hover:bg-accent-2"
               }`,
             )}
@@ -86,6 +89,8 @@ export function VisualGroundToolbar({
               setIsPlaying(false);
               setCurrentStep((s) => Math.max(0, s - 1));
             }}
+            title="Previous step"
+            aria-label="Previous step"
             className="p-1 bg-surface border border-border hover:bg-surface-2 hover:text-accent rounded-sm disabled:opacity-50 transition-colors"
           >
             <SkipBack size={10} fill="currentColor" />
@@ -93,6 +98,8 @@ export function VisualGroundToolbar({
           <button
             disabled={snapshotsLength === 0}
             onClick={() => setIsPlaying(!isPlaying)}
+            title={isPlaying ? "Pause" : "Play"}
+            aria-label={isPlaying ? "Pause execution" : "Play execution"}
             className={cn(
               `p-1.5 rounded-sm text-white transition-all shadow-md disabled:opacity-50 ${
                 isPlaying ? "bg-orange-500 hover:bg-orange-600" : "bg-success hover:bg-emerald-500"
@@ -111,6 +118,8 @@ export function VisualGroundToolbar({
               setIsPlaying(false);
               setCurrentStep((s) => Math.min(snapshotsLength - 1, s + 1));
             }}
+            title="Next step"
+            aria-label="Next step"
             className="p-1 bg-surface border border-border hover:bg-surface-2 hover:text-accent rounded-sm disabled:opacity-50 transition-colors"
           >
             <SkipForward size={10} fill="currentColor" />
@@ -120,6 +129,8 @@ export function VisualGroundToolbar({
         <div className="flex items-center gap-1">
           <input
             type="range"
+            title="Animation speed"
+            aria-label="Animation speed"
             className="w-16 accent-accent h-1 bg-border rounded cursor-pointer"
             onChange={(e) => setSpeed(parseFloat(e.target.value))}
             min={1}
@@ -130,7 +141,9 @@ export function VisualGroundToolbar({
           <div className="flex items-center">
             <input
               type="number"
-              className="w-10 bg-transparent hover:bg-surface focus:bg-surface border border-transparent hover:border-border focus:border-accent text-[calc(9rem/16)] text-accent font-mono rounded-sm px-1 py-0.5 text-right outline-none transition-all"
+              title="Animation speed in milliseconds"
+              aria-label="Animation speed in milliseconds"
+              className="w-10 bg-transparent hover:bg-surface focus:bg-surface border border-transparent hover:border-border focus:border-accent text-[9px] text-accent font-mono rounded-sm px-1 py-0.5 text-right outline-none transition-all"
               style={{ WebkitAppearance: "none", MozAppearance: "textfield" }}
               onChange={(e) => {
                 const val = parseInt(e.target.value);
@@ -140,7 +153,7 @@ export function VisualGroundToolbar({
               max={1000}
               value={speed}
             />
-            <span className="text-[calc(9rem/16)] text-accent font-mono pr-1">ms</span>
+            <span className="text-[9px] text-accent font-mono pr-1">ms</span>
           </div>
         </div>
       </div>

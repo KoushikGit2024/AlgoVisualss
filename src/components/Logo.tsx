@@ -4,6 +4,8 @@ export default function Logo() {
   return (
     <Link
       to="/"
+      title="Home"
+      aria-label="AlgoVisuals Home"
       className="flex items-center gap-2 shrink-0 transition-opacity hover:opacity-80 group"
     >
       <svg
@@ -13,7 +15,6 @@ export default function Logo() {
         xmlns="http://www.w3.org/2000/svg"
       >
         <g transform="translate(12, 10)">
-          {/* Connecting lines */}
           <g
             stroke="var(--accent)"
             strokeWidth="1.5"
@@ -29,7 +30,6 @@ export default function Logo() {
             <line x1="44" y1="40" x2="70" y2="32" />
           </g>
 
-          {/* Nodes */}
           <circle
             cx="18"
             cy="32"

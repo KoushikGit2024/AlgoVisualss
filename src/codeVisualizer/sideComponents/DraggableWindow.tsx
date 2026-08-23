@@ -175,6 +175,7 @@ export function DraggableWindow({
           <button
             onClick={toggleMinimize}
             title={windowState.isMinimized ? "Restore" : "Minimise"}
+            aria-label={windowState.isMinimized ? "Restore window" : "Minimize window"}
             className="p-1 hover:bg-surface rounded text-muted hover:text-text transition-colors"
           >
             <Minimize2 size={10} />
@@ -182,6 +183,7 @@ export function DraggableWindow({
           <button
             onClick={toggleMaximize}
             title={windowState.isMaximized ? "Restore" : "Maximise"}
+            aria-label={windowState.isMaximized ? "Restore window" : "Maximize window"}
             className="p-1 hover:bg-surface rounded text-muted hover:text-text transition-colors"
           >
             <Maximize2 size={10} />
@@ -195,8 +197,6 @@ export function DraggableWindow({
           `flex-1 overflow-auto styled-scrollbar p-2 relative flex flex-col ${!cornerAnchor && "min-h-25"}`,
         )}
       >
-        {/* m-auto centers when content fits; collapses to 0 when content overflows,
-            left-aligning it so the left edge is never clipped */}
 
         <div className="m-auto min-w-full min-h-full flex flex-col">{children}</div>
       </div>

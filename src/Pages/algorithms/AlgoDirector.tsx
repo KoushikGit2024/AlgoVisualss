@@ -50,7 +50,7 @@ export default function AlgoDirector() {
   const filteredPatt = filtered.reduce((s, a) => s + (a.items?.length || 0), 0);
 
   return (
-    <div className="min-h-screen bg-[var(--bg,#0D0B14)] text-[var(--text,#EDE9FF)] font-['Syne',system-ui,sans-serif] relative overflow-x-hidden">
+    <div className="min-h-screen bg-(--bg,#0D0B14) text-(--text,#EDE9FF) font-['Syne',system-ui,sans-serif] relative overflow-x-hidden">
       <SEO
         title="Algorithm Reference Index"
         description="Explore our comprehensive library of algorithms and data structures. Filter by complexity and discover patterns."
@@ -69,29 +69,29 @@ export default function AlgoDirector() {
         }}
       />
       {/* Background Grid Pattern */}
-      <div className="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(circle,rgba(129,140,248,0.055)_1px,transparent_1px)] bg-[size:28px_28px]" />
+      <div className="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(circle,rgba(129,140,248,0.055)_1px,transparent_1px)] bg-size-[28px_28px]" />
 
-      <div className="relative z-10 max-w-[1280px] mx-auto px-[18px] pt-[32px] pb-[64px] sm:px-[28px] sm:pt-[48px] sm:pb-[100px]">
+      <div className="relative z-10 max-w-7xl mx-auto px-4.5 pt-8 pb-16 sm:px-7 sm:pt-12 sm:pb-25">
         {/* ── Header ── */}
         <header
           className="mb-10"
           style={{ animation: "adHdr 0.55s cubic-bezier(0.2,0,0,1) forwards" }}
         >
-          <div className="inline-flex items-center gap-[10px] font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(10rem/16)] text-[var(--accent,#818CF8)] uppercase tracking-[0.2em] mb-4">
+          <div className="inline-flex items-center gap-2.5 font-['JetBrains_Mono','Fira_Code',monospace] text-[10px] text-(--accent,#818CF8) uppercase tracking-[0.2em] mb-4">
             <span
-              className="w-[5px] h-[5px] rounded-full bg-[var(--accent,#818CF8)] shrink-0"
+              className="w-1.25 h-1.25 rounded-full bg-(--accent,#818CF8) shrink-0"
               style={{ animation: "adBlink 2.4s ease-in-out infinite" }}
               aria-hidden="true"
             />
             Algorithm Reference Index
           </div>
 
-          <h1 className="text-[clamp(32px,5vw,48px)] font-bold leading-[1.1] tracking-[-0.02em] mb-4 text-[var(--text,#EDE9FF)]">
+          <h1 className="text-[clamp(32px,5vw,48px)] font-bold leading-[1.1] tracking-[-0.02em] mb-4 text-(--text,#EDE9FF)">
             Algorithm Reference
           </h1>
 
           <div
-            className="w-full h-px bg-[var(--border,#2A2445)] my-4"
+            className="w-full h-px bg-(--border,#2A2445) my-4"
             style={{ animation: "adFade 0.6s ease 0.3s both" }}
             role="separator"
           />
@@ -100,15 +100,15 @@ export default function AlgoDirector() {
             className="flex items-center gap-0 flex-wrap"
             style={{ animation: "adFade 0.5s ease 0.25s both" }}
           >
-            <div className="font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(11rem/16)] sm:text-[calc(12rem/16)] text-[var(--muted,#6B6487)] px-[12px] sm:px-[18px] border-r border-[var(--border,#2A2445)] first:pl-0">
-              <strong className="text-[var(--text,#EDE9FF)] font-medium">{ALGODATA.length}</strong>{" "}
+            <div className="font-['JetBrains_Mono','Fira_Code',monospace] text-[11px] sm:text-[12px] text-(--muted,#6B6487) px-3 sm:px-4.5 border-r border-(--border,#2A2445) first:pl-0">
+              <strong className="text-(--text,#EDE9FF) font-medium">{ALGODATA.length}</strong>{" "}
               topics
             </div>
-            <div className="font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(11rem/16)] sm:text-[calc(12rem/16)] text-[var(--muted,#6B6487)] px-[12px] sm:px-[18px] border-r border-[var(--border,#2A2445)]">
-              <strong className="text-[var(--text,#EDE9FF)] font-medium">{totalPatterns}</strong>{" "}
+            <div className="font-['JetBrains_Mono','Fira_Code',monospace] text-[11px] sm:text-[12px] text-(--muted,#6B6487) px-3 sm:px-4.5 border-r border-(--border,#2A2445)">
+              <strong className="text-(--text,#EDE9FF) font-medium">{totalPatterns}</strong>{" "}
               patterns
             </div>
-            <div className="font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(11rem/16)] sm:text-[calc(12rem/16)] text-[var(--muted,#6B6487)] px-[12px] sm:px-[18px]">
+            <div className="font-['JetBrains_Mono','Fira_Code',monospace] text-[11px] sm:text-[12px] text-(--muted,#6B6487)] px-3 sm:px-4.5">
               v2.1
             </div>
           </div>
@@ -121,13 +121,13 @@ export default function AlgoDirector() {
         >
           <div className="relative">
             <span
-              className="absolute left-4 top-1/2 -translate-y-1/2 font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(15rem/16)] text-[var(--accent,#818CF8)] pointer-events-none select-none opacity-50"
+              className="absolute left-4 top-1/2 -translate-y-1/2 font-['JetBrains_Mono','Fira_Code',monospace] text-[15px] text-(--accent,#818CF8) pointer-events-none select-none opacity-50"
               aria-hidden="true"
             >
               /
             </span>
             <input
-              className="w-full py-[13px] pr-4 pl-10 bg-[var(--surface,#13101F)] border border-[var(--border,#2A2445)] rounded-[10px] text-[var(--text,#EDE9FF)] font-['JetBrains_Mono','Fira_Code',monospace] text-[13.5px] outline-none transition-[border-color,box-shadow] duration-200 caret-[var(--accent,#818CF8)] placeholder:text-[rgba(107,100,135,0.5)] focus:border-[var(--accent,#818CF8)] focus:shadow-[0_0_0_3px_rgba(129,140,248,0.08)]"
+              className="w-full py-3.25 pr-4 pl-10 bg-(--surface,#13101F) border border-(--border,#2A2445) rounded-[10px] text-(--text,#EDE9FF) font-['JetBrains_Mono','Fira_Code',monospace] text-[13.5px] outline-none transition-[border-color,box-shadow] duration-200 caret-(--accent,#818CF8) placeholder:text-[rgba(107,100,135,0.5)] focus:border-(--accent,#818CF8) focus:shadow-[0_0_0_3px_rgba(129,140,248,0.08)]"
               placeholder="search topics and patterns…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -135,15 +135,15 @@ export default function AlgoDirector() {
             />
           </div>
 
-          <div className="flex gap-[6px] flex-wrap" role="group" aria-label="Filter by complexity">
+          <div className="flex gap-1.5 flex-wrap" role="group" aria-label="Filter by complexity">
             {FILTERS.map((f) => (
               <button
                 key={f.label}
                 className={cn(
-                  `font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(11rem/16)] px-[14px] py-[5px] rounded-[7px] border bg-transparent cursor-pointer transition-colors duration-150 tracking-[0.04em] hover:border-[var(--accent,#818CF8)] hover:text-[var(--accent,#818CF8)] ${
+                  `font-['JetBrains_Mono','Fira_Code',monospace] text-[11px] px-3.5 py-1.25 rounded-[7px] border bg-transparent cursor-pointer transition-colors duration-150 tracking-[0.04em] hover:border-(--accent,#818CF8) hover:text-(--accent,#818CF8) ${
                     activeFilter === f.label
-                      ? "bg-[rgba(129,140,248,0.10)] border-[var(--accent,#818CF8)] text-[var(--accent,#818CF8)]"
-                      : "border-[var(--border,#2A2445)] text-[var(--muted,#6B6487)]"
+                      ? "bg-[rgba(129,140,248,0.10)] border-(--accent,#818CF8) text-(--accent,#818CF8)"
+                      : "border-(--border,#2A2445) text-(--muted,#6B6487)"
                   }`,
                 )}
                 onClick={() => setActiveFilter(f.label)}
@@ -156,7 +156,7 @@ export default function AlgoDirector() {
         </div>
 
         <div
-          className="flex items-center justify-between mb-[18px] font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(11rem/16)] text-[rgba(107,100,135,0.6)] tracking-[0.06em]"
+          className="flex items-center justify-between mb-4.5 font-['JetBrains_Mono','Fira_Code',monospace] text-[11px] text-[rgba(107,100,135,0.6)] tracking-[0.06em]"
           style={{ animation: "adFade 0.4s ease both" }}
           aria-live="polite"
         >
@@ -167,10 +167,10 @@ export default function AlgoDirector() {
         </div>
 
         {/* ── Grid ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-2 sm:gap-[10px]">
+        <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-2 sm:gap-2.5">
           {filtered.length === 0 ? (
-            <div className="col-span-full py-[90px] text-center text-[rgba(107,100,135,0.4)]">
-              <span className="text-[calc(38rem/16)] block mb-3.5 opacity-40" aria-hidden="true">
+            <div className="col-span-full py-22.5 text-center text-[rgba(107,100,135,0.4)]">
+              <span className="text-[38px] block mb-3.5 opacity-40" aria-hidden="true">
                 ◌
               </span>
               <p className="font-['JetBrains_Mono','Fira_Code',monospace] text-xs tracking-[0.06em]">
@@ -201,7 +201,7 @@ function AlgoCard({ algo, index, mounted }: AlgoCardProps) {
   return (
     <a
       href={algo.href}
-      className="group relative flex flex-col h-full bg-[var(--surface,#13101F)] border border-[var(--border,#2A2445)] rounded-xl py-[22px] px-6 cursor-pointer overflow-hidden opacity-0 no-underline transition-all duration-[0.22s] ease-in-out hover:border-[rgba(129,140,248,0.25)] hover:bg-[var(--surface-2,#1A1630)] hover:-translate-y-[3px] hover:shadow-[0_18px_52px_rgba(0,0,0,0.38)]"
+      className="group relative flex flex-col h-full bg-(--surface,#13101F) border border-(--border,#2A2445) rounded-xl py-5.5 px-6 cursor-pointer overflow-hidden opacity-0 no-underline transition-all duration-[0.22s] ease-in-out hover:border-[rgba(129,140,248,0.25)] hover:bg-(--surface-2,#1A1630) hover:-translate-y-0.75 hover:shadow-[0_18px_52px_rgba(0,0,0,0.38)]"
       style={{
         animation: mounted
           ? `adCard 0.45s cubic-bezier(0.2,0,0,1) ${index * 42}ms forwards`
@@ -211,60 +211,60 @@ function AlgoCard({ algo, index, mounted }: AlgoCardProps) {
       aria-label={`${algo.name} — ${algo.complexity}`}
     >
       {/* Left hover accent bar */}
-      <div className="absolute left-0 top-[24%] bottom-[24%] w-[2px] bg-[var(--accent,#818CF8)] rounded-r-[2px] opacity-0 transition-all duration-[0.22s] ease-in-out group-hover:opacity-100 group-hover:top-[16%] group-hover:bottom-[16%]" />
+      <div className="absolute left-0 top-[24%] bottom-[24%] w-0.5 bg-(--accent,#818CF8) rounded-r-xs opacity-0 transition-all duration-[0.22s] ease-in-out group-hover:opacity-100 group-hover:top-[16%] group-hover:bottom-[16%]" />
 
       {/* Background Number */}
       <span
-        className="absolute -bottom-[6px] right-[10px] font-['Syne',system-ui,sans-serif] font-extrabold text-[calc(72rem/16)] text-[rgba(129,140,248,0.04)] leading-none pointer-events-none select-none transition-colors duration-[0.22s] ease-in-out group-hover:text-[rgba(129,140,248,0.065)]"
+        className="absolute -bottom-1.5 right-2.5 font-['Syne',system-ui,sans-serif] font-extrabold text-[72px] text-[rgba(129,140,248,0.04)] leading-none pointer-events-none select-none transition-colors duration-[0.22s] ease-in-out group-hover:text-[rgba(129,140,248,0.065)]"
         aria-hidden="true"
       >
         {patternCount}
       </span>
 
       <span
-        className="absolute top-[18px] right-[18px] font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(10rem/16)] text-[var(--border,#2A2445)] tracking-[0.06em] transition-colors duration-[0.22s] ease-in-out group-hover:text-[rgba(129,140,248,0.35)]"
+        className="absolute top-4.5 right-4.5 font-['JetBrains_Mono','Fira_Code',monospace] text-[10px] text-(--border,#2A2445) tracking-[0.06em] transition-colors duration-[0.22s] ease-in-out group-hover:text-[rgba(129,140,248,0.35)]"
         aria-hidden="true"
       >
         {String(index + 1).padStart(2, "0")}
       </span>
 
       {/* Animated Icons */}
-      <div className="relative w-8 h-8 mb-5 text-[var(--accent,#818CF8)]" aria-hidden="true">
-        <div className="absolute inset-0 flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] opacity-100 translate-y-0 scale-100 group-hover:opacity-0 group-hover:-translate-y-2.5 group-hover:scale-[0.85] [&>svg]:w-full [&>svg]:h-full">
+      <div className="relative w-8 h-8 mb-5 text-(--accent,#818CF8)" aria-hidden="true">
+        <div className="absolute inset-0 flex items-center justify-center transition-all duration-300 ease-in-out opacity-100 translate-y-0 scale-100 group-hover:opacity-0 group-hover:-translate-y-2.5 group-hover:scale-[0.85] [&>svg]:w-full [&>svg]:h-full">
           <CategoryIcon name={algo.iconId} />
         </div>
-        <div className="absolute inset-0 flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] opacity-0 translate-y-2.5 scale-[0.85] group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-100 [&>svg]:w-full [&>svg]:h-full">
+        <div className="absolute inset-0 flex items-center justify-center transition-all duration-300 ease-in-out opacity-0 translate-y-2.5 scale-[0.85] group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-100 [&>svg]:w-full [&>svg]:h-full">
           <CategoryIcon name={algo.hoverIconId || algo.iconId} hover={true} />
         </div>
       </div>
 
       {!algo.featured && (
         <div className="flex gap-1.5 mb-3">
-          <span className="font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(9rem/16)] uppercase tracking-[0.12em] text-[var(--accent,#818CF8)] border border-[rgba(129,140,248,0.25)] py-[2px] px-2 rounded-[4px]">
+          <span className="font-['JetBrains_Mono','Fira_Code',monospace] text-[9px] uppercase tracking-[0.12em] text-(--accent,#818CF8) border border-[rgba(129,140,248,0.25)] py-0.5 px-2 rounded-sm">
             Under Development
           </span>
         </div>
       )}
 
       {/* Title wrap to ensure the underline hugs the text length */}
-      <div className="mb-[7px]">
-        <h2 className="text-[calc(17rem/16)] font-bold text-[var(--text,#EDE9FF)] tracking-[-0.025em] leading-[1.2] relative inline-block">
+      <div className="mb-1.75">
+        <h2 className="text-[17px] font-bold text-(--text,#EDE9FF) tracking-tight leading-[1.2] relative inline-block">
           {algo.name}
-          <span className="absolute left-0 -bottom-[3px] w-full h-[2px] bg-[var(--success,#34D399)] origin-right scale-x-0 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-x-100 group-hover:origin-left" />
+          <span className="absolute left-0 -bottom-0.75 w-full h-0.5 bg-(--success,#34D399) origin-right scale-x-0 transition-transform duration-300 ease-in-out group-hover:scale-x-100 group-hover:origin-left" />
         </h2>
       </div>
 
-      <p className="text-[12.5px] text-[var(--muted,#6B6487)] leading-[1.65] mb-[18px] flex-grow transition-colors duration-[0.22s] ease-in-out group-hover:text-[rgba(173,165,195,0.85)]">
+      <p className="text-[12.5px] text-(--muted,#6B6487) leading-[1.65] mb-4.5 grow transition-colors duration-[0.22s] ease-in-out group-hover:text-[rgba(173,165,195,0.85)]">
         {algo.desc}
       </p>
 
-      <div className="flex items-center justify-between border-t border-[var(--border,#2A2445)] pt-[14px] transition-colors duration-[0.22s] ease-in-out group-hover:border-[rgba(129,140,248,0.12)]">
-        <code className="font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(11rem/16)] text-[var(--success,#34D399)] bg-[rgba(52,211,153,0.07)] border border-[rgba(52,211,153,0.14)] py-[3px] px-[9px] rounded-[5px] tracking-[0.02em]">
+      <div className="flex items-center justify-between border-t border-(--border,#2A2445) pt-3.5 transition-colors duration-[0.22s] ease-in-out group-hover:border-[rgba(129,140,248,0.12)]">
+        <code className="font-['JetBrains_Mono','Fira_Code',monospace] text-[11px] text-(--success,#34D399) bg-(--success-muted,#34D39907) border border-(--success-muted,#34D3990F) py-0.75 px-2.25 rounded-[0.3125rem] tracking-[0.02em]">
           {algo.complexity}
         </code>
-        <span className="font-['JetBrains_Mono','Fira_Code',monospace] text-[calc(11rem/16)] text-[rgba(107,100,135,0.55)] flex items-center gap-[6px] transition-colors duration-[0.22s] ease-in-out group-hover:text-[var(--muted,#6B6487)]">
+        <span className="font-['JetBrains_Mono','Fira_Code',monospace] text-[11px] text-(--muted,#6B6487) flex items-center gap-1.5 transition-colors duration-[0.22s] ease-in-out group-hover:text-(--muted,#6B6487)">
           <span
-            className="w-[3px] h-[3px] rounded-full bg-[var(--border,#2A2445)] transition-colors duration-[0.22s] ease-in-out group-hover:bg-[var(--accent,#818CF8)]"
+            className="w-0.75 h-0.75 rounded-full bg-(--border,#2A2445) transition-colors duration-[0.22s] ease-in-out group-hover:bg-(--accent,#818CF8)"
             aria-hidden="true"
           />
           {patternCount} patterns

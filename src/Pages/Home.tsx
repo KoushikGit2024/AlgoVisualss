@@ -109,7 +109,7 @@ export default function HomePage() {
           >
             <Link
               to="/visualizer"
-              className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3.5 rounded-md bg-(--accent) text-[#ffffff] font-bold shadow-sm transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3.5 rounded-md bg-(--accent) text-(--bg) font-bold shadow-sm transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               Launch Visualizer <ChevronRight size={18} aria-hidden="true" />
             </Link>
@@ -160,18 +160,21 @@ export default function HomePage() {
             {/* Minimal Player UI */}
             <div className="mt-10 flex items-center justify-center gap-3 p-3 rounded-md bg-(--surface-2) border border-(--border) w-fit shadow-sm">
               <button
+                title="Pause execution"
                 aria-label="Pause execution"
                 className="p-2 rounded-md text-(--muted) hover:text-(--text) hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent) transition-colors"
               >
                 <Pause size={16} fill="currentColor" aria-hidden="true" />
               </button>
               <button
+                title="Start execution"
                 aria-label="Start execution"
-                className="p-2.5 rounded-md bg-(--accent) text-[#ffffff] hover:opacity-90 transition-opacity"
+                className="p-2.5 rounded-md bg-(--accent) text-(--bg) hover:opacity-90 transition-opacity"
               >
                 <Play size={18} fill="currentColor" aria-hidden="true" />
               </button>
               <button
+                title="Fast forward execution"
                 aria-label="Fast forward execution"
                 className="p-2 rounded-md text-(--muted) hover:text-(--text) hover:bg-[color-mix(in_srgb,var(--text)_10%,transparent)] transition-colors"
               >
@@ -253,7 +256,7 @@ export default function HomePage() {
                 <span className="text-(--muted)">right</span>
                 <span className="text-(--accent) font-bold">9</span>
               </div>
-              <div className="flex items-center gap-2 text-[#ffffff] bg-(--accent) px-2 py-1 -mx-2 rounded">
+              <div className="flex items-center gap-2 text-(--bg) bg-(--accent) px-2 py-1 -mx-2 rounded">
                 <span>▶</span> <span className="font-semibold">mid = 4</span>
               </div>
             </div>
@@ -274,7 +277,7 @@ export default function HomePage() {
           {/* Fixed Contrast: Solid Accent with White Text */}
           <Link
             to="/algorithms"
-            className="px-8 py-3.5 rounded-md bg-(--accent) text-[#ffffff] font-bold shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            className="px-8 py-3.5 rounded-md bg-(--accent) text-(--bg) font-bold shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98]"
           >
             Explore Library
           </Link>

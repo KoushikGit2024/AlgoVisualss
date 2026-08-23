@@ -171,6 +171,7 @@ const CodeEditor = ({
 
       <button
         onClick={handleCopy}
+        aria-label="Copy Code"
         className="absolute top-3 right-4 z-10 p-1.5 bg-surface/80 hover:bg-surface border border-border rounded text-muted hover:text-text opacity-0 group-hover:opacity-100 transition-all backdrop-blur-sm"
         title="Copy Code"
       >

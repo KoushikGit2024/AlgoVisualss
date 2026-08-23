@@ -16,12 +16,12 @@ const Visualizer = lazy(() => import("./Pages/visualizer/Visualizer"));
 
 const Footer = () => {
   return (
-    <footer className="w-full mt-auto border-t border-[var(--border)] bg-[var(--surface)] text-[calc(14rem/16)]">
+    <footer className="w-full mt-auto border-t border-(--border) bg-(--surface) text-[14px]">
       <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Left Side: Brand & Creator */}
-        <div className="text-[var(--muted)] font-medium flex items-center gap-1.5 text-xs sm:text-sm">
+        <div className="text-(--muted) font-medium flex items-center gap-1.5 text-xs sm:text-sm">
           <span>
-            Crafted with passion by <span className="text-[var(--text)] font-bold">Koushik</span>
+            Crafted with passion by <span className="text-(--text) font-bold">Koushik</span>
           </span>
         </div>
 
@@ -30,19 +30,19 @@ const Footer = () => {
           {/* Page Links */}
           <Link
             to="/algorithms"
-            className="text-[var(--muted)] hover:text-[var(--accent)] transition-colors"
+            className="text-(--muted) hover:text-(--accent) transition-colors"
           >
             Algorithms
           </Link>
           <Link
             to="/visualizer"
-            className="text-[var(--muted)] hover:text-[var(--accent)] transition-colors"
+            className="text-(--muted) hover:text-(--accent) transition-colors"
           >
             Visualizer
           </Link>
 
           {/* Subtle Vertical Divider */}
-          <div className="w-px h-4 bg-[var(--border)] hidden sm:block"></div>
+          <div className="w-px h-4 bg-(--border) hidden sm:block"></div>
 
           {/* Social Icon Links */}
           <div className="flex items-center gap-4">
@@ -50,7 +50,7 @@ const Footer = () => {
               href="https://github.com/KoushikGit2024/AlgoVisualss"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[var(--muted)] hover:text-[var(--text)] transition-transform hover:scale-110 duration-200"
+              className="text-(--muted) hover:text-(--text) transition-transform hover:scale-110 duration-200"
               aria-label="GitHub Repository"
             >
               <svg
@@ -72,7 +72,7 @@ const Footer = () => {
               href="https://www.linkedin.com/in/koushik-kar-409489329/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[var(--muted)] hover:text-[#0A66C2] transition-transform hover:scale-110 duration-200"
+              className="text-(--muted) hover:text-[#0A66C2] transition-transform hover:scale-110 duration-200"
               aria-label="LinkedIn Profile"
             >
               <svg
@@ -96,7 +96,7 @@ const Footer = () => {
               href="https://instagram.com/chidanand013"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[var(--muted)] hover:text-[#E4405F] transition-transform hover:scale-110 duration-200"
+              className="text-(--muted) hover:text-[#E4405F] transition-transform hover:scale-110 duration-200"
               aria-label="Instagram Profile"
             >
               <svg
@@ -125,9 +125,9 @@ const App = () => {
     location.pathname.includes("/visualizer/");
 
   return (
-    <div className="h-screen w-full flex flex-col overflow-hidden bg-[var(--bg)] text-[var(--text)] antialiased relative selection:bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] selection:text-[var(--accent)]">
+    <div className="h-screen w-full flex flex-col overflow-hidden bg-(--bg) text-(--text) antialiased relative selection:bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] selection:text-(--accent)">
       {/* Navbar Container */}
-      <div className="h-[64px] shrink-0 w-full z-50 relative">
+      <div className="h-16 shrink-0 w-full z-50 relative">
         <Navbar />
       </div>
 

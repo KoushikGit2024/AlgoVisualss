@@ -66,7 +66,7 @@ export default function GlobalError({ error, reset }: { error: Error; reset: () 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.15 }}
-        className="text-[calc(11rem/16)] font-mono font-semibold uppercase tracking-[0.15em]"
+        className="text-[11px] font-mono font-semibold uppercase tracking-[0.15em]"
         style={{ color: "var(--failure)" }}
       >
         Runtime error
@@ -97,7 +97,7 @@ export default function GlobalError({ error, reset }: { error: Error; reset: () 
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.4 }}
         onClick={reset}
-        className="mt-8 px-6 py-2.5 rounded-sm text-sm font-semibold transition-colors duration-200 border hover:bg-[var(--accent)] hover:text-[var(--bg)]"
+        className="mt-8 px-6 py-2.5 rounded-sm text-sm font-semibold transition-colors duration-200 border hover:bg-(--accent) hover:text-(--text)"
         style={{ borderColor: "var(--accent)", color: "var(--accent)" }}
       >
         Try again

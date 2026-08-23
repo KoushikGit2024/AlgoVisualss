@@ -33,7 +33,7 @@ export function VisualizerWindows({
   return (
     <>
       {Object.keys(groupedStates).length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center text-muted text-[calc(10rem/16)] font-mono opacity-50 flex-col gap-1">
+        <div className="absolute inset-0 flex items-center justify-center text-muted text-[10px] font-mono opacity-50 flex-col gap-1">
           <span>No active data structures detected.</span>
         </div>
       )}
@@ -65,15 +65,15 @@ export function VisualizerWindows({
           >
             <div
               className={cn(
-                "flex flex-wrap gap-4 items-stretch justify-center p-2 min-w-[40px] min-h-[150px] flex-1 w-full h-full",
+                "flex flex-wrap gap-4 items-stretch justify-center p-2 min-w-10 min-h-37.5 flex-1 w-full h-full",
               )}
             >
               {states.map((state) => (
                 <div
                   key={state.id}
-                  className="flex flex-col items-center gap-1 border border-border/50 bg-bg p-2 rounded flex-1 min-w-[350px] max-w-full overflow-hidden"
+                  className="flex flex-col items-center gap-1 border border-border/50 bg-bg p-2 rounded flex-1 min-w-87.5 max-w-full overflow-hidden"
                 >
-                  <span className="text-[calc(10rem/16)] font-mono font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0 max-w-full truncate">
+                  <span className="text-[10px] font-mono font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0 max-w-full truncate">
                     {isStruct ? state.id.substring(state.id.indexOf(".") + 1) : state.id}
                   </span>
                   <div className="flex-1 w-full h-full flex items-center justify-center relative min-w-0 overflow-hidden">

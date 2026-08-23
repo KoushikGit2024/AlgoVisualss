@@ -213,6 +213,8 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
                 setHideMobileWarning(true);
                 localStorage.setItem("hideMobileWarning", "true");
               }}
+              title="Close"
+              aria-label="Close mobile warning"
               className="p-1 hover:bg-orange-500/20 rounded shrink-0 transition-colors"
             >
               <X size={14} />
@@ -256,6 +258,8 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
                   <button
                     key={index}
                     onClick={() => setLang(item)}
+                    title={`Select ${item} language`}
+                    aria-label={`Select ${item} language`}
                     className={cn(
                       `px-3 py-1 text-xs font-mono font-medium transition-all duration-200 cursor-pointer ${
                         lang === item
@@ -275,6 +279,7 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
                   )}
                   <button
                     onClick={handleShowInfo}
+                    aria-label="Visualizer Naming Conventions"
                     className={cn(
                       `p-1 rounded-full transition-colors relative z-10 ${
                         !hasViewedConventions
@@ -307,6 +312,7 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
                 </span>
                 <button
                   onClick={() => setIsEditorCollapsed(true)}
+                  aria-label="Collapse Editor"
                   className="p-1 hover:bg-surface-3 rounded text-muted transition-colors ml-1"
                   title="Collapse Editor"
                 >
@@ -355,6 +361,8 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
                             setIsDropdownOpen(false);
                           }
                         }}
+                        title="Select Snippet"
+                        aria-label="Select Snippet"
                         className="flex items-center justify-between w-40 bg-surface hover:bg-surface-3 text-text text-sm rounded-md border border-border px-3 py-1 transition-colors focus:outline-none shadow-sm"
                       >
                         <span className="truncate font-medium">
@@ -401,6 +409,7 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
                   <div className="flex items-center gap-1 border-l border-border/50 pl-2 ml-1">
                     <button
                       onClick={createSnippet}
+                      aria-label="New Snippet"
                       className="p-1.5 hover:bg-surface-3 rounded-md text-muted hover:text-text transition-colors"
                       title="New Snippet"
                     >
@@ -416,6 +425,7 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
                             setIsDropdownOpen(false);
                           }
                         }}
+                        aria-label="Rename Snippet"
                         className="p-1.5 hover:bg-surface-3 rounded-md text-muted hover:text-text transition-colors"
                         title="Rename Snippet"
                       >
@@ -428,6 +438,7 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
                           deleteSnippet(activeSnippetId!);
                           setIsDropdownOpen(false);
                         }}
+                        aria-label="Delete Current Snippet"
                         className="p-1.5 hover:bg-red-500/10 hover:text-red-500 rounded-md text-muted transition-colors"
                         title="Delete Current Snippet"
                       >
@@ -534,6 +545,7 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setIsVisualizerCollapsed(true)}
+                  aria-label="Collapse Visualizer"
                   className="p-1 hover:bg-surface-3 rounded text-muted transition-colors"
                   title="Collapse Visualizer"
                 >
@@ -575,6 +587,8 @@ const CodeWindow = ({ codeObject }: { codeObject: Record<string, string> }) => {
                 </h2>
                 <button
                   onClick={() => setShowInfo(false)}
+                  title="Close"
+                  aria-label="Close information modal"
                   className="p-1 hover:bg-surface-3 rounded text-muted hover:text-text transition-colors"
                 >
                   <X size={16} />
