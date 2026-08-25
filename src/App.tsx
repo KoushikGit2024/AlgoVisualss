@@ -3,7 +3,7 @@ import "./App.css";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import HomePage from "./Pages/Home";
-import { Routes, Route, Link, useLocation } from "react-router-dom";
+import { Routes, Route, Link, useLocation, useSearchParams } from "react-router-dom";
 import NotFound from "./Pages/NotFound";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import Loader from "./components/Loader";
@@ -16,17 +16,17 @@ const Visualizer = lazy(() => import("./Pages/visualizer/Visualizer"));
 
 const Footer = () => {
   return (
-    <footer className="w-full mt-auto border-t border-(--border) bg-(--surface) text-[14px]">
-      <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+    <footer className="w-full mt-auto border-t border-(--border) bg-(--surface) text-[14px] min-h-[57px] flex flex-col justify-center">
+      <div className="w-full px-[24px] py-[12px] md:py-0 flex flex-col md:flex-row items-center justify-between gap-[12px]">
         {/* Left Side: Brand & Creator */}
-        <div className="text-(--muted) font-medium flex items-center gap-1.5 text-xs sm:text-sm">
+        <div className="text-(--muted) font-medium flex items-center gap-[6px] text-[12px] sm:text-[14px]">
           <span>
             Crafted with passion by <span className="text-(--text) font-bold">Koushik</span>
           </span>
         </div>
 
         {/* Right Side: Links & Socials */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-[24px]">
           {/* Page Links */}
           <Link
             to="/algorithms"
@@ -42,10 +42,10 @@ const Footer = () => {
           </Link>
 
           {/* Subtle Vertical Divider */}
-          <div className="w-px h-4 bg-(--border) hidden sm:block"></div>
+          <div className="w-px h-[16px] bg-(--border) hidden sm:block"></div>
 
           {/* Social Icon Links */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-[16px]">
             <a
               href="https://github.com/KoushikGit2024/AlgoVisualss"
               target="_blank"
@@ -118,16 +118,19 @@ const Footer = () => {
 
 const App = () => {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  const pathParts = location.pathname.split("/").filter(Boolean);
 
   const isCodeWindowOpen =
     location.pathname === "/editor" ||
-    location.pathname.includes("/algorithms/") ||
-    location.pathname.includes("/visualizer/");
+    searchParams.get("openCode") === "true" ||
+    (pathParts[0] === "visualizer" && pathParts.length >= 2);
 
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden bg-(--bg) text-(--text) antialiased relative selection:bg-[color-mix(in_srgb,var(--accent)_20%,transparent)] selection:text-(--accent)">
       {/* Navbar Container */}
-      <div className="h-16 shrink-0 w-full z-50 relative">
+      <div className="h-[64px] shrink-0 w-full z-50 relative">
         <Navbar />
       </div>
 

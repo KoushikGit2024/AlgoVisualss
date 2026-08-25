@@ -89,12 +89,12 @@ export function RecursiveNavNode({
           >
             {/* SVG Swap magic driven by CSS classes */}
             {item.icon && typeof item.icon !== "string" && (
-              <div className="w-5 h-5 flex items-center justify-center shrink-0 text-(--muted) group-hover:hidden transition-opacity">
+              <div className="w-7 h-7 flex items-center justify-center shrink-0 text-(--muted) group-hover:hidden transition-opacity [&>svg]:w-full [&>svg]:h-full p-0.5">
                 {item.icon}
               </div>
             )}
             {item.hoverIcon && (
-              <div className="w-5 h-5 items-center justify-center shrink-0 hidden group-hover:flex">
+              <div className="w-7 h-7 items-center justify-center shrink-0 hidden group-hover:flex [&>svg]:w-full [&>svg]:h-full p-0.5">
                 {item.hoverIcon}
               </div>
             )}

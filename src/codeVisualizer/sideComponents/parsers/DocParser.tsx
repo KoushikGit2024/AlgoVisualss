@@ -198,7 +198,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         );
       case "h2":
         return (
-          <h2 key={index} className="text-base font-semibold text-text mt-5 mb-2 first:mt-0">
+          <h2 key={index} className="text-[1em] font-semibold text-text mt-5 mb-2 first:mt-0">
             {node.text}
           </h2>
         );
@@ -206,14 +206,14 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <h3
             key={index}
-            className="text-[13px] font-semibold text-text/80 mt-4 mb-1.5 uppercase tracking-wide"
+            className="text-[0.8125em] font-semibold text-text/80 mt-4 mb-1.5 uppercase tracking-wide"
           >
             {node.text}
           </h3>
         );
       case "h4":
         return (
-          <h4 key={index} className="text-[13px] font-medium text-text/70 mt-3 mb-1">
+          <h4 key={index} className="text-[0.8125em] font-medium text-text/70 mt-3 mb-1">
             {node.text}
           </h4>
         );
@@ -223,7 +223,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <p
             key={index}
-            className="text-[13px] leading-relaxed text-muted mb-3 last:mb-0"
+            className="text-[0.8125em] leading-relaxed text-muted mb-3 last:mb-0"
           >
             {node.text}
           </p>
@@ -234,7 +234,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <blockquote
             key={index}
-            className="border-l-[3px] border-accent bg-accent/5 px-3 py-2 my-3 rounded-r-md italic text-[13px] text-muted leading-relaxed"
+            className="border-l-[3px] border-accent bg-accent/5 px-3 py-2 my-3 rounded-r-md italic text-[0.8125em] text-muted leading-relaxed"
           >
             {node.text}
           </blockquote>
@@ -245,7 +245,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <ul
             key={index}
-            className="list-disc pl-5 mb-3 text-[13px] text-muted space-y-1.5 last:mb-0"
+            className="list-disc pl-5 mb-3 text-[0.8125em] text-muted space-y-1.5 last:mb-0"
           >
             {node.items.map((item, i) => (
               <li key={i} className="leading-relaxed">
@@ -258,7 +258,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <ol
             key={index}
-            className="list-decimal pl-5 mb-3 text-[13px] text-muted space-y-1.5 last:mb-0"
+            className="list-decimal pl-5 mb-3 text-[0.8125em] text-muted space-y-1.5 last:mb-0"
           >
             {node.items.map((item, i) => (
               <li key={i} className="leading-relaxed">
@@ -271,7 +271,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
       /* ── Definition list ───────────────────────────────────────────── */
       case "dl":
         return (
-          <dl key={index} className="mb-3 flex flex-col gap-2 text-[13px]">
+          <dl key={index} className="mb-3 flex flex-col gap-2 text-[0.8125em]">
             {node.items.map((item, i) => (
               <div key={i} className="bg-surface-2 p-2.5 rounded-md border border-border">
                 <dt className="font-semibold text-accent mb-0.5">{item.term}</dt>
@@ -295,12 +295,12 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
                 <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
                 <span className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
               </div>
-              <span className="font-mono text-[10px] text-muted uppercase tracking-widest">
+              <span className="font-mono text-[0.625em] text-muted uppercase tracking-widest">
                 {node.language || "text"}
               </span>
             </div>
             {/* Code content */}
-            <pre className="p-4 overflow-x-auto text-[12.5px] font-mono text-[#C9D1D9] leading-relaxed styled-scrollbar">
+            <pre className="p-4 overflow-x-auto text-[0.78125em] font-mono text-[#C9D1D9] leading-relaxed styled-scrollbar">
               <code>{node.text}</code>
             </pre>
           </div>
@@ -310,7 +310,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
       case "table":
         return (
           <ScrollableTableWrapper key={index}>
-            <table className="w-full text-left border-collapse text-[12.5px]">
+            <table className="w-full text-left border-collapse text-[0.78125em]">
               <thead>
                 <tr className="bg-surface-2">
                   {node.headers.map((h, i) => (
@@ -368,12 +368,12 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
             <div>
               <span
                 className={cn(
-                  `${c.labelClass} font-mono text-[10px] tracking-widest mr-2`,
+                  `${c.labelClass} font-mono text-[0.625em] tracking-widest mr-2`,
                 )}
               >
                 {c.label}
               </span>
-              <span className="text-[12.5px] leading-relaxed">{node.text}</span>
+              <span className="text-[0.78125em] leading-relaxed">{node.text}</span>
             </div>
           </div>
         );
@@ -385,7 +385,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
         return (
           <div
             key={index}
-            className="font-mono text-accent my-3 p-3 bg-surface-2 border border-border rounded-lg text-center text-[13px]"
+            className="font-mono text-accent my-3 p-3 bg-surface-2 border border-border rounded-lg text-center text-[0.8125em]"
           >
             {node.text}
           </div>
@@ -402,7 +402,7 @@ export const renderNodes = (nodes: ContentBlock, isInsideCard = false) => {
 const CaseDivider = () => (
   <div className="flex items-center gap-2 my-1" role="separator" aria-hidden="true">
     <div className="flex-1 h-px bg-border" />
-    <span className="text-[10px] font-mono text-border tracking-widest">···</span>
+    <span className="text-[0.625em] font-mono text-border tracking-widest">···</span>
     <div className="flex-1 h-px bg-border" />
   </div>
 );
@@ -439,11 +439,11 @@ const ComplexityCard = ({
     {/* Card header */}
     <div className="bg-surface-2 px-4 py-2.5 border-b border-border flex items-center gap-2 shrink-0">
       <span className={cn(`${iconColorClass} shrink-0`)}>{icon}</span>
-      <h2 className="font-semibold text-[13px] text-text">{title}</h2>
+      <h2 className="font-semibold text-[0.8125em] text-text">{title}</h2>
       {notation && (
         <span
           className={cn(
-            `ml-auto font-mono text-[11px] px-2 py-0.5 rounded border ${notationColorClass}`,
+            `ml-auto font-mono text-[0.6875em] px-2 py-0.5 rounded border ${notationColorClass}`,
           )}
         >
           {notation}
@@ -472,11 +472,25 @@ const ComplexityCard = ({
 
 /* ─── Main component ───────────────────────────────────────────────────────── */
 const DocParser = ({ data }: { data: any }) => {
+  const [fontSize, setFontSize] = useState<"sm" | "md" | "lg">(
+    () => (localStorage.getItem("appFontSize") as "sm" | "md" | "lg") || "md"
+  );
+
+  useEffect(() => {
+    const handleFontSizeChange = () => {
+      setFontSize((localStorage.getItem("appFontSize") as "sm" | "md" | "lg") || "md");
+    };
+    window.addEventListener("font-size-change", handleFontSizeChange);
+    return () => window.removeEventListener("font-size-change", handleFontSizeChange);
+  }, []);
+
+  const baseFontSize = fontSize === "sm" ? "13px" : fontSize === "lg" ? "20px" : "16px";
+
   if (!data) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center text-muted p-6 bg-bg">
         <AlertTriangle size={40} className="mb-3 opacity-40" />
-        <p className="font-mono text-sm">No data available.</p>
+        <p className="font-mono text-[0.875em]">No data available.</p>
       </div>
     );
   }
@@ -486,8 +500,8 @@ const DocParser = ({ data }: { data: any }) => {
   if (Array.isArray(data.items)) {
     const topic = data as TopicItem;
     return (
-      <div className="w-full h-full overflow-y-auto styled-scrollbar bg-bg">
-        <article className="max-w-4xl mx-auto px-6 py-8 pb-16">{renderNodes(topic.about)}</article>
+      <div className="w-full h-full overflow-y-auto styled-scrollbar bg-bg" style={{ fontSize: baseFontSize }}>
+        <article className="w-full max-w-[1200px] mx-auto px-6 py-8 pb-16">{renderNodes(topic.about)}</article>
       </div>
     );
   }
@@ -496,18 +510,18 @@ const DocParser = ({ data }: { data: any }) => {
   const sub = data as AlgorithmItem;
 
   return (
-    <div className="w-full h-full overflow-y-auto styled-scrollbar bg-bg">
-      <article className="max-w-4xl mx-auto px-5 py-6 pb-16 flex flex-col gap-7">
+    <div className="w-full h-full overflow-y-auto styled-scrollbar bg-bg" style={{ fontSize: baseFontSize }}>
+      <article className="w-full max-w-[1200px] mx-auto px-5 py-6 pb-16 flex flex-col gap-7">
         <section>
           {sub.about && sub.about.length > 0 && sub.about[0].tag === "h1" ? (
             <div className="flex items-center justify-between mb-3 pb-2 border-b border-border mt-6 first:mt-0">
-              <h1 className="text-xl font-bold text-accent m-0 p-0 border-none">
+              <h1 className="text-[1.25em] font-bold text-accent m-0 p-0 border-none">
                 {sub.about[0].text}
               </h1>
               {sub.type && (
                 <span
                   className={cn(
-                    `shrink-0 inline-block font-mono text-[10px] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border ${
+                    `shrink-0 inline-block font-mono text-[0.625em] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border ${
                       TYPE_STYLES[sub.type] ?? TYPE_STYLES.Medium
                     }`,
                   )}
@@ -520,7 +534,7 @@ const DocParser = ({ data }: { data: any }) => {
             sub.type && (
               <span
                 className={cn(
-                  `inline-block font-mono text-[10px] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border mb-4 ${
+                  `inline-block font-mono text-[0.625em] font-semibold tracking-widest px-2.5 py-0.5 rounded-full border mb-4 ${
                     TYPE_STYLES[sub.type] ?? TYPE_STYLES.Medium
                   }`,
                 )}
@@ -544,7 +558,7 @@ const DocParser = ({ data }: { data: any }) => {
               {/* Section header */}
               <div className="bg-surface-2 px-4 py-2.5 border-b border-border flex items-center gap-2">
                 <Terminal size={15} className="text-accent-3 shrink-0" />
-                <h2 className="font-semibold text-[13px] text-text">
+                <h2 className="font-semibold text-[0.8125em] text-text">
                   Implementation &amp; Reasoning
                 </h2>
               </div>
@@ -581,14 +595,14 @@ const DocParser = ({ data }: { data: any }) => {
           <section className="bg-surface border border-border rounded-lg overflow-hidden">
             <div className="bg-surface-2 px-4 py-2.5 border-b border-border flex items-center gap-2">
               <Lightbulb size={15} className="text-accent-4 shrink-0" />
-              <h2 className="font-semibold text-[13px] text-text">Related Algorithms</h2>
+              <h2 className="font-semibold text-[0.8125em] text-text">Related Algorithms</h2>
             </div>
             <div className="p-4 flex flex-wrap gap-3">
               {sub.related.map((rel, i) => (
                 <a
                   key={i}
                   href={rel.href}
-                  className="font-mono text-[13px] text-accent hover:text-accent-2 transition-colors border border-border rounded px-3 py-1.5 bg-surface-2/50 hover:bg-surface-2"
+                  className="font-mono text-[0.8125em] text-accent hover:text-accent-2 transition-colors border border-border rounded px-3 py-1.5 bg-surface-2/50 hover:bg-surface-2"
                 >
                   {rel.name}
                 </a>
@@ -602,3 +616,4 @@ const DocParser = ({ data }: { data: any }) => {
 };
 
 export default DocParser;
+

@@ -6,8 +6,7 @@ import { cn } from "../lib/utils";
 import SearchPalette from "./SearchPalette";
 import Logo from "./Logo";
 import { NavbarMobileDrawer } from "./navbar/NavbarMobileDrawer";
-import { NavbarThemeDropdown } from "./navbar/NavbarThemeDropdown";
-import { NavbarPaletteDropdown } from "./navbar/NavbarPaletteDropdown";
+import { NavbarSettingsDropdown } from "./navbar/NavbarSettingsDropdown";
 
 const navItems = [
   { name: "Algorithms", href: "/algorithms" },
@@ -107,8 +106,8 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 w-full h-16 border-b border-(--border) bg-[color-mix(in_srgb,var(--bg)_75%,transparent)] backdrop-blur-xl transition-[background,border-color] duration-300 ease-in-out">
-        <div className="flex items-center justify-between h-full px-6 mx-auto max-w-370">
+      <nav className="sticky top-0 z-50 w-full h-[64px] border-b border-(--border) bg-[color-mix(in_srgb,var(--bg)_75%,transparent)] backdrop-blur-xl transition-[background,border-color] duration-300 ease-in-out">
+        <div className="flex items-center justify-between h-full px-[24px] mx-auto max-w-[1480px]">
           <Logo />
 
           <div className="flex items-center gap-6 md:gap-8">
@@ -121,7 +120,7 @@ export default function Navbar() {
                     key={item.name}
                     to={item.href}
                     className={cn(
-                      `relative flex items-center justify-center text-sm font-medium transition-colors duration-200 rounded-lg z-10 hover:text-(--muted) ${
+                      `relative flex items-center justify-center text-[14px] font-medium transition-colors duration-200 rounded-lg z-10 hover:text-(--muted) ${
                         isActive ? "text-(--muted)" : "text-(--muted)"
                       }`,
                     )}
@@ -143,14 +142,14 @@ export default function Navbar() {
             <div className="flex items-center gap-3 border-l border-transparent md:border-(--border) md:pl-6 transition-colors">
               {/* Aesthetic Global Search Mockup (Desktop Only) */}
               <button
-                className="hidden lg:flex items-center gap-3 px-3 py-1.5 h-9.5 rounded-[10px] bg-[color-mix(in_srgb,var(--surface)_50%,transparent)] border border-(--border) text-(--muted) hover:text-(--muted) hover:border-(--border) transition-all duration-200"
+                className="hidden lg:flex items-center gap-[12px] px-[12px] py-[6px] h-[38px] rounded-[10px] bg-[color-mix(in_srgb,var(--surface)_50%,transparent)] border border-(--border) text-(--muted) hover:text-(--muted) hover:border-(--border) transition-all duration-200"
                 onClick={() => setIsSearchOpen(true)}
               >
-                <div className="flex items-center gap-2 text-sm">
+                <div className="flex items-center gap-[8px] text-[14px]">
                   <Search size={15} />
                   <span className="font-normal tracking-tight">Search...</span>
                 </div>
-                <kbd className="hidden xl:flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-(--surface-2) border border-(--border) text-[10px] font-semibold text-(--muted)">
+                <kbd className="hidden xl:flex items-center gap-[4px] px-[6px] py-[2px] rounded-[4px] bg-(--surface-2) border border-(--border) text-[10px] font-semibold text-(--muted)">
                   <Command size={10} /> K
                 </kbd>
               </button>
@@ -160,7 +159,7 @@ export default function Navbar() {
                 href="https://github.com/KoushikGit2024/AlgoVisualss"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden md:flex items-center justify-center w-9.5 h-9.5 rounded-[10px] border border-(--border) bg-transparent text-(--muted) cursor-pointer transition-all duration-200 ease-in-out hover:text-(--muted) hover:border-(--border) hover:bg-[color-mix(in_srgb,var(--surface-2)_50%,transparent)] hover:-translate-y-px hover:shadow-[0_4px_12px_color-mix(in_srgb,var(--text)_5%,transparent)] active:translate-y-px"
+                className="hidden md:flex items-center justify-center w-[38px] h-[38px] rounded-[10px] border border-(--border) bg-transparent text-(--muted) cursor-pointer transition-all duration-200 ease-in-out hover:text-(--muted) hover:border-(--border) hover:bg-[color-mix(in_srgb,var(--surface-2)_50%,transparent)] hover:-translate-y-px hover:shadow-[0_4px_12px_color-mix(in_srgb,var(--text)_5%,transparent)] active:translate-y-px"
                 aria-label="GitHub Repository"
               >
                 <svg
@@ -179,11 +178,8 @@ export default function Navbar() {
                 </svg>
               </a>
 
-              {/* Theme Color Palette Dropdown */}
-              <NavbarPaletteDropdown />
-
-              {/* Theme Palette Dropdown */}
-              <NavbarThemeDropdown
+              {/* Unified Settings Dropdown */}
+              <NavbarSettingsDropdown
                 theme={theme}
                 setTheme={setTheme}
                 dropdownRef={dropdownRef}
@@ -193,7 +189,7 @@ export default function Navbar() {
 
               {/* Mobile Menu Button */}
               <button
-                className="flex items-center justify-center w-9.5 h-9.5 rounded-[10px] border border-transparent bg-transparent text-(--muted) cursor-pointer transition-all duration-200 ease-in-out hover:bg-(--surface-2) hover:border-(--border) active:scale-95 md:hidden"
+                className="flex items-center justify-center w-[38px] h-[38px] rounded-[10px] border border-transparent bg-transparent text-(--muted) cursor-pointer transition-all duration-200 ease-in-out hover:bg-(--surface-2) hover:border-(--border) active:scale-95 md:hidden"
                 onClick={() => setDrawerOpen(true)}
                 aria-label="Open menu"
               >

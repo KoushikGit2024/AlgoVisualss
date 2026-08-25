@@ -114,7 +114,7 @@ export default function Sidebar() {
       animate={{ width: collapsed ? 72 : sidebarWidth }}
       transition={isResizing ? { duration: 0 } : { type: "tween", bounce: 0, duration: 0.4 }}
       className={cn(
-        `h-[calc(100vh-64px)] flex flex-col bg-(--surface) border-r border-(--border) z-20 shrink-0 ${isResizing ? "select-none" : ""}`,
+        `relative h-[calc(100vh-64px)] flex flex-col bg-(--surface) border-r border-(--border) z-20 shrink-0 ${isResizing ? "select-none" : ""}`,
       )}
     >
       {/* Sidebar Header Section */}
@@ -215,7 +215,7 @@ export default function Sidebar() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto px-3 py-2 pb-6 styled-scrollbar">
+      <div className="flex-1 overflow-y-auto px-3 py-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] scrollbar-none">
         {loading ? (
           <SidebarSkeleton />
         ) : isVis && !query && !collapsed && data?.length === 0 ? (
@@ -267,9 +267,11 @@ export default function Sidebar() {
       {/* Drag Handle */}
       <div
         onMouseDown={startResizing}
-        className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-(--accent) active:bg-(--accent) z-50 transition-colors"
+        className="absolute top-0 -right-1 w-2 h-full cursor-col-resize flex items-center justify-center group z-50"
         title="Drag to resize"
-      />
+      >
+        <div className="w-0.5 h-full bg-transparent group-hover:bg-(--accent) transition-colors duration-200" />
+      </div>
     </motion.aside>
   );
 }

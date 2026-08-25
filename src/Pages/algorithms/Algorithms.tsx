@@ -135,7 +135,11 @@ int main() {
   };
 
   return (
-    <div className="relative h-[calc(100vh-64px)] max-h-[calc(100vh-70px)] min-w-0 max-w-full flex flex-col bg-bg">
+    <div
+      className={`relative min-w-0 max-w-full flex flex-col bg-bg ${
+        activeView === "visualizer" ? "h-[calc(100vh-64px)] max-h-[calc(100vh-64px)]" : "flex-1"
+      }`}
+    >
       <SEO
         title={pageTitle as string}
         description={pageDescription}
@@ -151,7 +155,7 @@ int main() {
       )}
 
       {topic && !subTopic && data && (
-        <div className="w-full h-full">
+        <div className="w-full flex-1">
           <DocParser data={data} />
         </div>
       )}

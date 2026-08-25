@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
+import { BookOpen, Code2, Settings, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings, X, BookOpen, Code2 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import ThemeSelector from "../ThemeSelector";
+import { ThemeIcon } from "../navbar/NavbarSettingsDropdown";
 
 interface SidebarFooterProps {
   isAlgo: boolean;
@@ -23,6 +24,27 @@ export function SidebarFooter({
   const [fontSize, setFontSize] = useState<"sm" | "md" | "lg">(
     () => (localStorage.getItem("appFontSize") as "sm" | "md" | "lg") || "md",
   );
+  const [theme, setThemeState] = useState<"light" | "dark" | "system">(() => {
+    return (localStorage.getItem("themeMode") as "light" | "dark" | "system") || "system";
+  });
+
+  const setTheme = (t: "light" | "dark" | "system") => {
+    setThemeState(t);
+    localStorage.setItem("themeMode", t);
+    // Let Navbar catch this via storage or theme-change event
+    window.dispatchEvent(new Event("theme-change"));
+  };
+
+  useEffect(() => {
+    const handleThemeChange = () => {
+      const savedMode = localStorage.getItem("themeMode") as "light" | "dark" | "system" | null;
+      if (savedMode && savedMode !== theme) {
+        setThemeState(savedMode);
+      }
+    };
+    window.addEventListener("theme-change", handleThemeChange);
+    return () => window.removeEventListener("theme-change", handleThemeChange);
+  }, [theme]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -34,14 +56,14 @@ export function SidebarFooter({
   }, [fontSize]);
 
   return (
-    <div className="shrink-0 flex flex-col border-t border-(--border) bg-(--surface) p-3 gap-3 relative z-30">
+    <div className="shrink-0 flex flex-col border-t border-(--border) bg-(--surface) p-[12px] gap-[12px] relative z-30">
       {/* Toggle Docs/Visualizer */}
       {isAlgo && subTopic && (
         collapsed ? (
           <button
             onClick={() => handleViewChange(activeView === "docs" ? "visualizer" : "docs")}
             title={`Switch to ${activeView === "docs" ? 'Visualize' : 'Theory'}`}
-            className="flex items-center justify-center p-2 rounded-lg transition-all duration-300 mx-auto w-10 h-10 border border-(--border) bg-(--surface-2) text-(--muted) hover:text-(--accent) hover:border-(--accent)/50 hover:bg-(--accent)/10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
+            className="flex items-center justify-center p-[8px] rounded-lg transition-all duration-300 mx-auto w-[40px] h-[40px] border border-(--border) bg-(--surface-2) text-(--muted) hover:text-(--accent) hover:border-(--accent)/50 hover:bg-(--accent)/10 shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)]"
           >
             {activeView === "docs" ? <Code2 size={20} /> : <BookOpen size={20} />}
           </button>
@@ -77,6 +99,18 @@ export function SidebarFooter({
       <AnimatePresence>
         {showSettings && (
           <motion.div
+            key="settings-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40"
+            onClick={() => setShowSettings(false)}
+          />
+        )}
+        {showSettings && (
+          <motion.div
+            key="settings-popover"
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -87,7 +121,7 @@ export function SidebarFooter({
             style={{ minWidth: collapsed ? "200px" : "auto" }}
           >
             <div className="flex items-center justify-between p-3 border-b border-(--border) bg-(--surface-2)">
-              <span className="text-[13px]] font-bold text-(--text)">
+              <span className="text-[13px] font-bold text-(--text)">
                 Preferences
               </span>
               <button
@@ -99,6 +133,42 @@ export function SidebarFooter({
               </button>
             </div>
             <div className="p-4 flex flex-col gap-4">
+              
+              {/* Appearance */}
+              <div className="flex flex-col gap-2">
+                <span className="text-[11px] font-bold text-(--muted) uppercase tracking-wider">
+                  Appearance
+                </span>
+                <div className="flex bg-(--surface-2) p-1 rounded-lg border border-(--border)">
+                  {(["light", "dark", "system"] as const).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setTheme(t)}
+                      className={cn(
+                        "flex flex-1 justify-center items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium transition-colors capitalize",
+                        theme === t
+                          ? "bg-(--surface) text-(--accent) shadow-sm border border-(--border)"
+                          : "text-(--muted) hover:text-(--text) border border-transparent"
+                      )}
+                    >
+                      <ThemeIcon theme={t} size={14} />
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Color Palette */}
+              <div className="flex flex-col gap-2">
+                <span className="text-[11px] font-bold text-(--muted) uppercase tracking-wider">
+                  Color Palette
+                </span>
+                <div className="pt-2">
+                  <ThemeSelector />
+                </div>
+              </div>
+
+              {/* Font Size */}
               <div className="flex flex-col gap-2">
                 <span className="text-[11px] font-bold text-(--muted) uppercase tracking-wider">
                   Font Size
@@ -139,14 +209,7 @@ export function SidebarFooter({
                   </button>
                 </div>
               </div>
-              <div className="flex flex-col gap-2">
-                <span className="text-[11px] font-bold text-(--muted) uppercase tracking-wider">
-                  Theme
-                </span>
-                <div className="pt-2">
-                  <ThemeSelector />
-                </div>
-              </div>
+
             </div>
           </motion.div>
         )}
@@ -155,20 +218,19 @@ export function SidebarFooter({
       {/* Footer Bar */}
       <div
         className={cn(
-          `flex items-center justify-between ${collapsed ? "flex-col gap-3 justify-center" : ""}`,
+          `flex items-center justify-between ${collapsed ? "flex-col gap-[12px] justify-center" : ""}`,
         )}
       >
         <button
           aria-label="Settings"
           onClick={() => setShowSettings(!showSettings)}
           className={cn(
-            `flex items-center justify-center p-2 rounded-md transition-colors ${showSettings ? "bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] text-(--accent) shadow-sm" : "text-(--muted) hover:text-(--text) hover:bg-(--surface-2)"}`,
+            `flex items-center justify-center p-[8px] w-[32px] h-[32px] rounded-md transition-colors ${showSettings ? "bg-[color-mix(in_srgb,var(--accent)_15%,transparent)] text-(--accent) shadow-sm" : "text-(--muted) hover:text-(--text) hover:bg-(--surface-2)"}`,
           )}
           title="Settings"
         >
           <Settings size={16} aria-hidden="true" />
         </button>
-
         {!collapsed && (
           <div className="text-[10px] font-medium text-(--muted) px-1 truncate">
             Crafted with passion by <span className="text-(--text) font-bold">Koushik</span>
