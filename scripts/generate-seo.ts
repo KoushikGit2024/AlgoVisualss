@@ -67,7 +67,7 @@ function main() {
   fs.writeFileSync(sitemapPath, generateSitemap(), 'utf-8');
   fs.writeFileSync(robotsPath, generateRobots(), 'utf-8');
 
-  console.log('✅ Generated sitemap.xml and robots.txt successfully.');
+  console.log('Generated sitemap.xml and robots.txt successfully.');
 }
 
 main();

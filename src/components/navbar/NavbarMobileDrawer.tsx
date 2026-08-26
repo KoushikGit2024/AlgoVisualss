@@ -3,8 +3,6 @@ import type { Variants } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import { cn } from "../../lib/utils";
-import ThemeSelector from "../ThemeSelector";
-import { useState, useEffect } from "react";
 
 const navItems = [
   { name: "Algorithms", href: "/algorithms" },
